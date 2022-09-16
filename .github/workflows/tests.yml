@@ -1,0 +1,52 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_call:
+
+jobs:
+  checks:
+    uses: ./.github/workflows/checks.yml
+  tests:
+    name: Running tests
+    runs-on: ubuntu-latest
+    needs: [checks]
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Setting up Python 3.9.13
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9.13
+
+      - name: Setting up PDM
+        uses: pdm-project/setup-pdm@v2.7
+        with:
+          python-version: 3.9.13
+          architecture: x64
+          prerelease: true
+          enable-pep582: true
+
+      - name: Caching PDM __pypackages__
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: __pypackages__
+          key: pdm-${{ hashFiles('**/pdm.lock') }}
+          restore-keys: |
+            pdm-${{ hashFiles('**/pdm.lock') }}
+
+      - name: Installing dependencies
+        run: pdm install
+
+      - name: Unit testing using pytest
+        run: pdm run pytest --cov=powerfactory_utils tests/ -n 2

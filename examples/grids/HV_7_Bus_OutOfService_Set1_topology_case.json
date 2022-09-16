@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "name": "HV_7_Bus",
+    "date": "2022-07-26",
+    "id": "917a931f-a8ab-487a-a700-307ed22cf2e5",
+    "project": "PowerFactory-Utils"
+  },
+  "elements": [
+    {
+      "name": "Node_7/IS1.2",
+      "node": "Node_7/BB1",
+      "active": false
+    },
+    {
+      "name": "PV-System",
+      "node": "Node_4",
+      "active": false
+    },
+    {
+      "name": "Line_34",
+      "node": "Node_4",
+      "active": false
+    },
+    {
+      "name": "Line_56",
+      "node": "Node_6_MV",
+      "active": false
+    },
+    {
+      "name": "Line_23",
+      "node": "Node_2",
+      "active": false
+    },
+    {
+      "name": "Node_7/ISField_2.3",
+      "node": "Node_7/TField_2.2",
+      "active": false
+    },
+    {
+      "name": "Node_7/IS1.2",
+      "node": "Node_7/T1.2",
+      "active": false
+    },
+    {
+      "name": "Line_23",
+      "node": "Node_3",
+      "active": false
+    },
+    {
+      "name": "Node_7/ISField_2.3",
+      "node": "Node_7/BB2",
+      "active": false
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+    "python.linting.flake8Path": ".venv/Scripts/pflake8",
+    "python.formatting.blackPath": ".venv/Scripts/black",
+    "python.formatting.provider": "black",
+    "python.linting.mypyPath": ".venv/Scripts/mypy",
+    "python.linting.mypyEnabled": true
+}

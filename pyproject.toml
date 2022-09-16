@@ -1,0 +1,128 @@
+[project]
+authors = [
+  {name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de"},
+  {name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de"},
+  {name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de"},
+]
+dependencies = ["pydantic", "loguru"]
+description = "A toolbox for Python based control of DIgSILENT PowerFactory"
+license = {file = "LICENSE"}
+name = "powerfactory-utils"
+requires-python = ">=3.9,<3.10"
+version = "0.0.1"
+
+[project.urls]
+homepage = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
+
+[project.optional-dependencies]
+
+[build-system]
+build-backend = "pdm.pep517.api"
+requires = ["pdm-pep517"]
+
+[tool]
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+deployment = ["commitizen"]
+flake8-plugins = [
+  "pyflakes",
+  "pycodestyle",
+  "flake8-type-checking",
+  "flake8-bugbear",
+  "flake8-bandit",
+  "flake8-docstrings",
+  "flake8-isort",
+  "flake8-absolute-import",
+  "flake8-use-fstring",
+  "flake8-comprehensions",
+  "flake8-mutable",
+  "flake8-annotations-complexity",
+  "flake8-annotations-coverage",
+  "flake8-annotations",
+  "flake8-alfred",
+  "flake8-pyi",
+]
+linter = ["flake518", "black", "isort", "mypy"]
+prototype = ["ipykernel"]
+test = ["pytest", "pytest-cov", "pytest-xdist"]
+
+[tool.flake8]
+docstring-convention = "pep257"
+exclude = [".tox", "build", "tests", "__pypackages__"]
+ignore = [
+  "ANN002",
+  "ANN003",
+  "ANN101",
+  "ANN102",
+  "C901",
+  "D100",
+  "D101",
+  "D102",
+  "D103",
+  "D104",
+  "D105",
+  "D106",
+  "D107",
+  "D202",
+  "D203",
+  "D401",
+  "E203",
+  "E402",
+  "E501",
+  "W503",
+]
+inline-quotes = "double"
+max-complexity = 12
+max-line-length = 120
+type-checking-pydantic-enabled = "true"
+
+[tool.black]
+line_length = 120
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version = "0.0.1"
+version_files = [
+  "pyproject.toml:version",
+]
+
+[tool.isort]
+combine_as_imports = true
+force_grid_wrap = 0
+force_single_line = true
+include_trailing_comma = true
+known_first_party = "tests"
+line_length = 120
+multi_line_output = 3
+skip = [".tox", "build", "__pypackages__"]
+
+[tool.mypy]
+follow_imports = "skip"
+ignore_missing_imports = true
+mypy_path = "powerfactory_utils"
+namespace_packages = true
+plugins = "pydantic.mypy"
+strict_optional = true
+warn_no_return = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-markers -p pytester --cov=powerfactory_utils --cov-report xml --cov-report term"
+python_files = "test_*.py"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+branch = true
+omit = ["tests/*", "build/*", "__pypackages__/*"]
+source = ["powerfactory_utils"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.pyright]
+exclude = ["**/__pycache__"]

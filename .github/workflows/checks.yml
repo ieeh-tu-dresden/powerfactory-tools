@@ -1,0 +1,56 @@
+name: checks
+
+on:
+  workflow_call:
+
+jobs:
+  checks:
+    name: Running checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checking out repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Setting up Python 3.9.13
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9.13
+
+      - name: Setting up PDM
+        uses: pdm-project/setup-pdm@v2.7
+        with:
+          python-version: 3.9.13
+          architecture: x64
+          prerelease: true
+          enable-pep582: true
+
+      - name: Caching PDM __pypackages__
+        uses: actions/cache@v3
+        id: cache
+        with:
+          path: __pypackages__
+          key: pdm-${{ hashFiles('**/pdm.lock') }}
+          restore-keys: |
+            pdm-${{ hashFiles('**/pdm.lock') }}
+
+      - name: Installing dependencies
+        run: pdm install
+
+      - name: Import checking using isort
+        run: pdm run isort --check-only --diff powerfactory_utils tests
+        continue-on-error: true
+
+      - name: Code format checking using black
+        run: pdm run black powerfactory_utils --check
+        continue-on-error: true
+
+      - name: Code checking using flake8
+        run: pdm run flake518 powerfactory_utils
+        continue-on-error: true
+
+      - name: Type checking using mypy
+        run: pdm run mypy powerfactory_utils
+        continue-on-error: true
