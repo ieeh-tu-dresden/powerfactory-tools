@@ -41,7 +41,7 @@ jobs:
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@0.14.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.ACCESS_TOKEN }}
           changelog_increment_filename: body.md
 
       - name: "Restore 'include administrators' default branch protection"
