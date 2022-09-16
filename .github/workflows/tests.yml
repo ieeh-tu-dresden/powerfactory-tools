@@ -13,22 +13,22 @@ jobs:
   checks:
     uses: ./.github/workflows/checks.yml
   tests:
-    name: Running tests
+    name: Run tests
     runs-on: ubuntu-latest
     needs: [checks]
 
     steps:
-      - name: Checking out repository
+      - name: Check out repository
         uses: actions/checkout@v3
         with:
           fetch-depth: 1
 
-      - name: Setting up Python 3.9.13
+      - name: Set up Python 3.9.13
         uses: actions/setup-python@v3
         with:
           python-version: 3.9.13
 
-      - name: Setting up PDM
+      - name: Set up PDM
         uses: pdm-project/setup-pdm@v2.7
         with:
           python-version: 3.9.13
@@ -36,7 +36,7 @@ jobs:
           prerelease: true
           enable-pep582: true
 
-      - name: Caching PDM __pypackages__
+      - name: Cache PDM __pypackages__
         uses: actions/cache@v3
         id: cache
         with:
@@ -45,8 +45,8 @@ jobs:
           restore-keys: |
             pdm-${{ hashFiles('**/pdm.lock') }}
 
-      - name: Installing dependencies
+      - name: Install dependencies
         run: pdm install
 
-      - name: Unit testing using pytest
+      - name: Unit test using pytest
         run: pdm run pytest --cov=powerfactory_utils tests/ -n 2
