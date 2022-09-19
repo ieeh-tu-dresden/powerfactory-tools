@@ -14,7 +14,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v3
         with:
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ secrets.ACCESS_TOKEN }}"
           fetch-depth: 0
 
       - name: Set up Python 3.9.13
@@ -39,7 +39,7 @@ jobs:
           enforce_admins: false
 
       - name: Bump version and create changelog
-        uses: commitizen-tools/commitizen-action@0.14.1
+        uses: commitizen-tools/commitizen-action@master
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           changelog_increment_filename: body.md
@@ -69,5 +69,9 @@ jobs:
         with:
           body_path: "body.md"
           tag_name: ${{ env.REVISION }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            LICENSE
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
