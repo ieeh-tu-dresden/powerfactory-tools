@@ -85,6 +85,7 @@ tag_format = "$version"
 version = "1.0.0"
 version_files = [
   "pyproject.toml:version",
+  ".zenodo.json:version",
 ]
 
 [tool.isort]

@@ -38,6 +38,31 @@ jobs:
           branch: ${{ github.event.repository.default_branch }}
           enforce_admins: false
 
+      - name: Find new version
+        id: cz
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          push: false
+          commit: false
+          changelog: false
+
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          token: "${{ secrets.PERSONAL_ACCESS_TOKEN }}"
+          fetch-depth: 0
+
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      - name: Update .zenodo.json date
+        run: echo "`jq '.publication_date="${{ steps.date.outputs.date }}"' .zenodo.json`" > .zenodo.json
+
+      - name: Update .zenodo.json url
+        run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
+
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@master
         with:
