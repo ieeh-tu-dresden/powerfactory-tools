@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Literal
 from typing import Optional
 from typing import Protocol
+from typing import Sequence
 from typing import Union
 
 ModeInpLoad = Literal["DEF", "PQ", "PC", "IC", "SC", "QC", "IP", "SP", "SQ"]
@@ -351,10 +352,25 @@ class PVSystem(GeneratorBase, Protocol):
 
 class LoadBase(Element, Protocol):
     slini: float
+    slinir: float
+    slinis: float
+    slinit: float
     plini: float
+    plinir: float
+    plinis: float
+    plinit: float
     qlini: float
+    qlinir: float
+    qlinis: float
+    qlinit: float
     ilini: float
+    ilinir: float
+    ilinis: float
+    ilinit: float
     coslini: float
+    coslinir: float
+    coslinis: float
+    coslinit: float
     outserv: bool
     typ_id: Optional[LoadType]
 
@@ -365,21 +381,44 @@ class Load(LoadBase, Protocol):
     u0: float
 
 
-class LoadLV(LoadBase, Protocol):
+class LoadLVP(DataObject, Protocol):
     iopt_inp: IOptInp  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
-    i_sym: bool  # 0:symmetrical; 1:asymmetrical
+    elini: float
+    cplinia: float
+    slini: float
+    plini: float
+    qlini: float
+    ilini: float
+    coslini: float
     ulini: float
     elini: float
     pnight: float
+    cSav: float
+    ccosphi: float
+
+
+class LoadLV(LoadBase, LoadLVP, Protocol):
+    i_sym: bool  # 0:symmetrical; 1:asymmetrical
+    lodparts: Sequence[LoadLVP]
 
 
 class LoadMV(LoadBase, Protocol):
     mode_inp: ModeInpMV
     ci_sym: bool  # 0:symmetrical; 1:asymmetrical
     elini: float
+    cplinia: float
     sgini: float
+    sginir: float
+    sginis: float
+    sginit: float
     pgini: float
+    pginir: float
+    pginis: float
+    pginit: float
     cosgini: float
+    cosginir: float
+    cosginis: float
+    cosginit: float
     gscale: float
     pfg_recap: PFRecap  # 0:over excited; 1:under excited
 

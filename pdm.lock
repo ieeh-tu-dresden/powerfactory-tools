@@ -160,6 +160,16 @@ version = "0.8.3"
 summary = "Get the currently executing AST node of a frame, and other information"
 
 [[package]]
+name = "flake518"
+version = "1.3.0"
+requires_python = ">=3.9, <4"
+summary = "A small wrapper around flake8 to support PEP518 pyproject.toml as configuration file."
+dependencies = [
+    "flake8>=3.0.0",
+    "toml>=0.10.2",
+]
+
+[[package]]
 name = "flake8"
 version = "4.0.1"
 requires_python = ">=3.6"
@@ -603,15 +613,6 @@ requires_python = ">=3.6"
 summary = "Python parsing module"
 
 [[package]]
-name = "pyproject-flake8"
-version = "0.0.1a2"
-summary = "pyproject-flake8 (`pflake8`), a monkey patching wrapper to connect flake8 with pyproject.toml configuration "
-dependencies = [
-    "flake8",
-    "toml",
-]
-
-[[package]]
 name = "pytest"
 version = "7.1.0"
 requires_python = ">=3.7"
@@ -798,7 +799,7 @@ summary = "A small Python utility to set file creation time on Windows"
 
 [metadata]
 lock_version = "4.0"
-content_hash = "sha256:aee8c4ad4b46362489eb1cc9129408da6b755cf76f4be156895111427765fcb4"
+content_hash = "sha256:ad5788e61acb0beb5f3b82e885f5e628d5c14944ffaa310d0417aad4c46bddb9"
 
 [metadata.files]
 "appnope 0.1.2" = [
@@ -1007,6 +1008,10 @@ content_hash = "sha256:aee8c4ad4b46362489eb1cc9129408da6b755cf76f4be156895111427
 "executing 0.8.3" = [
     {url = "https://files.pythonhosted.org/packages/16/14/5a9b7b7725e85aa66f00a89f1e912ded203217016562747f8b8effcf52bc/executing-0.8.3.tar.gz", hash = "sha256:c6554e21c6b060590a6d3be4b82fb78f8f0194d809de5ea7df1c093763311501"},
     {url = "https://files.pythonhosted.org/packages/61/d8/ad89910dc1da01a24135cb3dce702c72a8172f7b8f896ac0c4c34bcaf323/executing-0.8.3-py2.py3-none-any.whl", hash = "sha256:d1eef132db1b83649a3905ca6dd8897f71ac6f8cac79a7e58a1a09cf137546c9"},
+]
+"flake518 1.3.0" = [
+    {url = "https://files.pythonhosted.org/packages/0a/ac/f84f9c0786908125a2a3a24eafd62646ce0b9af0c9d3e1c52d3180a30ec8/flake518-1.3.0.tar.gz", hash = "sha256:6e704fa08c37744676b5bdad17f61d4af693c8a8d413e403f21f977967885541"},
+    {url = "https://files.pythonhosted.org/packages/df/c3/bf829908fce3498279cb664649fd9be1c9df25377cd18137257601996927/flake518-1.3.0-py3-none-any.whl", hash = "sha256:26865ddd7593ee073dfe3b44d38048366d11bba3c4c1398cabfd5c1522d0c35e"},
 ]
 "flake8 4.0.1" = [
     {url = "https://files.pythonhosted.org/packages/34/39/cde2c8a227abb4f9ce62fe55586b920f438f1d2903a1a22514d0b982c333/flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},
@@ -1339,10 +1344,6 @@ content_hash = "sha256:aee8c4ad4b46362489eb1cc9129408da6b755cf76f4be156895111427
 "pyparsing 3.0.7" = [
     {url = "https://files.pythonhosted.org/packages/80/c1/23fd82ad3121656b585351aba6c19761926bb0db2ebed9e4ff09a43a3fcc/pyparsing-3.0.7-py3-none-any.whl", hash = "sha256:a6c06a88f252e6c322f65faf8f418b16213b51bdfaece0524c1c1bc30c63c484"},
     {url = "https://files.pythonhosted.org/packages/d6/60/9bed18f43275b34198eb9720d4c1238c68b3755620d20df0afd89424d32b/pyparsing-3.0.7.tar.gz", hash = "sha256:18ee9022775d270c55187733956460083db60b37d0d0fb357445f3094eed3eea"},
-]
-"pyproject-flake8 0.0.1a2" = [
-    {url = "https://files.pythonhosted.org/packages/3d/81/cf9b4a95c48f2ba89263e832daaf15627b6fe60e6db098f7ef0846459d97/pyproject_flake8-0.0.1a2-py2.py3-none-any.whl", hash = "sha256:e61ed1dc088e9f9f8a7170967ac4ec135acfef3a59ab9738c7b58cc11f294a7e"},
-    {url = "https://files.pythonhosted.org/packages/e4/78/f7cd641f1298b92e60b680831eab1a9e533477cca213fd1fc7c61fc3323d/pyproject-flake8-0.0.1a2.tar.gz", hash = "sha256:bdeca37f78ecd34bd64a49d3657d53d099f5445831071a31c46e1fe20cd61461"},
 ]
 "pytest 7.1.0" = [
     {url = "https://files.pythonhosted.org/packages/36/e6/dea2b8cd72cf0600f3c2572fb5a48b01aa8e8fd8703c830dab972036c34c/pytest-7.1.0-py3-none-any.whl", hash = "sha256:b555252a95bbb2a37a97b5ac2eb050c436f7989993565f5e0c9128fcaacadd0e"},

@@ -62,6 +62,12 @@ class ProducerPhaseConnectionType(Enum):
 PhaseConnectionType = Union[ConsumerPhaseConnectionType, ProducerPhaseConnectionType]
 
 
+class ConsumerSystemType(Enum):
+    FIXED = "FIXED"
+    NIGHT_STORAGE = "NIGHT_STORAGE"
+    VARIABLE = "VARIABLE"
+
+
 class RatedPower(Base):
     s_r: float  # rated power; base for p.u. calculation
     cosphi_r: Optional[float]  # rated cos(phi) in relation to rated power
@@ -76,7 +82,7 @@ class Load(Base):  # including assets of type load and generator
     active_power: ActivePower
     reactive_power: ReactivePower
     type: LoadType
-    system_type: Optional[ProducerSystemType] = None
+    system_type: Optional[Union[ConsumerSystemType, ProducerSystemType]] = None
     phase_connection_type: Optional[PhaseConnectionType] = None
     voltage_system_type: Optional[VoltageSystemType] = None
 
