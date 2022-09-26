@@ -5,11 +5,12 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from powerfactory_utils.schema.steadystate_case.active_power import ActivePower
-from powerfactory_utils.schema.steadystate_case.controller import Controller
 from powerfactory_utils.schema.steadystate_case.reactive_power import ReactivePower
 
 if TYPE_CHECKING:
     from typing import Optional
+
+    from powerfactory_utils.schema.steadystate_case.controller import Controller
 
 
 class Exponents:

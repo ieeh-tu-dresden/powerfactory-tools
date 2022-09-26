@@ -2021,8 +2021,6 @@ class PowerfactoryExporter:
 
             power = LoadPower.from_pq_sym(p=gen.pgini_a, q=gen.qgini_a, scaling=gen.scale0_a)
 
-            # Actual Values of single unit
-            p = gen.pgini_a
             active_power = power.as_active_power_ssc()
 
             # External Controller

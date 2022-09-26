@@ -391,7 +391,6 @@ class LoadLVP(DataObject, Protocol):
     ilini: float
     coslini: float
     ulini: float
-    elini: float
     pnight: float
     cSav: float
     ccosphi: float
