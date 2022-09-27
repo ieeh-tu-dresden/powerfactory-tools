@@ -310,7 +310,6 @@ class Element(DataObject, Protocol):
     pf_recap: PFRecap  # 0:over excited; 1:under excited
     bus1: Optional[StationCubicle]
     scale0: float
-    c_pmod: Optional[CompoundModel]  # Compound Parent Model/Template
 
 
 class GeneratorBase(Element, Protocol):
@@ -338,6 +337,7 @@ class GeneratorBase(Element, Protocol):
     pf_recap_a: PFRecap  # 0:over excited; 1:under excited
     scale0_a: float
     c_pstac: Optional[StationController]
+    c_pmod: Optional[CompoundModel]  # Compound Parent Model/Template
 
 
 class Generator(GeneratorBase, Protocol):

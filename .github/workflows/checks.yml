@@ -41,16 +41,12 @@ jobs:
 
       - name: Import checking using isort
         run: pdm run isort --check-only --diff powerfactory_utils tests
-        continue-on-error: true
 
       - name: Code format checking using black
         run: pdm run black powerfactory_utils --check
-        continue-on-error: true
 
       - name: Code checking using flake8
         run: pdm run flake518 powerfactory_utils
-        continue-on-error: true
 
       - name: Type checking using mypy
         run: pdm run mypy powerfactory_utils
-        continue-on-error: true

@@ -11,7 +11,6 @@ from loguru import logger
 
 from powerfactory_utils.exporter.load_power import Exponents
 from powerfactory_utils.exporter.load_power import LoadPower
-from powerfactory_utils.interface import PATH_SEP
 from powerfactory_utils.interface import PowerfactoryInterface
 from powerfactory_utils.schema.base import Meta
 from powerfactory_utils.schema.base import VoltageSystemType
@@ -33,7 +32,6 @@ from powerfactory_utils.schema.topology.load import Load
 from powerfactory_utils.schema.topology.load import LoadType
 from powerfactory_utils.schema.topology.load import ProducerPhaseConnectionType
 from powerfactory_utils.schema.topology.load import ProducerSystemType
-from powerfactory_utils.schema.topology.load import RatedPower
 from powerfactory_utils.schema.topology.load_model import LoadModel
 from powerfactory_utils.schema.topology.node import Node
 from powerfactory_utils.schema.topology.reactive_power import ReactivePower
@@ -62,6 +60,9 @@ POWERFACTORY_VERSION = "2021 SP5"
 COSPHI_DECIMAL_DIGITS = 6
 VOLTAGE_DECIMAL_DIGITS = 3
 PU_DECIMAL_DIGITS = 4
+
+LV_TO_BASE_POW = Exponents.LV_POWER / Exponents.POWER
+LV_TO_BASE_CURR = Exponents.LV_CURRENT / Exponents.CURRENT
 
 
 @dataclass
@@ -630,10 +631,10 @@ class PowerfactoryExporter:
 
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
-        mv_loads = self.create_loads_mv(consumers_mv, grid_name)
+        load_mvs = self.create_loads_mv(consumers_mv, grid_name)
         gen_producers = self.create_producers_normal(generators, grid_name)
         pv_producers = self.create_producers_pv(pv_systems, grid_name)
-        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_loads, gen_producers, pv_producers)
+        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
 
     def create_consumers_normal(self, loads: Sequence[pft.Load], grid_name: str) -> Sequence[Load]:
         consumers: list[Load] = []
@@ -648,32 +649,61 @@ class PowerfactoryExporter:
     def create_consumers_lv(self, loads: Sequence[pft.LoadLV], grid_name: str) -> Sequence[Load]:
         consumers: list[Load] = []
         for load in loads:
-            power = self.calc_lv_load_power(load)
-            consumer = self.create_consumer(
-                load, power.fixed, grid_name, system_type=ConsumerSystemType.FIXED, name_suffix="_FIXED"
-            )
-            if consumer is not None:
-                consumers.append(consumer)
-            consumer = self.create_consumer(
-                load, power.night, grid_name, system_type=ConsumerSystemType.NIGHT_STORAGE, name_suffix="_NIGHT_STORAGE"
-            )
-            if consumer is not None:
-                consumers.append(consumer)
-            consumer = self.create_consumer(
-                load, power.variable, grid_name, system_type=ConsumerSystemType.VARIABLE, name_suffix="_VARIABLE"
-            )
-            if consumer is not None:
-                consumers.append(consumer)
+            powers = self.calc_load_lv_powers(load)
+            if len(powers) == 1:
+                sfx_pre = ""
+            else:
+                sfx_pre = " ({})"
+            for i, p in enumerate(powers):
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.fixed,
+                        grid_name,
+                        system_type=ConsumerSystemType.FIXED,
+                        name_suffix=sfx_pre.format(i) + "_FIXED",
+                    )
+                    if p.fixed.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers.append(consumer)
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.night,
+                        grid_name,
+                        system_type=ConsumerSystemType.NIGHT_STORAGE,
+                        name_suffix=sfx_pre.format(i) + "_NIGHT_STORAGE",
+                    )
+                    if p.night.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers.append(consumer)
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.variable,
+                        grid_name,
+                        system_type=ConsumerSystemType.VARIABLE,
+                        name_suffix=sfx_pre.format(i) + "_VARIABLE",
+                    )
+                    if p.variable.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers.append(consumer)
         return consumers
 
     def create_loads_mv(self, loads: Sequence[pft.LoadMV], grid_name: str) -> Sequence[Load]:
         _loads: list[Load] = []
         for load in loads:
-            power = self.calc_mv_load_power(load)
+            power = self.calc_load_mv_power(load)
             consumer = self.create_consumer(load=load, power=power.consumer, grid_name=grid_name)
             if consumer is not None:
                 _loads.append(consumer)
-            producer = self.create_producer(gen=load, power=power.producer, grid_name=grid_name)
+            producer = self.create_producer(gen=load, power=power.producer, gen_name=load.loc_name, grid_name=grid_name)
             if producer is not None:
                 _loads.append(producer)
         return _loads
@@ -790,23 +820,36 @@ class PowerfactoryExporter:
             return None
         return power
 
-    def calc_lv_load_powers(self, load: pft.LoadLV) -> Sequence[LoadLV]:
-        subloads = load.lodparts
+    def calc_load_lv_powers(self, load: pft.LoadLV) -> Sequence[LoadLV]:
+        subloads = self.pfi.subloads_of(load)
         if not subloads:
-            return [self.calc_lv_load_power(load)]
-        return [self.calc_lv_load_power_sym(sl) for sl in subloads]
+            return [self.calc_load_lv_power(load)]
+        return [self.calc_load_lv_power_sym(sl) for sl in subloads]
 
-    def calc_lv_load_power_fixed_sym(self, load: Union[pft.LoadLV, pft.LoadLVP], scaling: float) -> LoadPower:
+    def calc_load_lv_power_fixed_sym(self, load: Union[pft.LoadLV, pft.LoadLVP], scaling: float) -> LoadPower:
         load_type = load.iopt_inp
         if load_type == 0:
-            power_fixed = LoadPower.from_sc_sym(s=load.slini, cosphi=load.coslini, scaling=scaling)
+            power_fixed = LoadPower.from_sc_sym(
+                s=load.slini * LV_TO_BASE_POW,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
         elif load_type == 1:
-            power_fixed = LoadPower.from_pc_sym(p=load.plini, cosphi=load.coslini, scaling=scaling)
+            power_fixed = LoadPower.from_pc_sym(
+                p=load.plini * LV_TO_BASE_POW,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
         elif load_type == 2:
-            power_fixed = LoadPower.from_ic_sym(u=load.ulini, i=load.ilini, cosphi=load.coslini, scaling=scaling)
+            power_fixed = LoadPower.from_ic_sym(
+                u=load.ulini,
+                i=load.ilini * LV_TO_BASE_CURR,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
         elif load_type == 3:
             power_fixed = LoadPower.from_pc_sym(
-                p=load.cplinia,
+                p=load.cplinia * LV_TO_BASE_POW,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
@@ -814,23 +857,31 @@ class PowerfactoryExporter:
             raise RuntimeError("Unreachable")
         return power_fixed
 
-    def calc_lv_load_power_sym(self, load: pft.LoadLVP) -> LoadLV:
-        power_fixed = self.calc_lv_load_power_fixed_sym(load, scaling=1)
-        power_night = LoadPower.from_pq_sym(p=load.pnight, q=0, scaling=1)
-        power_variable = LoadPower.from_pc_sym(p=load.cSav, cosphi=load.ccosphi, scaling=1)
+    def calc_load_lv_power_sym(self, load: pft.LoadLVP) -> LoadLV:
+        power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
+        power_night = LoadPower.from_pq_sym(
+            p=load.pnight * LV_TO_BASE_POW,
+            q=0,
+            scaling=1,
+        )
+        power_variable = LoadPower.from_pc_sym(
+            p=load.cSav * LV_TO_BASE_POW,
+            cosphi=load.ccosphi,
+            scaling=1,
+        )
         return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
 
-    def calc_lv_load_power(self, load: pft.LoadLV) -> LoadLV:
+    def calc_load_lv_power(self, load: pft.LoadLV) -> LoadLV:
         load_type = load.iopt_inp
         scaling = load.scale0
         if not load.i_sym:
-            power_fixed = self.calc_lv_load_power_fixed_sym(load, scaling)
+            power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
         else:
             if load_type == 0:
                 power_fixed = LoadPower.from_sc_asym(
-                    s_r=load.slinir,
-                    s_s=load.slinis,
-                    s_t=load.slinit,
+                    s_r=load.slinir * LV_TO_BASE_POW,
+                    s_s=load.slinis * LV_TO_BASE_POW,
+                    s_t=load.slinit * LV_TO_BASE_POW,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -838,9 +889,9 @@ class PowerfactoryExporter:
                 )
             elif load_type == 1:
                 power_fixed = LoadPower.from_pc_asym(
-                    p_r=load.plinir,
-                    p_s=load.plinis,
-                    p_t=load.plinit,
+                    p_r=load.plinir * LV_TO_BASE_POW,
+                    p_s=load.plinis * LV_TO_BASE_POW,
+                    p_t=load.plinit * LV_TO_BASE_POW,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -849,9 +900,9 @@ class PowerfactoryExporter:
             elif load_type == 2:
                 power_fixed = LoadPower.from_ic_asym(
                     u=load.ulini,
-                    i_r=load.ilinir,
-                    i_s=load.ilinis,
-                    i_t=load.ilinit,
+                    i_r=load.ilinir * LV_TO_BASE_CURR,
+                    i_s=load.ilinis * LV_TO_BASE_CURR,
+                    i_t=load.ilinit * LV_TO_BASE_CURR,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -859,11 +910,19 @@ class PowerfactoryExporter:
                 )
             else:
                 raise RuntimeError("Unreachable")
-        power_night = LoadPower.from_pq_sym(p=load.pnight, q=0, scaling=1)
-        power_variable = LoadPower.from_pc_sym(p=load.cSav, cosphi=load.ccosphi, scaling=1)
+        power_night = LoadPower.from_pq_sym(
+            p=load.pnight * LV_TO_BASE_POW,
+            q=0,
+            scaling=1,
+        )
+        power_variable = LoadPower.from_pc_sym(
+            p=load.cSav * LV_TO_BASE_POW,
+            cosphi=load.ccosphi,
+            scaling=1,
+        )
         return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
 
-    def calc_mv_load_power(self, load: pft.LoadMV) -> LoadMV:
+    def calc_load_mv_power(self, load: pft.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale
@@ -1090,7 +1149,7 @@ class PowerfactoryExporter:
 
         u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE  # voltage in V
 
-        rated_power = RatedPower(s_r=power.s, cosphi_r=None)
+        rated_power = power.as_rated_power()
         logger.debug(f"{load.loc_name}: there is no real rated, but s_r is calculated on basis of actual power.")
 
         load_model_p = self.load_model_of(load, specifier="p")
@@ -1099,7 +1158,7 @@ class PowerfactoryExporter:
         load_model_q = self.load_model_of(load, specifier="q")
         reactive_power = ReactivePower(load_model=load_model_q)
 
-        u_sys_type, ph_con = self.consumer_technology_of(load)
+        u_system_type, ph_con = self.consumer_technology_of(load)
 
         consumer = Load(
             name=l_name,
@@ -1111,7 +1170,7 @@ class PowerfactoryExporter:
             reactive_power=reactive_power,
             type=LoadType.CONSUMER,
             system_type=system_type,
-            voltage_system_type=u_sys_type,
+            voltage_system_type=u_system_type,
             phase_connection_type=ph_con,
         )
         logger.debug(f"Created consumer {consumer}.")
@@ -1120,6 +1179,7 @@ class PowerfactoryExporter:
     def create_producer(
         self,
         gen: Union[pft.GeneratorBase, pft.LoadMV],
+        gen_name: str,
         power: LoadPower,
         grid_name: str,
         producer_system_type: Optional[ProducerSystemType] = None,
@@ -1127,10 +1187,7 @@ class PowerfactoryExporter:
         external_controller_name: Optional[str] = None,
     ) -> Optional[Load]:
 
-        if gen.c_pmod is None:  # if generator is not part of higher model
-            gen_name = gen.loc_name
-        else:
-            gen_name = gen.c_pmod.loc_name + PATH_SEP + gen.loc_name
+        gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name)
 
         export, description = self.get_description(gen)
         if not export:
@@ -1148,10 +1205,7 @@ class PowerfactoryExporter:
         u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE
 
         # Rated Values of single unit
-        rated_power = RatedPower(
-            s_r=round(power.s),
-            cosphi_r=round(power.cosphi, COSPHI_DECIMAL_DIGITS),
-        )
+        rated_power = power.as_rated_power()
 
         reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
@@ -1180,8 +1234,7 @@ class PowerfactoryExporter:
         if ext_ctrl is None:
             return None
         else:
-            # if gen.c_pmod is not None then external controller is part of compound model
-            return ext_ctrl.loc_name if gen.c_pmod is None else gen.c_pmod.loc_name + PATH_SEP + ext_ctrl.loc_name
+            return self.pfi.create_gen_name(gen, generator_name=ext_ctrl.loc_name)
 
     def create_producers_normal(
         self,
@@ -1195,10 +1248,12 @@ class PowerfactoryExporter:
             producer_phase_connection_type = self.producer_technology_of(gen)
             external_controller_name = self.get_external_controller_name(gen)
             power = self.calc_normal_gen_power(gen)
+            gen_name = self.pfi.create_gen_name(gen)
             producer = self.create_producer(
-                gen,
-                power,
-                grid_name,
+                gen=gen,
+                power=power,
+                gen_name=gen_name,
+                grid_name=grid_name,
                 producer_system_type=producer_system_type,
                 producer_phase_connection_type=producer_phase_connection_type,
                 external_controller_name=external_controller_name,
@@ -1219,10 +1274,12 @@ class PowerfactoryExporter:
             producer_phase_connection_type = self.producer_technology_of(gen)
             external_controller_name = self.get_external_controller_name(gen)
             power = self.calc_normal_gen_power(gen)
+            gen_name = self.pfi.create_gen_name(gen)
             producer = self.create_producer(
-                gen,
-                power,
-                grid_name,
+                gen=gen,
+                power=power,
+                gen_name=gen_name,
+                grid_name=grid_name,
                 producer_system_type=producer_system_type,
                 producer_phase_connection_type=producer_phase_connection_type,
                 external_controller_name=external_controller_name,
@@ -1295,10 +1352,7 @@ class PowerfactoryExporter:
                 raise RuntimeError("Unreachable")
 
         else:
-            # if gen.c_pmod is not None then external controller is part of compound model
-            ext_ctrl_name = (
-                ext_ctrl.loc_name if gen.c_pmod is None else gen.c_pmod.loc_name + PATH_SEP + ext_ctrl.loc_name
-            )
+            ext_ctrl_name = self.pfi.create_gen_name(gen, generator_name=ext_ctrl.loc_name)
 
             ctrl_mode = ext_ctrl.i_ctrl
             if ctrl_mode == 0:  # voltage control mode
@@ -1933,15 +1987,35 @@ class PowerfactoryExporter:
 
         consumers_ssc: list[LoadSSC] = []
         for load in loads:
-            powers = self.calc_lv_load_powers(load)
-            for p in powers:
-                consumer = self.create_consumer_ssc_state(load, p.fixed, grid_name, name_suffix="_FIXED")
+            powers = self.calc_load_lv_powers(load)
+            if len(powers) == 1:
+                sfx_pre = ""
+            else:
+                sfx_pre = " ({})"
+            for i, p in enumerate(powers):
+                consumer = (
+                    self.create_consumer_ssc_state(load, p.fixed, grid_name, name_suffix=sfx_pre.format(i) + "_FIXED")
+                    if p.fixed.s_abs != 0
+                    else None
+                )
                 if consumer is not None:
                     consumers_ssc.append(consumer)
-                consumer = self.create_consumer_ssc_state(load, p.night, grid_name, name_suffix="_NIGHT_STORAGE")
+                consumer = (
+                    self.create_consumer_ssc_state(
+                        load, p.night, grid_name, name_suffix=sfx_pre.format(i) + "_NIGHT_STORAGE"
+                    )
+                    if p.night.s_abs != 0
+                    else None
+                )
                 if consumer is not None:
                     consumers_ssc.append(consumer)
-                consumer = self.create_consumer_ssc_state(load, p.variable, grid_name, name_suffix="_VARIABLE")
+                consumer = (
+                    self.create_consumer_ssc_state(
+                        load, p.variable, grid_name, name_suffix=sfx_pre.format(i) + "_VARIABLE"
+                    )
+                    if p.variable.s_abs != 0
+                    else None
+                )
                 if consumer is not None:
                     consumers_ssc.append(consumer)
         return consumers_ssc
@@ -1954,7 +2028,7 @@ class PowerfactoryExporter:
 
         loads_ssc: list[LoadSSC] = []
         for load in loads:
-            power = self.calc_mv_load_power(load)
+            power = self.calc_load_mv_power(load)
             consumer = self.create_consumer_ssc_state(load, power.consumer, grid_name)
             if consumer is not None:
                 loads_ssc.append(consumer)
@@ -2001,10 +2075,8 @@ class PowerfactoryExporter:
 
         producers_ssc: list[LoadSSC] = []
         for gen in generators:
-            if gen.c_pmod is None:  # if generator is not part of higher model
-                gen_name = gen.loc_name
-            else:
-                gen_name = gen.c_pmod.loc_name + PATH_SEP + gen.loc_name
+
+            gen_name = self.pfi.create_gen_name(gen)
 
             export, _ = self.get_description(gen)
             if not export:

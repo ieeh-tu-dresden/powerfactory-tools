@@ -1,20 +1,28 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+from pydantic import root_validator
+
 from powerfactory_utils.schema.base import Base
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class ActivePower(Base):
-    p_r: float  # actual active power (phase r)
-    p_s: float  # actual active power (phase s)
-    p_t: float  # actual active power (phase t)
-
-    @property
-    def p(self) -> float:
-        return self.p_r + self.p_s + self.p_t
-
-    @property
-    def symmetrical(self) -> bool:
-        return self.p_r == self.p_s == self.p_t
+    p_0: float  # actual active power (three-phase)
+    p_r_0: float  # actual active power (phase r)
+    p_s_0: float  # actual active power (phase s)
+    p_t_0: float  # actual active power (phase t)
+    symmetrical: bool
 
     class Config:
         frozen = True
+
+    @root_validator
+    def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
+        p_total = values["p_r_0"] + values["p_s_0"] + values["p_t_0"]
+        if not (p_total == values["p_0"]):
+            raise ValueError(f"Power mismatch: Total reactive power should be {p_total}, is {values['p_0']}.")
+        return values

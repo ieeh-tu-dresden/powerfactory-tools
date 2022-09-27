@@ -4,8 +4,11 @@ import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from loguru import logger
+
 from powerfactory_utils.schema.steadystate_case.active_power import ActivePower
 from powerfactory_utils.schema.steadystate_case.reactive_power import ReactivePower
+from powerfactory_utils.schema.topology.load import RatedPower
 
 if TYPE_CHECKING:
     from typing import Optional
@@ -16,11 +19,13 @@ if TYPE_CHECKING:
 class Exponents:
     VOLTAGE = 10**3
     CURRENT = 10**3
+    LV_CURRENT = 1
     RESISTANCE = 1
     REACTANCE = 1
     SUSCEPTANCE = 10**-6
     CONDUCTANCE = 10**-6
     POWER = 10**6
+    LV_POWER = 10**3
 
 
 @dataclass
@@ -43,6 +48,10 @@ class LoadPower:
         return self.s_r + self.s_s + self.s_t
 
     @property
+    def s_abs(self) -> float:
+        return abs(self.s_r) + abs(self.s_s) + abs(self.s_t)
+
+    @property
     def p(self) -> float:
         return self.p_r + self.p_s + self.p_t
 
@@ -52,7 +61,10 @@ class LoadPower:
 
     @property
     def cosphi(self) -> float:
-        return self.p / self.s
+        try:
+            return self.p / self.s
+        except ZeroDivisionError:
+            return 0
 
     @property
     def symmetrical(self) -> bool:
@@ -83,14 +95,21 @@ class LoadPower:
         p = p * scaling * Exponents.POWER
         q = q * scaling * Exponents.POWER
         s = math.sqrt(p**2 + q**2)
-        cosphi = p / s
+        try:
+            cosphi = p / s
+        except ZeroDivisionError:
+            cosphi = 0
         return s, p, q, cosphi
 
     @staticmethod
     def calc_pc(p: float, cosphi: float, scaling: float) -> tuple[float, float, float, float]:
         p = p * scaling * Exponents.POWER
         cosphi = cosphi
-        s = p / cosphi
+        try:
+            s = p / cosphi
+        except ZeroDivisionError:
+            logger.warning("`cosphi` is 0, but only active power is given. Actual state could not be determined.")
+            return 0, 0, 0, 0
         q = math.sqrt(s**2 - p**2)
         return s, p, q, cosphi
 
@@ -111,7 +130,11 @@ class LoadPower:
     @staticmethod
     def calc_qc(q: float, cosphi: float, scaling: float) -> tuple[float, float, float, float]:
         q = q * scaling * Exponents.POWER
-        s = q / math.sin(math.acos(cosphi))
+        try:
+            s = q / math.sin(math.acos(cosphi))
+        except ZeroDivisionError:
+            logger.warning("`cosphi` is 1, but only reactive power is given. Actual state could not be determined.")
+            return 0, 0, 0, 0
         p = s * cosphi
         return s, p, q, cosphi
 
@@ -119,7 +142,10 @@ class LoadPower:
     def calc_ip(u: float, i: float, p: float, scaling: float) -> tuple[float, float, float, float]:
         p = p * scaling * Exponents.POWER
         s = u * i * scaling * Exponents.POWER
-        cosphi = s / p
+        try:
+            cosphi = p / s
+        except ZeroDivisionError:
+            cosphi = 0
         q = math.sqrt(s**2 - p**2)
         return s, p, q, cosphi
 
@@ -136,7 +162,10 @@ class LoadPower:
         s = s * scaling * Exponents.POWER
         q = q * scaling * Exponents.POWER
         p = math.sqrt(s**2 - q**2)
-        cosphi = s / p
+        try:
+            cosphi = p / s
+        except ZeroDivisionError:
+            cosphi = 0
         return s, p, q, cosphi
 
     @classmethod
@@ -518,7 +547,26 @@ class LoadPower:
         )
 
     def as_active_power_ssc(self) -> ActivePower:
-        return ActivePower(p_r=self.p_r, p_s=self.p_s, p_t=self.p_t)
+        return ActivePower(p_0=self.p, p_r_0=self.p_r, p_s_0=self.p_s, p_t_0=self.p_t, symmetrical=self.symmetrical)
 
     def as_reactive_power_ssc(self, controller: Optional[Controller] = None) -> ReactivePower:
-        return ReactivePower(q_r=self.q_r, q_s=self.q_s, q_t=self.q_t, controller=controller)
+        return ReactivePower(
+            q_0=self.q,
+            q_r_0=self.q_r,
+            q_s_0=self.q_s,
+            q_t_0=self.q_t,
+            symmetrical=self.symmetrical,
+            controller=controller,
+        )
+
+    def as_rated_power(self) -> RatedPower:
+        return RatedPower(
+            s=self.s,
+            cosphi=self.cosphi,
+            s_r=self.s_r,
+            s_s=self.s_s,
+            s_t=self.s_t,
+            cosphi_r=self.cosphi_r,
+            cosphi_s=self.cosphi_s,
+            cosphi_t=self.cosphi_t,
+        )
