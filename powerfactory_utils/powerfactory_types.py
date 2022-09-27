@@ -129,6 +129,16 @@ class StudyCase(DataObject, Protocol):
 
 class ProjectSettings(DataObject, Protocol):
     extDataDir: DataDir
+    cspqexp: Literal["m", " ", "k", "M", "G"]
+
+
+class UnitConversionSetting(DataObject, Protocol):
+    digunit: str
+    cdigexp: str
+    userunit: str
+    cuserexp: str
+    ufacA: float
+    ufacB: float
 
 
 class DataDir(DataObject, Protocol):

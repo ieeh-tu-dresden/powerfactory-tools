@@ -1082,7 +1082,9 @@ class PowerfactoryExporter:
         producers: list[Load] = []
         for gen in generators:
             producer_system_type = ProducerSystemType.PV
-            producer = self.create_producer(gen, grid_name, producer_system_type=producer_system_type)
+            producer = self.create_producer(
+                gen, grid_name, producer_system_type=producer_system_type
+            )  # TODO: Default unit is kW -> here MW is assumed
             if producer is not None:
                 producers.append(producer)
         return producers

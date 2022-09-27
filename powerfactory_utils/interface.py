@@ -13,6 +13,7 @@ from powerfactory_utils import powerfactory_types as pft
 
 if TYPE_CHECKING:
     from typing import Iterable
+    from typing import Literal
     from typing import Optional
     from typing import TypeVar
 
@@ -22,6 +23,13 @@ POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 POWERFACTORY_VERSION = "2021 SP5"
 PYTHON_VERSION = "3.9"
 PATH_SEP = "/"
+
+
+@dataclass
+class UnitConversionSetting:
+    cuserexp: str
+    ufacA: float
+    ufacB: float
 
 
 @dataclass
@@ -37,6 +45,7 @@ class PowerfactoryInterface:
         self.app = self.connect_to_app(pf)
         self.project = self.connect_to_project(self.project_name)
         self.load_project_folders()
+        self.set_unit_conversion()
 
     def load_project_folders(self) -> None:
         self.grid_model = self.load_grid_model()
@@ -65,6 +74,10 @@ class PowerfactoryInterface:
                 pf = typing.cast(pft.PowerFactoryModule, pfm)
                 return pf
         raise RuntimeError("Could not load Powerfactory module.")
+
+    def close(self) -> bool:
+        self.reset_unit_conversion()
+        return True
 
     def connect_to_app(self, pf: pft.PowerFactoryModule) -> pft.Application:
         """Connect to PowerFactory Application.
@@ -166,6 +179,31 @@ class PowerfactoryInterface:
     def load_scenario_lib(self) -> pft.DataObject:
         return self.app.GetProjectFolder("scen")
 
+    def set_unit_conversion(self) -> None:
+        project_settings = self.project.pPrjSettings
+        if project_settings is not None:
+            self.app_cspqexp: Literal["m", " ", "k", "M", "G"] = project_settings.cspqexp
+            project_settings.cspqexp = "M"
+            self.app_user_unit_convs: dict[str, UnitConversionSetting] = {}
+            unit_conversions = self.unit_conversion_settings()
+            for uc in unit_conversions:
+                ucs = UnitConversionSetting(cuserexp=uc.cuserexp, ufacA=uc.ufacA, ufacB=uc.ufacB)
+                self.app_user_unit_convs[uc.loc_name + uc.digunit] = ucs
+                uc.cuserexp = uc.cdigexp
+        raise RuntimeError("Could not access project settings.")
+
+    def reset_unit_conversion(self) -> None:
+        project_settings = self.project.pPrjSettings
+        if project_settings is not None:
+            project_settings.cspqexp = self.app_cspqexp
+            unit_conversions = self.unit_conversion_settings()
+            for uc in unit_conversions:
+                ucs = self.app_user_unit_convs[uc.loc_name + uc.digunit]
+                uc.cuserexp = ucs.cuserexp
+                uc.ufacA = ucs.ufacA
+                uc.ufacB = ucs.ufacB
+        raise RuntimeError("Could not access project settings.")
+
     def element_of(
         self, element: pft.DataObject, filter: str = "*", recursive: bool = True
     ) -> Optional[pft.DataObject]:
@@ -179,6 +217,10 @@ class PowerfactoryInterface:
     def elements_of(self, element: pft.DataObject, filter: str = "*", recursive: bool = True) -> list[pft.DataObject]:
         elements = element.GetContents(filter, recursive)
         return elements
+
+    def unit_conversion_settings(self) -> list[pft.UnitConversionSetting]:
+        es = self.elements_of(self.project, filter="*.SetVariable")
+        return [typing.cast(pft.UnitConversionSetting, e) for e in es]
 
     def study_case(self, name: str = "*") -> Optional[pft.StudyCase]:
         e = self.element_of(self.study_case_lib, name)
