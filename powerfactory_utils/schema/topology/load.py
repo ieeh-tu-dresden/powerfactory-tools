@@ -74,9 +74,9 @@ class RatedPower(Base):
     s_s: float  # rated apparent power (phase s)
     s_t: float  # rated apparent power (phase t)
     cosphi: Optional[float]  # rated cos(phi) in relation to rated power
-    cosphi_r: float  # rated cos(phi) (phase r)
-    cosphi_s: float  # rated cos(phi) (phase s)
-    cosphi_t: float  # rated cos(phi) (phase t)
+    cosphi_r: Optional[float]  # rated cos(phi) (phase r)
+    cosphi_s: Optional[float]  # rated cos(phi) (phase s)
+    cosphi_t: Optional[float]  # rated cos(phi) (phase t)
 
 
 class Load(Base):  # including assets of type load and generator
