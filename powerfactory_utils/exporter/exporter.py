@@ -661,7 +661,7 @@ class PowerfactoryExporter:
                         p.fixed,
                         grid_name,
                         system_type=ConsumerSystemType.FIXED,
-                        name_suffix=sfx_pre.format(i) + "_FIXED",
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.FIXED.value,
                     )
                     if p.fixed.s_abs != 0
                     else None
@@ -674,7 +674,7 @@ class PowerfactoryExporter:
                         p.night,
                         grid_name,
                         system_type=ConsumerSystemType.NIGHT_STORAGE,
-                        name_suffix=sfx_pre.format(i) + "_NIGHT_STORAGE",
+                        name_suffix=sfx_pre.format(i) + "_" +  ConsumerSystemType.NIGHT_STORAGE.value,
                     )
                     if p.night.s_abs != 0
                     else None
@@ -687,7 +687,7 @@ class PowerfactoryExporter:
                         p.variable,
                         grid_name,
                         system_type=ConsumerSystemType.VARIABLE,
-                        name_suffix=sfx_pre.format(i) + "_VARIABLE",
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.VARIABLE.value,
                     )
                     if p.variable.s_abs != 0
                     else None
@@ -1150,7 +1150,7 @@ class PowerfactoryExporter:
         u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE  # voltage in V
 
         rated_power = power.as_rated_power()
-        logger.debug(f"{load.loc_name}: there is no real rated, but s_r is calculated on basis of actual power.")
+        logger.debug(f"{load.loc_name}: there is no real rated, but 's' is calculated on basis of actual power.")
 
         load_model_p = self.load_model_of(load, specifier="p")
         active_power = ActivePower(load_model=load_model_p)

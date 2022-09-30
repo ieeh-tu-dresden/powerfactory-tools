@@ -100,5 +100,5 @@ class Load(Base):  # including assets of type load and generator
                 raise ValueError(f"Rated `cos(phi)` must be within range [0 1], but is {cosphi}.")
 
         if v.s < 0:
-            raise ValueError("Rated power `s_r` must be positive. Use type instead.")
+            raise ValueError("Rated power `s` must be positive. Use type: LoadType instead.")
         return v

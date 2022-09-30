@@ -419,7 +419,7 @@ class PowerfactoryInterface:
             generator {pft.GeneratorBase} -- the generator object
 
         Keyword Arguments:
-            generator_name {Optional[str]} -- generator name if needed to specify independently (default: {None})
+            generator_name {Optional[str]} -- name of generator or generator related object (e.g. external controller) if needed to specify independently (default: {None})
 
         Returns:
             str -- the name of the generator obejct
