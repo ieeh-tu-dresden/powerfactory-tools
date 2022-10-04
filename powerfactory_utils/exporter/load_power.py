@@ -382,6 +382,7 @@ class LoadPower:
         cosphi_t: float,
         scaling: float,
     ) -> LoadPower:
+         u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
         s_r, p_r, q_r, cosphi_r = cls.calc_ic(u, i_r, cosphi_r, scaling)
         s_s, p_s, q_s, cosphi_s = cls.calc_ic(u, i_s, cosphi_s, scaling)
         s_t, p_t, q_t, cosphi_t = cls.calc_ic(u, i_t, cosphi_t, scaling)
@@ -470,6 +471,7 @@ class LoadPower:
         p_t: float,
         scaling: float,
     ) -> LoadPower:
+         u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
         s_r, p_r, q_r, cosphi_r = cls.calc_ip(u, i_r, p_r, scaling)
         s_s, p_s, q_s, cosphi_s = cls.calc_ip(u, i_s, p_s, scaling)
         s_t, p_t, q_t, cosphi_t = cls.calc_ip(u, i_t, p_t, scaling)

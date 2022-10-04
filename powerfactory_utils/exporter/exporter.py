@@ -653,7 +653,7 @@ class PowerfactoryExporter:
             if len(powers) == 1:
                 sfx_pre = ""
             else:
-                sfx_pre = " ({})"
+                sfx_pre = "_({})"
             for i, p in enumerate(powers):
                 consumer = (
                     self.create_consumer(
@@ -864,8 +864,8 @@ class PowerfactoryExporter:
             q=0,
             scaling=1,
         )
-        power_variable = LoadPower.from_pc_sym(
-            p=load.cSav * LV_TO_BASE_POW,
+        power_variable = LoadPower.from_sc_sym(
+            s=load.cSav * LV_TO_BASE_POW,
             cosphi=load.ccosphi,
             scaling=1,
         )
@@ -915,8 +915,8 @@ class PowerfactoryExporter:
             q=0,
             scaling=1,
         )
-        power_variable = LoadPower.from_pc_sym(
-            p=load.cSav * LV_TO_BASE_POW,
+        power_variable = LoadPower.from_sc_sym(
+            s=load.cSav * LV_TO_BASE_POW,
             cosphi=load.ccosphi,
             scaling=1,
         )
@@ -981,7 +981,7 @@ class PowerfactoryExporter:
                     cosphi_r=load.cosginir,
                     cosphi_s=load.cosginis,
                     cosphi_t=load.cosginit,
-                    scaling=scaling_cons,
+                    scaling=scaling_prod,
                 )
             elif load_type == "SC":
                 power_consumer = LoadPower.from_sc_asym(
@@ -1000,7 +1000,7 @@ class PowerfactoryExporter:
                     cosphi_r=load.cosginir,
                     cosphi_s=load.cosginis,
                     cosphi_t=load.cosginit,
-                    scaling=scaling_cons,
+                    scaling=scaling_prod,
                 )
             else:
                 raise RuntimeError("Unreachable.")
