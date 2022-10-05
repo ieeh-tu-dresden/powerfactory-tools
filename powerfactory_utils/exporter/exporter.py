@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from powerfactory_utils.exporter.load_power import Exponents
+from powerfactory_utils.constants import DecimalDigits
+from powerfactory_utils.constants import Exponents
 from powerfactory_utils.exporter.load_power import LoadPower
 from powerfactory_utils.interface import PowerfactoryInterface
 from powerfactory_utils.schema.base import Meta
@@ -55,11 +56,8 @@ if TYPE_CHECKING:
 
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-POWERFACTORY_VERSION = "2021 SP5"
+POWERFACTORY_VERSION = "2022 SP2"
 
-COSPHI_DECIMAL_DIGITS = 6
-VOLTAGE_DECIMAL_DIGITS = 3
-PU_DECIMAL_DIGITS = 4
 
 LV_TO_BASE_POW = Exponents.LV_POWER / Exponents.POWER
 LV_TO_BASE_CURR = Exponents.LV_CURRENT / Exponents.CURRENT
@@ -476,7 +474,7 @@ class PowerfactoryExporter:
                 logger.warning(f"Node {name} not set for export. Skipping.")
                 continue
 
-            u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE  # voltage in V
+            u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
             if self.pfi.is_within_substation(t):
                 if description == "":
@@ -674,7 +672,7 @@ class PowerfactoryExporter:
                         p.night,
                         grid_name,
                         system_type=ConsumerSystemType.NIGHT_STORAGE,
-                        name_suffix=sfx_pre.format(i) + "_" +  ConsumerSystemType.NIGHT_STORAGE.value,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
                     )
                     if p.night.s_abs != 0
                     else None
@@ -700,10 +698,14 @@ class PowerfactoryExporter:
         _loads: list[Load] = []
         for load in loads:
             power = self.calc_load_mv_power(load)
-            consumer = self.create_consumer(load=load, power=power.consumer, grid_name=grid_name)
+            consumer = self.create_consumer(
+                load=load, power=power.consumer, grid_name=grid_name, name_suffix="_CONSUMER"
+            )
             if consumer is not None:
                 _loads.append(consumer)
-            producer = self.create_producer(gen=load, power=power.producer, gen_name=load.loc_name, grid_name=grid_name)
+            producer = self.create_producer(
+                gen=load, power=power.producer, gen_name=load.loc_name, grid_name=grid_name, name_suffix="_PRODUCER"
+            )
             if producer is not None:
                 _loads.append(producer)
         return _loads
@@ -1147,7 +1149,7 @@ class PowerfactoryExporter:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
         t_name = self.pfi.create_name(t, grid_name)
 
-        u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE  # voltage in V
+        u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
         rated_power = power.as_rated_power()
         logger.debug(f"{load.loc_name}: there is no real rated, but 's' is calculated on basis of actual power.")
@@ -1185,9 +1187,10 @@ class PowerfactoryExporter:
         producer_system_type: Optional[ProducerSystemType] = None,
         producer_phase_connection_type: Optional[ProducerPhaseConnectionType] = None,
         external_controller_name: Optional[str] = None,
+        name_suffix: str = "",
     ) -> Optional[Load]:
 
-        gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name)
+        gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name) + name_suffix
 
         export, description = self.get_description(gen)
         if not export:
@@ -1202,7 +1205,7 @@ class PowerfactoryExporter:
             t = bus.cterm
         t_name = self.pfi.create_name(t, grid_name)
 
-        u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE
+        u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
         # Rated Values of single unit
         rated_power = power.as_rated_power()
@@ -1369,7 +1372,7 @@ class PowerfactoryExporter:
                     q_dir = -1 if ext_ctrl.iQorient else 1  # negative counting --> under excited
                     q_set = ext_ctrl.qsetp * q_dir
                 elif controller_type == ControllerType.Q_U:
-                    u_nom = round(ext_ctrl.refbar.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE  # voltage in V
+                    u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
                     qmax_ue = abs(ext_ctrl.Qmin / p_r)  # per unit
                     qmax_oe = abs(ext_ctrl.Qmax / p_r)  # per unit
@@ -1446,19 +1449,19 @@ class PowerfactoryExporter:
 
         # final scaling and rounding
         if cosphi:
-            cosphi = round(cosphi, COSPHI_DECIMAL_DIGITS)
+            cosphi = round(cosphi, DecimalDigits.COSPHI)
         if q_set:
-            q_set = round(q_set * Exponents.POWER * gen.ngnum)
+            q_set = round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER)
         if m_tab2015:
-            m_tab2015 = round(m_tab2015, PU_DECIMAL_DIGITS)
+            m_tab2015 = round(m_tab2015, DecimalDigits.PU)
         if m_tar2018:
-            m_tar2018 = round(m_tar2018, PU_DECIMAL_DIGITS)
+            m_tar2018 = round(m_tar2018, DecimalDigits.PU)
         if u_q0:
-            u_q0 = round(u_q0, VOLTAGE_DECIMAL_DIGITS)
+            u_q0 = round(u_q0, DecimalDigits.VOLTAGE)
         if udeadband_up:
-            udeadband_up = round(udeadband_up, VOLTAGE_DECIMAL_DIGITS)
+            udeadband_up = round(udeadband_up, DecimalDigits.VOLTAGE)
         if udeadband_low:
-            udeadband_low = round(udeadband_low, VOLTAGE_DECIMAL_DIGITS)
+            udeadband_low = round(udeadband_low, DecimalDigits.VOLTAGE)
 
         controller = Controller(
             controller_type=controller_type,
@@ -1468,8 +1471,8 @@ class PowerfactoryExporter:
             q_set=q_set,
             m_tab2015=m_tab2015,
             m_tar2018=m_tar2018,
-            qmax_ue=round(qmax_ue, PU_DECIMAL_DIGITS),
-            qmax_oe=round(qmax_oe, PU_DECIMAL_DIGITS),
+            qmax_ue=round(qmax_ue, DecimalDigits.PU),
+            qmax_oe=round(qmax_oe, DecimalDigits.PU),
             u_q0=u_q0,
             udeadband_up=udeadband_up,
             udeadband_low=udeadband_low,
@@ -1994,7 +1997,12 @@ class PowerfactoryExporter:
                 sfx_pre = " ({})"
             for i, p in enumerate(powers):
                 consumer = (
-                    self.create_consumer_ssc_state(load, p.fixed, grid_name, name_suffix=sfx_pre.format(i) + "_FIXED")
+                    self.create_consumer_ssc_state(
+                        load,
+                        p.fixed,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.FIXED.value,
+                    )
                     if p.fixed.s_abs != 0
                     else None
                 )
@@ -2002,7 +2010,10 @@ class PowerfactoryExporter:
                     consumers_ssc.append(consumer)
                 consumer = (
                     self.create_consumer_ssc_state(
-                        load, p.night, grid_name, name_suffix=sfx_pre.format(i) + "_NIGHT_STORAGE"
+                        load,
+                        p.night,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
                     )
                     if p.night.s_abs != 0
                     else None
@@ -2011,7 +2022,10 @@ class PowerfactoryExporter:
                     consumers_ssc.append(consumer)
                 consumer = (
                     self.create_consumer_ssc_state(
-                        load, p.variable, grid_name, name_suffix=sfx_pre.format(i) + "_VARIABLE"
+                        load,
+                        p.variable,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.VARIABLE.value,
                     )
                     if p.variable.s_abs != 0
                     else None
@@ -2029,10 +2043,10 @@ class PowerfactoryExporter:
         loads_ssc: list[LoadSSC] = []
         for load in loads:
             power = self.calc_load_mv_power(load)
-            consumer = self.create_consumer_ssc_state(load, power.consumer, grid_name)
+            consumer = self.create_consumer_ssc_state(load, power.consumer, grid_name, name_suffix="_CONSUMER")
             if consumer is not None:
                 loads_ssc.append(consumer)
-            producer = self.create_consumer_ssc_state(load, power.producer, grid_name)
+            producer = self.create_consumer_ssc_state(load, power.producer, grid_name, name_suffix="_PRODUCER")
             if producer is not None:
                 loads_ssc.append(producer)
         return loads_ssc
@@ -2054,7 +2068,7 @@ class PowerfactoryExporter:
         active_power = power.as_active_power_ssc()
         cosphi_type = CosphiDir.OE if load.pf_recap else CosphiDir.UE  # inverse declaration compared to producers
         controller = Controller(
-            cosphi=round(power.cosphi, COSPHI_DECIMAL_DIGITS),
+            cosphi=round(power.cosphi, DecimalDigits.COSPHI),
             cosphi_type=cosphi_type,
             controller_type=ControllerType.COSPHI_CONST,
         )
@@ -2089,7 +2103,7 @@ class PowerfactoryExporter:
                 continue
             else:
                 t = bus.cterm
-            u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * Exponents.VOLTAGE
+            u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
             power = LoadPower.from_pq_sym(p=gen.pgini_a, q=gen.qgini_a, scaling=gen.scale0_a)
 

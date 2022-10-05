@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
+from powerfactory_utils.constants import DecimalDigits
+from powerfactory_utils.constants import Exponents
 from powerfactory_utils.schema.steadystate_case.active_power import ActivePower
 from powerfactory_utils.schema.steadystate_case.reactive_power import ReactivePower
 from powerfactory_utils.schema.topology.load import RatedPower
@@ -14,18 +16,6 @@ if TYPE_CHECKING:
     from typing import Optional
 
     from powerfactory_utils.schema.steadystate_case.controller import Controller
-
-
-class Exponents:
-    VOLTAGE = 10**3
-    CURRENT = 10**3
-    LV_CURRENT = 1
-    RESISTANCE = 1
-    REACTANCE = 1
-    SUSCEPTANCE = 10**-6
-    CONDUCTANCE = 10**-6
-    POWER = 10**6
-    LV_POWER = 10**3
 
 
 @dataclass
@@ -382,7 +372,7 @@ class LoadPower:
         cosphi_t: float,
         scaling: float,
     ) -> LoadPower:
-         u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
+        u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
         s_r, p_r, q_r, cosphi_r = cls.calc_ic(u, i_r, cosphi_r, scaling)
         s_s, p_s, q_s, cosphi_s = cls.calc_ic(u, i_s, cosphi_s, scaling)
         s_t, p_t, q_t, cosphi_t = cls.calc_ic(u, i_t, cosphi_t, scaling)
@@ -471,7 +461,7 @@ class LoadPower:
         p_t: float,
         scaling: float,
     ) -> LoadPower:
-         u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
+        u = u / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
         s_r, p_r, q_r, cosphi_r = cls.calc_ip(u, i_r, p_r, scaling)
         s_s, p_s, q_s, cosphi_s = cls.calc_ip(u, i_s, p_s, scaling)
         s_t, p_t, q_t, cosphi_t = cls.calc_ip(u, i_t, p_t, scaling)
@@ -549,26 +539,32 @@ class LoadPower:
         )
 
     def as_active_power_ssc(self) -> ActivePower:
-        return ActivePower(p_0=self.p, p_r_0=self.p_r, p_s_0=self.p_s, p_t_0=self.p_t, symmetrical=self.symmetrical)
+        return ActivePower(
+            p_0=round(self.p, DecimalDigits.POWER),
+            p_r_0=round(self.p_r, DecimalDigits.POWER + 2),
+            p_s_0=round(self.p_s, DecimalDigits.POWER + 2),
+            p_t_0=round(self.p_t, DecimalDigits.POWER + 2),
+            symmetrical=self.symmetrical,
+        )
 
     def as_reactive_power_ssc(self, controller: Optional[Controller] = None) -> ReactivePower:
         return ReactivePower(
-            q_0=self.q,
-            q_r_0=self.q_r,
-            q_s_0=self.q_s,
-            q_t_0=self.q_t,
+            q_0=round(self.q, DecimalDigits.POWER),
+            q_r_0=round(self.q_r, DecimalDigits.POWER + 2),
+            q_s_0=round(self.q_s, DecimalDigits.POWER + 2),
+            q_t_0=round(self.q_t, DecimalDigits.POWER + 2),
             symmetrical=self.symmetrical,
             controller=controller,
         )
 
     def as_rated_power(self) -> RatedPower:
         return RatedPower(
-            s=self.s,
-            cosphi=self.cosphi,
-            s_r=self.s_r,
-            s_s=self.s_s,
-            s_t=self.s_t,
-            cosphi_r=self.cosphi_r,
-            cosphi_s=self.cosphi_s,
-            cosphi_t=self.cosphi_t,
+            s=round(self.s, DecimalDigits.POWER),
+            cosphi=round(self.cosphi, DecimalDigits.COSPHI),
+            s_r=round(self.s_r, DecimalDigits.POWER + 2),
+            s_s=round(self.s_s, DecimalDigits.POWER + 2),
+            s_t=round(self.s_t, DecimalDigits.POWER + 2),
+            cosphi_r=round(self.cosphi_r, DecimalDigits.COSPHI),
+            cosphi_s=round(self.cosphi_s, DecimalDigits.COSPHI),
+            cosphi_t=round(self.cosphi_t, DecimalDigits.COSPHI),
         )
