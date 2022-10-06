@@ -1624,9 +1624,9 @@ class PowerfactoryExporter:
 
                 wh = Winding(
                     node=t_high_name,
-                    s_r=s_r * Exponents.POWER,
-                    u_r=u_ref_h * Exponents.VOLTAGE,
-                    u_n=u_nom_h * Exponents.VOLTAGE,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     r1=r_1,
                     r0=r_0,
                     x1=x_1,
@@ -1637,9 +1637,9 @@ class PowerfactoryExporter:
 
                 wl = Winding(
                     node=t_low_name,
-                    s_r=s_r * Exponents.POWER,
-                    u_r=u_ref_l * Exponents.VOLTAGE,
-                    u_n=u_nom_l * Exponents.VOLTAGE,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     r1=float(0),
                     r0=float(0),
                     x1=float(0),
@@ -1654,7 +1654,7 @@ class PowerfactoryExporter:
                     name=name,
                     number=t_number,
                     i_0=i_0,
-                    p_fe=p_fe * 1e3,
+                    p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
                     vector_group=vector_group,
                     tap_u_abs=tap_u_abs,
                     tap_u_phi=tap_u_phi,
@@ -2072,7 +2072,7 @@ class PowerfactoryExporter:
             cosphi_type=cosphi_type,
             controller_type=ControllerType.COSPHI_CONST,
         )
-        reactive_power = power.as_reactive_power_ssc(controller=controller)
+        reactive_power = power.as_reactive_power_ssc()
 
         consumer = LoadSSC(
             name=name,

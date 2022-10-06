@@ -13,5 +13,6 @@ class Exponents:
 class DecimalDigits:
     COSPHI = 6
     VOLTAGE = 3
+    CURRENT = 3
     POWER = 0
     PU = 4
