@@ -2066,12 +2066,6 @@ class PowerfactoryExporter:
             return None
 
         active_power = power.as_active_power_ssc()
-        cosphi_type = CosphiDir.OE if load.pf_recap else CosphiDir.UE  # inverse declaration compared to producers
-        controller = Controller(
-            cosphi=round(power.cosphi, DecimalDigits.COSPHI),
-            cosphi_type=cosphi_type,
-            controller_type=ControllerType.COSPHI_CONST,
-        )
         reactive_power = power.as_reactive_power_ssc()
 
         consumer = LoadSSC(
