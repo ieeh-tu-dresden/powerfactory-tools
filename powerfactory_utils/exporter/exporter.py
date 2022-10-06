@@ -1994,7 +1994,7 @@ class PowerfactoryExporter:
             if len(powers) == 1:
                 sfx_pre = ""
             else:
-                sfx_pre = " ({})"
+                sfx_pre = "_({})"
             for i, p in enumerate(powers):
                 consumer = (
                     self.create_consumer_ssc_state(
