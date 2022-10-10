@@ -1,8 +1,8 @@
 {
   "meta": {
-    "name": "HV_7_Bus",
-    "date": "2022-07-26",
-    "id": "cddf3175-0cd6-4df5-b7de-f18a1df2c739",
+    "name": "HV_8_Bus",
+    "date": "2022-10-06",
+    "id": "b826e77c-df14-472f-8220-2b86fac375ad",
     "project": "PowerFactory-Utils"
   },
   "branches": [
@@ -88,7 +88,7 @@
     },
     {
       "node_1": "Node_3",
-      "node_2": "Node_7/1",
+      "node_2": "Node_8/1",
       "name": "Line_37",
       "u_n": 110000.0,
       "i_r": 2.0,
@@ -187,9 +187,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/T0.1",
-      "node_2": "Node_7/T0.2",
-      "name": "Node_7/CB0",
+      "node_1": "Node_8/T0.1",
+      "node_2": "Node_8/T0.2",
+      "name": "Node_8/CB0",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -207,9 +207,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB1",
-      "node_2": "Node_7/T0.1",
-      "name": "Node_7/IS0.1",
+      "node_1": "Node_8/BB1",
+      "node_2": "Node_8/T0.1",
+      "name": "Node_8/IS0.1",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -227,9 +227,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB2",
-      "node_2": "Node_7/T0.2",
-      "name": "Node_7/IS0.2",
+      "node_1": "Node_8/BB2",
+      "node_2": "Node_8/T0.2",
+      "name": "Node_8/IS0.2",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -247,9 +247,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/T1.1",
-      "node_2": "Node_7/1",
-      "name": "Node_7/IS1.1",
+      "node_1": "Node_8/T1.1",
+      "node_2": "Node_8/1",
+      "name": "Node_8/IS1.1",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -267,9 +267,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/T1.2",
-      "node_2": "Node_7/T1.1",
-      "name": "Node_7/CB1",
+      "node_1": "Node_8/T1.2",
+      "node_2": "Node_8/T1.1",
+      "name": "Node_8/CB1",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -287,9 +287,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB1",
-      "node_2": "Node_7/T1.2",
-      "name": "Node_7/IS1.2",
+      "node_1": "Node_8/BB1",
+      "node_2": "Node_8/T1.2",
+      "name": "Node_8/IS1.2",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -307,9 +307,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB2",
-      "node_2": "Node_7/T1.2",
-      "name": "Node_7/IS1.3",
+      "node_1": "Node_8/BB2",
+      "node_2": "Node_8/T1.2",
+      "name": "Node_8/IS1.3",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -327,9 +327,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/TField_2.2",
-      "node_2": "Node_7/TField_2.1",
-      "name": "Node_7/CBField_2",
+      "node_1": "Node_8/TField_2.2",
+      "node_2": "Node_8/TField_2.1",
+      "name": "Node_8/CBField_2",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -347,9 +347,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/TField_2.1",
-      "node_2": "Node_7/Field_2",
-      "name": "Node_7/ISField_2.1",
+      "node_1": "Node_8/TField_2.1",
+      "node_2": "Node_8/Field_2",
+      "name": "Node_8/ISField_2.1",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -367,9 +367,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB1",
-      "node_2": "Node_7/TField_2.2",
-      "name": "Node_7/ISField_2.2",
+      "node_1": "Node_8/BB1",
+      "node_2": "Node_8/TField_2.2",
+      "name": "Node_8/ISField_2.2",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -387,9 +387,9 @@
       "energized": null
     },
     {
-      "node_1": "Node_7/BB2",
-      "node_2": "Node_7/TField_2.2",
-      "name": "Node_7/ISField_2.3",
+      "node_1": "Node_8/BB2",
+      "node_2": "Node_8/TField_2.2",
+      "name": "Node_8/ISField_2.3",
       "u_n": 110000.0,
       "i_r": Infinity,
       "r1": 0.0,
@@ -449,52 +449,57 @@
       "description": ""
     },
     {
-      "name": "Node_7/BB1",
+      "name": "Node_7_LV",
+      "u_n": 400.0,
+      "description": ""
+    },
+    {
+      "name": "Node_8/BB1",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/BB2",
+      "name": "Node_8/BB2",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/T0.1",
+      "name": "Node_8/T0.1",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/T0.2",
+      "name": "Node_8/T0.2",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/1",
+      "name": "Node_8/1",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/T1.1",
+      "name": "Node_8/T1.1",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/T1.2",
+      "name": "Node_8/T1.2",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/Field_2",
+      "name": "Node_8/Field_2",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/TField_2.1",
+      "name": "Node_8/TField_2.1",
       "u_n": 110000.0,
       "description": "substation internal"
     },
     {
-      "name": "Node_7/TField_2.2",
+      "name": "Node_8/TField_2.2",
       "u_n": 110000.0,
       "description": "substation internal"
     }
@@ -506,8 +511,14 @@
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 10000000.0,
-        "cosphi_r": null
+        "s": 10000000.0,
+        "s_r": 3333333.33,
+        "s_s": 3333333.33,
+        "s_t": 3333333.33,
+        "cosphi": 1.0,
+        "cosphi_r": 1.0,
+        "cosphi_s": 1.0,
+        "cosphi_t": 1.0
       },
       "active_power": {
         "load_model": {
@@ -544,8 +555,14 @@
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 60000000.0,
-        "cosphi_r": null
+        "s": 60000000.0,
+        "s_r": 20000000.0,
+        "s_s": 20000000.0,
+        "s_t": 20000000.0,
+        "cosphi": 1.0,
+        "cosphi_r": 1.0,
+        "cosphi_s": 1.0,
+        "cosphi_t": 1.0
       },
       "active_power": {
         "load_model": {
@@ -567,44 +584,6 @@
           "c_z": 0.0,
           "exp_p": 0.0,
           "exp_i": 1.0,
-          "exp_z": 2.0
-        },
-        "external_controller_name": null
-      },
-      "type": "CONSUMER",
-      "system_type": null,
-      "phase_connection_type": "3PH_D",
-      "voltage_system_type": "AC"
-    },
-    {
-      "name": "Load_5",
-      "node": "Node_6_MV",
-      "description": "",
-      "u_n": 20000.0,
-      "rated_power": {
-        "s_r": 10000000.0,
-        "cosphi_r": null
-      },
-      "active_power": {
-        "load_model": {
-          "name": "Load_general",
-          "c_p": 0.0,
-          "c_i": 0.0,
-          "c_z": 1.0,
-          "exp_p": 0.0,
-          "exp_i": 0.0,
-          "exp_z": 2.0
-        },
-        "characteristic": null
-      },
-      "reactive_power": {
-        "load_model": {
-          "name": "Load_general",
-          "c_p": 0.0,
-          "c_i": 0.0,
-          "c_z": 1.0,
-          "exp_p": 0.0,
-          "exp_i": 0.0,
           "exp_z": 2.0
         },
         "external_controller_name": null
@@ -620,8 +599,14 @@
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 50000000.0,
-        "cosphi_r": null
+        "s": 50000000.0,
+        "s_r": 16666666.67,
+        "s_s": 16666666.67,
+        "s_t": 16666666.67,
+        "cosphi": 1.0,
+        "cosphi_r": 1.0,
+        "cosphi_s": 1.0,
+        "cosphi_t": 1.0
       },
       "active_power": {
         "load_model": {
@@ -653,13 +638,19 @@
       "voltage_system_type": "AC"
     },
     {
-      "name": "Load_7",
-      "node": "Node_7/Field_2",
+      "name": "Load_8",
+      "node": "Node_8/Field_2",
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 22360679.774997897,
-        "cosphi_r": null
+        "s": 22360680.0,
+        "s_r": 7453559.92,
+        "s_s": 7453559.92,
+        "s_t": 7453559.92,
+        "cosphi": 0.894427,
+        "cosphi_r": 0.894427,
+        "cosphi_s": 0.894427,
+        "cosphi_t": 0.894427
       },
       "active_power": {
         "load_model": {
@@ -689,6 +680,254 @@
       "system_type": null,
       "phase_connection_type": "3PH_D",
       "voltage_system_type": "AC"
+    },
+    {
+      "name": "LV_Load_7a_FIXED",
+      "node": "Node_7_LV",
+      "description": "",
+      "u_n": 400.0,
+      "rated_power": {
+        "s": 9007.0,
+        "s_r": 2309.4,
+        "s_s": 3695.04,
+        "s_t": 3002.22,
+        "cosphi": 0.937179,
+        "cosphi_r": 0.9,
+        "cosphi_s": 0.95,
+        "cosphi_t": 0.95
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": "FIXED",
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "LV_Load_7b_(0)_FIXED",
+      "node": "Node_7_LV",
+      "description": "",
+      "u_n": 400.0,
+      "rated_power": {
+        "s": 10000.0,
+        "s_r": 3333.33,
+        "s_s": 3333.33,
+        "s_t": 3333.33,
+        "cosphi": 1.0,
+        "cosphi_r": 1.0,
+        "cosphi_s": 1.0,
+        "cosphi_t": 1.0
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": "FIXED",
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "LV_Load_7b_(0)_NIGHT_STORAGE",
+      "node": "Node_7_LV",
+      "description": "",
+      "u_n": 400.0,
+      "rated_power": {
+        "s": 2000.0,
+        "s_r": 666.67,
+        "s_s": 666.67,
+        "s_t": 666.67,
+        "cosphi": 1.0,
+        "cosphi_r": 1.0,
+        "cosphi_s": 1.0,
+        "cosphi_t": 1.0
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": "NIGHT_STORAGE",
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "LV_Load_7b_(1)_VARIABLE",
+      "node": "Node_7_LV",
+      "description": "",
+      "u_n": 400.0,
+      "rated_power": {
+        "s": 4800.0,
+        "s_r": 1600.0,
+        "s_s": 1600.0,
+        "s_t": 1600.0,
+        "cosphi": 0.95,
+        "cosphi_r": 0.95,
+        "cosphi_s": 0.95,
+        "cosphi_t": 0.95
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": "VARIABLE",
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "MV_Load_6_CONSUMER",
+      "node": "Node_6_MV",
+      "description": "",
+      "u_n": 20000.0,
+      "rated_power": {
+        "s": 10000000.0,
+        "s_r": 3333333.33,
+        "s_s": 3333333.33,
+        "s_t": 3333333.33,
+        "cosphi": 0.95,
+        "cosphi_r": 0.95,
+        "cosphi_s": 0.95,
+        "cosphi_t": 0.95
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": null,
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "MV_Load_6_PRODUCER",
+      "node": "Node_6_MV",
+      "description": "",
+      "u_n": 20000.0,
+      "rated_power": {
+        "s": 200000.0,
+        "s_r": 66666.67,
+        "s_s": 66666.67,
+        "s_t": 66666.67,
+        "cosphi": 0.9,
+        "cosphi_r": 0.9,
+        "cosphi_s": 0.9,
+        "cosphi_t": 0.9
+      },
+      "active_power": {
+        "load_model": null,
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": null,
+        "external_controller_name": null
+      },
+      "type": "PRODUCER",
+      "system_type": null,
+      "phase_connection_type": null,
+      "voltage_system_type": null
     },
     {
       "name": "StatGenerator_1",
@@ -696,8 +935,14 @@
       "description": "Q-Control: konstQ ",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 1000000.0,
-        "cosphi_r": 0.8
+        "s": 1000000.0,
+        "s_r": 333333.33,
+        "s_s": 333333.33,
+        "s_t": 333333.33,
+        "cosphi": 0.8,
+        "cosphi_r": 0.8,
+        "cosphi_s": 0.8,
+        "cosphi_t": 0.8
       },
       "active_power": {
         "load_model": null,
@@ -718,8 +963,14 @@
       "description": "Q-Control: cosphi(P)-Charakteristik",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 1000000.0,
-        "cosphi_r": 0.8
+        "s": 1000000.0,
+        "s_r": 333333.33,
+        "s_s": 333333.33,
+        "s_t": 333333.33,
+        "cosphi": 0.8,
+        "cosphi_r": 0.8,
+        "cosphi_s": 0.8,
+        "cosphi_t": 0.8
       },
       "active_power": {
         "load_model": null,
@@ -740,8 +991,14 @@
       "description": "Q-Control: Q(U)-Charakteristik",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 11110000.0,
-        "cosphi_r": 0.9
+        "s": 11110000.0,
+        "s_r": 3703333.22,
+        "s_s": 3703333.22,
+        "s_t": 3703333.22,
+        "cosphi": 0.9,
+        "cosphi_r": 0.9,
+        "cosphi_s": 0.9,
+        "cosphi_t": 0.9
       },
       "active_power": {
         "load_model": null,
@@ -762,8 +1019,14 @@
       "description": "Q-Control: konst cosphi",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 1000000.0,
-        "cosphi_r": 0.8
+        "s": 1000000.0,
+        "s_r": 333333.33,
+        "s_s": 333333.33,
+        "s_t": 333333.33,
+        "cosphi": 0.8,
+        "cosphi_r": 0.8,
+        "cosphi_s": 0.8,
+        "cosphi_t": 0.8
       },
       "active_power": {
         "load_model": null,
@@ -784,8 +1047,14 @@
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s_r": 2000000.0,
-        "cosphi_r": 0.8
+        "s": 2000000.0,
+        "s_r": 666666.67,
+        "s_s": 666666.67,
+        "s_t": 666666.67,
+        "cosphi": 0.8,
+        "cosphi_r": 0.8,
+        "cosphi_s": 0.8,
+        "cosphi_t": 0.8
       },
       "active_power": {
         "load_model": null,
@@ -843,6 +1112,49 @@
       "tap_max": 15,
       "tap_min": 1,
       "tap_neutral": 7,
+      "tap_side": "HV"
+    },
+    {
+      "node_1": "Node_7_LV",
+      "node_2": "Node_6_MV",
+      "name": "Transformer_2w_20/0.4",
+      "number": 1,
+      "vector_group": "Dyn5",
+      "i_0": 0.30000999569892883,
+      "p_fe": 1200.0,
+      "windings": [
+        {
+          "node": "Node_6_MV",
+          "s_r": 400000.0,
+          "u_n": 20000.0,
+          "u_r": 20000.0,
+          "r1": 11.999999925494196,
+          "x1": 58.78775479215749,
+          "r0": 11.999999925494196,
+          "x0": 58.78775479215749,
+          "phase_angle_clock": 0,
+          "vector_group": "D"
+        },
+        {
+          "node": "Node_7_LV",
+          "s_r": 400000.0,
+          "u_n": 400.0,
+          "u_r": 400.0,
+          "r1": 0.0,
+          "x1": 0.0,
+          "r0": 0.0,
+          "x0": 0.0,
+          "phase_angle_clock": 5,
+          "vector_group": "YN"
+        }
+      ],
+      "phase_technology_type": "3PH",
+      "description": "",
+      "tap_u_abs": 2.5,
+      "tap_u_phi": 0.0,
+      "tap_max": 2,
+      "tap_min": -2,
+      "tap_neutral": 0,
       "tap_side": "HV"
     }
   ],

@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     T = TypeVar("T")
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-POWERFACTORY_VERSION = "2021 SP5"
+POWERFACTORY_VERSION = "2022 SP2"
 PYTHON_VERSION = "3.9"
 PATH_SEP = "/"
 
@@ -179,6 +179,10 @@ class PowerfactoryInterface:
     def elements_of(self, element: pft.DataObject, filter: str = "*", recursive: bool = True) -> list[pft.DataObject]:
         elements = element.GetContents(filter, recursive)
         return elements
+
+    def subloads_of(self, load: pft.LoadLV) -> list[pft.LoadLVP]:
+        es = self.elements_of(load, filter="*.ElmLodlvp")
+        return [typing.cast(pft.LoadLVP, e) for e in es]
 
     def study_case(self, name: str = "*") -> Optional[pft.StudyCase]:
         e = self.element_of(self.study_case_lib, name)
@@ -377,7 +381,7 @@ class PowerfactoryInterface:
         return [typing.cast(pft.PVSystem, e) for e in es]
 
     @staticmethod
-    def create_name(element: pft.DataObject, grid_name: str) -> str:
+    def create_name(element: pft.DataObject, grid_name: str, element_name: Optional[str] = None) -> str:
         """Create a unique name of the object.
 
         Object type differentiation based on the input parameters. Considers optional parents of the object,
@@ -387,19 +391,45 @@ class PowerfactoryInterface:
             element {pft.DataObject} -- the object itself for which a unique name is going to be created
             grid_name {str} -- the name of the grid to which the object belongs (root)
 
+        Keyword Arguments:
+            element_name {Optional[str]} -- element name if needed to specify independently (default: {None})
+
         Returns:
             str -- the unique name of the object
         """
 
-        name = element.loc_name
+        if element_name is None:
+            element_name = element.loc_name
         parent = element.fold_id
         if parent is not None:
             if parent.loc_name != grid_name:
                 cp_substat: Optional[pft.DataObject] = getattr(element, "cpSubstat", None)
                 if cp_substat is not None:
-                    return cp_substat.loc_name + PATH_SEP + name
-                return parent.loc_name + PATH_SEP + name
-        return name
+                    return cp_substat.loc_name + PATH_SEP + element_name
+                return parent.loc_name + PATH_SEP + element_name
+        return element_name
+
+    @staticmethod
+    def create_gen_name(generator: pft.GeneratorBase, generator_name: Optional[str] = None) -> str:
+        """Creates a name for a generator object.
+
+        Takes into account models in which the generator might be grouped in.
+
+        Arguments:
+            generator {pft.GeneratorBase} -- the generator object
+
+        Keyword Arguments:
+            generator_name {Optional[str]} -- name of generator or generator related object (e.g. external controller) if needed to specify independently (default: {None})
+
+        Returns:
+            str -- the name of the generator obejct
+        """
+        if generator_name is None:
+            generator_name = generator.loc_name
+        if generator.c_pmod is None:  # if generator is not part of higher model
+            return generator_name
+        else:
+            return generator.c_pmod.loc_name + PATH_SEP + generator_name
 
     @staticmethod
     def is_within_substation(terminal: pft.Terminal) -> bool:

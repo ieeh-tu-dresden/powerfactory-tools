@@ -9,18 +9,18 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from powerfactory_utils.interface import PATH_SEP
+from powerfactory_utils.constants import DecimalDigits
+from powerfactory_utils.constants import Exponents
+from powerfactory_utils.exporter.load_power import LoadPower
 from powerfactory_utils.interface import PowerfactoryInterface
 from powerfactory_utils.schema.base import Meta
 from powerfactory_utils.schema.base import VoltageSystemType
-from powerfactory_utils.schema.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from powerfactory_utils.schema.steadystate_case.case import Case as SteadyStateCase
 from powerfactory_utils.schema.steadystate_case.controller import Controller
 from powerfactory_utils.schema.steadystate_case.controller import ControllerType
 from powerfactory_utils.schema.steadystate_case.controller import CosphiDir
 from powerfactory_utils.schema.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from powerfactory_utils.schema.steadystate_case.load import Load as LoadSSC
-from powerfactory_utils.schema.steadystate_case.reactive_power import ReactivePower as ReactivePowerSSC
 from powerfactory_utils.schema.steadystate_case.transformer import Transformer as TransformerSSC
 from powerfactory_utils.schema.topology.active_power import ActivePower
 from powerfactory_utils.schema.topology.branch import Branch
@@ -28,11 +28,11 @@ from powerfactory_utils.schema.topology.branch import BranchType
 from powerfactory_utils.schema.topology.external_grid import ExternalGrid
 from powerfactory_utils.schema.topology.external_grid import GridType
 from powerfactory_utils.schema.topology.load import ConsumerPhaseConnectionType
+from powerfactory_utils.schema.topology.load import ConsumerSystemType
 from powerfactory_utils.schema.topology.load import Load
 from powerfactory_utils.schema.topology.load import LoadType
 from powerfactory_utils.schema.topology.load import ProducerPhaseConnectionType
 from powerfactory_utils.schema.topology.load import ProducerSystemType
-from powerfactory_utils.schema.topology.load import RatedPower
 from powerfactory_utils.schema.topology.load_model import LoadModel
 from powerfactory_utils.schema.topology.node import Node
 from powerfactory_utils.schema.topology.reactive_power import ReactivePower
@@ -56,40 +56,24 @@ if TYPE_CHECKING:
 
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-POWERFACTORY_VERSION = "2021 SP5"
+POWERFACTORY_VERSION = "2022 SP2"
 
-VOLTAGE_EXPONENT = 10**3
-CURRENT_EXPONENT = 10**3
-RESISTANCE_EXPONENT = 1
-REACTANCE_EXPONENT = 1
-SUSCEPTANCE_EXPONENT = 10**-6
-CONDUCTANCE_EXPONENT = 10**-6
-POWER_EXPONENT = 10**6
-COSPHI_DECIMAL_DIGITS = 6
-VOLTAGE_DECIMAL_DIGITS = 3
-PU_DECIMAL_DIGITS = 4
+
+LV_TO_BASE_POW = Exponents.LV_POWER / Exponents.POWER
+LV_TO_BASE_CURR = Exponents.LV_CURRENT / Exponents.CURRENT
 
 
 @dataclass
-class LoadPower:
-    s_r: float
-    p: float
-    q: float
-    cosphi: float
+class LoadLV:
+    fixed: LoadPower
+    night: LoadPower
+    variable: LoadPower
 
-    def __add__(self, other: "LoadPower") -> "LoadPower":
-        p = self.p + other.p
-        q = self.q + other.q
-        return PowerfactoryExporter.calc_pq(p=p, q=q, scaling=1)
 
-    def __sub__(self, other: "LoadPower") -> "LoadPower":
-        p = self.p - other.p
-        q = self.q - other.q
-        return PowerfactoryExporter.calc_pq(p=p, q=q, scaling=1)
-
-    @property
-    def isempty(self) -> bool:
-        return self.s_r == 0
+@dataclass
+class LoadMV:
+    consumer: LoadPower
+    producer: LoadPower
 
 
 @dataclass
@@ -490,7 +474,7 @@ class PowerfactoryExporter:
                 logger.warning(f"Node {name} not set for export. Skipping.")
                 continue
 
-            u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * VOLTAGE_EXPONENT  # voltage in V
+            u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
             if self.pfi.is_within_substation(t):
                 if description == "":
@@ -531,21 +515,21 @@ class PowerfactoryExporter:
             l_type = line.typ_id
             if l_type is not None:
                 if round(u_nom_1, 2) == round(u_nom_2, 2):
-                    u_nom = u_nom_1 * VOLTAGE_EXPONENT  # nominal voltage (V)
+                    u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
                 else:
-                    u_nom = l_type.uline * VOLTAGE_EXPONENT  # nominal voltage (V)
+                    u_nom = l_type.uline * Exponents.VOLTAGE  # nominal voltage (V)
 
                 i = l_type.InomAir if line.inAir else l_type.sline
                 i_r = line.nlnum * line.fline * i  # rated current (A)
 
-                r1 = l_type.rline * line.dline * RESISTANCE_EXPONENT
-                x1 = l_type.xline * line.dline * REACTANCE_EXPONENT
-                r0 = l_type.rline0 * line.dline * RESISTANCE_EXPONENT
-                x0 = l_type.xline0 * line.dline * REACTANCE_EXPONENT
-                g1 = l_type.gline * line.dline * CONDUCTANCE_EXPONENT
-                b1 = l_type.bline * line.dline * SUSCEPTANCE_EXPONENT
-                g0 = l_type.gline0 * line.dline * CONDUCTANCE_EXPONENT
-                b0 = l_type.bline0 * line.dline * SUSCEPTANCE_EXPONENT
+                r1 = l_type.rline * line.dline * Exponents.RESISTANCE
+                x1 = l_type.xline * line.dline * Exponents.REACTANCE
+                r0 = l_type.rline0 * line.dline * Exponents.RESISTANCE
+                x0 = l_type.xline0 * line.dline * Exponents.REACTANCE
+                g1 = l_type.gline * line.dline * Exponents.CONDUCTANCE
+                b1 = l_type.bline * line.dline * Exponents.SUSCEPTANCE
+                g0 = l_type.gline0 * line.dline * Exponents.CONDUCTANCE
+                b0 = l_type.bline0 * line.dline * Exponents.SUSCEPTANCE
 
                 f_nom = l_type.frnom  # usually 50 Hertz
 
@@ -610,7 +594,7 @@ class PowerfactoryExporter:
             u_nom_2 = t2.uknom
 
             if round(u_nom_1, 2) == round(u_nom_2, 2):
-                u_nom = u_nom_1 * VOLTAGE_EXPONENT  # nominal voltage (V)
+                u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
             else:
                 logger.warning(f"Coupler {name} couples busbars with different voltage levels. Skipping.")
                 continue
@@ -645,10 +629,10 @@ class PowerfactoryExporter:
 
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
-        mv_consumers = self.create_consumers_mv(consumers_mv, grid_name)
+        load_mvs = self.create_loads_mv(consumers_mv, grid_name)
         gen_producers = self.create_producers_normal(generators, grid_name)
         pv_producers = self.create_producers_pv(pv_systems, grid_name)
-        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_consumers, gen_producers, pv_producers)
+        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
 
     def create_consumers_normal(self, loads: Sequence[pft.Load], grid_name: str) -> Sequence[Load]:
         consumers: list[Load] = []
@@ -663,169 +647,366 @@ class PowerfactoryExporter:
     def create_consumers_lv(self, loads: Sequence[pft.LoadLV], grid_name: str) -> Sequence[Load]:
         consumers: list[Load] = []
         for load in loads:
-            power = self.calc_lv_load_power(load)
-            if power is not None:
-                consumer = self.create_consumer(load, power, grid_name)
+            powers = self.calc_load_lv_powers(load)
+            if len(powers) == 1:
+                sfx_pre = ""
+            else:
+                sfx_pre = "_({})"
+            for i, p in enumerate(powers):
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.fixed,
+                        grid_name,
+                        system_type=ConsumerSystemType.FIXED,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.FIXED.value,
+                    )
+                    if p.fixed.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers.append(consumer)
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.night,
+                        grid_name,
+                        system_type=ConsumerSystemType.NIGHT_STORAGE,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                    )
+                    if p.night.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers.append(consumer)
+                consumer = (
+                    self.create_consumer(
+                        load,
+                        p.variable,
+                        grid_name,
+                        system_type=ConsumerSystemType.VARIABLE,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.VARIABLE.value,
+                    )
+                    if p.variable.s_abs != 0
+                    else None
+                )
                 if consumer is not None:
                     consumers.append(consumer)
         return consumers
 
-    def create_consumers_mv(self, loads: Sequence[pft.LoadMV], grid_name: str) -> Sequence[Load]:
-        consumers: list[Load] = []
+    def create_loads_mv(self, loads: Sequence[pft.LoadMV], grid_name: str) -> Sequence[Load]:
+        _loads: list[Load] = []
         for load in loads:
-            power = self.calc_mv_load_power(load)
-            if power is not None:
-                consumer = self.create_consumer(load, power, grid_name)
-                if consumer is not None:
-                    consumers.append(consumer)
-        return consumers
+            power = self.calc_load_mv_power(load)
+            consumer = self.create_consumer(
+                load=load, power=power.consumer, grid_name=grid_name, name_suffix="_CONSUMER"
+            )
+            if consumer is not None:
+                _loads.append(consumer)
+            producer = self.create_producer(
+                gen=load, power=power.producer, gen_name=load.loc_name, grid_name=grid_name, name_suffix="_PRODUCER"
+            )
+            if producer is not None:
+                _loads.append(producer)
+        return _loads
 
     def calc_normal_load_power(self, load: pft.Load) -> Optional[LoadPower]:
         load_type = load.mode_inp
         scaling = load.scale0
         if not load.i_sym:
             if load_type == "DEF" or load_type == "PQ":
-                power = self.calc_pq(p=load.plini, q=load.qlini, scaling=scaling)
+                power = LoadPower.from_pq_sym(p=load.plini, q=load.qlini, scaling=scaling)
             elif load_type == "PC":
-                power = self.calc_pc(p=load.plini, cosphi=load.coslini, scaling=scaling)
+                power = LoadPower.from_pc_sym(p=load.plini, cosphi=load.coslini, scaling=scaling)
             elif load_type == "IC":
-                power = self.calc_ic(u=load.u0, i=load.ilini, cosphi=load.coslini, scaling=scaling)
+                power = LoadPower.from_ic_sym(u=load.u0, i=load.ilini, cosphi=load.coslini, scaling=scaling)
             elif load_type == "SC":
-                power = self.calc_sc(s_r=load.slini, cosphi=load.coslini, scaling=scaling)
+                power = LoadPower.from_sc_sym(s=load.slini, cosphi=load.coslini, scaling=scaling)
             elif load_type == "QC":
-                power = self.calc_qc(q=load.qlini, cosphi=load.coslini, scaling=scaling)
+                power = LoadPower.from_qc_sym(q=load.qlini, cosphi=load.coslini, scaling=scaling)
             elif load_type == "IP":
-                power = self.calc_ip(u=load.u0, i=load.ilini, p=load.plini, scaling=scaling)
+                power = LoadPower.from_ip_sym(u=load.u0, i=load.ilini, p=load.plini, scaling=scaling)
             elif load_type == "SP":
-                power = self.calc_sp(s_r=load.slini, p=load.plini, scaling=scaling)
+                power = LoadPower.from_sp_sym(s=load.slini, p=load.plini, scaling=scaling)
             elif load_type == "SQ":
-                power = self.calc_sq(s_r=load.slini, q=load.qlini, scaling=scaling)
+                power = LoadPower.from_sq_sym(s=load.slini, q=load.qlini, scaling=scaling)
             else:
                 raise RuntimeError("Unreachable")
         else:
-            # TODO asymmetrische Lasten
-            logger.warning(f"Load {load.loc_name}: Asymmetric loads are not implemented yet. Skipping.")
-            return None
+            if load_type == "DEF" or load_type == "PQ":
+                power = LoadPower.from_pq_asym(
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
+                    q_r=load.qlinir,
+                    q_s=load.qlinis,
+                    q_t=load.qlinit,
+                    scaling=scaling,
+                )
+            elif load_type == "PC":
+                power = LoadPower.from_pc_asym(
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
+            elif load_type == "IC":
+                power = LoadPower.from_ic_asym(
+                    u=load.u0,
+                    i_r=load.ilinir,
+                    i_s=load.ilinis,
+                    i_t=load.ilinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
+            elif load_type == "SC":
+                power = LoadPower.from_sc_asym(
+                    s_r=load.slinir,
+                    s_s=load.slinis,
+                    s_t=load.slinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
+            elif load_type == "QC":
+                power = LoadPower.from_qc_asym(
+                    q_r=load.qlinir,
+                    q_s=load.qlinis,
+                    q_t=load.qlinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
+            elif load_type == "IP":
+                power = LoadPower.from_ip_asym(
+                    u=load.u0,
+                    i_r=load.ilinir,
+                    i_s=load.ilinis,
+                    i_t=load.ilinit,
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
+                    scaling=scaling,
+                )
+            elif load_type == "SP":
+                power = LoadPower.from_sp_asym(
+                    s_r=load.slinir,
+                    s_s=load.slinis,
+                    s_t=load.slinit,
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
+                    scaling=scaling,
+                )
+            elif load_type == "SQ":
+                power = LoadPower.from_sq_asym(
+                    s_r=load.slinir,
+                    s_s=load.slinis,
+                    s_t=load.slinit,
+                    q_r=load.qlinir,
+                    q_s=load.qlinis,
+                    q_t=load.qlinit,
+                    scaling=scaling,
+                )
+            else:
+                raise RuntimeError("Unreachable")
         if power.isempty:
             logger.warning(f"Power is not set for load {load.loc_name}. Skipping.")
             return None
         return power
 
-    def calc_lv_load_power(self, load: pft.LoadLV) -> Optional[LoadPower]:
+    def calc_load_lv_powers(self, load: pft.LoadLV) -> Sequence[LoadLV]:
+        subloads = self.pfi.subloads_of(load)
+        if not subloads:
+            return [self.calc_load_lv_power(load)]
+        return [self.calc_load_lv_power_sym(sl) for sl in subloads]
+
+    def calc_load_lv_power_fixed_sym(self, load: Union[pft.LoadLV, pft.LoadLVP], scaling: float) -> LoadPower:
+        load_type = load.iopt_inp
+        if load_type == 0:
+            power_fixed = LoadPower.from_sc_sym(
+                s=load.slini * LV_TO_BASE_POW,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
+        elif load_type == 1:
+            power_fixed = LoadPower.from_pc_sym(
+                p=load.plini * LV_TO_BASE_POW,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
+        elif load_type == 2:
+            power_fixed = LoadPower.from_ic_sym(
+                u=load.ulini,
+                i=load.ilini * LV_TO_BASE_CURR,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
+        elif load_type == 3:
+            power_fixed = LoadPower.from_pc_sym(
+                p=load.cplinia * LV_TO_BASE_POW,
+                cosphi=load.coslini,
+                scaling=scaling,
+            )
+        else:
+            raise RuntimeError("Unreachable")
+        return power_fixed
+
+    def calc_load_lv_power_sym(self, load: pft.LoadLVP) -> LoadLV:
+        power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
+        power_night = LoadPower.from_pq_sym(
+            p=load.pnight * LV_TO_BASE_POW,
+            q=0,
+            scaling=1,
+        )
+        power_variable = LoadPower.from_sc_sym(
+            s=load.cSav * LV_TO_BASE_POW,
+            cosphi=load.ccosphi,
+            scaling=1,
+        )
+        return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
+
+    def calc_load_lv_power(self, load: pft.LoadLV) -> LoadLV:
         load_type = load.iopt_inp
         scaling = load.scale0
         if not load.i_sym:
+            power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
+        else:
             if load_type == 0:
-                power = self.calc_sc(s_r=load.slini, cosphi=load.coslini, scaling=scaling)
+                power_fixed = LoadPower.from_sc_asym(
+                    s_r=load.slinir * LV_TO_BASE_POW,
+                    s_s=load.slinis * LV_TO_BASE_POW,
+                    s_t=load.slinit * LV_TO_BASE_POW,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
             elif load_type == 1:
-                power = self.calc_pc(p=load.plini, cosphi=load.coslini, scaling=scaling)
+                power_fixed = LoadPower.from_pc_asym(
+                    p_r=load.plinir * LV_TO_BASE_POW,
+                    p_s=load.plinis * LV_TO_BASE_POW,
+                    p_t=load.plinit * LV_TO_BASE_POW,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
             elif load_type == 2:
-                power = self.calc_ic(u=load.ulini, i=load.ilini, cosphi=load.coslini, scaling=scaling)
-            elif load_type == 3:
-                logger.warning(f"Load {load.loc_name}: Power from yearly demand is not implemented yet. Skipping.")
-                # TODO: Leistung nach Jahresverbrauch
-                return None
+                power_fixed = LoadPower.from_ic_asym(
+                    u=load.ulini,
+                    i_r=load.ilinir * LV_TO_BASE_CURR,
+                    i_s=load.ilinis * LV_TO_BASE_CURR,
+                    i_t=load.ilinit * LV_TO_BASE_CURR,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling,
+                )
             else:
                 raise RuntimeError("Unreachable")
-        else:
-            # TODO asymmetrische Lasten
-            logger.warning(f"Load {load.loc_name}: Asymmetric loads are not implemented yet. Skipping.")
-            return None
-        power_night = self.calc_pq(p=load.pnight, q=0, scaling=scaling)
-        # TODO: Vielleicht zwei separate Load erzeugen?
-        power = power + power_night  # TODO: Variable Last (Wohneinheiten etc.)
-        if power.isempty:
-            logger.warning(f"Power is not set for load {load.loc_name}. Skipping.")
-            return None
-        return power
+        power_night = LoadPower.from_pq_sym(
+            p=load.pnight * LV_TO_BASE_POW,
+            q=0,
+            scaling=1,
+        )
+        power_variable = LoadPower.from_sc_sym(
+            s=load.cSav * LV_TO_BASE_POW,
+            cosphi=load.ccosphi,
+            scaling=1,
+        )
+        return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
 
-    def calc_mv_load_power(self, load: pft.LoadMV) -> Optional[LoadPower]:
+    def calc_load_mv_power(self, load: pft.LoadMV) -> LoadMV:
         load_type = load.mode_inp
-        scaling_load = load.scale0
-        scaling_gen = load.gscale
+        scaling_cons = load.scale0
+        scaling_prod = load.gscale
         if not load.ci_sym:
             if load_type == "PC":
-                power_load = self.calc_pc(p=load.plini, cosphi=load.coslini, scaling=scaling_load)
-                power_gen = self.calc_pc(p=load.pgini, cosphi=load.cosgini, scaling=scaling_gen)
+                power_consumer = LoadPower.from_pc_sym(
+                    p=load.plini,
+                    cosphi=load.coslini,
+                    scaling=scaling_cons,
+                )
+                power_producer = LoadPower.from_pc_sym(
+                    p=load.pgini,
+                    cosphi=load.cosgini,
+                    scaling=scaling_prod,
+                )
             elif load_type == "SC":
-                power_load = self.calc_sc(s_r=load.slini, cosphi=load.coslini, scaling=scaling_load)
-                power_gen = self.calc_sc(s_r=load.sgini, cosphi=load.cosgini, scaling=scaling_gen)
+                power_consumer = LoadPower.from_sc_sym(
+                    s=load.slini,
+                    cosphi=load.coslini,
+                    scaling=scaling_cons,
+                )
+                power_producer = LoadPower.from_sc_sym(
+                    s=load.sgini,
+                    cosphi=load.cosgini,
+                    scaling=scaling_prod,
+                )
             elif load_type == "EC":
                 logger.warning("Power from yearly demand is not implemented yet. Skipping.")
-                return None  # TODO: Leistung nach Jahresverbrauch
+                power_consumer = LoadPower.from_pc_sym(
+                    p=load.cplinia,
+                    cosphi=load.coslini,
+                    scaling=scaling_cons,
+                )
+                power_producer = LoadPower.from_pc_sym(
+                    p=load.pgini,
+                    cosphi=load.cosgini,
+                    scaling=scaling_prod,
+                )
             else:
                 raise RuntimeError("Unreachable.")
         else:
-            # TODO: asymmetrische Lasten
-            logger.warning(f"Load {load.loc_name}: Asymmetric loads are not implemented yet. Skipping.")
-            return None
-        # TODO: Vielleicht zwei separate Load erzeugen?
-        power = power_load - power_gen
-        if power.isempty:
-            logger.warning(f"Power is not set for load {load.loc_name}. Skipping.")
-            return None
-        return power
-
-    @staticmethod
-    def calc_pq(p: float, q: float, scaling: float) -> LoadPower:
-        p = p * scaling * POWER_EXPONENT
-        q = q * scaling * POWER_EXPONENT
-        s_r = math.sqrt(p**2 + q**2)
-        cosphi = p / s_r
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_pc(p: float, cosphi: float, scaling: float) -> LoadPower:
-        p = p * scaling * POWER_EXPONENT
-        cosphi = cosphi
-        s_r = p / cosphi
-        q = math.sqrt(s_r**2 - p**2)
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_ic(u: float, i: float, cosphi: float, scaling: float) -> LoadPower:
-        s_r = u * i * scaling * POWER_EXPONENT
-        p = s_r * cosphi
-        q = math.sqrt(s_r**2 - p**2)
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_sc(s_r: float, cosphi: float, scaling: float) -> LoadPower:
-        s_r = s_r * scaling * POWER_EXPONENT
-        p = s_r * cosphi
-        q = math.sqrt(s_r**2 - p**2)
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_qc(q: float, cosphi: float, scaling: float) -> LoadPower:
-        q = q * scaling * POWER_EXPONENT
-        s_r = q / math.sin(math.acos(cosphi))
-        p = s_r * cosphi
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_ip(u: float, i: float, p: float, scaling: float) -> LoadPower:
-        p = p * scaling * POWER_EXPONENT
-        s_r = u * i * scaling * POWER_EXPONENT
-        cosphi = s_r / p
-        q = math.sqrt(s_r**2 - p**2)
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_sp(s_r: float, p: float, scaling: float) -> LoadPower:
-        s_r = s_r * scaling * POWER_EXPONENT
-        p = p * scaling * POWER_EXPONENT
-        cosphi = s_r / p
-        q = math.sqrt(s_r**2 - p**2)
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
-
-    @staticmethod
-    def calc_sq(s_r: float, q: float, scaling: float) -> LoadPower:
-        s_r = s_r * scaling * POWER_EXPONENT
-        q = q * scaling * POWER_EXPONENT
-        p = math.sqrt(s_r**2 - q**2)
-        cosphi = s_r / p
-        return LoadPower(s_r=s_r, p=p, q=q, cosphi=cosphi)
+            if load_type == "PC":
+                power_consumer = LoadPower.from_pc_asym(
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling_cons,
+                )
+                power_producer = LoadPower.from_pc_asym(
+                    p_r=load.pginir,
+                    p_s=load.pginis,
+                    p_t=load.pginit,
+                    cosphi_r=load.cosginir,
+                    cosphi_s=load.cosginis,
+                    cosphi_t=load.cosginit,
+                    scaling=scaling_prod,
+                )
+            elif load_type == "SC":
+                power_consumer = LoadPower.from_sc_asym(
+                    s_r=load.slinir,
+                    s_s=load.slinis,
+                    s_t=load.slinit,
+                    cosphi_r=load.coslinir,
+                    cosphi_s=load.coslinis,
+                    cosphi_t=load.coslinit,
+                    scaling=scaling_cons,
+                )
+                power_producer = LoadPower.from_sc_asym(
+                    s_r=load.sginir,
+                    s_s=load.sginis,
+                    s_t=load.sginit,
+                    cosphi_r=load.cosginir,
+                    cosphi_s=load.cosginis,
+                    cosphi_t=load.cosginit,
+                    scaling=scaling_prod,
+                )
+            else:
+                raise RuntimeError("Unreachable.")
+        return LoadMV(consumer=power_consumer, producer=power_producer)
 
     @staticmethod
     def load_model_of(load: pft.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:
@@ -951,6 +1132,8 @@ class PowerfactoryExporter:
         load: pft.LoadBase,
         power: LoadPower,
         grid_name: str,
+        system_type: Optional[ConsumerSystemType] = None,
+        name_suffix: str = "",
     ) -> Optional[Load]:
 
         export, description = self.get_description(load)
@@ -963,13 +1146,13 @@ class PowerfactoryExporter:
             logger.debug(f"Load {load.loc_name} not connected to any bus. Skipping.")
             return None
         t = bus.cterm
-        l_name = self.pfi.create_name(load, grid_name)
+        l_name = self.pfi.create_name(load, grid_name) + name_suffix
         t_name = self.pfi.create_name(t, grid_name)
 
-        u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * VOLTAGE_EXPONENT  # voltage in V
+        u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
-        rated_power = RatedPower(s_r=power.s_r, cosphi_r=None)
-        logger.debug(f"{load.loc_name}: there is no real rated, but s_r is calculated on basis of actual power.")
+        rated_power = power.as_rated_power()
+        logger.debug(f"{load.loc_name}: there is no real rated, but 's' is calculated on basis of actual power.")
 
         load_model_p = self.load_model_of(load, specifier="p")
         active_power = ActivePower(load_model=load_model_p)
@@ -977,7 +1160,7 @@ class PowerfactoryExporter:
         load_model_q = self.load_model_of(load, specifier="q")
         reactive_power = ReactivePower(load_model=load_model_q)
 
-        u_sys_type, ph_con = self.consumer_technology_of(load)
+        u_system_type, ph_con = self.consumer_technology_of(load)
 
         consumer = Load(
             name=l_name,
@@ -988,7 +1171,8 @@ class PowerfactoryExporter:
             active_power=active_power,
             reactive_power=reactive_power,
             type=LoadType.CONSUMER,
-            voltage_system_type=u_sys_type,
+            system_type=system_type,
+            voltage_system_type=u_system_type,
             phase_connection_type=ph_con,
         )
         logger.debug(f"Created consumer {consumer}.")
@@ -996,15 +1180,17 @@ class PowerfactoryExporter:
 
     def create_producer(
         self,
-        gen: pft.GeneratorBase,
+        gen: Union[pft.GeneratorBase, pft.LoadMV],
+        gen_name: str,
+        power: LoadPower,
         grid_name: str,
         producer_system_type: Optional[ProducerSystemType] = None,
+        producer_phase_connection_type: Optional[ProducerPhaseConnectionType] = None,
+        external_controller_name: Optional[str] = None,
+        name_suffix: str = "",
     ) -> Optional[Load]:
 
-        if gen.c_pmod is None:  # if generator is not part of higher model
-            gen_name = gen.loc_name
-        else:
-            gen_name = gen.c_pmod.loc_name + PATH_SEP + gen.loc_name
+        gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name) + name_suffix
 
         export, description = self.get_description(gen)
         if not export:
@@ -1019,30 +1205,12 @@ class PowerfactoryExporter:
             t = bus.cterm
         t_name = self.pfi.create_name(t, grid_name)
 
-        u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * VOLTAGE_EXPONENT
-        gen_num = gen.ngnum
-        scaling = gen.scale0
+        u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
         # Rated Values of single unit
-        s_r = gen.sgn
-        cosphi_r = gen.cosn
-        rated_power = RatedPower(
-            s_r=round(s_r * POWER_EXPONENT * gen_num * scaling),
-            cosphi_r=round(cosphi_r, COSPHI_DECIMAL_DIGITS),
-        )
+        rated_power = power.as_rated_power()
 
-        # External Controller
-        ext_ctrl = gen.c_pstac
-        if ext_ctrl is None:
-            ext_ctrl_name = None
-        else:
-            # if gen.c_pmod is not None then external controller is part of compound model
-            ext_ctrl_name = (
-                ext_ctrl.loc_name if gen.c_pmod is None else gen.c_pmod.loc_name + PATH_SEP + ext_ctrl.loc_name
-            )
-        reactive_power = ReactivePower(external_controller_name=ext_ctrl_name)
-
-        ph_con = self.producer_technology_of(gen)
+        reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
         producer = Load(
             name=gen_name,
@@ -1054,10 +1222,22 @@ class PowerfactoryExporter:
             reactive_power=reactive_power,
             type=LoadType.PRODUCER,
             system_type=producer_system_type,
-            phase_connection_type=ph_con,
+            phase_connection_type=producer_phase_connection_type,
         )
         logger.debug(f"Created producer {producer}.")
         return producer
+
+    def calc_normal_gen_power(self, gen: Union[pft.Generator, pft.PVSystem]) -> LoadPower:
+        s = gen.sgn * gen.ngnum
+        cosphi = gen.cosn
+        return LoadPower.from_sc_sym(s=s, cosphi=cosphi, scaling=gen.scale0)
+
+    def get_external_controller_name(self, gen: Union[pft.Generator, pft.PVSystem]) -> Optional[str]:
+        ext_ctrl = gen.c_pstac
+        if ext_ctrl is None:
+            return None
+        else:
+            return self.pfi.create_gen_name(gen, generator_name=ext_ctrl.loc_name)
 
     def create_producers_normal(
         self,
@@ -1068,7 +1248,19 @@ class PowerfactoryExporter:
         producers: list[Load] = []
         for gen in generators:
             producer_system_type = self.producer_system_type_of(gen)
-            producer = self.create_producer(gen, grid_name, producer_system_type=producer_system_type)
+            producer_phase_connection_type = self.producer_technology_of(gen)
+            external_controller_name = self.get_external_controller_name(gen)
+            power = self.calc_normal_gen_power(gen)
+            gen_name = self.pfi.create_gen_name(gen)
+            producer = self.create_producer(
+                gen=gen,
+                power=power,
+                gen_name=gen_name,
+                grid_name=grid_name,
+                producer_system_type=producer_system_type,
+                producer_phase_connection_type=producer_phase_connection_type,
+                external_controller_name=external_controller_name,
+            )
             if producer is not None:
                 producers.append(producer)
         return producers
@@ -1082,7 +1274,19 @@ class PowerfactoryExporter:
         producers: list[Load] = []
         for gen in generators:
             producer_system_type = ProducerSystemType.PV
-            producer = self.create_producer(gen, grid_name, producer_system_type=producer_system_type)
+            producer_phase_connection_type = self.producer_technology_of(gen)
+            external_controller_name = self.get_external_controller_name(gen)
+            power = self.calc_normal_gen_power(gen)
+            gen_name = self.pfi.create_gen_name(gen)
+            producer = self.create_producer(
+                gen=gen,
+                power=power,
+                gen_name=gen_name,
+                grid_name=grid_name,
+                producer_system_type=producer_system_type,
+                producer_phase_connection_type=producer_phase_connection_type,
+                external_controller_name=external_controller_name,
+            )
             if producer is not None:
                 producers.append(producer)
         return producers
@@ -1151,10 +1355,7 @@ class PowerfactoryExporter:
                 raise RuntimeError("Unreachable")
 
         else:
-            # if gen.c_pmod is not None then external controller is part of compound model
-            ext_ctrl_name = (
-                ext_ctrl.loc_name if gen.c_pmod is None else gen.c_pmod.loc_name + PATH_SEP + ext_ctrl.loc_name
-            )
+            ext_ctrl_name = self.pfi.create_gen_name(gen, generator_name=ext_ctrl.loc_name)
 
             ctrl_mode = ext_ctrl.i_ctrl
             if ctrl_mode == 0:  # voltage control mode
@@ -1171,7 +1372,7 @@ class PowerfactoryExporter:
                     q_dir = -1 if ext_ctrl.iQorient else 1  # negative counting --> under excited
                     q_set = ext_ctrl.qsetp * q_dir
                 elif controller_type == ControllerType.Q_U:
-                    u_nom = round(ext_ctrl.refbar.uknom, VOLTAGE_DECIMAL_DIGITS) * VOLTAGE_EXPONENT  # voltage in V
+                    u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
                     qmax_ue = abs(ext_ctrl.Qmin / p_r)  # per unit
                     qmax_oe = abs(ext_ctrl.Qmax / p_r)  # per unit
@@ -1182,17 +1383,17 @@ class PowerfactoryExporter:
                     q_rated = ext_ctrl.Srated
                     try:
                         if abs(abs(q_rated) - abs(s_r) / abs(s_r)) < 0.01:  # q_rated == s_r
-                            m_tab2015 = 100 / ext_ctrl.ddroop * 100 * VOLTAGE_EXPONENT / u_nom / cosphi_r
+                            m_tab2015 = 100 / ext_ctrl.ddroop * 100 * Exponents.VOLTAGE / u_nom / cosphi_r
                         else:
                             m_tab2015 = (
                                 100
                                 / abs(ext_ctrl.ddroop)
                                 * 100
-                                * VOLTAGE_EXPONENT
+                                * Exponents.VOLTAGE
                                 / u_nom
                                 * math.tan(math.acos(cosphi_r))
                             )
-                            # PF droop = 100%/m_tab2015 * 100*VOLTAGE_EXPONENT/u_nom * tan(phi)
+                            # PF droop = 100%/m_tab2015 * 100*Exponents.VOLTAGE/u_nom * tan(phi)
                             # PF droop = 100%/m_tar2018 * tan(phi)
 
                         # in default there should q_rated=s_r, but user could enter incorrectly
@@ -1248,19 +1449,19 @@ class PowerfactoryExporter:
 
         # final scaling and rounding
         if cosphi:
-            cosphi = round(cosphi, COSPHI_DECIMAL_DIGITS)
+            cosphi = round(cosphi, DecimalDigits.COSPHI)
         if q_set:
-            q_set = round(q_set * POWER_EXPONENT * gen.ngnum)
+            q_set = round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER)
         if m_tab2015:
-            m_tab2015 = round(m_tab2015, PU_DECIMAL_DIGITS)
+            m_tab2015 = round(m_tab2015, DecimalDigits.PU)
         if m_tar2018:
-            m_tar2018 = round(m_tar2018, PU_DECIMAL_DIGITS)
+            m_tar2018 = round(m_tar2018, DecimalDigits.PU)
         if u_q0:
-            u_q0 = round(u_q0, VOLTAGE_DECIMAL_DIGITS)
+            u_q0 = round(u_q0, DecimalDigits.VOLTAGE)
         if udeadband_up:
-            udeadband_up = round(udeadband_up, VOLTAGE_DECIMAL_DIGITS)
+            udeadband_up = round(udeadband_up, DecimalDigits.VOLTAGE)
         if udeadband_low:
-            udeadband_low = round(udeadband_low, VOLTAGE_DECIMAL_DIGITS)
+            udeadband_low = round(udeadband_low, DecimalDigits.VOLTAGE)
 
         controller = Controller(
             controller_type=controller_type,
@@ -1270,8 +1471,8 @@ class PowerfactoryExporter:
             q_set=q_set,
             m_tab2015=m_tab2015,
             m_tar2018=m_tar2018,
-            qmax_ue=round(qmax_ue, PU_DECIMAL_DIGITS),
-            qmax_oe=round(qmax_oe, PU_DECIMAL_DIGITS),
+            qmax_ue=round(qmax_ue, DecimalDigits.PU),
+            qmax_oe=round(qmax_oe, DecimalDigits.PU),
             u_q0=u_q0,
             udeadband_up=udeadband_up,
             udeadband_low=udeadband_low,
@@ -1300,7 +1501,7 @@ class PowerfactoryExporter:
         else:
             raise ValueError("Wrong format as input. Valid input is '2015' and '2018'.")
 
-        # Conversion: gen.ddroop = PF droop = 100%/m_tab2015 * 100*VOLTAGE_EXPONENT/u_n * 1/cosphi_r
+        # Conversion: gen.ddroop = PF droop = 100%/m_tab2015 * 100*Exponents.VOLTAGE/u_n * 1/cosphi_r
         # Conversion: gen.ddroop = PF droop = 100%/m_tar2018 * 1/cosphi_r
 
         return transformed_slope
@@ -1423,9 +1624,9 @@ class PowerfactoryExporter:
 
                 wh = Winding(
                     node=t_high_name,
-                    s_r=s_r * POWER_EXPONENT,
-                    u_r=u_ref_h * VOLTAGE_EXPONENT,
-                    u_n=u_nom_h * VOLTAGE_EXPONENT,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     r1=r_1,
                     r0=r_0,
                     x1=x_1,
@@ -1436,9 +1637,9 @@ class PowerfactoryExporter:
 
                 wl = Winding(
                     node=t_low_name,
-                    s_r=s_r * POWER_EXPONENT,
-                    u_r=u_ref_l * VOLTAGE_EXPONENT,
-                    u_n=u_nom_l * VOLTAGE_EXPONENT,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     r1=float(0),
                     r0=float(0),
                     x1=float(0),
@@ -1453,7 +1654,7 @@ class PowerfactoryExporter:
                     name=name,
                     number=t_number,
                     i_0=i_0,
-                    p_fe=p_fe * 1e3,
+                    p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
                     vector_group=vector_group,
                     tap_u_abs=tap_u_abs,
                     tap_u_phi=tap_u_phi,
@@ -1761,7 +1962,7 @@ class PowerfactoryExporter:
 
         normal_consumers = self.create_consumer_ssc_states_normal(consumers, grid_name)
         lv_consumers = self.create_consumer_ssc_states_lv(consumers_lv, grid_name)
-        mv_consumers = self.create_consumer_ssc_states_mv(consumers_mv, grid_name)
+        mv_consumers = self.create_load_ssc_states_mv(consumers_mv, grid_name)
         gen_producers = self.create_producers_ssc_states(generators)
         pv_producers = self.create_producers_ssc_states(pv_systems)
         return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_consumers, gen_producers, pv_producers)
@@ -1789,49 +1990,83 @@ class PowerfactoryExporter:
 
         consumers_ssc: list[LoadSSC] = []
         for load in loads:
-            power = self.calc_lv_load_power(load)
-            if power is not None:
-                consumer = self.create_consumer_ssc_state(load, power, grid_name)
+            powers = self.calc_load_lv_powers(load)
+            if len(powers) == 1:
+                sfx_pre = ""
+            else:
+                sfx_pre = "_({})"
+            for i, p in enumerate(powers):
+                consumer = (
+                    self.create_consumer_ssc_state(
+                        load,
+                        p.fixed,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.FIXED.value,
+                    )
+                    if p.fixed.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers_ssc.append(consumer)
+                consumer = (
+                    self.create_consumer_ssc_state(
+                        load,
+                        p.night,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                    )
+                    if p.night.s_abs != 0
+                    else None
+                )
+                if consumer is not None:
+                    consumers_ssc.append(consumer)
+                consumer = (
+                    self.create_consumer_ssc_state(
+                        load,
+                        p.variable,
+                        grid_name,
+                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.VARIABLE.value,
+                    )
+                    if p.variable.s_abs != 0
+                    else None
+                )
                 if consumer is not None:
                     consumers_ssc.append(consumer)
         return consumers_ssc
 
-    def create_consumer_ssc_states_mv(
+    def create_load_ssc_states_mv(
         self,
         loads: Sequence[pft.LoadMV],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
 
-        consumers_ssc: list[LoadSSC] = []
+        loads_ssc: list[LoadSSC] = []
         for load in loads:
-            power = self.calc_mv_load_power(load)
-            if power is not None:
-                consumer = self.create_consumer_ssc_state(load, power, grid_name)
-                if consumer is not None:
-                    consumers_ssc.append(consumer)
-        return consumers_ssc
+            power = self.calc_load_mv_power(load)
+            consumer = self.create_consumer_ssc_state(load, power.consumer, grid_name, name_suffix="_CONSUMER")
+            if consumer is not None:
+                loads_ssc.append(consumer)
+            producer = self.create_consumer_ssc_state(load, power.producer, grid_name, name_suffix="_PRODUCER")
+            if producer is not None:
+                loads_ssc.append(producer)
+        return loads_ssc
 
     def create_consumer_ssc_state(
         self,
         load: pft.LoadBase,
         power: LoadPower,
         grid_name: str,
+        name_suffix: str = "",
     ) -> Optional[LoadSSC]:
 
-        name = self.pfi.create_name(load, grid_name)
+        name = self.pfi.create_name(load, grid_name) + name_suffix
         export, _ = self.get_description(load)
         if not export:
             logger.warning(f"External grid {name} not set for export. Skipping.")
             return None
 
-        active_power = ActivePowerSSC(p_0=power.p)
-        cosphi_type = CosphiDir.OE if load.pf_recap else CosphiDir.UE  # inverse declaration compared to producers
-        controller = Controller(
-            cosphi=round(power.cosphi, COSPHI_DECIMAL_DIGITS),
-            cosphi_type=cosphi_type,
-            controller_type=ControllerType.COSPHI_CONST,
-        )
-        reactive_power = ReactivePowerSSC(q_0=power.q, controller=controller)
+        active_power = power.as_active_power_ssc()
+        reactive_power = power.as_reactive_power_ssc()
 
         consumer = LoadSSC(
             name=name,
@@ -1848,10 +2083,8 @@ class PowerfactoryExporter:
 
         producers_ssc: list[LoadSSC] = []
         for gen in generators:
-            if gen.c_pmod is None:  # if generator is not part of higher model
-                gen_name = gen.loc_name
-            else:
-                gen_name = gen.c_pmod.loc_name + PATH_SEP + gen.loc_name
+
+            gen_name = self.pfi.create_gen_name(gen)
 
             export, _ = self.get_description(gen)
             if not export:
@@ -1864,22 +2097,17 @@ class PowerfactoryExporter:
                 continue
             else:
                 t = bus.cterm
-            u_n = round(t.uknom, VOLTAGE_DECIMAL_DIGITS) * VOLTAGE_EXPONENT
-            gen_num = gen.ngnum
+            u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
-            # Actual Values of single unit
-            p = gen.pgini_a
-            active_power = ActivePowerSSC(p_0=round(p * POWER_EXPONENT * gen_num))
+            power = LoadPower.from_pq_sym(p=gen.pgini_a, q=gen.qgini_a, scaling=gen.scale0_a)
+
+            active_power = power.as_active_power_ssc()
 
             # External Controller
             ext_ctrl = gen.c_pstac
             # Q-Controller
             controller = self.create_q_controller(gen, gen_name, u_n, ext_ctrl=ext_ctrl)
-            q = gen.qgini_a
-            reactive_power = ReactivePowerSSC(
-                q_0=round(q * POWER_EXPONENT * gen_num),
-                controller=controller,
-            )
+            reactive_power = power.as_reactive_power_ssc(controller=controller)
 
             producer = LoadSSC(
                 name=gen_name,
