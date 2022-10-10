@@ -1,33 +1,33 @@
 {
-    "description": "This application is intended for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
-    "title": "Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory",
-    "version": "1.0.0",
-    "upload_type": "software",
-    "keywords": [
-        "Toolbox",
-        "PowerFactory",
-        "JSON",
-        "Python",
-        "Grid Model"
-    ],
-    "publication_date": "2022-09-19",
-    "creators": [
-        {
-            "name": "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
-        }
-    ],
-    "license": "BSD-3-Clause",
-    "access_right": "open",
-    "related_identifiers": [
-        {
-            "scheme": "url",
-            "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.0.0",
-            "relation": "isSupplementTo"
-        },
-        {
-            "scheme": "doi",
-            "identifier": "10.5281/zenodo.7074968",
-            "relation": "isVersionOf"
-        }
-    ]
+  "description": "This application is intended for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
+  "title": "Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory",
+  "version": "1.0.1",
+  "upload_type": "software",
+  "keywords": [
+    "Toolbox",
+    "PowerFactory",
+    "JSON",
+    "Python",
+    "Grid Model"
+  ],
+  "publication_date": "2022-10-10",
+  "creators": [
+    {
+      "name": "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
+    }
+  ],
+  "license": "BSD-3-Clause",
+  "access_right": "open",
+  "related_identifiers": [
+    {
+      "scheme": "url",
+      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.0.1",
+      "relation": "isSupplementTo"
+    },
+    {
+      "scheme": "doi",
+      "identifier": "10.5281/zenodo.7074968",
+      "relation": "isVersionOf"
+    }
+  ]
 }
