@@ -9,8 +9,10 @@ from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import root_validator
 
 if TYPE_CHECKING:
+    from typing import Any
     from typing import Union
 
 
@@ -41,3 +43,8 @@ class Meta(Base):
     date: datetime.date  # date of export
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     project: Optional[str] = None  # project the export is related to
+
+    @root_validator
+    def schema_version(cls, values: dict[str, Any]) -> dict[str, Any]:
+        values["version"] = "1.0"
+        return values
