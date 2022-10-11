@@ -2,13 +2,18 @@
   "meta": {
     "name": "HV_8_Bus",
     "date": "2022-10-11",
-    "id": "3f41de7e-8424-41b6-8cb2-fb8864dd3ca3",
+    "id": "83a7dac4-c114-420f-8551-3c7ba573567f",
     "project": "PowerFactory-Utils",
-    "version": "1.0"
+    "version": "1.0.0"
   },
   "elements": [
     {
       "name": "Node_8/ISField_2.3",
+      "active": false,
+      "node": null
+    },
+    {
+      "name": "Transformer_2w_110/20",
       "active": false,
       "node": null
     },
@@ -24,11 +29,6 @@
     },
     {
       "name": "Node_8/IS1.2",
-      "active": false,
-      "node": null
-    },
-    {
-      "name": "Transformer_2w_110/20",
       "active": false,
       "node": null
     }

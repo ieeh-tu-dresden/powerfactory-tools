@@ -42,3 +42,6 @@ class Meta(Base):
     date: datetime.date  # date of export
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     project: Optional[str] = None  # project the export is related to
+
+    class Config:
+        frozen = True
