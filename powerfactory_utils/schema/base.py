@@ -39,12 +39,8 @@ class Base(BaseModel):
 
 
 class Meta(Base):
+    version = "1.0.0"
     name: str
     date: datetime.date  # date of export
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     project: Optional[str] = None  # project the export is related to
-
-    @root_validator
-    def schema_version(cls, values: dict[str, Any]) -> dict[str, Any]:
-        values["version"] = "1.0"
-        return values
