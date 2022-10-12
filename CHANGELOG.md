@@ -1,3 +1,13 @@
+## 1.1.0 (2022-10-12)
+
+### Feat
+
+- add schema version (#29)
+
+### Fix
+
+- zenodo meta data (#28)
+
 ## 1.0.1 (2022-10-10)
 
 ### Fix
