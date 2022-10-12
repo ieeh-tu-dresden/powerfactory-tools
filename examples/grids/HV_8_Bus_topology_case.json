@@ -1,9 +1,10 @@
 {
   "meta": {
     "name": "HV_8_Bus",
-    "date": "2022-10-06",
-    "id": "b826e77c-df14-472f-8220-2b86fac375ad",
-    "project": "PowerFactory-Utils"
+    "date": "2022-10-11",
+    "id": "551b2508-613e-479e-881f-bc68d677e60b",
+    "project": "PowerFactory-Utils",
+    "version": "1.0.0"
   },
   "elements": [
     {

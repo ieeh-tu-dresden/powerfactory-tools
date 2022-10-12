@@ -1,18 +1,14 @@
 {
   "meta": {
     "name": "HV_8_Bus",
-    "date": "2022-10-06",
-    "id": "ad404b1a-6162-48d5-acef-8b54c3bf7877",
-    "project": "PowerFactory-Utils"
+    "date": "2022-10-11",
+    "id": "83a7dac4-c114-420f-8551-3c7ba573567f",
+    "project": "PowerFactory-Utils",
+    "version": "1.0.0"
   },
   "elements": [
     {
-      "name": "Node_8/IS1.2",
-      "active": false,
-      "node": null
-    },
-    {
-      "name": "Line_34",
+      "name": "Node_8/ISField_2.3",
       "active": false,
       "node": null
     },
@@ -22,14 +18,19 @@
       "node": null
     },
     {
-      "name": "Node_8/ISField_2.3",
+      "name": "Line_23",
+      "active": false,
+      "node": "Node_3"
+    },
+    {
+      "name": "Line_34",
       "active": false,
       "node": null
     },
     {
-      "name": "Line_23",
+      "name": "Node_8/IS1.2",
       "active": false,
-      "node": "Node_3"
+      "node": null
     }
   ]
 }
