@@ -1,5 +1,5 @@
 {
-  "description": "This application is intended for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
+  "description": "Powerfactory Utils is a toolbox for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
   "title": "Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory",
   "version": "1.0.1",
   "upload_type": "software",
@@ -18,16 +18,12 @@
   ],
   "license": "BSD-3-Clause",
   "access_right": "open",
+  "notes": "Specific Powerfactory Utils versions can be found in the \"Versions\" list on the right side of this page.<br>See the full list of authors <a href=\"https://github.com/ieeh-tu-dresden/powerfactory-utils/graphs/contributors\"> on GitHub</a>.",
   "related_identifiers": [
     {
       "scheme": "url",
       "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.0.1",
       "relation": "isSupplementTo"
-    },
-    {
-      "scheme": "doi",
-      "identifier": "10.5281/zenodo.7074968",
-      "relation": "isVersionOf"
     }
   ]
 }
