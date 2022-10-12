@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "name": "HV_8_Bus",
+    "date": "2022-10-11",
+    "id": "551b2508-613e-479e-881f-bc68d677e60b",
+    "project": "PowerFactory-Utils",
+    "version": "1.0.0"
+  },
+  "elements": [
+    {
+      "name": "Node_8/ISField_2.3",
+      "active": false,
+      "node": null
+    },
+    {
+      "name": "Node_8/IS1.2",
+      "active": false,
+      "node": null
+    }
+  ]
+}

@@ -84,7 +84,7 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 
 Please note that this work is part of research activities and is still under active development.
 
-This code was tested with `DIgSILENT PowerFactory 2021 SP5`.
+This code was tested with `DIgSILENT PowerFactory 2021 SP5` and `DIgSILENT PowerFactory 2022 SP2`.
 
 ## <div id="attribution" /> Attribution
 

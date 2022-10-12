@@ -62,9 +62,21 @@ class ProducerPhaseConnectionType(Enum):
 PhaseConnectionType = Union[ConsumerPhaseConnectionType, ProducerPhaseConnectionType]
 
 
+class ConsumerSystemType(Enum):
+    FIXED = "FIXED"
+    NIGHT_STORAGE = "NIGHT_STORAGE"
+    VARIABLE = "VARIABLE"
+
+
 class RatedPower(Base):
-    s_r: float  # rated power; base for p.u. calculation
-    cosphi_r: Optional[float]  # rated cos(phi) in relation to rated power
+    s: float  # rated apparent power; base for p.u. calculation
+    s_r: float  # rated apparent power (phase r)
+    s_s: float  # rated apparent power (phase s)
+    s_t: float  # rated apparent power (phase t)
+    cosphi: Optional[float]  # rated cos(phi) in relation to rated power
+    cosphi_r: Optional[float]  # rated cos(phi) (phase r)
+    cosphi_s: Optional[float]  # rated cos(phi) (phase s)
+    cosphi_t: Optional[float]  # rated cos(phi) (phase t)
 
 
 class Load(Base):  # including assets of type load and generator
@@ -76,17 +88,17 @@ class Load(Base):  # including assets of type load and generator
     active_power: ActivePower
     reactive_power: ReactivePower
     type: LoadType
-    system_type: Optional[ProducerSystemType] = None
+    system_type: Optional[Union[ConsumerSystemType, ProducerSystemType]] = None
     phase_connection_type: Optional[PhaseConnectionType] = None
     voltage_system_type: Optional[VoltageSystemType] = None
 
     @validator("rated_power")
     def validate_rated_power(cls, v: RatedPower) -> RatedPower:
-        cosphi = v.cosphi_r
+        cosphi = v.cosphi
         if cosphi is not None:
             if abs(cosphi) > 1 or abs(cosphi) < 0:
                 raise ValueError(f"Rated `cos(phi)` must be within range [0 1], but is {cosphi}.")
 
-        if v.s_r < 0:
-            raise ValueError("Rated power `s_r` must be positive. Use type instead.")
+        if v.s < 0:
+            raise ValueError("Rated power `s` must be positive. Use type: LoadType instead.")
         return v
