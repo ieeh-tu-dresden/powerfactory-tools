@@ -522,14 +522,14 @@ class PowerfactoryExporter:
                 i = l_type.InomAir if line.inAir else l_type.sline
                 i_r = line.nlnum * line.fline * i  # rated current (A)
 
-                r1 = l_type.rline * line.dline * Exponents.RESISTANCE
-                x1 = l_type.xline * line.dline * Exponents.REACTANCE
-                r0 = l_type.rline0 * line.dline * Exponents.RESISTANCE
-                x0 = l_type.xline0 * line.dline * Exponents.REACTANCE
-                g1 = l_type.gline * line.dline * Exponents.CONDUCTANCE
-                b1 = l_type.bline * line.dline * Exponents.SUSCEPTANCE
-                g0 = l_type.gline0 * line.dline * Exponents.CONDUCTANCE
-                b0 = l_type.bline0 * line.dline * Exponents.SUSCEPTANCE
+                r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
+                x1 = l_type.xline * line.dline / line.nlnum *Exponents.REACTANCE
+                r0 = l_type.rline0 * line.dline / line.nlnum *Exponents.RESISTANCE
+                x0 = l_type.xline0 * line.dline / line.nlnum *Exponents.REACTANCE
+                g1 = l_type.gline * line.dline * line.nlnum *Exponents.CONDUCTANCE
+                b1 = l_type.bline * line.dline * line.nlnum *Exponents.SUSCEPTANCE
+                g0 = l_type.gline0 * line.dline * line.nlnum *Exponents.CONDUCTANCE
+                b0 = l_type.bline0 * line.dline * line.nlnum *Exponents.SUSCEPTANCE
 
                 f_nom = l_type.frnom  # usually 50 Hertz
 
