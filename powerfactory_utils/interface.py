@@ -1,17 +1,19 @@
 from __future__ import annotations
 
+import dataclasses as dcs
 import importlib.util
 import itertools
 import pathlib
 import typing
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from loguru import logger
 
 from powerfactory_utils import powerfactory_types as pft
+from powerfactory_utils.constants import BaseUnits
 
 if TYPE_CHECKING:
+    from typing import Any
     from typing import Iterable
     from typing import Literal
     from typing import Optional
@@ -25,14 +27,28 @@ PYTHON_VERSION = "3.9"
 PATH_SEP = "/"
 
 
-@dataclass
+@dcs.dataclass
 class UnitConversionSetting:
-    cuserexp: str
+    filtclass: list[str]
+    filtvar: str
+    digunit: str
+    cdigexp: pft.MetricPrefix
+    userunit: str
+    cuserexp: pft.MetricPrefix
     ufacA: float
     ufacB: float
 
 
-@dataclass
+@dcs.dataclass
+class ProjectUnitSetting:
+    ilenunit: Literal[0, 1, 2]
+    clenexp: pft.MetricPrefix  # Lengths
+    cspqexp: pft.MetricPrefix  # Loads etc.
+    cspqexpgen: pft.MetricPrefix  # Generators etc.
+    currency: pft.Currency
+
+
+@dcs.dataclass
 class PowerfactoryInterface:
     project_name: str
     powerfactory_user_profile: Optional[str] = None
@@ -44,20 +60,39 @@ class PowerfactoryInterface:
         pf = self.start_powerfactory()
         self.app = self.connect_to_app(pf)
         self.project = self.connect_to_project(self.project_name)
+        if self.project is None:
+            raise RuntimeError("Could not access project.")
         self.load_project_folders()
-        self.set_unit_conversion()
+        self.save_unit_conversion_settings()
+        self.set_default_unit_conversion()
 
     def load_project_folders(self) -> None:
-        self.grid_model = self.load_grid_model()
-        self.types_lib = self.load_asset_types_lib()
-        self.op_lib = self.load_operational_data_lib()
-        self.chars_lib = self.load_characteristics_lib()
-        self.ext_data_dir = self.load_ext_data_dir()
+        self.grid_model = self.app.GetProjectFolder("netmod")
+        self.types_dir = self.app.GetProjectFolder("equip")
+        self.op_dir = self.app.GetProjectFolder("oplib")
+        self.chars_dir = self.app.GetProjectFolder("chars")
 
-        self.grid_data = self.load_grid_data()
-        self.study_case_lib = self.load_study_case_lib()
-        self.scenario_lib = self.load_scenario_lib()
-        self.grid_graphs_dir = self.load_grid_graphs()
+        project_settings_dir = self.load_project_settings_dir()
+        if project_settings_dir is None:
+            raise RuntimeError("Could not access project settings dir.")
+        self.project_settings_dir = typing.cast(pft.ProjectSettings, project_settings_dir)
+
+        self.ext_data_dir = self.project_settings_dir.extDataDir
+
+        self.grid_data = self.app.GetProjectFolder("netdat")
+        self.study_case_dir = self.app.GetProjectFolder("study")
+        self.scenario_dir = self.app.GetProjectFolder("dia")
+        self.grid_graphs_dir = self.app.GetProjectFolder("scen")
+
+        settings_dir = self.element_of(self.project, filter="*.SetFold", recursive=False)
+        if settings_dir is None:
+            raise RuntimeError("Could not access settings dir.")
+        self.settings_dir = typing.cast(pft.DataDir, settings_dir)
+
+        unit_settings_dir = self.element_of(self.settings_dir, filter="*.IntUnit", recursive=False)
+        if unit_settings_dir is None:
+            raise RuntimeError("Could not access unit settings dir.")
+        self.unit_settings_dir = typing.cast(pft.DataDir, unit_settings_dir)
 
     def start_powerfactory(self) -> pft.PowerFactoryModule:
         module_path = (
@@ -76,7 +111,7 @@ class PowerfactoryInterface:
         raise RuntimeError("Could not load Powerfactory module.")
 
     def close(self) -> bool:
-        self.reset_unit_conversion()
+        self.reset_unit_conversion_settings()
         return True
 
     def connect_to_app(self, pf: pft.PowerFactoryModule) -> pft.Application:
@@ -106,11 +141,14 @@ class PowerfactoryInterface:
         """
 
         success = self.activate_project(project_name)
-        if success:
-            project = self.get_project()
-            if project is not None:
-                return project
-        raise RuntimeError(f"Could not connect to Powerfactory project {project_name}.")
+        if success is False:
+            raise RuntimeError(f"Could not activate Powerfactory project {project_name}.")
+
+        project = self.app.GetActiveProject()
+        if project is None:
+            raise RuntimeError("Could not access Powerfactory project.")
+
+        return project
 
     def activate_project(self, name: str) -> bool:
         exit_code = self.app.ActivateProject(name + ".IntPrj")
@@ -144,65 +182,78 @@ class PowerfactoryInterface:
         exit_code = stc.Deactivate()
         return not exit_code
 
-    def get_project(self) -> pft.Project:
-        return self.app.GetActiveProject()
+    def load_project_settings_dir(self) -> pft.DataObject:
+        project_settings = self.project.pPrjSettings
+        if project_settings is None:
+            raise RuntimeError("Could not access project settings dir.")
+        return project_settings
 
-    def load_grid_model(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("netmod")
-
-    def load_asset_types_lib(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("equip")
-
-    def load_operational_data_lib(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("oplib")
-
-    def load_characteristics_lib(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("chars")
-
-    def load_ext_data_dir(self) -> pft.DataObject:
+    def save_unit_conversion_settings(self) -> None:
         project_settings = self.project.pPrjSettings
         if project_settings is not None:
-            data_dir = project_settings.extDataDir
-            data_dir = typing.cast(pft.DataObject, data_dir)
-            return data_dir
-        raise RuntimeError("Could not access data dir.")
+            self.project_unit_setting = ProjectUnitSetting(
+                ilenunit=project_settings.ilenunit,
+                clenexp=project_settings.clenexp,
+                cspqexp=project_settings.cspqexp,
+                cspqexpgen=project_settings.cspqexpgen,
+                currency=project_settings.currency,
+            )
+        else:
+            raise RuntimeError("Could not access project settings.")
+        unit_conversion_settings = self.unit_conversion_settings()
+        self.unit_conv_settings: dict[str, UnitConversionSetting] = {}
+        for uc in unit_conversion_settings:
+            ucs = UnitConversionSetting(
+                filtclass=uc.filtclass,
+                filtvar=uc.filtvar,
+                digunit=uc.digunit,
+                cdigexp=uc.cdigexp,
+                userunit=uc.userunit,
+                cuserexp=uc.cuserexp,
+                ufacA=uc.ufacA,
+                ufacB=uc.ufacB,
+            )
+            self.unit_conv_settings[uc.loc_name + uc.digunit] = ucs
+        self.delete_unit_conversion_settings()
 
-    def load_grid_data(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("netdat")
-
-    def load_study_case_lib(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("study")
-
-    def load_grid_graphs(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("dia")
-
-    def load_scenario_lib(self) -> pft.DataObject:
-        return self.app.GetProjectFolder("scen")
-
-    def set_unit_conversion(self) -> None:
+    def set_default_unit_conversion(self) -> None:
         project_settings = self.project.pPrjSettings
         if project_settings is not None:
-            self.app_cspqexp: Literal["m", " ", "k", "M", "G"] = project_settings.cspqexp
-            project_settings.cspqexp = "M"
-            self.app_user_unit_convs: dict[str, UnitConversionSetting] = {}
-            unit_conversions = self.unit_conversion_settings()
-            for uc in unit_conversions:
-                ucs = UnitConversionSetting(cuserexp=uc.cuserexp, ufacA=uc.ufacA, ufacB=uc.ufacB)
-                self.app_user_unit_convs[uc.loc_name + uc.digunit] = ucs
-                uc.cuserexp = uc.cdigexp
-        raise RuntimeError("Could not access project settings.")
+            project_settings.ilenunit = 0
+            project_settings.clenexp = BaseUnits.LENGTH
+            project_settings.cspqexp = BaseUnits.POWER
+            project_settings.cspqexpgen = BaseUnits.POWER
+            project_settings.currency = BaseUnits.CURRENCY
+        else:
+            raise RuntimeError("Could not access project settings.")
+        for cls, data in BaseUnits.UNITCONVERSIONS.items():
+            for (unit, base_exp, exp) in data:
+                name = f"{cls}-{unit}"
+                uc = UnitConversionSetting(
+                    filtclass=[cls],
+                    filtvar="*",
+                    digunit=unit,
+                    cdigexp=base_exp,
+                    userunit="",
+                    cuserexp=exp,
+                    ufacA=1,
+                    ufacB=0,
+                )
+                self.create_unit_conversion_setting(name, uc)
 
-    def reset_unit_conversion(self) -> None:
+    def reset_unit_conversion_settings(self) -> None:
         project_settings = self.project.pPrjSettings
         if project_settings is not None:
-            project_settings.cspqexp = self.app_cspqexp
-            unit_conversions = self.unit_conversion_settings()
-            for uc in unit_conversions:
-                ucs = self.app_user_unit_convs[uc.loc_name + uc.digunit]
-                uc.cuserexp = ucs.cuserexp
-                uc.ufacA = ucs.ufacA
-                uc.ufacB = ucs.ufacB
-        raise RuntimeError("Could not access project settings.")
+            project_settings.ilenunit = self.project_unit_setting.ilenunit
+            project_settings.clenexp = self.project_unit_setting.clenexp
+            project_settings.cspqexp = self.project_unit_setting.cspqexp
+            project_settings.cspqexpgen = self.project_unit_setting.cspqexpgen
+            project_settings.currency = self.project_unit_setting.currency
+        else:
+            raise RuntimeError("Could not access project settings.")
+        self.delete_unit_conversion_settings()
+        for name, uc in self.unit_conv_settings.items():
+            self.create_unit_conversion_setting(name, uc)
 
     def element_of(
         self, element: pft.DataObject, filter: str = "*", recursive: bool = True
@@ -223,23 +274,23 @@ class PowerfactoryInterface:
         return [typing.cast(pft.LoadLVP, e) for e in es]
 
     def unit_conversion_settings(self) -> list[pft.UnitConversionSetting]:
-        es = self.elements_of(self.project, filter="*.SetVariable")
+        es = self.elements_of(self.unit_settings_dir, filter="*.SetVariable")
         return [typing.cast(pft.UnitConversionSetting, e) for e in es]
 
     def study_case(self, name: str = "*") -> Optional[pft.StudyCase]:
-        e = self.element_of(self.study_case_lib, name)
+        e = self.element_of(self.study_case_dir, name)
         return typing.cast(pft.StudyCase, e) if e is not None else None
 
     def study_cases(self, name: str = "*") -> list[pft.StudyCase]:
-        es = self.elements_of(self.study_case_lib, name)
+        es = self.elements_of(self.study_case_dir, name)
         return [typing.cast(pft.StudyCase, e) for e in es]
 
     def scenario(self, name: str = "*") -> Optional[pft.Scenario]:
-        e = self.element_of(self.scenario_lib, name)
+        e = self.element_of(self.scenario_dir, name)
         return typing.cast(pft.Scenario, e) if e is not None else None
 
     def scenarios(self, name: str = "*") -> list[pft.Scenario]:
-        es = self.elements_of(self.scenario_lib, name)
+        es = self.elements_of(self.scenario_dir, name)
         return [typing.cast(pft.Scenario, e) for e in es]
 
     def grid_model_element(self, class_name: str, name: str = "*") -> Optional[pft.DataObject]:
@@ -421,6 +472,53 @@ class PowerfactoryInterface:
     def pv_systems(self, name: str = "*", grid: str = "*") -> list[pft.PVSystem]:
         es = self.grid_elements("ElmPvsys", name, grid)
         return [typing.cast(pft.PVSystem, e) for e in es]
+
+    def create_unit_conversion_setting(
+        self, name: str, uc: UnitConversionSetting
+    ) -> Optional[pft.UnitConversionSetting]:
+        data = dcs.asdict(uc)
+        e = self.create_object(name=name, class_name="SetVariable", location=self.unit_settings_dir, data=data)
+        return typing.cast(pft.UnitConversionSetting, e) if e is not None else None
+
+    def delete_unit_conversion_settings(self) -> bool:
+        ucs = self.unit_conversion_settings()
+        rvs = [self.delete_object(uc) for uc in ucs]
+        return all(rvs)
+
+    def create_object(
+        self,
+        name: str,
+        class_name: str,
+        location: pft.DataDir,
+        data: dict[str, Any],
+        force: bool = False,
+        update: bool = True,
+    ) -> Optional[pft.DataObject]:
+        element = self.element_of(location, filter=f"{name}.{class_name}")
+        if element is not None and force is False:
+            if update is False:
+                logger.warning(
+                    f"{name}.{class_name} already exists. Use force=True to create it anyway or update=True to update it."
+                )
+        else:
+            element = location.CreateObject(class_name, name)
+            update = True
+
+        if element is not None and update is True:
+            element = self.update_object(element, data)
+
+        return element
+
+    @staticmethod
+    def update_object(element: pft.DataObject, data: dict[str, Any]) -> pft.DataObject:
+        for k, v in data.items():
+            if getattr(element, k, None) is not None:
+                setattr(element, k, v)
+        return element
+
+    @staticmethod
+    def delete_object(element: pft.DataObject) -> bool:
+        return element.Delete() == 0
 
     @staticmethod
     def create_name(element: pft.DataObject, grid_name: str, element_name: Optional[str] = None) -> str:
