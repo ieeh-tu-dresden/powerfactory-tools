@@ -45,6 +45,7 @@ from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
 from powerfactory_utils.schema.topology_case.element_state import ElementState
 
 if TYPE_CHECKING:
+    from types import TracebackType
     from typing import Literal
     from typing import Optional
     from typing import Sequence
@@ -131,14 +132,14 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             self.steadystate_case_name = grid_name
 
     def run(self) -> None:
-        pfe = PowerfactoryExporter(
+        with PowerfactoryExporter(
             project_name=self.project_name,
             grid_name=self.grid_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
-        )
-        pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
+        ) as pfe:
+            pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
 @dataclass
@@ -156,6 +157,17 @@ class PowerfactoryExporter:
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
         )
+
+    def __enter__(self) -> PowerfactoryExporter:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        self.pfi.close()
 
     def export(
         self,
