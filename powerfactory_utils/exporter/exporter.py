@@ -524,7 +524,7 @@ class PowerfactoryExporter:
 
                 r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
                 x1 = l_type.xline * line.dline / line.nlnum *Exponents.REACTANCE
-                r0 = l_type.rline0 * line.dline / line.nlnum *Exponents.RESISTANCE
+                r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
                 x0 = l_type.xline0 * line.dline / line.nlnum *Exponents.REACTANCE
                 g1 = l_type.gline * line.dline * line.nlnum *Exponents.CONDUCTANCE
                 b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
