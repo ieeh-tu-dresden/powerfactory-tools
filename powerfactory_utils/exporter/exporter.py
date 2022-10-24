@@ -528,7 +528,7 @@ class PowerfactoryExporter:
                 x0 = l_type.xline0 * line.dline / line.nlnum *Exponents.REACTANCE
                 g1 = l_type.gline * line.dline * line.nlnum *Exponents.CONDUCTANCE
                 b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
-                g0 = l_type.gline0 * line.dline * line.nlnum *Exponents.CONDUCTANCE
+                g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
                 b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
                 f_nom = l_type.frnom  # usually 50 Hertz
