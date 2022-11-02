@@ -1309,7 +1309,6 @@ class PowerfactoryExporter:
         }
         s_r = gen.sgn
         cosphi_r = gen.cosn
-        p_r = s_r * cosphi_r
         q_r = s_r * math.sin(math.acos(cosphi_r))
 
         cosphi_type = None
@@ -1346,7 +1345,7 @@ class PowerfactoryExporter:
                 logger.warning(f"Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.")
                 # TODO: implement cosphi(P) control
                 # calculation below is only brief estimation
-                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under 
+                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under
                 # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over
             elif controller_type == ControllerType.U_CONST:
                 logger.warning(f"Generator {gen_name}: Const. U control is not implemented yet. Skipping.")
