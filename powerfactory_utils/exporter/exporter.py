@@ -520,7 +520,7 @@ class PowerfactoryExporter:
                     u_nom = l_type.uline * Exponents.VOLTAGE  # nominal voltage (V)
 
                 i = l_type.InomAir if line.inAir else l_type.sline
-                i_r = line.nlnum * line.fline * i  # rated current (A)
+                i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
                 r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
                 x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
