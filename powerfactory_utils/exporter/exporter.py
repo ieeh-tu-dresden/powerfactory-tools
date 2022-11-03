@@ -520,7 +520,7 @@ class PowerfactoryExporter:
                     u_nom = l_type.uline * Exponents.VOLTAGE  # nominal voltage (V)
 
                 i = l_type.InomAir if line.inAir else l_type.sline
-                i_r = line.nlnum * line.fline * i  # rated current (A)
+                i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
                 r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
                 x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
@@ -1309,16 +1309,15 @@ class PowerfactoryExporter:
         }
         s_r = gen.sgn
         cosphi_r = gen.cosn
-        p_r = s_r * cosphi_r
-        # q_r = s_r * math.sin(math.acos(cosphi_r))
+        q_r = s_r * math.sin(math.acos(cosphi_r))
 
         cosphi_type = None
         cosphi = None
         q_set = None
         m_tab2015 = None  # Q(U) droop related to VDE-AR-N 4120:2015
         m_tar2018 = None  # Q(U) droop related to VDE-AR-N 4120:2018
-        qmax_ue = math.tan(math.acos(cosphi_r))  # q_r / p_r  default
-        qmax_oe = qmax_ue
+        qmax_ue = q_r
+        qmax_oe = q_r
         u_q0 = None
         udeadband_low = None
         udeadband_up = None
@@ -1332,8 +1331,8 @@ class PowerfactoryExporter:
             elif controller_type == ControllerType.Q_CONST:
                 q_set = gen.qgini
             elif controller_type == ControllerType.Q_U:
-                qmax_ue = abs(gen.Qfu_min / p_r)  # p.u.
-                qmax_oe = abs(gen.Qfu_max / p_r)  # p.u.
+                qmax_ue = abs(gen.Qfu_min)
+                qmax_oe = abs(gen.Qfu_max)
                 u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
                 udeadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
                 udeadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
@@ -1346,8 +1345,8 @@ class PowerfactoryExporter:
                 logger.warning(f"Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.")
                 # TODO: implement cosphi(P) control
                 # calculation below is only brief estimation
-                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under / s_r  # p.u.
-                # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over / s_r    # p.u.
+                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under
+                # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over
             elif controller_type == ControllerType.U_CONST:
                 logger.warning(f"Generator {gen_name}: Const. U control is not implemented yet. Skipping.")
                 # TODO: implement U_CONST control
@@ -1374,8 +1373,8 @@ class PowerfactoryExporter:
                 elif controller_type == ControllerType.Q_U:
                     u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
-                    qmax_ue = abs(ext_ctrl.Qmin / p_r)  # per unit
-                    qmax_oe = abs(ext_ctrl.Qmax / p_r)  # per unit
+                    qmax_ue = abs(ext_ctrl.Qmin)
+                    qmax_oe = abs(ext_ctrl.Qmax)
                     u_q0 = ext_ctrl.udeadbup - (ext_ctrl.udeadbup - ext_ctrl.udeadblow) / 2  # per unit
                     udeadband_low = abs(u_q0 - ext_ctrl.udeadblow)  # delta in per unit
                     udeadband_up = abs(u_q0 - ext_ctrl.udeadbup)  # delta in per unit
@@ -1409,8 +1408,8 @@ class PowerfactoryExporter:
                     logger.warning(f"Generator {gen_name}: Q(P) control is not implemented yet. Skipping.")
                     # TODO: implement Q(P) control
                     # calculation below is only brief estimation
-                    # qmax_ue = ctrl_ext.Qmin / p_r  # per unit
-                    # qmax_oe = ctrl_ext.Qmax / p_r  # per unit
+                    # qmax_ue = abs(ctrl_ext.Qmin)
+                    # qmax_oe = abs(ctrl_ext.Qmax)
                 else:
                     raise RuntimeError("Unreachable")
             elif ctrl_mode == 2:  # cosphi control mode
@@ -1429,14 +1428,14 @@ class PowerfactoryExporter:
                     logger.warning(f"Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.")
                     # TODO: implement Cosphi(P) control
                     # calculation below is only brief estimation
-                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) * ctrl_ext.p_under / s_r  # per unit
-                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over)) * ctrl_ext.p_over / s_r    # per unit
+                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) * ctrl_ext.p_under
+                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over)) * ctrl_ext.p_over
                 elif controller_type == ControllerType.COSPHI_U:
                     logger.warning(f"Generator {gen_name}: cosphi(U) control is not implemented yet. Skipping.")
                     # TODO: implement Cosphi(U) control
                     # calculation below is only brief estimation
-                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under))  # per unit
-                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over))  # per unit
+                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) # todo
+                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over))  # todo
                 else:
                     raise RuntimeError("Unreachable")
 
@@ -1471,8 +1470,8 @@ class PowerfactoryExporter:
             q_set=q_set,
             m_tab2015=m_tab2015,
             m_tar2018=m_tar2018,
-            qmax_ue=round(qmax_ue, DecimalDigits.PU),
-            qmax_oe=round(qmax_oe, DecimalDigits.PU),
+            qmax_ue=round(qmax_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+            qmax_oe=round(qmax_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             u_q0=u_q0,
             udeadband_up=udeadband_up,
             udeadband_low=udeadband_low,
@@ -1923,24 +1922,28 @@ class PowerfactoryExporter:
                 logger.warning(f"External grid {name} not set for export. Skipping.")
                 continue
 
+            if g.bus1 is None:
+                logger.warning(f"External grid {name} not connected to any bus. Skipping.")
+                continue
+
             g_type = GridType(g.bustp)
             if g_type == GridType.SL:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=g.usetp,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     phi_0=g.phiini,
                 )
             elif g_type == GridType.PV:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=g.usetp,
-                    p_0=g.pgini,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
                 )
             elif g_type == GridType.PQ:
                 grid = ExternalGridSSC(
                     name=name,
-                    p_0=g.pgini,
-                    q_0=g.qgini,
+                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
+                    q_0=round(g.qgini * Exponents.POWER, DecimalDigits.POWER),
                 )
             else:
                 grid = ExternalGridSSC(name=name)
