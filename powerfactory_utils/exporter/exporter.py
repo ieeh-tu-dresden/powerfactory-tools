@@ -1317,7 +1317,7 @@ class PowerfactoryExporter:
         m_tab2015 = None  # Q(U) droop related to VDE-AR-N 4120:2015
         m_tar2018 = None  # Q(U) droop related to VDE-AR-N 4120:2018
         qmax_ue = q_r
-        qmax_oe = qmax_ue
+        qmax_oe = q_r
         u_q0 = None
         udeadband_low = None
         udeadband_up = None
