@@ -572,9 +572,13 @@ class PowerfactoryExporter:
             b1 = 0
             g1 = 0
 
-            # it is assumed that only Coupler have connected buses in any case
-            t1 = coupler.bus1.cterm
-            t2 = coupler.bus2.cterm
+            bus1 = coupler.bus1
+            bus2 = coupler.bus2
+            if bus1 is None or bus2 is None:
+                continue
+
+            t1 = bus1.cterm
+            t2 = bus2.cterm
 
             name = self.pfi.create_name(coupler, grid_name)
             export, description = self.get_description(coupler)
