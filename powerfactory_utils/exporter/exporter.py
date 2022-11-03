@@ -1560,11 +1560,11 @@ class PowerfactoryExporter:
                 logger.warning(f"Transformer {name} not connected to buses on both sides. Skipping.")
                 continue
 
-            t_low = transformer.buslv.cterm
             t_high = transformer.bushv.cterm
+            t_low = transformer.buslv.cterm
 
-            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
             t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
+            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
 
             t_type = transformer.typ_id
 
@@ -1586,12 +1586,12 @@ class PowerfactoryExporter:
                     logger.warning(f"Transformer {name} has second tap changer. Not supported so far. Skipping.")
 
                 # Rated Voltage of the transformer windings itself (CIM: ratedU)
-                u_ref_l = t_type.utrn_l
                 u_ref_h = t_type.utrn_h
+                u_ref_l = t_type.utrn_l
 
                 # Nominal Voltage of connected nodes (CIM: BaseVoltage)
-                u_nom_l = transformer.buslv.cterm.uknom
                 u_nom_h = transformer.bushv.cterm.uknom
+                u_nom_l = transformer.buslv.cterm.uknom
 
                 # Rated values
                 p_fe = t_type.pfe  # kW
@@ -1617,8 +1617,8 @@ class PowerfactoryExporter:
                 # b_1 = -g_1 * y_1 * math.sqrt(1 / g_1**2 - 1 / y_1**2)
 
                 # Wiring group
-                vector_l = t_type.tr2cn_l  # Wiring LV
                 vector_h = t_type.tr2cn_h  # Wiring HV
+                vector_l = t_type.tr2cn_l  # Wiring LV
                 vector_phase_angle_clock = t_type.nt2ag
 
                 wh = Winding(
@@ -1648,8 +1648,8 @@ class PowerfactoryExporter:
                 )
 
                 t = Transformer(
-                    node_1=t_low_name,
-                    node_2=t_high_name,
+                    node_1=t_high_name,
+                    node_2=t_low_name,
                     name=name,
                     number=t_number,
                     i_0=i_0,
