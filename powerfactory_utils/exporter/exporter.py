@@ -318,13 +318,13 @@ class PowerfactoryExporter:
             filename = f"{self.grid_name}_{time}_{data_type}.json"
         else:
             filename = f"{data_name}_{data_type}.json"
-        filepath = export_path / filename
+        file_path = export_path / filename
         try:
-            filepath.resolve()
+            file_path.resolve()
         except OSError:
-            logger.error(f"Filepath {filepath} is not a valid path. Please provide a valid file path.")
+            logger.error(f"File path {file_path} is not a valid path. Please provide a valid file path.")
             return False
-        return data.to_json(filepath)
+        return data.to_json(file_path)
 
     def switch_study_case(self, sc: str) -> bool:
         study_case = self.pfi.study_case(name=sc)
