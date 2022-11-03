@@ -2106,7 +2106,7 @@ class PowerfactoryExporter:
                 t = bus.cterm
             u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
-            power = LoadPower.from_pq_sym(p=gen.pgini_a, q=gen.qgini_a, scaling=gen.scale0_a)
+            power = LoadPower.from_pq_sym(p=gen.pgini_a * gen.ngnum, q=gen.qgini_a * gen.ngnum, scaling=gen.scale0_a)
 
             active_power = power.as_active_power_ssc()
 
