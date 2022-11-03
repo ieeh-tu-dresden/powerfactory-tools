@@ -23,7 +23,7 @@ jobs:
           python-version: 3.9.13
 
       - name: Set up PDM
-        uses: pdm-project/setup-pdm@v2.7
+        uses: pdm-project/setup-pdm@v3
         with:
           python-version: 3.9.13
           architecture: x64
@@ -55,7 +55,7 @@ jobs:
 
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo  "{date}={$(date +'%Y-%m-%d')}" >> $GITHUB_STATE
 
       - name: Update .zenodo.json date
         run: echo "`jq '.publication_date="${{ steps.date.outputs.date }}"' .zenodo.json`" > .zenodo.json

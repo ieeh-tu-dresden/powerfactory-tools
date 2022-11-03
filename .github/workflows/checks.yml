@@ -20,7 +20,7 @@ jobs:
           python-version: 3.9.13
 
       - name: Setting up PDM
-        uses: pdm-project/setup-pdm@v2.7
+        uses: pdm-project/setup-pdm@v3
         with:
           python-version: 3.9.13
           architecture: x64
