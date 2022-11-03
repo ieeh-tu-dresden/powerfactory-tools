@@ -183,12 +183,12 @@ class PowerfactoryExporter:
         data = self.compile_powerfactory_data()
         meta = self.create_meta_data(data=data)
 
-        t_success = self.export_topology(meta=meta, data=data, filepath=export_path, topology_name=topology_name)
+        t_success = self.export_topology(meta=meta, data=data, dirpath=export_path, topology_name=topology_name)
         tc_success = self.export_topology_case(
-            meta=meta, data=data, filepath=export_path, topology_case_name=topology_case_name
+            meta=meta, data=data, dirpath=export_path, topology_case_name=topology_case_name
         )
         ssc_success = self.export_steadystate_case(
-            meta=meta, data=data, filepath=export_path, steadystate_case_name=steadystate_case_name
+            meta=meta, data=data, dirpath=export_path, steadystate_case_name=steadystate_case_name
         )
 
         if not all((t_success, tc_success, ssc_success)):
@@ -224,24 +224,55 @@ class PowerfactoryExporter:
         meta = self.create_meta_data(data=data)
 
         tc_success = self.export_topology_case(
-            meta=meta, data=data, filepath=export_path, topology_case_name=topology_case_name
+            meta=meta, data=data, dirpath=export_path, topology_case_name=topology_case_name
         )
         ssc_success = self.export_steadystate_case(
-            meta=meta, data=data, filepath=export_path, steadystate_case_name=steadystate_case_name
+            meta=meta, data=data, dirpath=export_path, steadystate_case_name=steadystate_case_name
         )
 
         if not all((s_success, tc_success, ssc_success)):
             return False
         return True
 
+    def export_data(
+        self,
+        data: Union[Topology, TopologyCase, SteadyStateCase],
+        data_name: Optional[str],
+        data_type: Literal["topology", "topology_case", "steadystate_case"],
+        dirpath: pathlib.Path,
+    ) -> bool:
+        """Export data to json file.
+
+        Arguments:
+            data {Union[Topology, TopologyCase, SteadyStateCase]} -- data to export
+            data_name {Optional[str]} -- the chosen file name for data
+            data_type {Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
+            dirpath {pathlib.Path} -- the directory where the exported json file is saved
+
+        Returns:
+            bool -- success of export
+        """
+        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
+        if data_name is None:
+            filename = f"{self.grid_name}_{time}_{data_type}.json"
+        else:
+            filename = f"{data_name}_{data_type}.json"
+        filepath = dirpath / filename
+        try:
+            filepath.resolve()
+        except OSError:
+            logger.error(f"Filepath {filepath} is not a valid path. Please provide a valid file path.")
+            return False
+        return data.to_json(filepath)
+
     def export_topology(
         self,
         meta: Meta,
         data: PowerfactoryData,
-        filepath: pathlib.Path,
+        dirpath: pathlib.Path,
         topology_name: Optional[str] = None,
     ) -> bool:
-        """Export grid topology to json files.
+        """Export grid topology to json file.
 
         Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
         json file with given schema. From the whole grid data only topology (raw assets) is exported.
@@ -249,7 +280,7 @@ class PowerfactoryExporter:
         Arguments:
             meta {Meta} -- metadata which uniquely identifies the grid
             data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
+            dirpath {pathlib.Path} -- the directory where the exported json file is saved
             topology_name {str} -- the chosen file name for 'topology' data
 
         Returns:
@@ -257,25 +288,16 @@ class PowerfactoryExporter:
         """
 
         topology = self.create_topology(meta=meta, data=data)
-
-        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if topology_name is None:
-            topo_name = f"{self.grid_name}_{time}_topology.json"
-        else:
-            topo_name = f"{topology_name}_topology.json"
-        success = topology.to_json(filepath / topo_name)
-        if not success:
-            return False
-        return True
+        return self.export_data(data=topology, data_name=topology_name, data_type="topology", dirpath=dirpath)
 
     def export_topology_case(
         self,
         meta: Meta,
         data: PowerfactoryData,
-        filepath: pathlib.Path,
+        dirpath: pathlib.Path,
         topology_case_name: Optional[str] = None,
     ) -> bool:
-        """Export grid topology_case to json files.
+        """Export grid topology_case to json file.
 
         Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
         json file with given schema. From the whole grid data only topology_case (binary switching info and out of
@@ -284,32 +306,25 @@ class PowerfactoryExporter:
         Arguments:
             meta {Meta} -- metadata which uniquely identifies the grid
             data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
+            dirpath {pathlib.Path} -- the directory where the exported json file is saved
             topology_case_name {str} -- the chosen file name for 'topology_case' data
 
         Returns:
             bool -- success of export
         """
         topology_case = self.create_topology_case(meta=meta, data=data)
-
-        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if topology_case_name is None:
-            topo_case_name = f"{self.grid_name}_{time}_topology_case.json"
-        else:
-            topo_case_name = f"{topology_case_name}_topology_case.json"
-        success = topology_case.to_json(filepath / topo_case_name)
-        if not success:
-            return False
-        return True
+        return self.export_data(
+            data=topology_case, data_name=topology_case_name, data_type="topology_case", dirpath=dirpath
+        )
 
     def export_steadystate_case(
         self,
         meta: Meta,
         data: PowerfactoryData,
-        filepath: pathlib.Path,
+        dirpath: pathlib.Path,
         steadystate_case_name: Optional[str] = None,
     ) -> bool:
-        """Export grid steadystate_case to json files.
+        """Export grid steadystate_case to json file.
 
         Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
         json file with given schema. From the whole grid data only steadystate_case (operation points) is exported.
@@ -317,7 +332,7 @@ class PowerfactoryExporter:
         Arguments:
             meta {Meta} -- metadata which uniquely identifies the grid
             data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
+            dirpath {pathlib.Path} -- the directory where the exported json file is saved
             steadystate_case_name {str} -- the chosen file name for 'steadystate_case' data
 
         Returns:
@@ -325,16 +340,9 @@ class PowerfactoryExporter:
         """
 
         steadystate_case = self.create_steadystate_case(meta=meta, data=data)
-
-        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if steadystate_case_name is None:
-            ssc_name = f"{self.grid_name}_{time}_steadystate_case.json"
-        else:
-            ssc_name = f"{steadystate_case_name}_steadystate_case.json"
-        success = steadystate_case.to_json(filepath / ssc_name)
-        if not success:
-            return False
-        return True
+        return self.export_data(
+            data=steadystate_case, data_name=steadystate_case_name, data_type="steadystate_case", dirpath=dirpath
+        )
 
     def switch_study_case(self, sc: str) -> bool:
         study_case = self.pfi.study_case(name=sc)
@@ -2130,8 +2138,8 @@ class PowerfactoryExporter:
 def export_powerfactory_data(
     export_path: pathlib.Path,
     project_name: str,
-    grid_name: str = "*",
-    powerfactory_user_profile: str = "*",
+    grid_name: str,
+    powerfactory_user_profile: str = "",
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
     powerfactory_version: str = POWERFACTORY_VERSION,
     topology_name: Optional[str] = None,
