@@ -6,7 +6,7 @@ Create an issue under issues, choose one of the templates and follow the instruc
 
 ## Merging PRs
 
-After and approved review, please merge using squash commits. The commit title should be the original issue title without any numbers, followed by the contributors in brackets:
+After an approved review, please merge using squash commits. The commit title should be the original issue title without any numbers, followed by the contributors in brackets:
 
 `fix: what the issue was (contributors: @user1)`\
 `feat: what the other issue was (contributors: @user1, @user2)`
