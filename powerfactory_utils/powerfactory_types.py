@@ -219,8 +219,8 @@ class SwitchType(DataObject, Protocol):
 
 
 class Coupler(DataObject, Protocol):
-    bus1: StationCubicle
-    bus2: StationCubicle
+    bus1: Optional[StationCubicle]
+    bus2: Optional[StationCubicle]
     typ_id: Optional[SwitchType]
     cpSubstat: Optional[Substation]
     isclosed: bool  # 0:open; 1:closed
