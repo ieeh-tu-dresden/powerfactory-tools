@@ -8,7 +8,7 @@ Create an issue under issues, choose one of the templates and follow the instruc
 
 After and approved review, please merge using squash commits. The commit title should be the original issue title without any numbers, followed by the contributors in brackets:
 
-`fix: what the issue was (contributors: @user1)`
+`fix: what the issue was (contributors: @user1)`\
 `feat: what the other issue was (contributors: @user1, @user2)`
 
 The commit message has to be `Fixes #XX`, where XX is the original issue number.
