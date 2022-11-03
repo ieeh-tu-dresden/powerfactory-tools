@@ -1930,13 +1930,13 @@ class PowerfactoryExporter:
             if g_type == GridType.SL:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=round(g.usetp * g.bus1.cterm.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     phi_0=g.phiini,
                 )
             elif g_type == GridType.PV:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=round(g.usetp * g.bus1.cterm.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
                 )
             elif g_type == GridType.PQ:
