@@ -265,7 +265,7 @@ class PowerfactoryExporter:
         steadystate_case = self.create_steadystate_case(meta=meta, data=data)
         if verify_steadystate_case is True:
             topology = self.create_topology(meta=meta, data=data)
-            if steadystate_case.verify_against_topology(topology):
+            if steadystate_case.verify_against_topology(topology) is False:
                 logger.error("Steadystate case is not valid.")
                 return False
 
