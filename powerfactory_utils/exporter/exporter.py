@@ -212,7 +212,7 @@ class PowerfactoryExporter:
             )
             is False
         ):
-            logger.error("Topology export failed.")
+            logger.error("Topology Case export failed.")
             return False
 
         if (
