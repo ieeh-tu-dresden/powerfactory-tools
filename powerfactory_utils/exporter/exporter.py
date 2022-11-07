@@ -101,8 +101,8 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         self,
         export_path: pathlib.Path,
         project_name: str,
-        grid_name: str = "*",
-        powerfactory_user_profile: str = "*",
+        grid_name: str,
+        powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
         powerfactory_version: str = POWERFACTORY_VERSION,
         topology_name: Optional[str] = None,
@@ -144,8 +144,8 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
 @dataclass
 class PowerfactoryExporter:
     project_name: str
-    grid_name: str = "*"
-    powerfactory_user_profile: str = "*"
+    grid_name: str
+    powerfactory_user_profile: str = ""
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = POWERFACTORY_VERSION
 
