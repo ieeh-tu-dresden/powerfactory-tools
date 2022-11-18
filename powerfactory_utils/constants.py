@@ -28,7 +28,7 @@ class BaseUnits:
     POWER: pft.MetricPrefix = "M"
     CURRENCY: pft.Currency = "EUR"
     UNITCONVERSIONS: dict[str, list[UnitConversion]] = {
-        "Elmlodlv": [
+        "ElmLodlv": [
             ("A", "", "k"),
             ("W", "k", "M"),
             ("var", "k", "M"),
