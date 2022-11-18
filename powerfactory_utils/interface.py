@@ -81,7 +81,7 @@ class PowerfactoryInterface:
 
         self.grid_data = self.app.GetProjectFolder("netdat")
         self.study_case_dir = self.app.GetProjectFolder("study")
-        self.scenario_dir = self.app.GetProjectFolder("dia")
+        self.scenario_dir = self.app.GetProjectFolder("scen")
         self.grid_graphs_dir = self.app.GetProjectFolder("scen")
 
         settings_dir = self.element_of(self.project, filter="*.SetFold", recursive=False)
