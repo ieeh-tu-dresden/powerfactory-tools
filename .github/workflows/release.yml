@@ -89,6 +89,11 @@ jobs:
       - name: Build Python packages
         run: pdm build
 
+      - name: Publish Python packages
+        run: pdm build -r pypi --username __token__ --password $PYPI_TOKEN
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
       - name: Create release
         uses: softprops/action-gh-release@v1
         with:
