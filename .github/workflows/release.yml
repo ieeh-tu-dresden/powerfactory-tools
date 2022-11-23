@@ -90,7 +90,7 @@ jobs:
         run: pdm build
 
       - name: Publish Python packages
-        run: pdm build -r pypi --username __token__ --password $PYPI_TOKEN
+        run: pdm publish -r https://test.pypi.org/simple --username __token__ --password $PYPI_TOKEN
         env:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
