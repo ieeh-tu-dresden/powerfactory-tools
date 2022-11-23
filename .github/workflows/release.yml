@@ -30,52 +30,52 @@ jobs:
           prerelease: true
           enable-pep582: true
 
-      # - name: Temporarily disable 'include administrators' default branch protection
-      #   uses: benjefferies/branch-protection-bot@master
-      #   if: always()
-      #   with:
-      #     access_token: ${{ secrets.ACCESS_TOKEN }}
-      #     branch: ${{ github.event.repository.default_branch }}
-      #     enforce_admins: false
+      - name: Temporarily disable 'include administrators' default branch protection
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access_token: ${{ secrets.ACCESS_TOKEN }}
+          branch: ${{ github.event.repository.default_branch }}
+          enforce_admins: false
 
-      # - name: Find new version
-      #   id: cz
-      #   uses: commitizen-tools/commitizen-action@master
-      #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     push: false
-      #     commit: false
-      #     changelog: false
+      - name: Find new version
+        id: cz
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          push: false
+          commit: false
+          changelog: false
 
-      # - name: Check out repository
-      #   uses: actions/checkout@v3
-      #   with:
-      #     token: ${{ secrets.ACCESS_TOKEN }}
-      #     fetch-depth: 0
+      - name: Check out repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+          fetch-depth: 0
 
-      # - name: Get current date
-      #   id: date
-      #   run: echo  "{date}={$(date +'%Y-%m-%d')}" >> $GITHUB_STATE
+      - name: Get current date
+        id: date
+        run: echo  "{date}={$(date +'%Y-%m-%d')}" >> $GITHUB_STATE
 
-      # - name: Update .zenodo.json date
-      #   run: echo "`jq '.publication_date="${{ steps.date.outputs.date }}"' .zenodo.json`" > .zenodo.json
+      - name: Update .zenodo.json date
+        run: echo "`jq '.publication_date="${{ steps.date.outputs.date }}"' .zenodo.json`" > .zenodo.json
 
-      # - name: Update .zenodo.json url
-      #   run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
+      - name: Update .zenodo.json url
+        run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
 
-      # - name: Bump version and create changelog
-      #   uses: commitizen-tools/commitizen-action@master
-      #   with:
-      #     github_token: ${{ secrets.ACCESS_TOKEN }}
-      #     changelog_increment_filename: body.md
+      - name: Bump version and create changelog
+        uses: commitizen-tools/commitizen-action@master
+        with:
+          github_token: ${{ secrets.ACCESS_TOKEN }}
+          changelog_increment_filename: body.md
 
-      # - name: Restore 'include administrators' default branch protection
-      #   uses: benjefferies/branch-protection-bot@master
-      #   if: always()
-      #   with:
-      #     access_token: ${{ secrets.ACCESS_TOKEN }}
-      #     branch: ${{ github.event.repository.default_branch }}
-      #     enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
+      - name: Restore 'include administrators' default branch protection
+        uses: benjefferies/branch-protection-bot@master
+        if: always()
+        with:
+          access_token: ${{ secrets.ACCESS_TOKEN }}
+          branch: ${{ github.event.repository.default_branch }}
+          enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
 
       - name: Cache PDM __pypackages__
         uses: actions/cache@v3
@@ -92,18 +92,18 @@ jobs:
       - name: Publish Python packages
         run: pdm publish
         env:
-          PDM_PUBLISH_REPO: testpypi
+          PDM_PUBLISH_REPO: pypi
           PDM_PUBLISH_USERNAME: __token__
           PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
-      # - name: Create release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     body_path: body.md
-      #     tag_name: ${{ env.REVISION }}
-      #     files: |
-      #       dist/*.whl
-      #       dist/*.tar.gz
-      #       LICENSE
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: body.md
+          tag_name: ${{ env.REVISION }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+            LICENSE
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
