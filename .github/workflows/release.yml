@@ -63,6 +63,28 @@ jobs:
       - name: Update .zenodo.json url
         run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
 
+      - name: Generate schema JSON files
+        run: pdm run python -c $COMMAND
+        env:
+          COMMAND: |
+            from powerfactory_utils.schema.base import VERSION
+            from powerfactory_utils.schema.steadystate_case.case import Case as SteadyStateCase
+            from powerfactory_utils.schema.topology.topology import Topology
+            from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
+            from pathlib import Path
+            f_top = Path(f"schema/{VERSION}/topology.json")
+            f_top.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_top, "w") as f:
+                f.write(Topology.schema_json(indent=2))
+            f_topc = Path(f"schema/{VERSION}/topology_case.json")
+            f_topc.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_topc, "w") as f:
+                f.write(TopologyCase.schema_json(indent=2))
+            f_ssc = Path(f"schema/{VERSION}/steady_state_case.json")
+            f_ssc.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_ssc, "w") as f:
+                f.write(SteadyStateCase.schema_json(indent=2))
+
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@master
         with:
