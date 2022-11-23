@@ -90,9 +90,11 @@ jobs:
         run: pdm build
 
       - name: Publish Python packages
-        run: pdm publish -r https://test.pypi.org/simple --username __token__ --password $PYPI_TOKEN
+        run: pdm publish
         env:
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+          PDM_PUBLISH_REPO: testpypi
+          PDM_PUBLISH_USERNAME: __token__
+          PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
       # - name: Create release
       #   uses: softprops/action-gh-release@v1
