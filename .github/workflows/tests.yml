@@ -23,27 +23,14 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up Python 3.9.13
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.9.13
-
       - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
           python-version: 3.9.13
+          cache: true
           architecture: x64
           prerelease: true
           enable-pep582: true
-
-      - name: Cache PDM __pypackages__
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: __pypackages__
-          key: pdm-${{ hashFiles('**/pdm.lock') }}
-          restore-keys: |
-            pdm-${{ hashFiles('**/pdm.lock') }}
 
       - name: Install dependencies
         run: pdm install
