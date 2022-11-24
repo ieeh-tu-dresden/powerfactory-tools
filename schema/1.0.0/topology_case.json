@@ -1,0 +1,77 @@
+{
+  "title": "Case",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "$ref": "#/definitions/Meta"
+    },
+    "elements": {
+      "title": "Elements",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ElementState"
+      }
+    }
+  },
+  "required": [
+    "meta",
+    "elements"
+  ],
+  "definitions": {
+    "Meta": {
+      "title": "Meta",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "project": {
+          "title": "Project",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "default": "1.0.0",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "date"
+      ]
+    },
+    "ElementState": {
+      "title": "ElementState",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "active": {
+          "title": "Active",
+          "type": "boolean"
+        },
+        "node": {
+          "title": "Node",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "active"
+      ]
+    }
+  }
+}

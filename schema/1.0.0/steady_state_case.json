@@ -1,0 +1,285 @@
+{
+  "title": "Case",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "$ref": "#/definitions/Meta"
+    },
+    "loads": {
+      "title": "Loads",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Load"
+      }
+    },
+    "transformers": {
+      "title": "Transformers",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Transformer"
+      }
+    },
+    "external_grids": {
+      "title": "External Grids",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ExternalGrid"
+      }
+    }
+  },
+  "required": [
+    "meta",
+    "loads",
+    "transformers",
+    "external_grids"
+  ],
+  "definitions": {
+    "Meta": {
+      "title": "Meta",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "project": {
+          "title": "Project",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "default": "1.0.0",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "date"
+      ]
+    },
+    "ActivePower": {
+      "title": "ActivePower",
+      "type": "object",
+      "properties": {
+        "p_0": {
+          "title": "P 0",
+          "type": "number"
+        },
+        "p_r_0": {
+          "title": "P R 0",
+          "type": "number"
+        },
+        "p_s_0": {
+          "title": "P S 0",
+          "type": "number"
+        },
+        "p_t_0": {
+          "title": "P T 0",
+          "type": "number"
+        },
+        "symmetrical": {
+          "title": "Symmetrical",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "p_0",
+        "p_r_0",
+        "p_s_0",
+        "p_t_0",
+        "symmetrical"
+      ]
+    },
+    "ControllerType": {
+      "title": "ControllerType",
+      "description": "An enumeration.",
+      "enum": [
+        "U_CONST",
+        "COSPHI_CONST",
+        "Q_CONST",
+        "Q_U",
+        "Q_P",
+        "COSPHI_P",
+        "COSPHI_U",
+        "TANPHI_CONST",
+        "ND"
+      ]
+    },
+    "CosphiDir": {
+      "title": "CosphiDir",
+      "description": "An enumeration.",
+      "enum": [
+        "UE",
+        "OE"
+      ]
+    },
+    "Controller": {
+      "title": "Controller",
+      "type": "object",
+      "properties": {
+        "controller_type": {
+          "$ref": "#/definitions/ControllerType"
+        },
+        "external_controller_name": {
+          "title": "External Controller Name",
+          "type": "string"
+        },
+        "cosphi_type": {
+          "$ref": "#/definitions/CosphiDir"
+        },
+        "cosphi": {
+          "title": "Cosphi",
+          "type": "number"
+        },
+        "q_set": {
+          "title": "Q Set",
+          "type": "number"
+        },
+        "m_tab2015": {
+          "title": "M Tab2015",
+          "type": "number"
+        },
+        "m_tar2018": {
+          "title": "M Tar2018",
+          "type": "number"
+        },
+        "u_q0": {
+          "title": "U Q0",
+          "type": "number"
+        },
+        "udeadband_up": {
+          "title": "Udeadband Up",
+          "type": "number"
+        },
+        "udeadband_low": {
+          "title": "Udeadband Low",
+          "type": "number"
+        },
+        "qmax_ue": {
+          "title": "Qmax Ue",
+          "type": "number"
+        },
+        "qmax_oe": {
+          "title": "Qmax Oe",
+          "type": "number"
+        }
+      },
+      "required": [
+        "controller_type"
+      ]
+    },
+    "ReactivePower": {
+      "title": "ReactivePower",
+      "type": "object",
+      "properties": {
+        "q_0": {
+          "title": "Q 0",
+          "type": "number"
+        },
+        "q_r_0": {
+          "title": "Q R 0",
+          "type": "number"
+        },
+        "q_s_0": {
+          "title": "Q S 0",
+          "type": "number"
+        },
+        "q_t_0": {
+          "title": "Q T 0",
+          "type": "number"
+        },
+        "symmetrical": {
+          "title": "Symmetrical",
+          "type": "boolean"
+        },
+        "controller": {
+          "$ref": "#/definitions/Controller"
+        }
+      },
+      "required": [
+        "q_0",
+        "q_r_0",
+        "q_s_0",
+        "q_t_0",
+        "symmetrical"
+      ]
+    },
+    "Load": {
+      "title": "Load",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "active_power": {
+          "$ref": "#/definitions/ActivePower"
+        },
+        "reactive_power": {
+          "$ref": "#/definitions/ReactivePower"
+        }
+      },
+      "required": [
+        "name",
+        "active_power",
+        "reactive_power"
+      ]
+    },
+    "Transformer": {
+      "title": "Transformer",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "tap_pos": {
+          "title": "Tap Pos",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    },
+    "ExternalGrid": {
+      "title": "ExternalGrid",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "u_0": {
+          "title": "U 0",
+          "type": "number"
+        },
+        "phi_0": {
+          "title": "Phi 0",
+          "type": "number"
+        },
+        "p_0": {
+          "title": "P 0",
+          "type": "number"
+        },
+        "q_0": {
+          "title": "Q 0",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name"
+      ]
+    }
+  }
+}

@@ -1,3 +1,9 @@
+## 1.2.1 (2022-11-24)
+
+### Fix
+
+- missed date in zenodo metadata file when bump version number (contributors: @sasanjac)
+
 ## 1.2.0 (2022-11-10)
 
 ### Feat
