@@ -17,19 +17,6 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up Python 3.9.13
-        uses: actions/setup-python@v3
-        with:
-          python-version: 3.9.13
-
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v2.7
-        with:
-          python-version: 3.9.13
-          architecture: x64
-          prerelease: true
-          enable-pep582: true
-
       - name: Temporarily disable 'include administrators' default branch protection
         uses: benjefferies/branch-protection-bot@master
         if: always()
@@ -53,12 +40,49 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
+      - name: Set up PDM
+        uses: pdm-project/setup-pdm@v3
+        with:
+          python-version: 3.9.13
+          cache: true
+          architecture: x64
+          prerelease: true
+          enable-pep582: true
+
+      - name: Installing dependencies
+        run: pdm install
+
+      - name: Generate schema JSON files
+        run: pdm run python -c '$COMMAND'
+        env:
+          COMMAND: |
+            from powerfactory_utils.schema.base import VERSION
+            from powerfactory_utils.schema.steadystate_case.case import Case as SteadyStateCase
+            from powerfactory_utils.schema.topology.topology import Topology
+            from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
+            from pathlib import Path
+            f_top = Path(f"./schema/{VERSION}/topology.json")
+            f_top.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_top, "w") as f:
+                f.write(Topology.schema_json(indent=2))
+            f_topc = Path(f"./schema/{VERSION}/topology_case.json")
+            f_topc.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_topc, "w") as f:
+                f.write(TopologyCase.schema_json(indent=2))
+            f_ssc = Path(f"./schema/{VERSION}/steady_state_case.json")
+            f_ssc.parent.mkdir(exist_ok=True, parents=True)
+            with open(f_ssc, "w") as f:
+                f.write(SteadyStateCase.schema_json(indent=2))
+
+      - name: Stage schema JSON files
+        run: git add ./schema
+
       - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        id: get_date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Update .zenodo.json date
-        run: echo "`jq '.publication_date="${{ steps.date.outputs.date }}"' .zenodo.json`" > .zenodo.json
+        run: echo "`jq '.publication_date="${{ steps.get_date.outputs.date }}"' .zenodo.json`" > .zenodo.json
 
       - name: Update .zenodo.json url
         run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
@@ -77,17 +101,15 @@ jobs:
           branch: ${{ github.event.repository.default_branch }}
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
 
-      - name: Cache PDM __pypackages__
-        uses: actions/cache@v3
-        id: cache
-        with:
-          path: __pypackages__
-          key: pdm-${{ hashFiles('**/pdm.lock') }}
-          restore-keys: |
-            pdm-${{ hashFiles('**/pdm.lock') }}
-
       - name: Build Python packages
         run: pdm build
+
+      - name: Publish Python packages
+        run: pdm publish
+        env:
+          PDM_PUBLISH_REPO: pypi
+          PDM_PUBLISH_USERNAME: __token__
+          PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1

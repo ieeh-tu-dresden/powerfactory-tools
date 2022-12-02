@@ -102,8 +102,8 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         self,
         export_path: pathlib.Path,
         project_name: str,
-        grid_name: str = "*",
-        powerfactory_user_profile: str = "*",
+        grid_name: str,
+        powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
         powerfactory_version: str = POWERFACTORY_VERSION,
         topology_name: Optional[str] = None,
@@ -145,8 +145,8 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
 @dataclass
 class PowerfactoryExporter:
     project_name: str
-    grid_name: str = "*"
-    powerfactory_user_profile: str = "*"
+    grid_name: str
+    powerfactory_user_profile: str = ""
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = POWERFACTORY_VERSION
 
@@ -195,16 +195,50 @@ class PowerfactoryExporter:
         data = self.compile_powerfactory_data()
         meta = self.create_meta_data(data=data)
 
-        t_success = self.export_topology(meta=meta, data=data, filepath=export_path, topology_name=topology_name)
-        tc_success = self.export_topology_case(
-            meta=meta, data=data, filepath=export_path, topology_case_name=topology_case_name
-        )
-        ssc_success = self.export_steadystate_case(
-            meta=meta, data=data, filepath=export_path, steadystate_case_name=steadystate_case_name
-        )
+        topology = self.create_topology(meta=meta, data=data)
+        topology_case = self.create_topology_case(meta=meta, data=data)
+        steadystate_case = self.create_steadystate_case(meta=meta, data=data)
 
-        if not all((t_success, tc_success, ssc_success)):
+        if steadystate_case.verify_against_topology(topology) is False:
+            logger.error("Steadystate case is not valid.")
             return False
+
+        if (
+            self.export_data(
+                data=topology,
+                data_name=topology_name,
+                data_type="topology",
+                export_path=export_path,
+            )
+            is False
+        ):
+            logger.error("Topology export failed.")
+            return False
+
+        if (
+            self.export_data(
+                data=topology_case,
+                data_name=topology_case_name,
+                data_type="topology_case",
+                export_path=export_path,
+            )
+            is False
+        ):
+            logger.error("Topology Case export failed.")
+            return False
+
+        if (
+            self.export_data(
+                data=steadystate_case,
+                data_name=steadystate_case_name,
+                data_type="steadystate_case",
+                export_path=export_path,
+            )
+            is False
+        ):
+            logger.error("Steadystate Case export failed.")
+            return False
+
         return True
 
     def export_scenario(
@@ -213,6 +247,7 @@ class PowerfactoryExporter:
         scenario_name: str,
         topology_case_name: Optional[str] = None,
         steadystate_case_name: Optional[str] = None,
+        verify_steadystate_case: bool = False,
     ) -> bool:
         """Export grid topology_case and steadystate_case for a given scenario to json files.
 
@@ -225,128 +260,83 @@ class PowerfactoryExporter:
             scenario_name {str} -- the scenario name
             topology_case_name {str} -- the chosen file name for related 'topology_case' data
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data
+            verify_steadystate_case {bool} -- if True, associated topology is created to be checked against
 
         Returns:
             bool -- success of export
         """
 
-        s_success = self.switch_scenario(scenario_name)
+        if self.switch_scenario(scenario_name) is False:
+            logger.error("Switching scenario failed.")
+            return False
 
         data = self.compile_powerfactory_data()
         meta = self.create_meta_data(data=data)
 
-        tc_success = self.export_topology_case(
-            meta=meta, data=data, filepath=export_path, topology_case_name=topology_case_name
-        )
-        ssc_success = self.export_steadystate_case(
-            meta=meta, data=data, filepath=export_path, steadystate_case_name=steadystate_case_name
-        )
-
-        if not all((s_success, tc_success, ssc_success)):
-            return False
-        return True
-
-    def export_topology(
-        self,
-        meta: Meta,
-        data: PowerfactoryData,
-        filepath: pathlib.Path,
-        topology_name: Optional[str] = None,
-    ) -> bool:
-        """Export grid topology to json files.
-
-        Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
-        json file with given schema. From the whole grid data only topology (raw assets) is exported.
-
-        Arguments:
-            meta {Meta} -- metadata which uniquely identifies the grid
-            data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
-            topology_name {str} -- the chosen file name for 'topology' data
-
-        Returns:
-        bool -- success of export
-        """
-
-        topology = self.create_topology(meta=meta, data=data)
-
-        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if topology_name is None:
-            topo_name = f"{self.grid_name}_{time}_topology.json"
-        else:
-            topo_name = f"{topology_name}_topology.json"
-        success = topology.to_json(filepath / topo_name)
-        if not success:
-            return False
-        return True
-
-    def export_topology_case(
-        self,
-        meta: Meta,
-        data: PowerfactoryData,
-        filepath: pathlib.Path,
-        topology_case_name: Optional[str] = None,
-    ) -> bool:
-        """Export grid topology_case to json files.
-
-        Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
-        json file with given schema. From the whole grid data only topology_case (binary switching info and out of
-        service info) is exported.
-
-        Arguments:
-            meta {Meta} -- metadata which uniquely identifies the grid
-            data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
-            topology_case_name {str} -- the chosen file name for 'topology_case' data
-
-        Returns:
-            bool -- success of export
-        """
         topology_case = self.create_topology_case(meta=meta, data=data)
+        steadystate_case = self.create_steadystate_case(meta=meta, data=data)
+        if verify_steadystate_case is True:
+            topology = self.create_topology(meta=meta, data=data)
+            if steadystate_case.verify_against_topology(topology) is False:
+                logger.error("Steadystate case is not valid.")
+                return False
 
-        time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if topology_case_name is None:
-            topo_case_name = f"{self.grid_name}_{time}_topology_case.json"
-        else:
-            topo_case_name = f"{topology_case_name}_topology_case.json"
-        success = topology_case.to_json(filepath / topo_case_name)
-        if not success:
+        if (
+            self.export_data(
+                data=topology_case,
+                data_name=topology_case_name,
+                data_type="topology_case",
+                export_path=export_path,
+            )
+            is False
+        ):
+            logger.error("Topology Case export failed.")
             return False
+
+        if (
+            self.export_data(
+                data=steadystate_case,
+                data_name=steadystate_case_name,
+                data_type="steadystate_case",
+                export_path=export_path,
+            )
+            is False
+        ):
+            logger.error("Steadystate Case export failed.")
+            return False
+
         return True
 
-    def export_steadystate_case(
+    def export_data(
         self,
-        meta: Meta,
-        data: PowerfactoryData,
-        filepath: pathlib.Path,
-        steadystate_case_name: Optional[str] = None,
+        data: Union[Topology, TopologyCase, SteadyStateCase],
+        data_name: Optional[str],
+        data_type: Literal["topology", "topology_case", "steadystate_case"],
+        export_path: pathlib.Path,
     ) -> bool:
-        """Export grid steadystate_case to json files.
-
-        Based on the class arguments of PowerFactoryExporter a grid, given in DIgSILENT PowerFactory, is exported to
-        json file with given schema. From the whole grid data only steadystate_case (operation points) is exported.
+        """Export data to json file.
 
         Arguments:
-            meta {Meta} -- metadata which uniquely identifies the grid
-            data {PowerfactoryData} -- raw data complied from PowerFactory
-            filepath {pathlib.Path} -- the directory where the exported json files are saved
-            steadystate_case_name {str} -- the chosen file name for 'steadystate_case' data
+            data {Union[Topology, TopologyCase, SteadyStateCase]} -- data to export
+            data_name {Optional[str]} -- the chosen file name for data
+            data_type {Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
+            export_path {pathlib.Path} -- the directory where the exported json file is saved
 
         Returns:
             bool -- success of export
         """
-
-        steadystate_case = self.create_steadystate_case(meta=meta, data=data)
-
         time = datetime.datetime.now().isoformat(sep="T", timespec="seconds").replace(":", "")
-        if steadystate_case_name is None:
-            ssc_name = f"{self.grid_name}_{time}_steadystate_case.json"
+        if data_name is None:
+            filename = f"{self.grid_name}_{time}_{data_type}.json"
         else:
-            ssc_name = f"{steadystate_case_name}_steadystate_case.json"
-        success = steadystate_case.to_json(filepath / ssc_name)
-        if not success:
+            filename = f"{data_name}_{data_type}.json"
+        file_path = export_path / filename
+        try:
+            file_path.resolve()
+        except OSError:
+            logger.error(f"File path {file_path} is not a valid path. Please provide a valid file path.")
             return False
-        return True
+        return data.to_json(file_path)
 
     def switch_study_case(self, sc: str) -> bool:
         study_case = self.pfi.study_case(name=sc)
@@ -532,16 +522,16 @@ class PowerfactoryExporter:
                     u_nom = l_type.uline * Exponents.VOLTAGE  # nominal voltage (V)
 
                 i = l_type.InomAir if line.inAir else l_type.sline
-                i_r = line.nlnum * line.fline * i  # rated current (A)
+                i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
-                r1 = l_type.rline * line.dline * Exponents.RESISTANCE
-                x1 = l_type.xline * line.dline * Exponents.REACTANCE
-                r0 = l_type.rline0 * line.dline * Exponents.RESISTANCE
-                x0 = l_type.xline0 * line.dline * Exponents.REACTANCE
-                g1 = l_type.gline * line.dline * Exponents.CONDUCTANCE
-                b1 = l_type.bline * line.dline * Exponents.SUSCEPTANCE
-                g0 = l_type.gline0 * line.dline * Exponents.CONDUCTANCE
-                b0 = l_type.bline0 * line.dline * Exponents.SUSCEPTANCE
+                r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
+                x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
+                r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
+                x0 = l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE
+                g1 = l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+                b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+                g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
+                b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
                 f_nom = l_type.frnom  # usually 50 Hertz
 
@@ -584,9 +574,13 @@ class PowerfactoryExporter:
             b1 = 0
             g1 = 0
 
-            # it is assumed that only Coupler have connected buses in any case
-            t1 = coupler.bus1.cterm
-            t2 = coupler.bus2.cterm
+            bus1 = coupler.bus1
+            bus2 = coupler.bus2
+            if bus1 is None or bus2 is None:
+                continue
+
+            t1 = bus1.cterm
+            t2 = bus2.cterm
 
             name = self.pfi.create_name(coupler, grid_name)
             export, description = self.get_description(coupler)
@@ -1321,16 +1315,15 @@ class PowerfactoryExporter:
         }
         s_r = gen.sgn
         cosphi_r = gen.cosn
-        p_r = s_r * cosphi_r
-        # q_r = s_r * math.sin(math.acos(cosphi_r))
+        q_r = s_r * math.sin(math.acos(cosphi_r))
 
         cosphi_type = None
         cosphi = None
         q_set = None
         m_tab2015 = None  # Q(U) droop related to VDE-AR-N 4120:2015
         m_tar2018 = None  # Q(U) droop related to VDE-AR-N 4120:2018
-        qmax_ue = math.tan(math.acos(cosphi_r))  # q_r / p_r  default
-        qmax_oe = qmax_ue
+        qmax_ue = q_r
+        qmax_oe = q_r
         u_q0 = None
         udeadband_low = None
         udeadband_up = None
@@ -1344,8 +1337,8 @@ class PowerfactoryExporter:
             elif controller_type == ControllerType.Q_CONST:
                 q_set = gen.qgini
             elif controller_type == ControllerType.Q_U:
-                qmax_ue = abs(gen.Qfu_min / p_r)  # p.u.
-                qmax_oe = abs(gen.Qfu_max / p_r)  # p.u.
+                qmax_ue = abs(gen.Qfu_min)
+                qmax_oe = abs(gen.Qfu_max)
                 u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
                 udeadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
                 udeadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
@@ -1358,8 +1351,8 @@ class PowerfactoryExporter:
                 logger.warning(f"Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.")
                 # TODO: implement cosphi(P) control
                 # calculation below is only brief estimation
-                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under / s_r  # p.u.
-                # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over / s_r    # p.u.
+                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under
+                # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over
             elif controller_type == ControllerType.U_CONST:
                 logger.warning(f"Generator {gen_name}: Const. U control is not implemented yet. Skipping.")
                 # TODO: implement U_CONST control
@@ -1386,8 +1379,8 @@ class PowerfactoryExporter:
                 elif controller_type == ControllerType.Q_U:
                     u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
-                    qmax_ue = abs(ext_ctrl.Qmin / p_r)  # per unit
-                    qmax_oe = abs(ext_ctrl.Qmax / p_r)  # per unit
+                    qmax_ue = abs(ext_ctrl.Qmin)
+                    qmax_oe = abs(ext_ctrl.Qmax)
                     u_q0 = ext_ctrl.udeadbup - (ext_ctrl.udeadbup - ext_ctrl.udeadblow) / 2  # per unit
                     udeadband_low = abs(u_q0 - ext_ctrl.udeadblow)  # delta in per unit
                     udeadband_up = abs(u_q0 - ext_ctrl.udeadbup)  # delta in per unit
@@ -1421,8 +1414,8 @@ class PowerfactoryExporter:
                     logger.warning(f"Generator {gen_name}: Q(P) control is not implemented yet. Skipping.")
                     # TODO: implement Q(P) control
                     # calculation below is only brief estimation
-                    # qmax_ue = ctrl_ext.Qmin / p_r  # per unit
-                    # qmax_oe = ctrl_ext.Qmax / p_r  # per unit
+                    # qmax_ue = abs(ctrl_ext.Qmin)
+                    # qmax_oe = abs(ctrl_ext.Qmax)
                 else:
                     raise RuntimeError("Unreachable")
             elif ctrl_mode == 2:  # cosphi control mode
@@ -1441,14 +1434,14 @@ class PowerfactoryExporter:
                     logger.warning(f"Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.")
                     # TODO: implement Cosphi(P) control
                     # calculation below is only brief estimation
-                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) * ctrl_ext.p_under / s_r  # per unit
-                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over)) * ctrl_ext.p_over / s_r    # per unit
+                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) * ctrl_ext.p_under
+                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over)) * ctrl_ext.p_over
                 elif controller_type == ControllerType.COSPHI_U:
                     logger.warning(f"Generator {gen_name}: cosphi(U) control is not implemented yet. Skipping.")
                     # TODO: implement Cosphi(U) control
                     # calculation below is only brief estimation
-                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under))  # per unit
-                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over))  # per unit
+                    # qmax_ue = math.tan(math.acos(ctrl_ext.pf_under)) # todo
+                    # qmax_oe = math.tan(math.acos(ctrl_ext.pf_over))  # todo
                 else:
                     raise RuntimeError("Unreachable")
 
@@ -1483,8 +1476,8 @@ class PowerfactoryExporter:
             q_set=q_set,
             m_tab2015=m_tab2015,
             m_tar2018=m_tar2018,
-            qmax_ue=round(qmax_ue, DecimalDigits.PU),
-            qmax_oe=round(qmax_oe, DecimalDigits.PU),
+            qmax_ue=round(qmax_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+            qmax_oe=round(qmax_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             u_q0=u_q0,
             udeadband_up=udeadband_up,
             udeadband_low=udeadband_low,
@@ -1573,11 +1566,11 @@ class PowerfactoryExporter:
                 logger.warning(f"Transformer {name} not connected to buses on both sides. Skipping.")
                 continue
 
-            t_low = transformer.buslv.cterm
             t_high = transformer.bushv.cterm
+            t_low = transformer.buslv.cterm
 
-            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
             t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
+            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
 
             t_type = transformer.typ_id
 
@@ -1599,12 +1592,12 @@ class PowerfactoryExporter:
                     logger.warning(f"Transformer {name} has second tap changer. Not supported so far. Skipping.")
 
                 # Rated Voltage of the transformer windings itself (CIM: ratedU)
-                u_ref_l = t_type.utrn_l
                 u_ref_h = t_type.utrn_h
+                u_ref_l = t_type.utrn_l
 
                 # Nominal Voltage of connected nodes (CIM: BaseVoltage)
-                u_nom_l = transformer.buslv.cterm.uknom
                 u_nom_h = transformer.bushv.cterm.uknom
+                u_nom_l = transformer.buslv.cterm.uknom
 
                 # Rated values
                 p_fe = t_type.pfe  # kW
@@ -1630,8 +1623,8 @@ class PowerfactoryExporter:
                 # b_1 = -g_1 * y_1 * math.sqrt(1 / g_1**2 - 1 / y_1**2)
 
                 # Wiring group
-                vector_l = t_type.tr2cn_l  # Wiring LV
                 vector_h = t_type.tr2cn_h  # Wiring HV
+                vector_l = t_type.tr2cn_l  # Wiring LV
                 vector_phase_angle_clock = t_type.nt2ag
 
                 wh = Winding(
@@ -1661,8 +1654,8 @@ class PowerfactoryExporter:
                 )
 
                 t = Transformer(
-                    node_1=t_low_name,
-                    node_2=t_high_name,
+                    node_1=t_high_name,
+                    node_2=t_low_name,
                     name=name,
                     number=t_number,
                     i_0=i_0,
@@ -1935,24 +1928,28 @@ class PowerfactoryExporter:
                 logger.warning(f"External grid {name} not set for export. Skipping.")
                 continue
 
+            if g.bus1 is None:
+                logger.warning(f"External grid {name} not connected to any bus. Skipping.")
+                continue
+
             g_type = GridType(g.bustp)
             if g_type == GridType.SL:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=g.usetp,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                     phi_0=g.phiini,
                 )
             elif g_type == GridType.PV:
                 grid = ExternalGridSSC(
                     name=name,
-                    u_0=g.usetp,
-                    p_0=g.pgini,
+                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
                 )
             elif g_type == GridType.PQ:
                 grid = ExternalGridSSC(
                     name=name,
-                    p_0=g.pgini,
-                    q_0=g.qgini,
+                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
+                    q_0=round(g.qgini * Exponents.POWER, DecimalDigits.POWER),
                 )
             else:
                 grid = ExternalGridSSC(name=name)
@@ -2111,7 +2108,7 @@ class PowerfactoryExporter:
                 t = bus.cterm
             u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
-            power = LoadPower.from_pq_sym(p=gen.pgini_a, q=gen.qgini_a, scaling=gen.scale0_a)
+            power = LoadPower.from_pq_sym(p=gen.pgini_a * gen.ngnum, q=gen.qgini_a * gen.ngnum, scaling=gen.scale0_a)
 
             active_power = power.as_active_power_ssc()
 
@@ -2135,8 +2132,8 @@ class PowerfactoryExporter:
 def export_powerfactory_data(
     export_path: pathlib.Path,
     project_name: str,
-    grid_name: str = "*",
-    powerfactory_user_profile: str = "*",
+    grid_name: str,
+    powerfactory_user_profile: str = "",
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
     powerfactory_version: str = POWERFACTORY_VERSION,
     topology_name: Optional[str] = None,

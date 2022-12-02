@@ -14,6 +14,9 @@ if TYPE_CHECKING:
     from typing import Union
 
 
+VERSION = "1.0.0"
+
+
 class VoltageSystemType(Enum):
     AC = "AC"
     DC = "DC"
@@ -21,7 +24,7 @@ class VoltageSystemType(Enum):
 
 class Base(BaseModel):
     @classmethod
-    def from_file(cls, path: Union[str, pathlib.Path]) -> "Base":
+    def from_file(cls, path: Union[str, pathlib.Path]) -> Base:
         return cls.parse_file(path)
 
     def to_json(self, path: Union[str, pathlib.Path], indent: int = 2) -> bool:
@@ -37,7 +40,7 @@ class Base(BaseModel):
 
 
 class Meta(Base):
-    version = "1.0.0"
+    version = VERSION
     name: str
     date: datetime.date  # date of export
     id: uuid.UUID = Field(default_factory=uuid.uuid4)

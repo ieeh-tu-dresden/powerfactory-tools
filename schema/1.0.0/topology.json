@@ -1,0 +1,667 @@
+{
+  "title": "Topology",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "$ref": "#/definitions/Meta"
+    },
+    "branches": {
+      "title": "Branches",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Branch"
+      }
+    },
+    "nodes": {
+      "title": "Nodes",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Node"
+      }
+    },
+    "loads": {
+      "title": "Loads",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Load"
+      }
+    },
+    "transformers": {
+      "title": "Transformers",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Transformer"
+      }
+    },
+    "external_grids": {
+      "title": "External Grids",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ExternalGrid"
+      }
+    }
+  },
+  "required": [
+    "meta",
+    "branches",
+    "nodes",
+    "loads",
+    "transformers",
+    "external_grids"
+  ],
+  "definitions": {
+    "Meta": {
+      "title": "Meta",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "date": {
+          "title": "Date",
+          "type": "string",
+          "format": "date"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string",
+          "format": "uuid"
+        },
+        "project": {
+          "title": "Project",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "default": "1.0.0",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "date"
+      ]
+    },
+    "BranchType": {
+      "title": "BranchType",
+      "description": "An enumeration.",
+      "enum": [
+        "LINE",
+        "COUPLER"
+      ]
+    },
+    "VoltageSystemType": {
+      "title": "VoltageSystemType",
+      "description": "An enumeration.",
+      "enum": [
+        "AC",
+        "DC"
+      ]
+    },
+    "Branch": {
+      "title": "Branch",
+      "type": "object",
+      "properties": {
+        "node_1": {
+          "title": "Node 1",
+          "type": "string"
+        },
+        "node_2": {
+          "title": "Node 2",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "u_n": {
+          "title": "U N",
+          "type": "number"
+        },
+        "i_r": {
+          "title": "I R",
+          "type": "number"
+        },
+        "r1": {
+          "title": "R1",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "g1": {
+          "title": "G1",
+          "type": "number"
+        },
+        "b1": {
+          "title": "B1",
+          "type": "number"
+        },
+        "type": {
+          "$ref": "#/definitions/BranchType"
+        },
+        "voltage_system_type": {
+          "$ref": "#/definitions/VoltageSystemType"
+        },
+        "r0": {
+          "title": "R0",
+          "type": "number"
+        },
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "g0": {
+          "title": "G0",
+          "type": "number"
+        },
+        "b0": {
+          "title": "B0",
+          "type": "number"
+        },
+        "f_n": {
+          "title": "F N",
+          "type": "number"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "energized": {
+          "title": "Energized",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "node_1",
+        "node_2",
+        "name",
+        "u_n",
+        "i_r",
+        "r1",
+        "x1",
+        "g1",
+        "b1",
+        "type"
+      ]
+    },
+    "Node": {
+      "title": "Node",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "u_n": {
+          "title": "U N",
+          "type": "number"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "u_n"
+      ]
+    },
+    "RatedPower": {
+      "title": "RatedPower",
+      "type": "object",
+      "properties": {
+        "s": {
+          "title": "S",
+          "type": "number"
+        },
+        "s_r": {
+          "title": "S R",
+          "type": "number"
+        },
+        "s_s": {
+          "title": "S S",
+          "type": "number"
+        },
+        "s_t": {
+          "title": "S T",
+          "type": "number"
+        },
+        "cosphi": {
+          "title": "Cosphi",
+          "type": "number"
+        },
+        "cosphi_r": {
+          "title": "Cosphi R",
+          "type": "number"
+        },
+        "cosphi_s": {
+          "title": "Cosphi S",
+          "type": "number"
+        },
+        "cosphi_t": {
+          "title": "Cosphi T",
+          "type": "number"
+        }
+      },
+      "required": [
+        "s",
+        "s_r",
+        "s_s",
+        "s_t"
+      ]
+    },
+    "LoadModel": {
+      "title": "LoadModel",
+      "description": "Load Representation Based on Polynomial Model.\n\nLoad = Load0*(k_p*(U/U_0)^exp_p + k_i*(U/U_0)^exp_i + (1 - c_p - c_i)*(U/U_0)^exp_z)",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "c_p": {
+          "title": "C P",
+          "default": 1,
+          "type": "number"
+        },
+        "c_i": {
+          "title": "C I",
+          "default": 0,
+          "type": "number"
+        },
+        "c_z": {
+          "title": "C Z",
+          "default": 0,
+          "type": "number"
+        },
+        "exp_p": {
+          "title": "Exp P",
+          "default": 0,
+          "type": "number"
+        },
+        "exp_i": {
+          "title": "Exp I",
+          "default": 1,
+          "type": "number"
+        },
+        "exp_z": {
+          "title": "Exp Z",
+          "default": 2,
+          "type": "number"
+        }
+      }
+    },
+    "Characteristic": {
+      "title": "Characteristic",
+      "type": "object",
+      "properties": {
+        "description": {
+          "title": "Description",
+          "type": "string"
+        }
+      }
+    },
+    "ActivePower": {
+      "title": "ActivePower",
+      "type": "object",
+      "properties": {
+        "load_model": {
+          "$ref": "#/definitions/LoadModel"
+        },
+        "characteristic": {
+          "$ref": "#/definitions/Characteristic"
+        }
+      }
+    },
+    "ReactivePower": {
+      "title": "ReactivePower",
+      "type": "object",
+      "properties": {
+        "load_model": {
+          "$ref": "#/definitions/LoadModel"
+        },
+        "external_controller_name": {
+          "title": "External Controller Name",
+          "type": "string"
+        }
+      }
+    },
+    "LoadType": {
+      "title": "LoadType",
+      "description": "An enumeration.",
+      "enum": [
+        "CONSUMER",
+        "PRODUCER"
+      ]
+    },
+    "ConsumerSystemType": {
+      "title": "ConsumerSystemType",
+      "description": "An enumeration.",
+      "enum": [
+        "FIXED",
+        "NIGHT_STORAGE",
+        "VARIABLE"
+      ]
+    },
+    "ProducerSystemType": {
+      "title": "ProducerSystemType",
+      "description": "An enumeration.",
+      "enum": [
+        "COAL",
+        "OIL",
+        "GAS",
+        "DIESEL",
+        "NUCLEAR",
+        "HYDRO",
+        "PUMP_STORAGE",
+        "WIND",
+        "BIOGAS",
+        "SOLAR",
+        "PV",
+        "RENEWABLE_ENERGY",
+        "FUELCELL",
+        "PEAT",
+        "STAT_GEN",
+        "HVDC",
+        "REACTIVE_POWER_COMPENSATOR",
+        "BATTERY_STORAGE",
+        "EXTERNAL_GRID_EQUIVALENT",
+        "OTHERS"
+      ]
+    },
+    "ConsumerPhaseConnectionType": {
+      "title": "ConsumerPhaseConnectionType",
+      "description": "An enumeration.",
+      "enum": [
+        "3PH_D",
+        "3PH_PH-E",
+        "3PH_YN",
+        "2PH_PH-E",
+        "2PH_YN",
+        "1PH_PH-PH",
+        "1PH_PH-E",
+        "1PH_PH-N"
+      ]
+    },
+    "ProducerPhaseConnectionType": {
+      "title": "ProducerPhaseConnectionType",
+      "description": "An enumeration.",
+      "enum": [
+        "3PH",
+        "3PH-E",
+        "1PH_PH-E",
+        "1PH_PH-N",
+        "1PH_PH-PH"
+      ]
+    },
+    "Load": {
+      "title": "Load",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "node": {
+          "title": "Node",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "u_n": {
+          "title": "U N",
+          "type": "number"
+        },
+        "rated_power": {
+          "$ref": "#/definitions/RatedPower"
+        },
+        "active_power": {
+          "$ref": "#/definitions/ActivePower"
+        },
+        "reactive_power": {
+          "$ref": "#/definitions/ReactivePower"
+        },
+        "type": {
+          "$ref": "#/definitions/LoadType"
+        },
+        "system_type": {
+          "title": "System Type",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ConsumerSystemType"
+            },
+            {
+              "$ref": "#/definitions/ProducerSystemType"
+            }
+          ]
+        },
+        "phase_connection_type": {
+          "title": "Phase Connection Type",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ConsumerPhaseConnectionType"
+            },
+            {
+              "$ref": "#/definitions/ProducerPhaseConnectionType"
+            }
+          ]
+        },
+        "voltage_system_type": {
+          "$ref": "#/definitions/VoltageSystemType"
+        }
+      },
+      "required": [
+        "name",
+        "node",
+        "u_n",
+        "rated_power",
+        "active_power",
+        "reactive_power",
+        "type"
+      ]
+    },
+    "Winding": {
+      "title": "Winding",
+      "type": "object",
+      "properties": {
+        "node": {
+          "title": "Node",
+          "type": "string"
+        },
+        "s_r": {
+          "title": "S R",
+          "type": "number"
+        },
+        "u_n": {
+          "title": "U N",
+          "type": "number"
+        },
+        "u_r": {
+          "title": "U R",
+          "type": "number"
+        },
+        "r1": {
+          "title": "R1",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "r0": {
+          "title": "R0",
+          "type": "number"
+        },
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "phase_angle_clock": {
+          "title": "Phase Angle Clock",
+          "type": "integer"
+        },
+        "vector_group": {
+          "title": "Vector Group",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node",
+        "s_r",
+        "u_n",
+        "u_r",
+        "r1",
+        "x1"
+      ]
+    },
+    "TransformerPhaseTechnologyType": {
+      "title": "TransformerPhaseTechnologyType",
+      "description": "An enumeration.",
+      "enum": [
+        "1PH-E",
+        "1PH",
+        "3PH"
+      ]
+    },
+    "TapSide": {
+      "title": "TapSide",
+      "description": "An enumeration.",
+      "enum": [
+        "HV",
+        "MV",
+        "LV"
+      ]
+    },
+    "Transformer": {
+      "title": "Transformer",
+      "type": "object",
+      "properties": {
+        "node_1": {
+          "title": "Node 1",
+          "type": "string"
+        },
+        "node_2": {
+          "title": "Node 2",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "number": {
+          "title": "Number",
+          "type": "integer"
+        },
+        "vector_group": {
+          "title": "Vector Group",
+          "type": "string"
+        },
+        "i_0": {
+          "title": "I 0",
+          "type": "number"
+        },
+        "p_fe": {
+          "title": "P Fe",
+          "type": "number"
+        },
+        "windings": {
+          "title": "Windings",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Winding"
+          }
+        },
+        "phase_technology_type": {
+          "$ref": "#/definitions/TransformerPhaseTechnologyType"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "tap_u_abs": {
+          "title": "Tap U Abs",
+          "type": "number"
+        },
+        "tap_u_phi": {
+          "title": "Tap U Phi",
+          "type": "number"
+        },
+        "tap_max": {
+          "title": "Tap Max",
+          "type": "integer"
+        },
+        "tap_min": {
+          "title": "Tap Min",
+          "type": "integer"
+        },
+        "tap_neutral": {
+          "title": "Tap Neutral",
+          "type": "integer"
+        },
+        "tap_side": {
+          "$ref": "#/definitions/TapSide"
+        }
+      },
+      "required": [
+        "node_1",
+        "node_2",
+        "name",
+        "number",
+        "vector_group",
+        "i_0",
+        "p_fe",
+        "windings"
+      ]
+    },
+    "GridType": {
+      "title": "GridType",
+      "description": "An enumeration.",
+      "enum": [
+        "SL",
+        "PV",
+        "PQ"
+      ]
+    },
+    "ExternalGrid": {
+      "title": "ExternalGrid",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
+        },
+        "node": {
+          "title": "Node",
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/GridType"
+        },
+        "short_circuit_power_max": {
+          "title": "Short Circuit Power Max",
+          "type": "number"
+        },
+        "short_circuit_power_min": {
+          "title": "Short Circuit Power Min",
+          "type": "number"
+        }
+      },
+      "required": [
+        "name",
+        "node",
+        "type",
+        "short_circuit_power_max",
+        "short_circuit_power_min"
+      ]
+    }
+  }
+}
