@@ -422,7 +422,7 @@ class PowerfactoryInterface:
             generator_name {Optional[str]} -- name of generator or generator related object (e.g. external controller) if needed to specify independently (default: {None})
 
         Returns:
-            str -- the name of the generator obejct
+            str -- the name of the generator object
         """
         if generator_name is None:
             generator_name = generator.loc_name

@@ -35,7 +35,7 @@ class Case(Base):
         return list(set(v))
 
     def verify_against_topology(self, topology: Topology) -> bool:
-        logger.info("Verifying steadystate case...")
+        logger.info("Verifying steadystate case ...")
         if topology.meta != self.meta:
             logger.error("Metadata does not match.")
             return False
@@ -52,19 +52,19 @@ class Case(Base):
         load_names = [e.name for e in self.loads]
         for load in topology.loads:
             if (name := load.name) not in load_names:
-                logger.error(f"Load {name} not in steadystate case.")
+                logger.error(f"Load {name} is not in steadystate case.")
                 return False
 
         transformer_names = [e.name for e in self.transformers]
         for trafo in topology.transformers:
             if (name := trafo.name) not in transformer_names:
-                logger.error(f"Transformer {name} not in steadystate case.")
+                logger.error(f"Transformer {name} is not in steadystate case.")
                 return False
 
         external_grid_names = [e.name for e in self.external_grids]
         for ext_grid in topology.external_grids:
             if (name := ext_grid.name) not in external_grid_names:
-                logger.error(f"External grid {name} not in steadystate case.")
+                logger.error(f"External grid {name} is not in steadystate case.")
                 return False
-        logger.info("Verifying steadystate case successful.")
+        logger.info("Verifying steadystate case was successful.")
         return True
