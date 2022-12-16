@@ -1184,6 +1184,7 @@ class PowerfactoryExporter:
         name_suffix: str = "",
     ) -> Optional[Load]:
 
+        # get unique name
         gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name) + name_suffix
 
         export, description = self.get_description(gen)
@@ -1241,11 +1242,11 @@ class PowerfactoryExporter:
 
         producers: list[Load] = []
         for gen in generators:
+            gen_name = gen.loc_name
             producer_system_type = self.producer_system_type_of(gen)
             producer_phase_connection_type = self.producer_technology_of(gen)
             external_controller_name = self.get_external_controller_name(gen)
             power = self.calc_normal_gen_power(gen)
-            gen_name = self.pfi.create_gen_name(gen)
             producer = self.create_producer(
                 gen=gen,
                 power=power,
@@ -1267,11 +1268,11 @@ class PowerfactoryExporter:
 
         producers: list[Load] = []
         for gen in generators:
+            gen_name = gen.loc_name
             producer_system_type = ProducerSystemType.PV
             producer_phase_connection_type = self.producer_technology_of(gen)
             external_controller_name = self.get_external_controller_name(gen)
             power = self.calc_normal_gen_power(gen)
-            gen_name = self.pfi.create_gen_name(gen)
             producer = self.create_producer(
                 gen=gen,
                 power=power,
