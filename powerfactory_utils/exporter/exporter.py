@@ -1725,6 +1725,16 @@ class PowerfactoryExporter:
         )
 
     def create_switch_states(self, switches: Sequence[pft.Switch]) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the switch is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            swtiches {Sequence[pft.Switch]} -- list of PowerFactory objects of type Switch
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for sw in switches:
@@ -1741,6 +1751,16 @@ class PowerfactoryExporter:
         return relevancies
 
     def create_coupler_states(self, couplers: Sequence[pft.Coupler]) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the coupler is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            swtiches {Sequence[pft.Coupler]} -- list of PowerFactory objects of type Coupler
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for c in couplers:
@@ -1759,6 +1779,19 @@ class PowerfactoryExporter:
         elements: Sequence[ElementBase],
         # TODO: transformer_3w: Sequence[pft.Transformer3W],
     ) -> Sequence[ElementState]:
+        """Create element states based on if the connected nodes are out of service.
+
+        The element states contain a node reference.
+
+        Arguments:
+            terminals {Sequence[pft.Terminal]} -- list of PowerFactory objects of type Terminal
+            lines {Sequence[pft.Line]} -- list of PowerFactory objects of type Line
+            transformer_2w {Sequence[pft.Transformer2W} -- list of PowerFactory objects of type Transformer2W
+            elements {Sequence[ElementBase} -- list of one-sided connected PowerFactory objects
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for t in terminals:
@@ -1801,6 +1834,16 @@ class PowerfactoryExporter:
         return relevancies
 
     def create_line_power_on_states(self, lines: Sequence[pft.Line]) -> Sequence[ElementState]:
+        """Create element states for lines based on if the lines are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            lines {Sequence[pft.Line]} -- list of PowerFactory objects of type Line
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for line in lines:
@@ -1814,6 +1857,16 @@ class PowerfactoryExporter:
     def create_transformer_2w_power_on_states(
         self, transformers_2w: Sequence[pft.Transformer2W]
     ) -> Sequence[ElementState]:
+        """Create element states for 2-winding transformers based on if the transformers are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            transformer_2w {Sequence[pft.Transformer2W} -- list of PowerFactory objects of type Transformer2W
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for t in transformers_2w:
@@ -1825,6 +1878,16 @@ class PowerfactoryExporter:
         return relevancies
 
     def create_element_power_on_states(self, elements: Sequence[ElementBase]) -> Sequence[ElementState]:
+        """Create element states for one-sided connected elements based on if the elements are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            elements {Sequence[ElementBase} -- list of one-sided connected PowerFactory objects
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for e in elements:
