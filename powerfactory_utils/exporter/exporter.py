@@ -1699,6 +1699,7 @@ class PowerfactoryExporter:
             data.loads_mv,
             data.generators,
             data.pv_systems,
+            data.external_grids,
         )
         node_power_on_states = self.create_node_power_on_states(
             data.terminals,
@@ -1764,17 +1765,23 @@ class PowerfactoryExporter:
             if t.outserv:
                 connected_lines = []
                 for line in lines:
-                    if line.bus1 is not None and line.bus2 is not None:
-                        if any([line.bus1.cterm == t, line.bus2.cterm == t]):
-                            connected_lines.append(line)
+                    if (
+                        not line.outserv
+                    ):  # this check prevents double listing of the line via create_line_power_on_states()
+                        if line.bus1 is not None and line.bus2 is not None:
+                            if any([line.bus1.cterm == t, line.bus2.cterm == t]):
+                                connected_lines.append(line)
 
                 connected_transformers_2w = []
                 for trafo in transformer_2w:
-                    if trafo.bushv is not None and trafo.buslv is not None:
-                        if any([trafo.bushv.cterm == t, trafo.buslv.cterm == t]):
-                            connected_transformers_2w.append(trafo)
+                    if (
+                        not trafo.outserv
+                    ):  # this check prevents double listing of the transformer via create_transformer_2w_power_on_states()
+                        if trafo.bushv is not None and trafo.buslv is not None:
+                            if any([trafo.bushv.cterm == t, trafo.buslv.cterm == t]):
+                                connected_transformers_2w.append(trafo)
 
-                connected_elements = [e for e in elements if e.bus1 is not None and e.bus1.cterm == t]
+                connected_elements = [e for e in elements if e.bus1 is not None and e.bus1.cterm == t and not e.outserv]
 
                 # TODO: connected_transformer_3w = [e for e in transformer_3w if e.bushv.cterm == t or e.buslv.cterm == t or e.busmv.cterm == t]
                 node_name = self.pfi.create_name(t, self.grid_name)
