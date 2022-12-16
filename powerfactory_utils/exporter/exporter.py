@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+import itertools
 import math
 import multiprocessing
 import pathlib
@@ -52,7 +53,7 @@ if TYPE_CHECKING:
 
     from powerfactory_utils import powerfactory_types as pft
 
-    ElementBase = Union[pft.GeneratorBase, pft.LoadBase]
+    ElementBase = Union[pft.GeneratorBase, pft.LoadBase, pft.ExternalGrid]
 
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
@@ -1707,22 +1708,35 @@ class PowerfactoryExporter:
             data.transformers_2w,
             elements,
         )
-        line_power_on_states = self.create_line_power_on_states(data.lines)
-        transformer_2w_power_on_states = self.create_transformer_2w_power_on_states(data.transformers_2w)
+        line_power_on_states = self.create_element_power_on_states(data.lines)
+        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
         # TODO: transformer_3w_power_on_states = self.create_transformer_3w_power_on_states(data.transformers_3w)
         element_power_on_states = self.create_element_power_on_states(elements)
-
-        return TopologyCase(
-            meta=meta,
-            elements=self.pfi.list_from_sequences(
-                switch_states,
-                coupler_states,
-                node_power_on_states,
-                line_power_on_states,
-                transformer_2w_power_on_states,
-                element_power_on_states,
-            ),
+        power_on_states = self.pfi.list_from_sequences(
+            switch_states,
+            coupler_states,
+            node_power_on_states,
+            line_power_on_states,
+            transformer_2w_power_on_states,
+            element_power_on_states,
         )
+        power_on_states = self.merge_power_on_states(power_on_states)
+
+        return TopologyCase(meta=meta, elements=power_on_states)
+
+    def merge_power_on_states(self, power_on_states: list[ElementState]) -> list[ElementState]:
+        merged_states = []
+        entry_names = [entry.name for entry in power_on_states]
+        for entry_name in entry_names:
+            entries = [entry for entry in power_on_states if entry.name == entry_name]
+            merged_states.append(self.merge_entries(entry_name, entries))
+
+        return merged_states
+
+    def merge_entries(self, entry_name: str, entries: list[ElementState]) -> ElementState:
+        disabled = all([entry.disabled for entry in entries])
+        open_switches = list(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
+        return ElementState(name=entry_name, active=False, disabled=disabled, open_switches=open_switches)
 
     def create_switch_states(self, switches: Sequence[pft.Switch]) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the switch is open.
@@ -1730,7 +1744,7 @@ class PowerfactoryExporter:
         The element states contain a node reference.
 
         Arguments:
-            swtiches {Sequence[pft.Switch]} -- list of PowerFactory objects of type Switch
+            switches {Sequence[pft.Switch]} -- list of PowerFactory objects of type Switch
 
         Returns:
             Sequence[ElementState] -- list of element states
@@ -1745,7 +1759,7 @@ class PowerfactoryExporter:
                     terminal = cub.cterm
                     node_name = self.pfi.create_name(terminal, self.grid_name)
                     element_name = self.pfi.create_name(element, self.grid_name)
-                    element_state = ElementState(name=element_name, node=node_name, active=False)
+                    element_state = ElementState(name=element_name, open_switches=[node_name], active=False)
                     relevancies.append(element_state)
 
         return relevancies
@@ -1766,7 +1780,7 @@ class PowerfactoryExporter:
         for c in couplers:
             if not c.isclosed:
                 element_name = self.pfi.create_name(c, self.grid_name)
-                element_state = ElementState(name=element_name, active=False)
+                element_state = ElementState(name=element_name, disabled=True, active=False)
                 relevancies.append(element_state)
 
         return relevancies
@@ -1796,6 +1810,9 @@ class PowerfactoryExporter:
         relevancies: list[ElementState] = []
         for t in terminals:
             if t.outserv:
+                node_name = self.pfi.create_name(t, self.grid_name)
+                element_state = ElementState(name=node_name, disabled=True, active=False)
+                relevancies.append(element_state)
                 connected_lines = []
                 for line in lines:
                     if (
@@ -1817,67 +1834,24 @@ class PowerfactoryExporter:
                 connected_elements = [e for e in elements if e.bus1 is not None and e.bus1.cterm == t and not e.outserv]
 
                 # TODO: connected_transformer_3w = [e for e in transformer_3w if e.bushv.cterm == t or e.buslv.cterm == t or e.busmv.cterm == t]
-                node_name = self.pfi.create_name(t, self.grid_name)
                 for cl in connected_lines:
                     element_name = self.pfi.create_name(cl, self.grid_name)
-                    element_state = ElementState(name=element_name, node=node_name, active=False)
+                    element_state = ElementState(name=element_name, open_switches=[node_name], active=False)
                     relevancies.append(element_state)
                 for ct2 in connected_transformers_2w:
                     element_name = self.pfi.create_name(ct2, self.grid_name)
-                    element_state = ElementState(name=element_name, node=node_name, active=False)
+                    element_state = ElementState(name=element_name, open_switches=[node_name], active=False)
                     relevancies.append(element_state)
                 for ce in connected_elements:
                     element_name = self.pfi.create_name(ce, self.grid_name)
-                    element_state = ElementState(name=element_name, node=node_name, active=False)
+                    element_state = ElementState(name=element_name, open_switches=[node_name], active=False)
                     relevancies.append(element_state)
 
         return relevancies
 
-    def create_line_power_on_states(self, lines: Sequence[pft.Line]) -> Sequence[ElementState]:
-        """Create element states for lines based on if the lines are out of service.
-
-        The element states contain no node reference.
-
-        Arguments:
-            lines {Sequence[pft.Line]} -- list of PowerFactory objects of type Line
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for line in lines:
-            if line.outserv:
-                line_name = self.pfi.create_name(line, self.grid_name)
-                element_state = ElementState(name=line_name, active=False)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_transformer_2w_power_on_states(
-        self, transformers_2w: Sequence[pft.Transformer2W]
+    def create_element_power_on_states(
+        self, elements: Sequence[ElementBase | pft.Line | pft.Transformer2W]
     ) -> Sequence[ElementState]:
-        """Create element states for 2-winding transformers based on if the transformers are out of service.
-
-        The element states contain no node reference.
-
-        Arguments:
-            transformer_2w {Sequence[pft.Transformer2W} -- list of PowerFactory objects of type Transformer2W
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for t in transformers_2w:
-            if t.outserv:
-                t_name = self.pfi.create_name(t, self.grid_name)
-                element_state = ElementState(name=t_name, active=False)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_element_power_on_states(self, elements: Sequence[ElementBase]) -> Sequence[ElementState]:
         """Create element states for one-sided connected elements based on if the elements are out of service.
 
         The element states contain no node reference.
@@ -1893,7 +1867,7 @@ class PowerfactoryExporter:
         for e in elements:
             if e.outserv:
                 e_name = self.pfi.create_name(e, self.grid_name)
-                element_state = ElementState(name=e_name, active=False)
+                element_state = ElementState(name=e_name, disabled=True, active=False)
                 relevancies.append(element_state)
 
         return relevancies
