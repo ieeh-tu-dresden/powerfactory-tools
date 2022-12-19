@@ -1736,7 +1736,7 @@ class PowerfactoryExporter:
     def merge_entries(self, entry_name: str, entries: list[ElementState]) -> ElementState:
         disabled = any([entry.disabled for entry in entries])
         open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
-        return ElementState(name=entry_name, active=False, disabled=disabled, open_switches=open_switches)
+        return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
 
     def create_switch_states(self, switches: Sequence[pft.Switch]) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the switch is open.
@@ -1759,7 +1759,7 @@ class PowerfactoryExporter:
                     terminal = cub.cterm
                     node_name = self.pfi.create_name(terminal, self.grid_name)
                     element_name = self.pfi.create_name(element, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,), active=False)
+                    element_state = ElementState(name=element_name, open_switches=(node_name,))
                     relevancies.append(element_state)
 
         return relevancies
@@ -1780,7 +1780,7 @@ class PowerfactoryExporter:
         for c in couplers:
             if not c.isclosed:
                 element_name = self.pfi.create_name(c, self.grid_name)
-                element_state = ElementState(name=element_name, disabled=True, active=False)
+                element_state = ElementState(name=element_name, disabled=True)
                 relevancies.append(element_state)
 
         return relevancies
@@ -1811,7 +1811,7 @@ class PowerfactoryExporter:
         for t in terminals:
             if t.outserv:
                 node_name = self.pfi.create_name(t, self.grid_name)
-                element_state = ElementState(name=node_name, disabled=True, active=False)
+                element_state = ElementState(name=node_name, disabled=True)
                 relevancies.append(element_state)
                 connected_lines = []
                 for line in lines:
@@ -1836,15 +1836,15 @@ class PowerfactoryExporter:
                 # TODO: connected_transformer_3w = [e for e in transformer_3w if e.bushv.cterm == t or e.buslv.cterm == t or e.busmv.cterm == t]
                 for cl in connected_lines:
                     element_name = self.pfi.create_name(cl, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,), active=False)
+                    element_state = ElementState(name=element_name, open_switches=(node_name,))
                     relevancies.append(element_state)
                 for ct2 in connected_transformers_2w:
                     element_name = self.pfi.create_name(ct2, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,), active=False)
+                    element_state = ElementState(name=element_name, open_switches=(node_name,))
                     relevancies.append(element_state)
                 for ce in connected_elements:
                     element_name = self.pfi.create_name(ce, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,), active=False)
+                    element_state = ElementState(name=element_name, open_switches=(node_name,))
                     relevancies.append(element_state)
 
         return relevancies
@@ -1867,7 +1867,7 @@ class PowerfactoryExporter:
         for e in elements:
             if e.outserv:
                 e_name = self.pfi.create_name(e, self.grid_name)
-                element_state = ElementState(name=e_name, disabled=True, active=False)
+                element_state = ElementState(name=e_name, disabled=True)
                 relevancies.append(element_state)
 
         return relevancies

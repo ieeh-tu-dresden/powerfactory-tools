@@ -10,6 +10,5 @@ class ElementState(Base):
         frozen = True
 
     name: str
-    active: bool  # 0:off/opened; 1:on/closed
     disabled: bool = False
     open_switches: tuple[str, ...] = Field(default_factory=tuple)
