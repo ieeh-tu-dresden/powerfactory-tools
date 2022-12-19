@@ -213,7 +213,7 @@ class PowerfactoryInterface:
                 ufacA=uc.ufacA,
                 ufacB=uc.ufacB,
             )
-            self.unit_conv_settings[uc.loc_name + uc.digunit] = ucs
+            self.unit_conv_settings[uc.loc_name] = ucs
         self.delete_unit_conversion_settings()
 
     def set_default_unit_conversion(self) -> None:
