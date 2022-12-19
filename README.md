@@ -21,7 +21,7 @@ The following functionalities are provided:
   * grid topology:
     * base topology containing all elements of the exported grid
   * topology case;
-    * information about disabled elements to represent a specific operational cases based on the base topology
+    * information about disabled elements to represent a specific operational case based on the base topology
   * steadystate case
     * information about power draw/infeed for a specific operational case
 * [intended in future release] import from external grid data into the PowerFactory environment
