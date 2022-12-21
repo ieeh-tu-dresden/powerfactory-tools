@@ -1702,12 +1702,7 @@ class PowerfactoryExporter:
             data.pv_systems,
             data.external_grids,
         )
-        node_power_on_states = self.create_node_power_on_states(
-            data.terminals,
-            data.lines,
-            data.transformers_2w,
-            elements,
-        )
+        node_power_on_states = self.create_node_power_on_states(data.terminals)
         line_power_on_states = self.create_element_power_on_states(data.lines)
         transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
         # TODO: transformer_3w_power_on_states = self.create_transformer_3w_power_on_states(data.transformers_3w)
@@ -1785,23 +1780,13 @@ class PowerfactoryExporter:
 
         return relevancies
 
-    def create_node_power_on_states(
-        self,
-        terminals: Sequence[pft.Terminal],
-        lines: Sequence[pft.Line],
-        transformer_2w: Sequence[pft.Transformer2W],
-        elements: Sequence[ElementBase],
-        # TODO: transformer_3w: Sequence[pft.Transformer3W],
-    ) -> Sequence[ElementState]:
+    def create_node_power_on_states(self, terminals: Sequence[pft.Terminal]) -> Sequence[ElementState]:
         """Create element states based on if the connected nodes are out of service.
 
         The element states contain a node reference.
 
         Arguments:
             terminals {Sequence[pft.Terminal]} -- list of PowerFactory objects of type Terminal
-            lines {Sequence[pft.Line]} -- list of PowerFactory objects of type Line
-            transformer_2w {Sequence[pft.Transformer2W} -- list of PowerFactory objects of type Transformer2W
-            elements {Sequence[ElementBase} -- list of one-sided connected PowerFactory objects
 
         Returns:
             Sequence[ElementState] -- list of element states
@@ -1813,39 +1798,6 @@ class PowerfactoryExporter:
                 node_name = self.pfi.create_name(t, self.grid_name)
                 element_state = ElementState(name=node_name, disabled=True)
                 relevancies.append(element_state)
-                connected_lines = []
-                for line in lines:
-                    if (
-                        not line.outserv
-                    ):  # this check prevents double listing of the line via create_line_power_on_states()
-                        if line.bus1 is not None and line.bus2 is not None:
-                            if any([line.bus1.cterm == t, line.bus2.cterm == t]):
-                                connected_lines.append(line)
-
-                connected_transformers_2w = []
-                for trafo in transformer_2w:
-                    if (
-                        not trafo.outserv
-                    ):  # this check prevents double listing of the transformer via create_transformer_2w_power_on_states()
-                        if trafo.bushv is not None and trafo.buslv is not None:
-                            if any([trafo.bushv.cterm == t, trafo.buslv.cterm == t]):
-                                connected_transformers_2w.append(trafo)
-
-                connected_elements = [e for e in elements if e.bus1 is not None and e.bus1.cterm == t and not e.outserv]
-
-                # TODO: connected_transformer_3w = [e for e in transformer_3w if e.bushv.cterm == t or e.buslv.cterm == t or e.busmv.cterm == t]
-                for cl in connected_lines:
-                    element_name = self.pfi.create_name(cl, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,))
-                    relevancies.append(element_state)
-                for ct2 in connected_transformers_2w:
-                    element_name = self.pfi.create_name(ct2, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,))
-                    relevancies.append(element_state)
-                for ce in connected_elements:
-                    element_name = self.pfi.create_name(ce, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,))
-                    relevancies.append(element_state)
 
         return relevancies
 
