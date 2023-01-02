@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from typing import Union
 
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 class VoltageSystemType(Enum):
