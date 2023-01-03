@@ -138,6 +138,9 @@ class Graph(DataObject, Protocol):
 class Project(DataObject, Protocol):
     pPrjSettings: Optional[ProjectSettings]
 
+    def Deactivate(self) -> bool:
+        ...
+
 
 class Scenario(DataObject, Protocol):
     def Activate(self) -> bool:

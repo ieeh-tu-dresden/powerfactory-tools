@@ -63,7 +63,6 @@ class PowerfactoryInterface:
         if self.project is None:
             raise RuntimeError("Could not access project.")
         self.load_project_folders()
-        self.save_unit_conversion_settings()
         self.set_default_unit_conversion()
 
     def load_project_folders(self) -> None:
@@ -154,6 +153,17 @@ class PowerfactoryInterface:
         exit_code = self.app.ActivateProject(name + ".IntPrj")
         return not exit_code
 
+    def deactivate_project(self) -> bool:
+        exit_code = self.project.Deactivate()
+        return not exit_code
+
+    def reset_project(self) -> bool:
+        exit_code = self.deactivate_project()
+        if exit_code:
+            return False
+        exit_code = self.activate_project(self.project_name)
+        return not exit_code
+
     def activate_grid(self, grid: pft.Grid) -> bool:
         exit_code = grid.Activate()
         return not exit_code
@@ -217,6 +227,8 @@ class PowerfactoryInterface:
         self.delete_unit_conversion_settings()
 
     def set_default_unit_conversion(self) -> None:
+        self.save_unit_conversion_settings()
+
         project_settings = self.project.pPrjSettings
         if project_settings is not None:
             project_settings.ilenunit = 0
@@ -241,6 +253,8 @@ class PowerfactoryInterface:
                 )
                 self.create_unit_conversion_setting(name, uc)
 
+        self.reset_project()
+
     def reset_unit_conversion_settings(self) -> None:
         project_settings = self.project.pPrjSettings
         if project_settings is not None:
@@ -254,6 +268,8 @@ class PowerfactoryInterface:
         self.delete_unit_conversion_settings()
         for name, uc in self.unit_conv_settings.items():
             self.create_unit_conversion_setting(name, uc)
+
+        self.reset_project()
 
     def element_of(
         self, element: pft.DataObject, filter: str = "*", recursive: bool = True
