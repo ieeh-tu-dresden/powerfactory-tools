@@ -69,10 +69,10 @@ class ConsumerSystemType(Enum):
 
 
 class RatedPower(Base):
-    s: float  # rated apparent power; base for p.u. calculation
-    s_r: float  # rated apparent power (phase r)
-    s_s: float  # rated apparent power (phase s)
-    s_t: float  # rated apparent power (phase t)
+    value: float  # rated apparent power; base for p.u. calculation
+    value_r: float  # rated apparent power (phase r)
+    value_s: float  # rated apparent power (phase s)
+    value_t: float  # rated apparent power (phase t)
     cosphi: Optional[float]  # rated cos(phi) in relation to rated power
     cosphi_r: Optional[float]  # rated cos(phi) (phase r)
     cosphi_s: Optional[float]  # rated cos(phi) (phase s)

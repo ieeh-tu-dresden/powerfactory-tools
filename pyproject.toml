@@ -1,129 +1,188 @@
 [project]
-authors = [
-  {name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de"},
-  {name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de"},
-  {name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de"},
-]
-dependencies = ["pydantic", "loguru"]
-description = "A toolbox for Python based control of DIgSILENT PowerFactory"
-license = {file = "LICENSE"}
-name = "powerfactory-utils"
-requires-python = ">=3.9,<3.10"
-version = "1.2.1"
+  authors = [
+    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
+    { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
+    { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
+  ]
+  dependencies = ["loguru", "pydantic"]
+  description = "A toolbox for Python based control of DIgSILENT PowerFactory"
+  license = { file = "LICENSE" }
+  name = "powerfactory-utils"
+  requires-python = ">=3.9,<3.10"
+  version = "1.2.1"
 
-[project.urls]
-homepage = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
+  [project.urls]
+    homepage = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
 
-[project.optional-dependencies]
+  [project.optional-dependencies]
 
 [build-system]
-build-backend = "pdm.pep517.api"
-requires = ["pdm-pep517"]
+  build-backend = "pdm.pep517.api"
+  requires      = ["pdm-pep517"]
 
 [tool]
-[tool.pdm]
-[tool.pdm.dev-dependencies]
-deployment = ["commitizen"]
-flake8-plugins = [
-  "pyflakes",
-  "pycodestyle",
-  "flake8-type-checking",
-  "flake8-bugbear",
-  "flake8-bandit",
-  "flake8-docstrings",
-  "flake8-isort",
-  "flake8-absolute-import",
-  "flake8-use-fstring",
-  "flake8-comprehensions",
-  "flake8-mutable",
-  "flake8-annotations-complexity",
-  "flake8-annotations-coverage",
-  "flake8-annotations",
-  "flake8-alfred",
-  "flake8-pyi",
-]
-linter = ["flake518", "black", "isort", "mypy"]
-prototype = ["ipykernel"]
-test = ["pytest", "pytest-cov", "pytest-xdist"]
+  [tool.pdm]
+    [tool.pdm.dev-dependencies]
+      deployment = ["commitizen"]
+      flake8-plugins = [
+        "Flake8-pyproject",
+        "flake8-2020",
+        "flake8-aaa",
+        "flake8-absolute-import",
+        "flake8-alfred",
+        "flake8-annotations",
+        "flake8-annotations-complexity",
+        "flake8-annotations-coverage",
+        "flake8-author",
+        "flake8-bandit",
+        "flake8-broken-line",
+        "flake8-bugbear",
+        "flake8-builtins",
+        "flake8-clean-block",
+        "flake8-coding",
+        "flake8-cognitive-complexity",
+        "flake8-cohesion",
+        "flake8-comments",
+        "flake8-comprehensions",
+        "flake8-copyright",
+        "flake8-datetime-utcnow-plugin",
+        "flake8-datetimez",
+        "flake8-debugger",
+        "flake8-docstrings",
+        "flake8-encodings",
+        "flake8-eradicate",
+        "flake8-executable",
+        "flake8-expression-complexity",
+        "flake8-fixme",
+        "flake8-forbidden-func",
+        "flake8-functions-names",
+        "flake8-future-annotations",
+        "flake8-implicit-str-concat",
+        "flake8-isort",
+        "flake8-length",
+        "flake8-literal",
+        "flake8-logging-format",
+        "flake8-multiline-containers",
+        "flake8-mutable",
+        "flake8-new-union-types",
+        "flake8-newspaper-style",
+        "flake8-no-implicit-concat",
+        "flake8-no-pep420",
+        "flake8-noqa",
+        "flake8-obey-import-goat",
+        "flake8-pep3101",
+        "flake8-pep585",
+        "flake8-picky-parentheses",
+        "flake8-pie",
+        "flake8-print",
+        "flake8-pyi",
+        "flake8-pytest",
+        "flake8-pytest-style",
+        "flake8-quotes",
+        "flake8-requirements",
+        "flake8-return",
+        "flake8-scream",
+        "flake8-secure-coding-standard",
+        "flake8-simplify",
+        "flake8-string-format",
+        "flake8-todo",
+        "flake8-too-many",
+        "flake8-type-checking",
+        "flake8-typing-imports",
+        "flake8-unused-arguments",
+        "flake8-use-fstring",
+        "flake8-use-pathlib",
+        "flake8-variables-names",
+        "flake8-walrus",
+        "flake8-warnings",
+        "pep8-naming",
+        "tryceratops",
+        # "flake8-useless-assert",
+        # "flake8-slots",
+        # "flake8-ownership",
+      ]
+      linter = ["black", "flake8", "isort", "mypy"]
+      prototype = ["ipykernel"]
+      test = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [tool.flake8]
-docstring-convention = "pep257"
-exclude = [".tox", "build", "tests", "__pypackages__"]
-ignore = [
-  "ANN002",
-  "ANN003",
-  "ANN101",
-  "ANN102",
-  "C901",
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D104",
-  "D105",
-  "D106",
-  "D107",
-  "D202",
-  "D203",
-  "D401",
-  "E203",
-  "E402",
-  "E501",
-  "W503",
-]
-inline-quotes = "double"
-max-complexity = 12
-max-line-length = 120
-type-checking-pydantic-enabled = "true"
+  docstring-convention = "pep257"
+  exclude = [".tox", "__pypackages__", "build", "tests"]
+  ignore = [
+    "ANN002",
+    "ANN003",
+    "ANN101",
+    "ANN102",
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D202",
+    "D203",
+    "E402",
+    "E800",   # remove after Milestone
+    "FNE008",
+    "T000",   # remove after Milestone
+    "T101",   # remove after Milestone
+    "W503",
+  ]
+  inline-quotes = "double"
+  literal-inline-quotes = "double"
+  max-complexity = 12
+  max-function-arguments = 10
+  max-line-length = 120
+  min_python_version = 3.9
+  type-checking-pydantic-enabled = "true"
 
 [tool.black]
-line_length = 120
+  line_length = 120
 
 [tool.commitizen]
-name = "cz_conventional_commits"
-tag_format = "$version"
-version = "1.2.1"
-version_files = [
-  "pyproject.toml:version",
-  ".zenodo.json:version",
-]
+  name          = "cz_conventional_commits"
+  tag_format    = "$version"
+  version       = "1.2.1"
+  version_files = [".zenodo.json:version", "pyproject.toml:version"]
 
 [tool.isort]
-combine_as_imports = true
-force_grid_wrap = 0
-force_single_line = true
-include_trailing_comma = true
-known_first_party = "tests"
-line_length = 120
-multi_line_output = 3
-skip = [".tox", "build", "__pypackages__"]
+  combine_as_imports     = true
+  force_grid_wrap        = 0
+  force_single_line      = true
+  include_trailing_comma = true
+  known_first_party      = "tests"
+  line_length            = 120
+  multi_line_output      = 3
+  skip                   = [".tox", "__pypackages__", "build"]
 
 [tool.mypy]
-follow_imports = "skip"
-ignore_missing_imports = true
-mypy_path = "powerfactory_utils"
-namespace_packages = true
-plugins = "pydantic.mypy"
-strict_optional = true
-warn_no_return = true
-warn_redundant_casts = true
-warn_unused_ignores = true
+  follow_imports         = "skip"
+  ignore_missing_imports = true
+  mypy_path              = "powerfactory_utils"
+  namespace_packages     = true
+  plugins                = "pydantic.mypy"
+  strict_optional        = true
+  warn_no_return         = true
+  warn_redundant_casts   = true
+  warn_unused_ignores    = true
 
 [tool.pytest.ini_options]
-addopts = "-ra --strict-markers -p pytester --cov=powerfactory_utils --cov-report xml --cov-report term"
-python_files = "test_*.py"
-testpaths = ["tests"]
+  addopts      = "-ra --strict-markers -p pytester --cov=powerfactory_utils --cov-report xml --cov-report term"
+  python_files = "test_*.py"
+  testpaths    = ["tests"]
 
 [tool.coverage.run]
-branch = true
-omit = ["tests/*", "build/*", "__pypackages__/*"]
-source = ["powerfactory_utils"]
+  branch = true
+  omit   = ["__pypackages__/*", "build/*", "tests/*"]
+  source = ["powerfactory_utils"]
 
 [tool.coverage.report]
-show_missing = true
+  show_missing = true
 
 [tool.coverage.xml]
-output = "coverage.xml"
+  output = "coverage.xml"
 
 [tool.pyright]
-exclude = ["**/__pycache__"]
+  exclude = ["**/__pycache__"]

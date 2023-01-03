@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from pydantic.class_validators import validator
 
@@ -14,5 +16,5 @@ class Case(Base):
     elements: Sequence[ElementState]
 
     @validator("elements")
-    def validate_elements(cls, v: Sequence[ElementState]) -> Sequence[ElementState]:
-        return list(set(v))
+    def validate_elements(cls, value: Sequence[ElementState]) -> Sequence[ElementState]:  # noqa: N805, U100
+        return list(set(value))

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
-from typing import Sequence
 
 from loguru import logger
 from pydantic.class_validators import validator

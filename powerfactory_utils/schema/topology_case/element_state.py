@@ -1,6 +1,6 @@
-from __future__ import annotations
+# -*- coding: utf-8 -*-
 
-from typing import Optional
+from __future__ import annotations
 
 from powerfactory_utils.schema.base import Base
 
@@ -11,4 +11,4 @@ class ElementState(Base):
 
     name: str
     active: bool  # 0:off/opened; 1:on/closed
-    node: Optional[str] = None
+    node: str | None = None

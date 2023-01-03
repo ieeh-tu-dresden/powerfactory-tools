@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import annotations
 
-from typing import Sequence
+from collections.abc import Sequence
 
 from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import Meta

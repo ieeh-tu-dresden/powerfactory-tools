@@ -26,7 +26,7 @@ class LoadModel(Base):
     exp_z: float = 2
 
     @root_validator
-    def validate_range_c(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def validate_range_c(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: N805, U100
         name = values["name"]
 
         # validate c_p
@@ -45,11 +45,12 @@ class LoadModel(Base):
 
         if c_p + c_i > 1:
             raise ValueError(
-                f"Load model '{name}': Sum of components must not raise 1, but sum of 'c_p' and 'c_i' is already {c_p + c_i}."
+                f"Load model '{name}': Sum of components must not exceed 1, but 'c_p + c_i' is already {c_p + c_i}."
             )
+
         return values
 
     @root_validator
-    def compute_c_z(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def compute_c_z(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: N805, U100
         values["c_z"] = 1 - values["c_p"] - values["c_i"]
         return values

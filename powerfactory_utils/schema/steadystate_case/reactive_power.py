@@ -15,19 +15,19 @@ if TYPE_CHECKING:
 
 
 class ReactivePower(Base):
-    q_0: float  # actual reactive power (three-phase)
-    q_r_0: float  # actual reactive power (phase r)
-    q_s_0: float  # actual reactive power (phase s)
-    q_t_0: float  # actual reactive power (phase t)
-    symmetrical: bool
+    value_0: float  # actual reactive power (three-phase)
+    value_r_0: float  # actual reactive power (phase r)
+    value_s_0: float  # actual reactive power (phase s)
+    value_t_0: float  # actual reactive power (phase t)
+    is_symmetrical: bool
     controller: Optional[Controller] = None
 
     class Config:
         frozen = True
 
     @validator("controller")
-    def validate_controller(cls, v: Controller) -> Controller:
-        return v
+    def validate_controller(cls, value: Controller) -> Controller:
+        return value
 
     @root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:

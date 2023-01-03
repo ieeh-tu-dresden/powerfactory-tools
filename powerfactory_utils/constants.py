@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+
 class Exponents:
     VOLTAGE = 10**3
     CURRENT = 10**3

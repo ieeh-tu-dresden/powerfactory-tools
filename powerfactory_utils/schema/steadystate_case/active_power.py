@@ -12,11 +12,11 @@ if TYPE_CHECKING:
 
 
 class ActivePower(Base):
-    p_0: float  # actual active power (three-phase)
-    p_r_0: float  # actual active power (phase r)
-    p_s_0: float  # actual active power (phase s)
-    p_t_0: float  # actual active power (phase t)
-    symmetrical: bool
+    value_0: float  # actual active power (three-phase)
+    value_r_0: float  # actual active power (phase r)
+    value_s_0: float  # actual active power (phase s)
+    value_t_0: float  # actual active power (phase t)
+    is_symmetrical: bool
 
     class Config:
         frozen = True

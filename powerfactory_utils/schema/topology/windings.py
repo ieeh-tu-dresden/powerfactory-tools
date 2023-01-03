@@ -1,6 +1,6 @@
-from __future__ import annotations
+# -*- coding: utf-8 -*-
 
-from typing import Optional
+from __future__ import annotations
 
 from powerfactory_utils.schema.base import Base
 
@@ -12,7 +12,7 @@ class Winding(Base):
     u_r: float  # Rated Voltage of the transformer windings itself (CIM: ratedU)
     r1: float  # positive sequence values of transformer T-representation
     x1: float
-    r0: Optional[float] = None  # zero sequence values of transformer T-representation
-    x0: Optional[float] = None
-    phase_angle_clock: Optional[int] = None
-    vector_group: Optional[str] = None
+    r0: float | None = None  # zero sequence values of transformer T-representation
+    x0: float | None = None
+    phase_angle_clock: int | None = None
+    vector_group: str | None = None

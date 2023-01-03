@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from powerfactory_utils.exporter.exporter import PowerfactoryExporter
 from powerfactory_utils.exporter.exporter import export_powerfactory_data
 
