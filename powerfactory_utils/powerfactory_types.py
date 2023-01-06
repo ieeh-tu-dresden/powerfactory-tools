@@ -498,6 +498,7 @@ class ExternalGrid(DataObject, Protocol):
     phiini: float  # in deg
     snss: float  # in MVA
     snssmin: float  # in MVA
+    outserv: bool
 
 
 class Script(Protocol):

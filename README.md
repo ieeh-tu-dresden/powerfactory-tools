@@ -2,12 +2,13 @@
 
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
-* [Field of Application](#application)
-* [Installation](#installation)
-* [Tutorials](#tutorials)
-* [Acknowledgement](#acknowledgement)
-* [Attribution](#attribution)
-* [License](#license)
+- [Powerfactory Utils](#powerfactory-utils)
+  - [ Field of Application](#-field-of-application)
+  - [ Tutorials](#-tutorials)
+  - [ Installation](#-installation)
+  - [ Acknowledgement](#-acknowledgement)
+  - [ Attribution](#-attribution)
+  - [ License](#-license)
 
 ## <div id="application" /> Field of Application
 
@@ -17,9 +18,12 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 The following functionalities are provided:
 
 * export of calculation relevant grid data from a PowerFactory project into three common readable JSON files utilizing predefined [schemas](./powerfactory_utils/schema):
-  * grid topology
-  * topology case
+  * grid topology:
+    * base topology containing all elements of the exported grid
+  * topology case;
+    * information about disabled elements to represent a specific operational case based on the base topology
   * steadystate case
+    * information about power draw/infeed for a specific operational case
 * [intended in future release] import from external grid data into the PowerFactory environment
 * [intended in future release] basic control of PowerFactory
 
