@@ -116,7 +116,7 @@ class PowerfactoryInterface:
     def connect_to_app(self, pf: pft.PowerFactoryModule) -> pft.Application:
         """Connect to PowerFactory Application.
 
-         Arguments:
+        Arguments:
             pf {pft.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
 
         Returns:
@@ -159,10 +159,10 @@ class PowerfactoryInterface:
 
     def reset_project(self) -> bool:
         exit_code = self.deactivate_project()
-        if exit_code:
-            return False
+        if not exit_code:
+            return exit_code
         exit_code = self.activate_project(self.project_name)
-        return not exit_code
+        return exit_code
 
     def activate_grid(self, grid: pft.Grid) -> bool:
         exit_code = grid.Activate()
