@@ -158,11 +158,8 @@ class PowerfactoryInterface:
         return not exit_code
 
     def reset_project(self) -> bool:
-        exit_code = self.deactivate_project()
-        if not exit_code:
-            return exit_code
-        exit_code = self.activate_project(self.project_name)
-        return exit_code
+        success = self.deactivate_project()
+        return False if not success else self.activate_project(self.project_name)
 
     def activate_grid(self, grid: pft.Grid) -> bool:
         exit_code = grid.Activate()
