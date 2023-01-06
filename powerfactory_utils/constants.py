@@ -32,6 +32,12 @@ class BaseUnits:
             ("var", "k", "M"),
             ("VA", "k", "M"),
         ],
+        "ElmLodlvp": [
+            ("A", "", "k"),
+            ("W", "k", "M"),
+            ("var", "k", "M"),
+            ("VA", "k", "M"),
+        ],
         "ElmPvsys": [
             ("W", "k", "M"),
             ("var", "k", "M"),
