@@ -1,6 +1,9 @@
 name: release
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  milestone:
+    types: [closed]
 
 jobs:
   tests:
@@ -9,6 +12,9 @@ jobs:
     name: Release a new version
     runs-on: ubuntu-latest
     needs: [tests]
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
       - name: Check out repository
@@ -40,10 +46,10 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up PDM
+      - name: Set up PDM @ ${{ matrix.python-version }}
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: 3.9.13
+          python-version: ${{ matrix.python-version }}
           cache: true
           architecture: x64
           prerelease: true

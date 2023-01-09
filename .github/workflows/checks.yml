@@ -7,6 +7,9 @@ jobs:
   checks:
     name: Running checks
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
       - name: Checking out repository
@@ -14,14 +17,17 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setting up PDM
+      - name: Setting up PDM @${{ matrix.python-version }}
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: 3.9.13
+          python-version: ${{ matrix.python-version }}
           cache: true
           architecture: x64
           prerelease: true
           enable-pep582: true
+
+      - name: Check lockfile
+        run: pdm lock --check
 
       - name: Installing dependencies
         run: pdm install
