@@ -31,6 +31,8 @@ jobs:
 
       - name: Installing dependencies
         run: pdm install
+        with:
+          python-version: ${{ matrix.python-version }}
 
       - name: Import checking using isort
         run: pdm run isort --check-only --diff powerfactory_utils tests
