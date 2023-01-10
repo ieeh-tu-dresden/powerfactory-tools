@@ -20,7 +20,7 @@ jobs:
       - name: Setting up PDM
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: 3.9.13
+          python-version: ${{ matrix.python-version }}
           cache: true
           architecture: x64
           prerelease: true
