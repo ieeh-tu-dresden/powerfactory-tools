@@ -17,22 +17,20 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setting up PDM @${{ matrix.python-version }}
+      - name: Setting up PDM
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9.13
           cache: true
           architecture: x64
           prerelease: true
           enable-pep582: true
 
-      # - name: Check lockfile
-      #   run: pdm lock --check
+      - name: Check lockfile
+        run: pdm lock --check
 
       - name: Installing dependencies
         run: pdm install
-        with:
-          python-version: ${{ matrix.python-version }}
 
       - name: Import checking using isort
         run: pdm run isort --check-only --diff powerfactory_utils tests
