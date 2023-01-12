@@ -27,7 +27,6 @@
       flake8-plugins = [
         "Flake8-pyproject",
         "flake8-absolute-import",
-        "flake8-alfred",
         "flake8-annotations",
         "flake8-annotations-complexity",
         "flake8-annotations-coverage",
