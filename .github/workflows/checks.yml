@@ -31,6 +31,13 @@ jobs:
           prerelease: true
           enable-pep582: true
 
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: pdm-log
+          path: |
+            /tmp/pdm-install-resolve-*.log
+
       - name: Check lockfile
         run: pdm lock --check
 
