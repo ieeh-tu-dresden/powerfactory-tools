@@ -196,15 +196,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "flake8-alfred"
-version = "1.1.1"
-requires_python = ">=3.6"
-summary = "Flake8 plugin warning for unsafe functions"
-dependencies = [
-    "flake8",
-]
-
-[[package]]
 name = "flake8-annotations"
 version = "2.9.1"
 requires_python = ">=3.7,<4.0"
@@ -775,7 +766,7 @@ summary = "A small Python utility to set file creation time on Windows"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:ffef123bf23f918af4662e2709d7b4b39a2de35d2140dd808aaf00a02947847a"
+content_hash = "sha256:c404dacd96922afa2d07a059bc745250b23632978f1cea813adbf1cee4366a1a"
 
 [metadata.files]
 "appnope 0.1.3" = [
@@ -1009,10 +1000,6 @@ content_hash = "sha256:ffef123bf23f918af4662e2709d7b4b39a2de35d2140dd808aaf00a02
 ]
 "flake8-absolute-import 1.0.0.1" = [
     {url = "https://files.pythonhosted.org/packages/5b/90/a117932fd7ae43da11f239182b9fc8fc23e26bdd24abec76a5a4c3e31aca/flake8_absolute_import-1.0.0.1-py3-none-any.whl", hash = "sha256:d24f189bca52ffc0d13e8046606ea42d22a9ad9d409bf39e52b93493cf2ffd2c"},
-]
-"flake8-alfred 1.1.1" = [
-    {url = "https://files.pythonhosted.org/packages/55/39/27d79b6236119c9611953153031feab5b6b755dd6ab004f9447b99e63cb6/flake8-alfred-1.1.1.tar.gz", hash = "sha256:c68b40165b00d3c9f0da6e64f08e95da919fc358dc8b8596374f54fa63cd6be5"},
-    {url = "https://files.pythonhosted.org/packages/fe/9d/434790d9034b961a9c79830f9b8e70b2492fbd0e914a05215fa6390b95eb/flake8_alfred-1.1.1-py3-none-any.whl", hash = "sha256:3cce4a91fe07b50b5efcb650f5f13901052b64c3850f9cf10cce330efab6b34d"},
 ]
 "flake8-annotations 2.9.1" = [
     {url = "https://files.pythonhosted.org/packages/5f/d4/ed8d8e72c784dcb61df1dab7cbce61fcb3b6cd1191f60e006053e6f52925/flake8-annotations-2.9.1.tar.gz", hash = "sha256:11f09efb99ae63c8f9d6b492b75fe147fbc323179fddfe00b2e56eefeca42f57"},
