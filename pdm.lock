@@ -196,6 +196,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "flake8-alfred"
+version = "1.1.1"
+requires_python = ">=3.6"
+summary = "Flake8 plugin warning for unsafe functions"
+dependencies = [
+    "flake8",
+]
+
+[[package]]
 name = "flake8-annotations"
 version = "2.9.1"
 requires_python = ">=3.7,<4.0"
@@ -682,6 +691,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "setuptools"
+version = "65.7.0"
+requires_python = ">=3.7"
+summary = "Easily download, build, install, upgrade, and uninstall Python packages"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
@@ -766,7 +781,7 @@ summary = "A small Python utility to set file creation time on Windows"
 
 [metadata]
 lock_version = "4.1"
-content_hash = "sha256:c404dacd96922afa2d07a059bc745250b23632978f1cea813adbf1cee4366a1a"
+content_hash = "sha256:7de875f24785556b731b9a5b602422c475eec18582b28a6f4e2696a5ff437490"
 
 [metadata.files]
 "appnope 0.1.3" = [
@@ -1000,6 +1015,10 @@ content_hash = "sha256:c404dacd96922afa2d07a059bc745250b23632978f1cea813adbf1cee
 ]
 "flake8-absolute-import 1.0.0.1" = [
     {url = "https://files.pythonhosted.org/packages/5b/90/a117932fd7ae43da11f239182b9fc8fc23e26bdd24abec76a5a4c3e31aca/flake8_absolute_import-1.0.0.1-py3-none-any.whl", hash = "sha256:d24f189bca52ffc0d13e8046606ea42d22a9ad9d409bf39e52b93493cf2ffd2c"},
+]
+"flake8-alfred 1.1.1" = [
+    {url = "https://files.pythonhosted.org/packages/55/39/27d79b6236119c9611953153031feab5b6b755dd6ab004f9447b99e63cb6/flake8-alfred-1.1.1.tar.gz", hash = "sha256:c68b40165b00d3c9f0da6e64f08e95da919fc358dc8b8596374f54fa63cd6be5"},
+    {url = "https://files.pythonhosted.org/packages/fe/9d/434790d9034b961a9c79830f9b8e70b2492fbd0e914a05215fa6390b95eb/flake8_alfred-1.1.1-py3-none-any.whl", hash = "sha256:3cce4a91fe07b50b5efcb650f5f13901052b64c3850f9cf10cce330efab6b34d"},
 ]
 "flake8-annotations 2.9.1" = [
     {url = "https://files.pythonhosted.org/packages/5f/d4/ed8d8e72c784dcb61df1dab7cbce61fcb3b6cd1191f60e006053e6f52925/flake8-annotations-2.9.1.tar.gz", hash = "sha256:11f09efb99ae63c8f9d6b492b75fe147fbc323179fddfe00b2e56eefeca42f57"},
@@ -1460,6 +1479,10 @@ content_hash = "sha256:c404dacd96922afa2d07a059bc745250b23632978f1cea813adbf1cee
 "questionary 1.10.0" = [
     {url = "https://files.pythonhosted.org/packages/04/c6/a8dbf1edcbc236d93348f6e7c437cf09c7356dd27119fcc3be9d70c93bb1/questionary-1.10.0.tar.gz", hash = "sha256:600d3aefecce26d48d97eee936fdb66e4bc27f934c3ab6dd1e292c4f43946d90"},
     {url = "https://files.pythonhosted.org/packages/49/00/151ff8314078efa3087c23b4b7c473f08f601dff7c62bfb894dd462e0fc9/questionary-1.10.0-py3-none-any.whl", hash = "sha256:fecfcc8cca110fda9d561cb83f1e97ecbb93c613ff857f655818839dac74ce90"},
+]
+"setuptools 65.7.0" = [
+    {url = "https://files.pythonhosted.org/packages/a1/29/f2ad3b78b9ebd24afa282eed9add27b47ef52b37291198021154b4b65166/setuptools-65.7.0.tar.gz", hash = "sha256:4d3c92fac8f1118bb77a22181355e29c239cabfe2b9effdaa665c66b711136d7"},
+    {url = "https://files.pythonhosted.org/packages/ff/97/9dc902414912192d68364cc01cf17e826d259ef9753504b7ae1a256f2e35/setuptools-65.7.0-py3-none-any.whl", hash = "sha256:8ab4f1dbf2b4a65f7eec5ad0c620e84c34111a68d3349833494b9088212214dd"},
 ]
 "six 1.16.0" = [
     {url = "https://files.pythonhosted.org/packages/71/39/171f1c67cd00715f190ba0b100d606d440a28c93c7714febeca8b79af85e/six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
