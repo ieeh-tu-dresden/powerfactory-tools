@@ -51,6 +51,7 @@
 [tool.flake8]
   docstring-convention = "pep257"
   exclude = [".tox", "__pypackages__", "build", "tests"]
+  extend-select = "TC, TC1"
   ignore = [
     "ANN002",
     "ANN003",
