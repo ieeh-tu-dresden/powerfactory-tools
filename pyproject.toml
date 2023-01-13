@@ -8,7 +8,7 @@
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "powerfactory-utils"
-  requires-python = ">=3.9,<3.10"
+  requires-python = ">=3.9,<3.11"
   version = "1.2.1"
 
   [project.urls]
@@ -100,19 +100,31 @@
         # "flake8-useless-assert",
         # "flake8-slots",
         # "flake8-ownership",
+        "flake8-bandit",
+        "flake8-bugbear",
+        "flake8-comprehensions",
+        "flake8-docstrings",
+        "flake8-isort",
+        "flake8-mutable",
+        "flake8-pyi",
+        "flake8-type-checking",
+        "flake8-use-fstring",
+        "pycodestyle",
+        "pyflakes",
+        "setuptools",
       ]
       linter = ["black", "flake8", "isort", "mypy"]
       prototype = ["ipykernel"]
       test = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [tool.flake8]
-  docstring-convention = "pep257"
-  exclude = [".tox", "__pypackages__", "build", "tests"]
+
   ignore = [
     "ANN002",
     "ANN003",
     "ANN101",
     "ANN102",
+    "C901",
     "D100",
     "D101",
     "D102",
@@ -123,19 +135,27 @@
     "D107",
     "D202",
     "D203",
+    "D401",
+    "E203",
     "E402",
+    "E501",
     "E800",   # remove after Milestone
     "FNE008",
     "T000",   # remove after Milestone
     "T101",   # remove after Milestone
     "W503",
+    "W503",
   ]
-  inline-quotes = "double"
-  literal-inline-quotes = "double"
-  max-complexity = 12
-  max-function-arguments = 10
-  max-line-length = 120
-  min_python_version = 3.9
+
+  docstring-convention           = "pep257"
+  exclude                        = [".tox", "__pypackages__", "build", "tests"]
+  extend-select                  = "TC, TC1"
+  inline-quotes                  = "double"
+  literal-inline-quotes          = "double"
+  max-complexity                 = 12
+  max-function-arguments         = 10
+  max-line-length                = 120
+  min_python_version             = 3.9
   type-checking-pydantic-enabled = "true"
 
 [tool.black]

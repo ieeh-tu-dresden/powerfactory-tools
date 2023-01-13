@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from typing import Union
 
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 
 class VoltageSystemType(Enum):
@@ -35,7 +35,7 @@ class Base(BaseModel):
         return True
 
     @classmethod
-    def from_json(cls, json_str: str) -> "Base":
+    def from_json(cls, json_str: str) -> Base:
         return cls.parse_raw(json_str)
 
 

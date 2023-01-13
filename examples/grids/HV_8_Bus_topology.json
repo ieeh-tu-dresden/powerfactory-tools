@@ -1,10 +1,10 @@
 {
   "meta": {
     "name": "HV_8_Bus",
-    "date": "2022-10-11",
-    "id": "551b2508-613e-479e-881f-bc68d677e60b",
+    "date": "2023-01-06",
+    "id": "b6faa827-c77f-47d1-b8c6-89193292ddd9",
     "project": "PowerFactory-Utils",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "branches": [
     {
@@ -12,7 +12,7 @@
       "node_2": "Node_4",
       "name": "Line_24",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 3.7500000558793545,
       "x1": 15.000000223517418,
       "g1": 0.0,
@@ -32,7 +32,7 @@
       "node_2": "Node_3",
       "name": "Line_23",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 6.2500000931322575,
       "x1": 25.00000037252903,
       "g1": 0.0,
@@ -52,7 +52,7 @@
       "node_2": "Node_3",
       "name": "Line_13",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 5.000000074505806,
       "x1": 20.000000298023224,
       "g1": 0.0,
@@ -72,7 +72,7 @@
       "node_2": "Node_3",
       "name": "Line_34",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 3.7500000558793545,
       "x1": 15.000000223517418,
       "g1": 0.0,
@@ -92,11 +92,11 @@
       "node_2": "Node_8/1",
       "name": "Line_37",
       "u_n": 110000.0,
-      "i_r": 2.0,
-      "r1": 1.0000000149011612,
-      "x1": 4.000000059604645,
+      "i_r": 2000.0,
+      "r1": 0.5000000074505806,
+      "x1": 2.0000000298023224,
       "g1": 0.0,
-      "b1": 2.4999999999999998e-05,
+      "b1": 4.9999999999999996e-05,
       "type": "LINE",
       "voltage_system_type": "AC",
       "r0": 0.0,
@@ -112,7 +112,7 @@
       "node_2": "Node_6_MV",
       "name": "Line_56",
       "u_n": 20000.0,
-      "i_r": 0.460999995470047,
+      "i_r": 460.999995470047,
       "r1": 1.0369999706745148,
       "x1": 1.184379979968071,
       "g1": 0.0,
@@ -132,7 +132,7 @@
       "node_2": "Node_2",
       "name": "Line_12",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 4.500000067055225,
       "x1": 18.0000002682209,
       "g1": 0.0,
@@ -152,7 +152,7 @@
       "node_2": "Node_4",
       "name": "Line_WF",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 0.05000000074505806,
       "x1": 0.20000000298023224,
       "g1": 0.0,
@@ -172,7 +172,7 @@
       "node_2": "PCC_WTG",
       "name": "Line_WTG",
       "u_n": 110000.0,
-      "i_r": 1.0,
+      "i_r": 1000.0,
       "r1": 0.05000000074505806,
       "x1": 0.20000000298023224,
       "g1": 0.0,
@@ -683,50 +683,6 @@
       "voltage_system_type": "AC"
     },
     {
-      "name": "LV_Load_7a_FIXED",
-      "node": "Node_7_LV",
-      "description": "",
-      "u_n": 400.0,
-      "rated_power": {
-        "s": 9007.0,
-        "s_r": 2309.4,
-        "s_s": 3695.04,
-        "s_t": 3002.22,
-        "cosphi": 0.937179,
-        "cosphi_r": 0.9,
-        "cosphi_s": 0.95,
-        "cosphi_t": 0.95
-      },
-      "active_power": {
-        "load_model": {
-          "name": null,
-          "c_p": 1,
-          "c_i": 0,
-          "c_z": 0,
-          "exp_p": 0,
-          "exp_i": 1,
-          "exp_z": 2
-        },
-        "characteristic": null
-      },
-      "reactive_power": {
-        "load_model": {
-          "name": null,
-          "c_p": 1,
-          "c_i": 0,
-          "c_z": 0,
-          "exp_p": 0,
-          "exp_i": 1,
-          "exp_z": 2
-        },
-        "external_controller_name": null
-      },
-      "type": "CONSUMER",
-      "system_type": "FIXED",
-      "phase_connection_type": null,
-      "voltage_system_type": null
-    },
-    {
       "name": "LV_Load_7b_(0)_FIXED",
       "node": "Node_7_LV",
       "description": "",
@@ -855,6 +811,50 @@
       },
       "type": "CONSUMER",
       "system_type": "VARIABLE",
+      "phase_connection_type": null,
+      "voltage_system_type": null
+    },
+    {
+      "name": "LV_Load_7a_FIXED",
+      "node": "Node_7_LV",
+      "description": "",
+      "u_n": 400.0,
+      "rated_power": {
+        "s": 9007.0,
+        "s_r": 2309.4,
+        "s_s": 3695.04,
+        "s_t": 3002.22,
+        "cosphi": 0.937179,
+        "cosphi_r": 0.9,
+        "cosphi_s": 0.95,
+        "cosphi_t": 0.95
+      },
+      "active_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "characteristic": null
+      },
+      "reactive_power": {
+        "load_model": {
+          "name": null,
+          "c_p": 1,
+          "c_i": 0,
+          "c_z": 0,
+          "exp_p": 0,
+          "exp_i": 1,
+          "exp_z": 2
+        },
+        "external_controller_name": null
+      },
+      "type": "CONSUMER",
+      "system_type": "FIXED",
       "phase_connection_type": null,
       "voltage_system_type": null
     },
@@ -1048,10 +1048,10 @@
       "description": "",
       "u_n": 110000.0,
       "rated_power": {
-        "s": 2000000.0,
-        "s_r": 666666.67,
-        "s_s": 666666.67,
-        "s_t": 666666.67,
+        "s": 20000000.0,
+        "s_r": 6666666.67,
+        "s_s": 6666666.67,
+        "s_t": 6666666.67,
         "cosphi": 0.8,
         "cosphi_r": 0.8,
         "cosphi_s": 0.8,
@@ -1073,51 +1073,8 @@
   ],
   "transformers": [
     {
-      "node_1": "Node_5_MV",
-      "node_2": "Node_2",
-      "name": "Transformer_2w_110/20",
-      "number": 1,
-      "vector_group": "Yyn0",
-      "i_0": 1.0,
-      "p_fe": 23000.0,
-      "windings": [
-        {
-          "node": "Node_2",
-          "s_r": 40000000.0,
-          "u_n": 110000.0,
-          "u_r": 110000.0,
-          "r1": 1.134374974644743,
-          "x1": 36.282270792871714,
-          "r0": 0.0,
-          "x0": 9.074999797157943,
-          "phase_angle_clock": 0,
-          "vector_group": "Y"
-        },
-        {
-          "node": "Node_5_MV",
-          "s_r": 40000000.0,
-          "u_n": 20000.0,
-          "u_r": 20000.0,
-          "r1": 0.0,
-          "x1": 0.0,
-          "r0": 0.0,
-          "x0": 0.0,
-          "phase_angle_clock": 0,
-          "vector_group": "YN"
-        }
-      ],
-      "phase_technology_type": "3PH",
-      "description": "",
-      "tap_u_abs": 0.5,
-      "tap_u_phi": 0.0,
-      "tap_max": 15,
-      "tap_min": 1,
-      "tap_neutral": 7,
-      "tap_side": "HV"
-    },
-    {
-      "node_1": "Node_7_LV",
-      "node_2": "Node_6_MV",
+      "node_1": "Node_6_MV",
+      "node_2": "Node_7_LV",
       "name": "Transformer_2w_20/0.4",
       "number": 1,
       "vector_group": "Dyn5",
@@ -1157,6 +1114,49 @@
       "tap_min": -2,
       "tap_neutral": 0,
       "tap_side": "HV"
+    },
+    {
+      "node_1": "Node_2",
+      "node_2": "Node_5_MV",
+      "name": "Transformer_2w_110/20",
+      "number": 1,
+      "vector_group": "Yyn0",
+      "i_0": 1.0,
+      "p_fe": 23000.0,
+      "windings": [
+        {
+          "node": "Node_2",
+          "s_r": 40000000.0,
+          "u_n": 110000.0,
+          "u_r": 110000.0,
+          "r1": 1.134374974644743,
+          "x1": 36.282270792871714,
+          "r0": 0.0,
+          "x0": 0.0,
+          "phase_angle_clock": 0,
+          "vector_group": "Y"
+        },
+        {
+          "node": "Node_5_MV",
+          "s_r": 40000000.0,
+          "u_n": 20000.0,
+          "u_r": 20000.0,
+          "r1": 0.0,
+          "x1": 0.0,
+          "r0": 0.0,
+          "x0": 0.0,
+          "phase_angle_clock": 0,
+          "vector_group": "YN"
+        }
+      ],
+      "phase_technology_type": "3PH",
+      "description": "",
+      "tap_u_abs": 0.5,
+      "tap_u_phi": 0.0,
+      "tap_max": 15,
+      "tap_min": 1,
+      "tap_neutral": 7,
+      "tap_side": null
     }
   ],
   "external_grids": [

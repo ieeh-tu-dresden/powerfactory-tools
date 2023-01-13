@@ -1,36 +1,56 @@
 {
   "meta": {
     "name": "HV_8_Bus",
-    "date": "2022-10-11",
-    "id": "83a7dac4-c114-420f-8551-3c7ba573567f",
+    "date": "2023-01-06",
+    "id": "d3b24a29-8d5f-4499-b078-7e1756d8bd00",
     "project": "PowerFactory-Utils",
-    "version": "1.0.0"
+    "version": "1.1.0"
   },
   "elements": [
     {
-      "name": "Node_8/ISField_2.3",
-      "active": false,
-      "node": null
+      "name": "Load_1",
+      "disabled": true,
+      "open_switches": []
+    },
+    {
+      "name": "Line_56",
+      "disabled": false,
+      "open_switches": [
+        "Node_6_MV",
+        "Node_5_MV"
+      ]
     },
     {
       "name": "Transformer_2w_110/20",
-      "active": false,
-      "node": null
+      "disabled": true,
+      "open_switches": []
     },
     {
-      "name": "Line_23",
-      "active": false,
-      "node": "Node_3"
+      "name": "Node_7_LV",
+      "disabled": true,
+      "open_switches": []
+    },
+    {
+      "name": "Node_8/ISField_2.3",
+      "disabled": true,
+      "open_switches": []
     },
     {
       "name": "Line_34",
-      "active": false,
-      "node": null
+      "disabled": true,
+      "open_switches": []
+    },
+    {
+      "name": "Line_23",
+      "disabled": false,
+      "open_switches": [
+        "Node_3"
+      ]
     },
     {
       "name": "Node_8/IS1.2",
-      "active": false,
-      "node": null
+      "disabled": true,
+      "open_switches": []
     }
   ]
 }

@@ -76,16 +76,43 @@ GenSystemType = Literal[
     "stor",  # storage
     "net",  # external grid
 ]
+MetricPrefix = Literal["a", "f", "p", "n", "u", "m", "", "k", "M", "G", "T", "P", "E"]
+Currency = Literal[
+    "USD",
+    "EUR",
+    "JPY",
+    "GBP",
+    "AUD",
+    "CAD",
+    "CHF",
+    "CNY",
+    "SEK",
+    "MXN",
+    "NZD",
+    "SGD",
+    "HKD",
+    "NOK",
+    "KRW",
+    "TRY",
+    "INR",
+    "RUB",
+    "BRL",
+    "ZAR",
+    "CLP",
+]
 
 
 class DataObject(Protocol):
     loc_name: str
     fold_id: Optional[DataObject]
 
-    def GetContents(self, pattern: str, recursive: bool = False) -> list[DataObject]:
+    def GetContents(self, filter: str, recursive: bool = False) -> list[DataObject]:
         ...
 
-    def CreateObject(self, class_name: str, name: Optional[Union[str, int]]) -> Optional[DataObject]:
+    def CreateObject(self, class_name: str, name: Optional[Union[str, int]], /) -> Optional[DataObject]:
+        ...
+
+    def Delete(self) -> int:
         ...
 
 
@@ -111,6 +138,9 @@ class Graph(DataObject, Protocol):
 class Project(DataObject, Protocol):
     pPrjSettings: Optional[ProjectSettings]
 
+    def Deactivate(self) -> bool:
+        ...
+
 
 class Scenario(DataObject, Protocol):
     def Activate(self) -> bool:
@@ -130,6 +160,22 @@ class StudyCase(DataObject, Protocol):
 
 class ProjectSettings(DataObject, Protocol):
     extDataDir: DataDir
+    ilenunit: Literal[0, 1, 2]
+    clenexp: MetricPrefix  # Lengths
+    cspqexp: MetricPrefix  # Loads etc.
+    cspqexpgen: MetricPrefix  # Generators etc.
+    currency: Currency
+
+
+class UnitConversionSetting(DataObject, Protocol):
+    filtclass: list[str]
+    filtvar: str
+    digunit: str
+    cdigexp: MetricPrefix
+    userunit: str
+    cuserexp: MetricPrefix
+    ufacA: float
+    ufacB: float
 
 
 class DataDir(DataObject, Protocol):
@@ -452,6 +498,7 @@ class ExternalGrid(DataObject, Protocol):
     phiini: float  # in deg
     snss: float  # in MVA
     snssmin: float  # in MVA
+    outserv: bool
 
 
 class Script(Protocol):
