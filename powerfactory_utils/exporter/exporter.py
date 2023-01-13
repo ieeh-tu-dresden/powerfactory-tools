@@ -46,6 +46,7 @@ from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
 from powerfactory_utils.schema.topology_case.element_state import ElementState
 
 if TYPE_CHECKING:
+    from types import TracebackType
     from typing import Literal
     from typing import Optional
     from typing import Sequence
@@ -58,10 +59,6 @@ if TYPE_CHECKING:
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 POWERFACTORY_VERSION = "2022 SP2"
-
-
-LV_TO_BASE_POW = Exponents.LV_POWER / Exponents.POWER
-LV_TO_BASE_CURR = Exponents.LV_CURRENT / Exponents.CURRENT
 
 
 @dataclass
@@ -132,14 +129,14 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             self.steadystate_case_name = grid_name
 
     def run(self) -> None:
-        pfe = PowerfactoryExporter(
+        with PowerfactoryExporter(
             project_name=self.project_name,
             grid_name=self.grid_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
-        )
-        pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
+        ) as pfe:
+            pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
 @dataclass
@@ -157,6 +154,17 @@ class PowerfactoryExporter:
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
         )
+
+    def __enter__(self) -> PowerfactoryExporter:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        self.pfi.close()
 
     def export(
         self,
@@ -827,26 +835,26 @@ class PowerfactoryExporter:
         load_type = load.iopt_inp
         if load_type == 0:
             power_fixed = LoadPower.from_sc_sym(
-                s=load.slini * LV_TO_BASE_POW,
+                s=load.slini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
         elif load_type == 1:
             power_fixed = LoadPower.from_pc_sym(
-                p=load.plini * LV_TO_BASE_POW,
+                p=load.plini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
         elif load_type == 2:
             power_fixed = LoadPower.from_ic_sym(
                 u=load.ulini,
-                i=load.ilini * LV_TO_BASE_CURR,
+                i=load.ilini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
         elif load_type == 3:
             power_fixed = LoadPower.from_pc_sym(
-                p=load.cplinia * LV_TO_BASE_POW,
+                p=load.cplinia,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
@@ -857,12 +865,12 @@ class PowerfactoryExporter:
     def calc_load_lv_power_sym(self, load: pft.LoadLVP) -> LoadLV:
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
         power_night = LoadPower.from_pq_sym(
-            p=load.pnight * LV_TO_BASE_POW,
+            p=load.pnight,
             q=0,
             scaling=1,
         )
         power_variable = LoadPower.from_sc_sym(
-            s=load.cSav * LV_TO_BASE_POW,
+            s=load.cSav,
             cosphi=load.ccosphi,
             scaling=1,
         )
@@ -876,9 +884,9 @@ class PowerfactoryExporter:
         else:
             if load_type == 0:
                 power_fixed = LoadPower.from_sc_asym(
-                    s_r=load.slinir * LV_TO_BASE_POW,
-                    s_s=load.slinis * LV_TO_BASE_POW,
-                    s_t=load.slinit * LV_TO_BASE_POW,
+                    s_r=load.slinir,
+                    s_s=load.slinis,
+                    s_t=load.slinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -886,9 +894,9 @@ class PowerfactoryExporter:
                 )
             elif load_type == 1:
                 power_fixed = LoadPower.from_pc_asym(
-                    p_r=load.plinir * LV_TO_BASE_POW,
-                    p_s=load.plinis * LV_TO_BASE_POW,
-                    p_t=load.plinit * LV_TO_BASE_POW,
+                    p_r=load.plinir,
+                    p_s=load.plinis,
+                    p_t=load.plinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -897,9 +905,9 @@ class PowerfactoryExporter:
             elif load_type == 2:
                 power_fixed = LoadPower.from_ic_asym(
                     u=load.ulini,
-                    i_r=load.ilinir * LV_TO_BASE_CURR,
-                    i_s=load.ilinis * LV_TO_BASE_CURR,
-                    i_t=load.ilinit * LV_TO_BASE_CURR,
+                    i_r=load.ilinir,
+                    i_s=load.ilinis,
+                    i_t=load.ilinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -908,12 +916,12 @@ class PowerfactoryExporter:
             else:
                 raise RuntimeError("Unreachable")
         power_night = LoadPower.from_pq_sym(
-            p=load.pnight * LV_TO_BASE_POW,
+            p=load.pnight,
             q=0,
             scaling=1,
         )
         power_variable = LoadPower.from_sc_sym(
-            s=load.cSav * LV_TO_BASE_POW,
+            s=load.cSav,
             cosphi=load.ccosphi,
             scaling=1,
         )
