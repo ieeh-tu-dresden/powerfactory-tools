@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
-from powerfactory_utils import powerfactory_types as pft
 from powerfactory_utils.constants import BaseUnits
 
 if TYPE_CHECKING:
@@ -18,6 +17,8 @@ if TYPE_CHECKING:
     from typing import Literal
     from typing import Optional
     from typing import TypeVar
+
+    from powerfactory_utils import powerfactory_types as pft
 
     T = TypeVar("T")
 
@@ -74,7 +75,7 @@ class PowerfactoryInterface:
         project_settings_dir = self.load_project_settings_dir()
         if project_settings_dir is None:
             raise RuntimeError("Could not access project settings dir.")
-        self.project_settings_dir = typing.cast(pft.ProjectSettings, project_settings_dir)
+        self.project_settings_dir = typing.cast("pft.ProjectSettings", project_settings_dir)
 
         self.ext_data_dir = self.project_settings_dir.extDataDir
 
@@ -86,12 +87,12 @@ class PowerfactoryInterface:
         settings_dir = self.element_of(self.project, filter="*.SetFold", recursive=False)
         if settings_dir is None:
             raise RuntimeError("Could not access settings dir.")
-        self.settings_dir = typing.cast(pft.DataDir, settings_dir)
+        self.settings_dir = typing.cast("pft.DataDir", settings_dir)
 
         unit_settings_dir = self.element_of(self.settings_dir, filter="*.IntUnit", recursive=False)
         if unit_settings_dir is None:
             raise RuntimeError("Could not access unit settings dir.")
-        self.unit_settings_dir = typing.cast(pft.DataDir, unit_settings_dir)
+        self.unit_settings_dir = typing.cast("pft.DataDir", unit_settings_dir)
 
     def start_powerfactory(self) -> pft.PowerFactoryModule:
         module_path = (
@@ -105,7 +106,7 @@ class PowerfactoryInterface:
             pfm = importlib.util.module_from_spec(spec)
             if spec.loader is not None:
                 spec.loader.exec_module(pfm)
-                pf = typing.cast(pft.PowerFactoryModule, pfm)
+                pf = typing.cast("pft.PowerFactoryModule", pfm)
                 return pf
         raise RuntimeError("Could not load Powerfactory module.")
 
@@ -284,27 +285,27 @@ class PowerfactoryInterface:
 
     def subloads_of(self, load: pft.LoadLV) -> list[pft.LoadLVP]:
         es = self.elements_of(load, filter="*.ElmLodlvp")
-        return [typing.cast(pft.LoadLVP, e) for e in es]
+        return [typing.cast("pft.LoadLVP", e) for e in es]
 
     def unit_conversion_settings(self) -> list[pft.UnitConversionSetting]:
         es = self.elements_of(self.unit_settings_dir, filter="*.SetVariable")
-        return [typing.cast(pft.UnitConversionSetting, e) for e in es]
+        return [typing.cast("pft.UnitConversionSetting", e) for e in es]
 
     def study_case(self, name: str = "*") -> Optional[pft.StudyCase]:
         e = self.element_of(self.study_case_dir, name)
-        return typing.cast(pft.StudyCase, e) if e is not None else None
+        return typing.cast("pft.StudyCase", e) if e is not None else None
 
     def study_cases(self, name: str = "*") -> list[pft.StudyCase]:
         es = self.elements_of(self.study_case_dir, name)
-        return [typing.cast(pft.StudyCase, e) for e in es]
+        return [typing.cast("pft.StudyCase", e) for e in es]
 
     def scenario(self, name: str = "*") -> Optional[pft.Scenario]:
         e = self.element_of(self.scenario_dir, name)
-        return typing.cast(pft.Scenario, e) if e is not None else None
+        return typing.cast("pft.Scenario", e) if e is not None else None
 
     def scenarios(self, name: str = "*") -> list[pft.Scenario]:
         es = self.elements_of(self.scenario_dir, name)
-        return [typing.cast(pft.Scenario, e) for e in es]
+        return [typing.cast("pft.Scenario", e) for e in es]
 
     def grid_model_element(self, class_name: str, name: str = "*") -> Optional[pft.DataObject]:
         return self.element_of(self.grid_model, name + "." + class_name)
@@ -314,11 +315,11 @@ class PowerfactoryInterface:
 
     def line_type(self, name: str = "*") -> Optional[pft.LineType]:
         e = self.grid_model_element("TypLne", name)
-        return typing.cast(pft.LineType, e) if e is not None else None
+        return typing.cast("pft.LineType", e) if e is not None else None
 
     def line_types(self, name: str = "*") -> list[pft.LineType]:
         es = self.grid_model_elements("TypLne", name)
-        return [typing.cast(pft.LineType, e) for e in es]
+        return [typing.cast("pft.LineType", e) for e in es]
 
     def load_type(self, name: str = "*") -> Optional[pft.DataObject]:
         return self.grid_model_element("TypLod", name)
@@ -328,11 +329,11 @@ class PowerfactoryInterface:
 
     def transformer_2w_type(self, name: str = "*") -> Optional[pft.Transformer2WType]:
         e = self.grid_model_element("TypTr2", name)
-        return typing.cast(pft.Transformer2WType, e) if e is not None else None
+        return typing.cast("pft.Transformer2WType", e) if e is not None else None
 
     def transformer_2w_types(self, name: str = "*") -> list[pft.Transformer2WType]:
         es = self.grid_model_elements("TypTr2", name)
-        return [typing.cast(pft.Transformer2WType, e) for e in es]
+        return [typing.cast("pft.Transformer2WType", e) for e in es]
 
     def area(self, name: str = "*") -> Optional[pft.DataObject]:
         return self.grid_model_element("ElmArea", name)
@@ -348,11 +349,11 @@ class PowerfactoryInterface:
 
     def grid(self, name: str = "*") -> Optional[pft.Grid]:
         e = self.grid_model_element("ElmNet", name)
-        return typing.cast(pft.Grid, e) if e is not None else None
+        return typing.cast("pft.Grid", e) if e is not None else None
 
     def grids(self, name: str = "*") -> list[pft.Grid]:
         es = self.grid_model_elements("ElmNet", name)
-        return [typing.cast(pft.Grid, e) for e in es]
+        return [typing.cast("pft.Grid", e) for e in es]
 
     def grid_element(self, class_name: str, name: str = "*", grid: str = "*") -> Optional[pft.DataObject]:
         elements = self.grid_elements(class_name=class_name, name=name, grid=grid)
@@ -368,130 +369,130 @@ class PowerfactoryInterface:
 
     def grid_diagram(self, grid: str = "*") -> Optional[pft.GridDiagram]:
         e = self.grid_element("IntGrfnet", grid=grid)
-        return typing.cast(pft.GridDiagram, e) if e is not None else None
+        return typing.cast("pft.GridDiagram", e) if e is not None else None
 
     def grid_diagrams(self, grid: str = "*") -> list[pft.GridDiagram]:
         es = self.grid_elements("IntGrfnet", grid=grid)
-        return [typing.cast(pft.GridDiagram, e) for e in es]
+        return [typing.cast("pft.GridDiagram", e) for e in es]
 
     def external_grid(self, name: str = "*", grid: str = "*") -> Optional[pft.ExternalGrid]:
         e = self.grid_element("ElmXNet", name, grid)
-        return typing.cast(pft.ExternalGrid, e) if e is not None else None
+        return typing.cast("pft.ExternalGrid", e) if e is not None else None
 
     def external_grids(self, name: str = "*", grid: str = "*") -> list[pft.ExternalGrid]:
         es = self.grid_elements("ElmXNet", name, grid)
-        return [typing.cast(pft.ExternalGrid, e) for e in es]
+        return [typing.cast("pft.ExternalGrid", e) for e in es]
 
     def terminal(self, name: str = "*", grid: str = "*") -> Optional[pft.Terminal]:
         e = self.grid_element("ElmTerm", name, grid)
-        return typing.cast(pft.Terminal, e) if e is not None else None
+        return typing.cast("pft.Terminal", e) if e is not None else None
 
     def terminals(self, name: str = "*", grid: str = "*") -> list[pft.Terminal]:
         es = self.grid_elements("ElmTerm", name, grid)
-        return [typing.cast(pft.Terminal, e) for e in es]
+        return [typing.cast("pft.Terminal", e) for e in es]
 
     def cubicle(self, name: str = "*", grid: str = "*") -> Optional[pft.StationCubicle]:
         e = self.grid_elements("StaCubic", name, grid)
-        return typing.cast(pft.StationCubicle, e) if e is not None else None
+        return typing.cast("pft.StationCubicle", e) if e is not None else None
 
     def cubicles(self, name: str = "*", grid: str = "*") -> list[pft.StationCubicle]:
         es = self.grid_elements("StaCubic", name, grid)
-        return [typing.cast(pft.StationCubicle, e) for e in es]
+        return [typing.cast("pft.StationCubicle", e) for e in es]
 
     def coupler(self, name: str = "*", grid: str = "*") -> Optional[pft.Coupler]:
         e = self.grid_element("ElmCoup", name, grid)
-        return typing.cast(pft.Coupler, e) if e is not None else None
+        return typing.cast("pft.Coupler", e) if e is not None else None
 
     def couplers(self, name: str = "*", grid: str = "*") -> list[pft.Coupler]:
         es = self.grid_elements("ElmCoup", name, grid)
-        return [typing.cast(pft.Coupler, e) for e in es]
+        return [typing.cast("pft.Coupler", e) for e in es]
 
     def switch(self, name: str = "*", grid: str = "*") -> Optional[pft.Switch]:
         e = self.grid_element("StaSwitch", name, grid)
-        return typing.cast(pft.Switch, e) if e is not None else None
+        return typing.cast("pft.Switch", e) if e is not None else None
 
     def switches(self, name: str = "*", grid: str = "*") -> list[pft.Switch]:
         es = self.grid_elements("StaSwitch", name, grid)
-        return [typing.cast(pft.Switch, e) for e in es]
+        return [typing.cast("pft.Switch", e) for e in es]
 
     def fuse(self, name: str = "*", grid: str = "*") -> Optional[pft.Fuse]:
         e = self.grid_element("RelFuse", name, grid)
-        return typing.cast(pft.Fuse, e) if e is not None else None
+        return typing.cast("pft.Fuse", e) if e is not None else None
 
     def fuses(self, name: str = "*", grid: str = "*") -> list[pft.Fuse]:
         es = self.grid_elements("RelFuse", name, grid)
-        return [typing.cast(pft.Fuse, e) for e in es]
+        return [typing.cast("pft.Fuse", e) for e in es]
 
     def line(self, name: str = "*", grid: str = "*") -> Optional[pft.Line]:
         e = self.grid_element("ElmLne", name, grid)
-        return typing.cast(pft.Line, e) if e is not None else None
+        return typing.cast("pft.Line", e) if e is not None else None
 
     def lines(self, name: str = "*", grid: str = "*") -> list[pft.Line]:
         es = self.grid_elements("ElmLne", name, grid)
-        return [typing.cast(pft.Line, e) for e in es]
+        return [typing.cast("pft.Line", e) for e in es]
 
     def transformer_2w(self, name: str = "*", grid: str = "*") -> Optional[pft.Transformer2W]:
         e = self.grid_element("ElmTr2", name, grid)
-        return typing.cast(pft.Transformer2W, e) if e is not None else None
+        return typing.cast("pft.Transformer2W", e) if e is not None else None
 
     def transformers_2w(self, name: str = "*", grid: str = "*") -> list[pft.Transformer2W]:
         es = self.grid_elements("ElmTr2", name, grid)
-        return [typing.cast(pft.Transformer2W, e) for e in es]
+        return [typing.cast("pft.Transformer2W", e) for e in es]
 
     def transformer_3w(self, name: str = "*", grid: str = "*") -> Optional[pft.Transformer3W]:
         e = self.grid_element("ElmTr3", name, grid)
-        return typing.cast(pft.Transformer3W, e) if e is not None else None
+        return typing.cast("pft.Transformer3W", e) if e is not None else None
 
     def transformers_3w(self, name: str = "*", grid: str = "*") -> list[pft.Transformer3W]:
         es = self.grid_elements("ElmTr3", name, grid)
-        return [typing.cast(pft.Transformer3W, e) for e in es]
+        return [typing.cast("pft.Transformer3W", e) for e in es]
 
     def load(self, name: str = "*", grid: str = "*") -> Optional[pft.Load]:
         e = self.grid_element("ElmLod", name, grid)
-        return typing.cast(pft.Load, e) if e is not None else None
+        return typing.cast("pft.Load", e) if e is not None else None
 
     def loads(self, name: str = "*", grid: str = "*") -> list[pft.Load]:
         es = self.grid_elements("ElmLod", name, grid)
-        return [typing.cast(pft.Load, e) for e in es]
+        return [typing.cast("pft.Load", e) for e in es]
 
     def load_lv(self, name: str = "*", grid: str = "*") -> Optional[pft.LoadLV]:
         e = self.grid_element("ElmLodLv", name, grid)
-        return typing.cast(pft.LoadLV, e) if e is not None else None
+        return typing.cast("pft.LoadLV", e) if e is not None else None
 
     def loads_lv(self, name: str = "*", grid: str = "*") -> list[pft.LoadLV]:
         es = self.grid_elements("ElmLodLv", name, grid)
-        return [typing.cast(pft.LoadLV, e) for e in es]
+        return [typing.cast("pft.LoadLV", e) for e in es]
 
     def load_mv(self, name: str = "*", grid: str = "*") -> Optional[pft.LoadMV]:
         e = self.grid_element("ElmLodMv", name, grid)
-        return typing.cast(pft.LoadMV, e) if e is not None else None
+        return typing.cast("pft.LoadMV", e) if e is not None else None
 
     def loads_mv(self, name: str = "*", grid: str = "*") -> list[pft.LoadMV]:
         es = self.grid_elements("ElmLodMv", name, grid)
-        return [typing.cast(pft.LoadMV, e) for e in es]
+        return [typing.cast("pft.LoadMV", e) for e in es]
 
     def generator(self, name: str = "*", grid: str = "*") -> Optional[pft.Generator]:
         e = self.grid_element("ElmGenstat", name, grid)
-        return typing.cast(pft.Generator, e) if e is not None else None
+        return typing.cast("pft.Generator", e) if e is not None else None
 
     def generators(self, name: str = "*", grid: str = "*") -> list[pft.Generator]:
         es = self.grid_elements("ElmGenstat", name, grid)
-        return [typing.cast(pft.Generator, e) for e in es]
+        return [typing.cast("pft.Generator", e) for e in es]
 
     def pv_system(self, name: str = "*", grid: str = "*") -> Optional[pft.PVSystem]:
         e = self.grid_element("ElmPvsys", name, grid)
-        return typing.cast(pft.PVSystem, e) if e is not None else None
+        return typing.cast("pft.PVSystem", e) if e is not None else None
 
     def pv_systems(self, name: str = "*", grid: str = "*") -> list[pft.PVSystem]:
         es = self.grid_elements("ElmPvsys", name, grid)
-        return [typing.cast(pft.PVSystem, e) for e in es]
+        return [typing.cast("pft.PVSystem", e) for e in es]
 
     def create_unit_conversion_setting(
         self, name: str, uc: UnitConversionSetting
     ) -> Optional[pft.UnitConversionSetting]:
         data = dcs.asdict(uc)
         e = self.create_object(name=name, class_name="SetVariable", location=self.unit_settings_dir, data=data)
-        return typing.cast(pft.UnitConversionSetting, e) if e is not None else None
+        return typing.cast("pft.UnitConversionSetting", e) if e is not None else None
 
     def delete_unit_conversion_settings(self) -> bool:
         ucs = self.unit_conversion_settings()

@@ -106,7 +106,7 @@ class DataObject(Protocol):
     loc_name: str
     fold_id: Optional[DataObject]
 
-    def GetContents(self, filter: str, recursive: bool = False) -> list["DataObject"]:
+    def GetContents(self, filter: str, recursive: bool = False) -> list[DataObject]:
         ...
 
     def CreateObject(self, class_name: str, name: Optional[Union[str, int]], /) -> Optional[DataObject]:
