@@ -1,14 +1,16 @@
 # Powerfactory Utils
 
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
 - [Powerfactory Utils](#powerfactory-utils)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
   - [ Installation](#-installation)
+  - [ Developement](#-developement)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
-  - [ License](#-license)
 
 ## <div id="application" /> Field of Application
 
@@ -34,6 +36,13 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 * for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
 
 ## <div id="installation" /> Installation
+
+Just install via pip:
+
+```bash
+pip install powerfactory-utils
+```
+## <div id="developement" /> Developement
 
 Install [pdm](https://github.com/pdm-project/pdm)
 
@@ -101,9 +110,3 @@ Please cite as:
 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
-
-## <div id="license" /> License
-
-Copyright 2022 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden
-
-`powerfactory-utils` is free software made available under the BSD 3-Clause License. For details see the [LICENSE](LICENSE) file.

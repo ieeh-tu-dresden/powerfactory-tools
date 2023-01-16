@@ -23,6 +23,11 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
+      - name: Update license year
+        uses: FantasticFiasco/action-update-license-year@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Temporarily disable 'include administrators' default branch protection
         uses: benjefferies/branch-protection-bot@master
         if: always()
