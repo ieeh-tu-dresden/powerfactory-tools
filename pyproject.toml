@@ -9,7 +9,7 @@
   license = { file = "LICENSE" }
   name = "powerfactory-utils"
   requires-python = ">=3.9,<3.11"
-  version = "1.2.1"
+  version = "1.3.0"
 
   [project.urls]
     homepage = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
@@ -85,7 +85,7 @@
 [tool.commitizen]
   name          = "cz_conventional_commits"
   tag_format    = "$version"
-  version       = "1.2.1"
+  version       = "1.3.0"
   version_files = [".zenodo.json:version", "pyproject.toml:version"]
 
 [tool.isort]
