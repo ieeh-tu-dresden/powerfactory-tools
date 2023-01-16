@@ -6,6 +6,7 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
   - [ Installation](#-installation)
+  - [ Developement](#-developement)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
   - [ License](#-license)
@@ -34,6 +35,13 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 * for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
 
 ## <div id="installation" /> Installation
+
+Just install via pip:
+
+```bash
+pip install powerfactory-utils
+```
+## <div id="developement" /> Developement
 
 Install [pdm](https://github.com/pdm-project/pdm)
 
