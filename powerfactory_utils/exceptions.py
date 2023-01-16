@@ -11,6 +11,11 @@ class ProjectActivationError(RuntimeError):
         super().__init__("Could not activate project.")
 
 
+class ProjectDeactivationError(RuntimeError):
+    def __init__(self) -> None:
+        super().__init__("Could not deactivate project.")
+
+
 class CouldNotCloseAppError(RuntimeError):
     def __init__(self) -> None:
         super().__init__("Could not close application.")
@@ -84,3 +89,23 @@ class SteadystateCaseExportError(Exception):
 
 class ExportError(Exception):
     pass
+
+
+class ProjectAccessError(Exception):
+    def __init__(self) -> None:
+        super().__init__("Could not access project.")
+
+
+class ProjectSettingsAccessError(Exception):
+    def __init__(self) -> None:
+        super().__init__("Could not access project settings.")
+
+
+class UnitSettingsAccessError(Exception):
+    def __init__(self) -> None:
+        super().__init__("Could not access unit settings.")
+
+
+class SettingsAccessError(Exception):
+    def __init__(self) -> None:
+        super().__init__("Could not access settings.")

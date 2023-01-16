@@ -1,12 +1,13 @@
-<<<<<<< HEAD
 # -*- coding: utf-8 -*-
-=======
+
+import dataclasses as dcs
+
 from powerfactory_utils import powerfactory_types as pft
 
 UnitConversion = tuple[str, pft.MetricPrefix, pft.MetricPrefix]
->>>>>>> sasanjac/67-ci-add-pdm-lock-check
 
 
+@dcs.dataclass
 class Exponents:
     VOLTAGE = 10**3
     CURRENT = 10**3
@@ -17,6 +18,7 @@ class Exponents:
     POWER = 10**6
 
 
+@dcs.dataclass
 class DecimalDigits:
     COSPHI = 6
     VOLTAGE = 3
@@ -25,6 +27,7 @@ class DecimalDigits:
     PU = 4
 
 
+@dcs.dataclass
 class BaseUnits:
     LENGTH: pft.MetricPrefix = "k"
     POWER: pft.MetricPrefix = "M"
