@@ -1,3 +1,14 @@
+## 1.3.0 (2023-01-16)
+
+### Feat
+
+- check Units for Loadflow variables (contributors: @sasanjac, @SebastianDD, @PietzoJo)
+
+### Fix
+
+- prevent double listing of elementStates when creating TopologyCase (contributors: @SebastianDD, @sasanjac)
+- wrong double prefix for generators in compound models (contributors: @SebastianDD)
+
 ## 1.2.1 (2022-11-24)
 
 ### Fix
