@@ -23,11 +23,6 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Update license year
-        uses: FantasticFiasco/action-update-license-year@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Temporarily disable 'include administrators' default branch protection
         uses: benjefferies/branch-protection-bot@master
         if: always()
@@ -35,6 +30,16 @@ jobs:
           access_token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ github.event.repository.default_branch }}
           enforce_admins: false
+
+      - name: Update license year
+        uses: FantasticFiasco/action-update-license-year@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge license year pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --rebase --delete-branch
 
       - name: Find new version
         id: cz
