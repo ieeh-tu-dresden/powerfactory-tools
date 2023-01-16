@@ -12,9 +12,8 @@ jobs:
     name: Release a new version
     runs-on: ubuntu-latest
     needs: [tests]
-    strategy:
-      matrix:
-        python-version: ["3.9", "3.10"]
+    env:
+      PYTHON_VERSION: "3.9"
 
     steps:
       - name: Check out repository
@@ -23,11 +22,6 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Update license year
-        uses: FantasticFiasco/action-update-license-year@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Temporarily disable 'include administrators' default branch protection
         uses: benjefferies/branch-protection-bot@master
         if: always()
@@ -35,6 +29,16 @@ jobs:
           access_token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ github.event.repository.default_branch }}
           enforce_admins: false
+
+      - name: Update license year
+        uses: FantasticFiasco/action-update-license-year@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Merge license year pull request
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: gh pr merge --squash --delete-branch --admin
 
       - name: Find new version
         id: cz
@@ -51,10 +55,10 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up PDM @ ${{ matrix.python-version }}
+      - name: Set up PDM
         uses: pdm-project/setup-pdm@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
           cache: true
           architecture: x64
           prerelease: true
