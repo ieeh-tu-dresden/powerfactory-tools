@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class LoadPower:  # noqa: H601
+class LoadPower:
     pow_app_r: float
     pow_app_s: float
     pow_app_t: float
@@ -315,7 +315,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_pq_asym(
+    def from_pq_asym(  # noqa: TMN001
         cls,
         pow_act_r: float,
         pow_act_s: float,
@@ -344,7 +344,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_pc_asym(
+    def from_pc_asym(  # noqa: TMN001
         cls,
         pow_act_r: float,
         pow_act_s: float,
@@ -373,7 +373,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_ic_asym(
+    def from_ic_asym(  # noqa: TMN001
         cls,
         voltage: float,
         current_r: float,
@@ -404,7 +404,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_sc_asym(
+    def from_sc_asym(  # noqa: TMN001
         cls,
         pow_app_r: float,
         pow_app_s: float,
@@ -433,7 +433,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_qc_asym(
+    def from_qc_asym(  # noqa: TMN001
         cls,
         pow_react_r: float,
         pow_react_s: float,
@@ -462,7 +462,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_ip_asym(
+    def from_ip_asym(  # noqa: TMN001
         cls,
         voltage: float,
         current_r: float,
@@ -493,7 +493,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_sp_asym(
+    def from_sp_asym(  # noqa: TMN001
         cls,
         pow_app_r: float,
         pow_app_s: float,
@@ -522,7 +522,7 @@ class LoadPower:  # noqa: H601
         )
 
     @classmethod
-    def from_sq_asym(
+    def from_sq_asym(  # noqa: TMN001
         cls,
         pow_app_r: float,
         pow_app_s: float,

@@ -72,7 +72,7 @@ jobs:
         env:
           COMMAND: |
             from powerfactory_utils.schema.base import VERSION
-            from powerfactory_utils.schema.steadystate_case.case import Case as SteadyStateCase
+            from powerfactory_utils.schema.steadystate_case.case import Case as SteadystateCase
             from powerfactory_utils.schema.topology.topology import Topology
             from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
             from pathlib import Path
@@ -87,7 +87,7 @@ jobs:
             f_ssc = Path(f"./schema/{VERSION}/steady_state_case.json")
             f_ssc.parent.mkdir(exist_ok=True, parents=True)
             with open(f_ssc, "w") as f:
-                f.write(SteadyStateCase.schema_json(indent=2))
+                f.write(SteadystateCase.schema_json(indent=2))
 
       - name: Stage schema JSON files
         run: git add ./schema

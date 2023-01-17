@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+# :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :license: BSD 3-Clause
 
 import dataclasses as dcs
 
-from powerfactory_utils import powerfactory_types as pft
+from powerfactory_utils.powerfactory_types import PowerFactoryTypes as PFTypes
 
-UnitConversion = tuple[str, pft.MetricPrefix, pft.MetricPrefix]
+UnitConversion = tuple[str, PFTypes.MetricPrefix, PFTypes.MetricPrefix]
 
 
 @dcs.dataclass
@@ -29,9 +32,9 @@ class DecimalDigits:
 
 @dcs.dataclass
 class BaseUnits:
-    LENGTH: pft.MetricPrefix = "k"
-    POWER: pft.MetricPrefix = "M"
-    CURRENCY: pft.Currency = "EUR"
+    LENGTH: PFTypes.MetricPrefix = "k"
+    POWER: PFTypes.MetricPrefix = "M"
+    CURRENCY: PFTypes.Currency = "EUR"
     UNITCONVERSIONS: dict[str, list[UnitConversion]] = {
         "ElmLodlv": [
             ("A", "", "k"),

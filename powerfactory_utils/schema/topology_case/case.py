@@ -16,5 +16,5 @@ class Case(Base):
     elements: Sequence[ElementState]
 
     @validator("elements")
-    def validate_elements(cls, value: Sequence[ElementState]) -> Sequence[ElementState]:  # noqa: N805, U100
+    def validate_elements(cls, value: Sequence[ElementState]) -> Sequence[ElementState]:  # noqa: U100
         return list(set(value))

@@ -5,7 +5,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = ["loguru", "pydantic"]
+  dependencies = ["loguru", "pydantic", "typing_extensions"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "powerfactory-utils"
@@ -26,8 +26,10 @@
   [tool.pdm]
     [tool.pdm.dev-dependencies]
       deployment = ["commitizen"]
-      flake8-plugins = [
+      formatting = ["black", "isort"]
+      linting = [
         "Flake8-pyproject",
+        "flake8",
         "flake8-2020",
         "flake8-aaa",
         "flake8-absolute-import",
@@ -37,7 +39,9 @@
         "flake8-annotations-coverage",
         "flake8-author",
         "flake8-bandit",
+        "flake8-bandit",
         "flake8-broken-line",
+        "flake8-bugbear",
         "flake8-bugbear",
         "flake8-builtins",
         "flake8-clean-block",
@@ -51,6 +55,7 @@
         "flake8-datetimez",
         "flake8-debugger",
         "flake8-docstrings",
+        "flake8-docstrings",
         "flake8-encodings",
         "flake8-eradicate",
         "flake8-executable",
@@ -61,10 +66,12 @@
         "flake8-future-annotations",
         "flake8-implicit-str-concat",
         "flake8-isort",
+        "flake8-isort",
         "flake8-length",
         "flake8-literal",
         "flake8-logging-format",
         "flake8-multiline-containers",
+        "flake8-mutable",
         "flake8-mutable",
         "flake8-new-union-types",
         "flake8-newspaper-style",
@@ -77,6 +84,7 @@
         "flake8-picky-parentheses",
         "flake8-pie",
         "flake8-print",
+        "flake8-pyi",
         "flake8-pyi",
         "flake8-pytest",
         "flake8-pytest-style",
@@ -93,33 +101,26 @@
         "flake8-typing-imports",
         "flake8-unused-arguments",
         "flake8-use-fstring",
+        "flake8-use-fstring",
         "flake8-use-pathlib",
         "flake8-variables-names",
         "flake8-walrus",
         "flake8-warnings",
         "pep8-naming",
-        "tryceratops",
-        # "flake8-useless-assert",
-        # "flake8-slots",
-        # "flake8-ownership",
-        "flake8-bandit",
-        "flake8-bugbear",
-        "flake8-comprehensions",
-        "flake8-docstrings",
-        "flake8-isort",
-        "flake8-mutable",
-        "flake8-pyi",
-        "flake8-type-checking",
-        "flake8-use-fstring",
         "pycodestyle",
         "pyflakes",
         "setuptools",
+        "tryceratops",
       ]
-      linter = ["black", "flake8", "isort", "mypy"]
       prototype = ["ipykernel"]
       test = ["pytest", "pytest-cov", "pytest-xdist"]
+      typing = ["mypy"]
 
 [tool.flake8]
+  author-re = "^Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>$"
+  classmethod-decorators = ["classmethod", "root_validator", "validator"]
+  cohesion-below = 15
+  copyright-re = "^Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden<COMMA> 2022-<YEAR>.$"
   docstring-convention = "pep257"
   exclude = [".tox", "__pypackages__", "build", "tests"]
   extend-select = "TC, TC1"
@@ -143,12 +144,19 @@
     "E203",
     "E402",
     "E501",
+    "FNE008",
     "W503",
   ]
   inline-quotes = "double"
+  license-re = "^BSD 3-Clause$"
+  literal-inline-quotes = "double"
   max-complexity = 12
+  max-function-return-stmts = 5
   max-line-length = 120
-  type-checking-pydantic-enabled = "true"
+  min_python_version = 3.9
+  type-checking-pydantic-enabled = true
+  unused-arguments-ignore-abstract-functions = true
+  unused-arguments-ignore-stub-functions = true
 
 [tool.black]
   line_length = 120

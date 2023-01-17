@@ -1,7 +1,11 @@
+# -*- coding: utf-8 -*-
+# :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :license: BSD 3-Clause
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -23,12 +27,12 @@ class Branch(BaseModel):
     x1: float  # positive sequence values of PI-representation
     g1: float  # positive sequence values of PI-representation
     b1: float  # positive sequence values of PI-representation
-    type: BranchType
-    voltage_system_type: Optional[VoltageSystemType] = None
-    r0: Optional[float] = None  # zero sequence values of PI-representation
-    x0: Optional[float] = None  # zero sequence values of PI-representation
-    g0: Optional[float] = None  # zero sequence values of PI-representation
-    b0: Optional[float] = None  # zero sequence values of PI-representation
-    f_n: Optional[float] = None  # nominal frequency the values x and b apply
-    description: Optional[str] = None
-    energized: Optional[bool] = None
+    type: BranchType  # noqa: A003, VNE003
+    voltage_system_type: VoltageSystemType | None = None
+    r0: float | None = None  # zero sequence values of PI-representation
+    x0: float | None = None  # zero sequence values of PI-representation
+    g0: float | None = None  # zero sequence values of PI-representation
+    b0: float | None = None  # zero sequence values of PI-representation
+    f_n: float | None = None  # nominal frequency the values x and b apply
+    description: str | None = None
+    energized: bool | None = None

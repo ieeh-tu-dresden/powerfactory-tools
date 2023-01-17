@@ -1,8 +1,12 @@
+# -*- coding: utf-8 -*-
+# :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :license: BSD 3-Clause
+
 from __future__ import annotations
 
 from enum import Enum
-from typing import Optional
-from typing import Union
+from typing import TYPE_CHECKING
 
 from pydantic import validator
 
@@ -10,6 +14,9 @@ from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import VoltageSystemType
 from powerfactory_utils.schema.topology.active_power import ActivePower
 from powerfactory_utils.schema.topology.reactive_power import ReactivePower
+
+if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
 
 
 class LoadType(Enum):
@@ -59,7 +66,7 @@ class ProducerPhaseConnectionType(Enum):
     ONE_PH_PH_PH = "1PH_PH-PH"  # 4
 
 
-PhaseConnectionType = Union[ConsumerPhaseConnectionType, ProducerPhaseConnectionType]
+PhaseConnectionType: TypeAlias = ConsumerPhaseConnectionType | ProducerPhaseConnectionType  # type: ignore # mypy bug
 
 
 class ConsumerSystemType(Enum):
@@ -73,32 +80,33 @@ class RatedPower(Base):
     value_r: float  # rated apparent power (phase r)
     value_s: float  # rated apparent power (phase s)
     value_t: float  # rated apparent power (phase t)
-    cosphi: Optional[float]  # rated cos(phi) in relation to rated power
-    cosphi_r: Optional[float]  # rated cos(phi) (phase r)
-    cosphi_s: Optional[float]  # rated cos(phi) (phase s)
-    cosphi_t: Optional[float]  # rated cos(phi) (phase t)
+    cosphi: float | None  # rated cos(phi) in relation to rated power
+    cosphi_r: float | None  # rated cos(phi) (phase r)
+    cosphi_s: float | None  # rated cos(phi) (phase s)
+    cosphi_t: float | None  # rated cos(phi) (phase t)
 
 
 class Load(Base):  # including assets of type load and generator
     name: str
     node: str
-    description: Optional[str] = None
+    description: str | None = None
     u_n: float  # nominal voltage of the connected node
     rated_power: RatedPower
     active_power: ActivePower
     reactive_power: ReactivePower
-    type: LoadType
-    system_type: Optional[Union[ConsumerSystemType, ProducerSystemType]] = None
-    phase_connection_type: Optional[PhaseConnectionType] = None
-    voltage_system_type: Optional[VoltageSystemType] = None
+    type: LoadType  # noqa:A003, VNE003
+    system_type: ConsumerSystemType | ProducerSystemType | None = None
+    phase_connection_type: PhaseConnectionType | None = None
+    voltage_system_type: VoltageSystemType | None = None
 
     @validator("rated_power")
-    def validate_rated_power(cls, v: RatedPower) -> RatedPower:
-        cosphi = v.cosphi
-        if cosphi is not None:
-            if abs(cosphi) > 1 or abs(cosphi) < 0:
-                raise ValueError(f"Rated `cos(phi)` must be within range [0 1], but is {cosphi}.")
+    def validate_rated_power(cls, value: RatedPower) -> RatedPower:  # noqa: U100
+        cosphi = value.cosphi
+        if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
+            raise ValueError(f"Rated {cosphi=} must be within range [0 1].")
 
-        if v.s < 0:
-            raise ValueError("Rated power `s` must be positive. Use type: LoadType instead.")
-        return v
+        power = value.value
+        if value.value < 0:
+            raise ValueError(f"Rated {power=} value must be positive.")
+
+        return value

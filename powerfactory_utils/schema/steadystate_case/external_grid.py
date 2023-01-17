@@ -1,16 +1,19 @@
-from __future__ import annotations
+# -*- coding: utf-8 -*-
+# :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :license: BSD 3-Clause
 
-from typing import Optional
+from __future__ import annotations
 
 from powerfactory_utils.schema.base import Base
 
 
 class ExternalGrid(Base):
     name: str
-    u_0: Optional[float] = None
-    phi_0: Optional[float] = None
-    p_0: Optional[float] = None
-    q_0: Optional[float] = None
+    u_0: float | None = None
+    phi_0: float | None = None
+    p_0: float | None = None
+    q_0: float | None = None
 
     class Config:
         frozen = True
