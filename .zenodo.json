@@ -1,7 +1,7 @@
 {
   "description": "Powerfactory Utils is a toolbox for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
   "title": "Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory",
-  "version": "1.2.1",
+  "version": "1.3.1",
   "upload_type": "software",
   "keywords": [
     "Toolbox",
@@ -10,7 +10,7 @@
     "Python",
     "Grid Model"
   ],
-  "publication_date": "2022-11-24",
+  "publication_date": "2023-01-16",
   "creators": [
     {
       "name": "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
@@ -22,7 +22,7 @@
   "related_identifiers": [
     {
       "scheme": "url",
-      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.2.1",
+      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.3.1",
       "relation": "isSupplementTo"
     }
   ]

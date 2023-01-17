@@ -1,15 +1,17 @@
 [project]
   authors = [
-    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
+
+    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
   dependencies = ["loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "powerfactory-utils"
+  readme = "README.md"
   requires-python = ">=3.9,<3.11"
-  version = "1.2.1"
+  version = "1.3.1"
 
   [project.urls]
     homepage = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
@@ -118,7 +120,9 @@
       test = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [tool.flake8]
-
+  docstring-convention = "pep257"
+  exclude = [".tox", "__pypackages__", "build", "tests"]
+  extend-select = "TC, TC1"
   ignore = [
     "ANN002",
     "ANN003",
@@ -139,23 +143,11 @@
     "E203",
     "E402",
     "E501",
-    "E800",   # remove after Milestone
-    "FNE008",
-    "T000",   # remove after Milestone
-    "T101",   # remove after Milestone
-    "W503",
     "W503",
   ]
-
-  docstring-convention           = "pep257"
-  exclude                        = [".tox", "__pypackages__", "build", "tests"]
-  extend-select                  = "TC, TC1"
-  inline-quotes                  = "double"
-  literal-inline-quotes          = "double"
-  max-complexity                 = 12
-  max-function-arguments         = 10
-  max-line-length                = 120
-  min_python_version             = 3.9
+  inline-quotes = "double"
+  max-complexity = 12
+  max-line-length = 120
   type-checking-pydantic-enabled = "true"
 
 [tool.black]
@@ -164,7 +156,7 @@
 [tool.commitizen]
   name          = "cz_conventional_commits"
   tag_format    = "$version"
-  version       = "1.2.1"
+  version       = "1.3.1"
   version_files = [".zenodo.json:version", "pyproject.toml:version"]
 
 [tool.isort]
