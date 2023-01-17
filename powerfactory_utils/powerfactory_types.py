@@ -120,7 +120,7 @@ class PowerFactoryTypes:
             ...
 
         def CreateObject(  # noqa: N802
-            self, class_name: str, name: str | int | None, /
+            self, class_name: str, name: str | int | None, /  # noqa: W504
         ) -> PowerFactoryTypes.DataObject | None:
             ...
 

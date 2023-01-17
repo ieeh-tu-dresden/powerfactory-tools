@@ -53,12 +53,13 @@ from powerfactory_utils.schema.topology_case.element_state import ElementState
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from types import TracebackType
     from typing import Literal
+
+    from typing_extensions import TypeAlias
 
     from powerfactory_utils.powerfactory_types import PowerFactoryTypes as PFTypes
 
-    ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
+    ElementBase: TypeAlias = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid  # type: ignore # mypy bug
 
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
@@ -135,14 +136,14 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             self.steadystate_case_name = grid_name
 
     def run(self) -> None:
-        with PowerfactoryExporter(
+        pfe = PowerfactoryExporter(
             project_name=self.project_name,
             grid_name=self.grid_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
-        ) as pfe:
-            pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
+        )
+        pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
 @dataclass
@@ -160,17 +161,6 @@ class PowerfactoryExporter:  # noqa: H601
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
         )
-
-    def __enter__(self) -> PowerfactoryExporter:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,  # noqa: U100
-        exc_val: BaseException | None,  # noqa: U100
-        exc_tb: TracebackType | None,  # noqa: U100
-    ) -> None:
-        self.pfi.close()
 
     def export(
         self,
@@ -468,6 +458,7 @@ class PowerfactoryExporter:  # noqa: H601
     def create_branches(
         self, lines: Sequence[PFTypes.Line], couplers: Sequence[PFTypes.Coupler], grid_name: str
     ) -> Sequence[Branch]:
+
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
 
@@ -737,185 +728,38 @@ class PowerfactoryExporter:  # noqa: H601
             logger.debug("Load %s not connected to any bus. Skipping.", load.loc_name)
             return None
 
-    def calc_load_lv_power_fixed_sym(self, load: Union[PFTypes.LoadLV, PFTypes.LoadLVP], scaling: float) -> LoadPower:
-        load_type = load.iopt_inp
-        if load_type == 0:
-            power_fixed = LoadPower.from_sc_sym(
-                s=load.slini,
-                cosphi=load.coslini,
-                scaling=scaling,
-            )
-        elif load_type == 1:
-            power_fixed = LoadPower.from_pc_sym(
-                p=load.plini,
-                cosphi=load.coslini,
-                scaling=scaling,
-            )
-        elif load_type == 2:
-            power_fixed = LoadPower.from_ic_sym(
-                u=load.ulini,
-                i=load.ilini,
-                cosphi=load.coslini,
-                scaling=scaling,
-            )
-        elif load_type == 3:
-            power_fixed = LoadPower.from_pc_sym(
-                p=load.cplinia,
-                cosphi=load.coslini,
-                scaling=scaling,
-            )
-        else:
-            raise RuntimeError("Unreachable")
-        return power_fixed
+        terminal = bus.cterm
+        l_name = self.pfi.create_name(load, grid_name) + name_suffix
+        t_name = self.pfi.create_name(terminal, grid_name)
 
-    def calc_load_lv_power_sym(self, load: PFTypes.LoadLVP) -> LoadLV:
-        power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
-        power_night = LoadPower.from_pq_sym(
-            p=load.pnight,
-            q=0,
-            scaling=1,
-        )
-        power_variable = LoadPower.from_sc_sym(
-            s=load.cSav,
-            cosphi=load.ccosphi,
-            scaling=1,
-        )
-        return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
+        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
-    def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
-        load_type = load.iopt_inp
-        scaling = load.scale0
-        if not load.i_sym:
-            power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
-        else:
-            if load_type == 0:
-                power_fixed = LoadPower.from_sc_asym(
-                    s_r=load.slinir,
-                    s_s=load.slinis,
-                    s_t=load.slinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == 1:
-                power_fixed = LoadPower.from_pc_asym(
-                    p_r=load.plinir,
-                    p_s=load.plinis,
-                    p_t=load.plinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == 2:
-                power_fixed = LoadPower.from_ic_asym(
-                    u=load.ulini,
-                    i_r=load.ilinir,
-                    i_s=load.ilinis,
-                    i_t=load.ilinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            else:
-                raise RuntimeError("Unreachable")
-        power_night = LoadPower.from_pq_sym(
-            p=load.pnight,
-            q=0,
-            scaling=1,
-        )
-        power_variable = LoadPower.from_sc_sym(
-            s=load.cSav,
-            cosphi=load.ccosphi,
-            scaling=1,
-        )
-        return LoadLV(fixed=power_fixed, night=power_night, variable=power_variable)
+        rated_power = power.as_rated_power()
+        logger.debug("%s: there is no real rated, but 's' is calculated on basis of actual power.", load.loc_name)
 
-    def calc_load_mv_power(self, load: PFTypes.LoadMV) -> LoadMV:
-        load_type = load.mode_inp
-        scaling_cons = load.scale0
-        scaling_prod = load.gscale
-        if not load.ci_sym:
-            if load_type == "PC":
-                power_consumer = LoadPower.from_pc_sym(
-                    p=load.plini,
-                    cosphi=load.coslini,
-                    scaling=scaling_cons,
-                )
-                power_producer = LoadPower.from_pc_sym(
-                    p=load.pgini,
-                    cosphi=load.cosgini,
-                    scaling=scaling_prod,
-                )
-            elif load_type == "SC":
-                power_consumer = LoadPower.from_sc_sym(
-                    s=load.slini,
-                    cosphi=load.coslini,
-                    scaling=scaling_cons,
-                )
-                power_producer = LoadPower.from_sc_sym(
-                    s=load.sgini,
-                    cosphi=load.cosgini,
-                    scaling=scaling_prod,
-                )
-            elif load_type == "EC":
-                logger.warning("Power from yearly demand is not implemented yet. Skipping.")
-                power_consumer = LoadPower.from_pc_sym(
-                    p=load.cplinia,
-                    cosphi=load.coslini,
-                    scaling=scaling_cons,
-                )
-                power_producer = LoadPower.from_pc_sym(
-                    p=load.pgini,
-                    cosphi=load.cosgini,
-                    scaling=scaling_prod,
-                )
-            else:
-                raise RuntimeError("Unreachable.")
-        else:
-            if load_type == "PC":
-                power_consumer = LoadPower.from_pc_asym(
-                    p_r=load.plinir,
-                    p_s=load.plinis,
-                    p_t=load.plinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling_cons,
-                )
-                power_producer = LoadPower.from_pc_asym(
-                    p_r=load.pginir,
-                    p_s=load.pginis,
-                    p_t=load.pginit,
-                    cosphi_r=load.cosginir,
-                    cosphi_s=load.cosginis,
-                    cosphi_t=load.cosginit,
-                    scaling=scaling_prod,
-                )
-            elif load_type == "SC":
-                power_consumer = LoadPower.from_sc_asym(
-                    s_r=load.slinir,
-                    s_s=load.slinis,
-                    s_t=load.slinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling_cons,
-                )
-                power_producer = LoadPower.from_sc_asym(
-                    s_r=load.sginir,
-                    s_s=load.sginis,
-                    s_t=load.sginit,
-                    cosphi_r=load.cosginir,
-                    cosphi_s=load.cosginis,
-                    cosphi_t=load.cosginit,
-                    scaling=scaling_prod,
-                )
-            else:
-                raise RuntimeError("Unreachable.")
-        return LoadMV(consumer=power_consumer, producer=power_producer)
+        load_model_p = self.load_model_of(load, specifier="p")
+        active_power = ActivePower(load_model=load_model_p)
+
+        load_model_q = self.load_model_of(load, specifier="q")
+        reactive_power = ReactivePower(load_model=load_model_q)
+
+        u_system_type, ph_con = self.consumer_technology_of(load)
+
+        consumer = Load(
+            name=l_name,
+            node=t_name,
+            description=description,
+            u_n=u_n,
+            rated_power=rated_power,
+            active_power=active_power,
+            reactive_power=reactive_power,
+            type=LoadType.CONSUMER,
+            system_type=system_type,
+            voltage_system_type=u_system_type,
+            phase_connection_type=ph_con,
+        )
+        logger.debug("Created consumer %s.", consumer)
+        return consumer
 
     @staticmethod
     def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:  # noqa: FNE004
@@ -1107,7 +951,7 @@ class PowerfactoryExporter:  # noqa: H601
         cosphi = gen.cosn
         return LoadPower.from_sc_sym(pow_app=pow_app, cosphi=cosphi, scaling=gen.scale0)
 
-    def create_producer(
+    def create_producer(  # noqa: TMN001
         self,
         gen: PFTypes.GeneratorBase | PFTypes.LoadMV,
         gen_name: str,
@@ -1119,7 +963,6 @@ class PowerfactoryExporter:  # noqa: H601
         name_suffix: str = "",
     ) -> Load | None:
 
-        # get unique name
         gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name) + name_suffix
 
         export, description = self.get_description(gen)
@@ -1158,37 +1001,55 @@ class PowerfactoryExporter:  # noqa: H601
     def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
         switch_states = self.create_switch_states(data.switches)
         coupler_states = self.create_coupler_states(data.couplers)
-        elements: Sequence[PFTypes.GeneratorBase | PFTypes.LoadBase] = self.pfi.list_from_sequences(
+        elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
             data.loads,
             data.loads_lv,
             data.loads_mv,
             data.generators,
             data.pv_systems,
+            data.external_grids,
         )
-        node_power_on_states = self.create_node_power_on_states(
-            data.terminals,
-            data.lines,
-            data.transformers_2w,
-            elements,
-        )
-        line_power_on_states = self.create_line_power_on_states(data.lines)
-        transformer_2w_power_on_states = self.create_transformer_2w_power_on_states(data.transformers_2w)
-        # TODO: transformer_3w_power_on_states = self.create_transformer_3w_power_on_states(data.transformers_3w)
+        node_power_on_states = self.create_node_power_on_states(data.terminals)
+        line_power_on_states = self.create_element_power_on_states(data.lines)
+        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
         element_power_on_states = self.create_element_power_on_states(elements)
-
-        return TopologyCase(
-            meta=meta,
-            elements=self.pfi.list_from_sequences(
-                switch_states,
-                coupler_states,
-                node_power_on_states,
-                line_power_on_states,
-                transformer_2w_power_on_states,
-                element_power_on_states,
-            ),
+        power_on_states = self.pfi.list_from_sequences(
+            switch_states,
+            coupler_states,
+            node_power_on_states,
+            line_power_on_states,
+            transformer_2w_power_on_states,
+            element_power_on_states,
         )
+        power_on_states = self.merge_power_on_states(power_on_states)
+
+        return TopologyCase(meta=meta, elements=power_on_states)
+
+    def merge_power_on_states(self, power_on_states: list[ElementState]) -> list[ElementState]:
+        merged_states: list[ElementState] = []
+        entry_names = [entry.name for entry in power_on_states]
+        for entry_name in entry_names:
+            entries = [entry for entry in power_on_states if entry.name == entry_name]
+            merged_states.append(self.merge_entries(entry_name, entries))
+
+        return merged_states
+
+    def merge_entries(self, entry_name: str, entries: list[ElementState]) -> ElementState:
+        disabled = any(entry.disabled for entry in entries)
+        open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
+        return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
 
     def create_switch_states(self, switches: Sequence[PFTypes.Switch]) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the switch is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            switches {Sequence[PFTypes.Switch]} -- list of PowerFactory objects of type Switch
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for sw in switches:
@@ -1199,117 +1060,72 @@ class PowerfactoryExporter:  # noqa: H601
                     terminal = cub.cterm
                     node_name = self.pfi.create_name(terminal, self.grid_name)
                     element_name = self.pfi.create_name(element, self.grid_name)
-                    element_state = ElementState(name=element_name, node=node_name, active=False)
+                    element_state = ElementState(name=element_name, open_switches=(node_name,))
                     relevancies.append(element_state)
 
         return relevancies
 
     def create_coupler_states(self, couplers: Sequence[PFTypes.Coupler]) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the coupler is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            swtiches {Sequence[PFTypes.Coupler]} -- list of PowerFactory objects of type Coupler
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for coupler in couplers:
             if not coupler.isclosed:
                 element_name = self.pfi.create_name(coupler, self.grid_name)
-                element_state = ElementState(name=element_name, active=False)
+                element_state = ElementState(name=element_name, disabled=True)
                 relevancies.append(element_state)
 
         return relevancies
 
-    def create_node_power_on_states(
-        self,
-        terminals: Sequence[PFTypes.Terminal],
-        lines: Sequence[PFTypes.Line],
-        transformers_2w: Sequence[PFTypes.Transformer2W],
-        elements: Sequence[PFTypes.GeneratorBase | PFTypes.LoadBase],
-        # TODO: transformer_3w: Sequence[PFTypes.Transformer3W],
-    ) -> Sequence[ElementState]:
+    def create_node_power_on_states(self, terminals: Sequence[PFTypes.Terminal]) -> Sequence[ElementState]:
+        """Create element states based on if the connected nodes are out of service.
 
-        states = [
-            self.create_element_states(
-                terminal=terminal, lines=lines, transformers_2w=transformers_2w, elements=elements
-            )
-            for terminal in terminals
-        ]
-        return list(itertools.chain.from_iterable(states))
+        The element states contain a node reference.
 
-    def create_element_states(
-        self,
-        terminal: PFTypes.Terminal,
-        lines: Sequence[PFTypes.Line],
-        transformers_2w: Sequence[PFTypes.Transformer2W],
-        elements: Sequence[PFTypes.GeneratorBase | PFTypes.LoadBase],
-    ) -> Sequence[ElementState]:
-        if terminal.outserv:
-            connected_lines = [line for line in lines if self.is_line_connected(line, terminal)]
-            connected_transformers_2w = [
-                transformer
-                for transformer in transformers_2w
-                if self.is_transformer_2w_connected(transformer, terminal)
-            ]
-            connected_elements = [e for e in elements if e.bus1 is not None and e.bus1.cterm == terminal]
+        Arguments:
+            terminals {Sequence[PFTypes.Terminal]} -- list of PowerFactory objects of type Terminal
 
-            # TODO: connected_transformer_3w = [...]
-            node_name = self.pfi.create_name(terminal, self.grid_name)
-
-            chain = itertools.chain(connected_lines, connected_transformers_2w, connected_elements)
-
-            return [self.create_element_state(element, node_name) for element in chain]
-
-        return []
-
-    @staticmethod
-    def is_line_connected(line: PFTypes.Line, terminal: PFTypes.Terminal) -> bool:
-        return (
-            (line.bus1 is not None)
-            and (line.bus2 is not None)
-            and any([line.bus1.cterm == terminal, line.bus2.cterm == terminal])
-        )
-
-    @staticmethod
-    def is_transformer_2w_connected(transformer: PFTypes.Transformer2W, terminal: PFTypes.Terminal) -> bool:
-        return (
-            (transformer.bushv is not None)
-            and (transformer.buslv is not None)
-            and any([transformer.bushv.cterm == terminal, transformer.buslv.cterm == terminal])
-        )
-
-    def create_element_state(self, element: PFTypes.DataObject, node_name: str) -> ElementState:
-        element_name = self.pfi.create_name(element, self.grid_name)
-        return ElementState(name=element_name, node=node_name, active=False)
-
-    def create_line_power_on_states(self, lines: Sequence[PFTypes.Line]) -> Sequence[ElementState]:
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
-        for line in lines:
-            if line.outserv:
-                line_name = self.pfi.create_name(line, self.grid_name)
-                element_state = ElementState(name=line_name, active=False)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_transformer_2w_power_on_states(
-        self, transformers_2w: Sequence[PFTypes.Transformer2W]
-    ) -> Sequence[ElementState]:
-
-        relevancies: list[ElementState] = []
-        for transformer in transformers_2w:
-            if transformer.outserv:
-                transformer_name = self.pfi.create_name(transformer, self.grid_name)
-                element_state = ElementState(name=transformer_name, active=False)
+        for terminal in terminals:
+            if terminal.outserv:
+                node_name = self.pfi.create_name(terminal, self.grid_name)
+                element_state = ElementState(name=node_name, disabled=True)
                 relevancies.append(element_state)
 
         return relevancies
 
     def create_element_power_on_states(
-        self, elements: Sequence[PFTypes.GeneratorBase | PFTypes.LoadBase]
+        self, elements: Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W]
     ) -> Sequence[ElementState]:
+        """Create element states for one-sided connected elements based on if the elements are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            elements {Sequence[ElementBase} -- list of one-sided connected PowerFactory objects
+
+        Returns:
+            Sequence[ElementState] -- list of element states
+        """
 
         relevancies: list[ElementState] = []
         for element in elements:
             if element.outserv:
                 element_name = self.pfi.create_name(element, self.grid_name)
-                element_state = ElementState(name=element_name, active=False)
+                element_state = ElementState(name=element_name, disabled=True)
                 relevancies.append(element_state)
 
         return relevancies
@@ -1325,7 +1141,6 @@ class PowerfactoryExporter:  # noqa: H601
         )
         transformers = self.create_transformers_ssc(
             pf_transformers_2w=data.transformers_2w,
-            # pf_transformers_3w=data.transformers_3w,
             grid_name=data.name,
         )
         external_grids = self.create_external_grid_ssc(
@@ -1343,21 +1158,16 @@ class PowerfactoryExporter:  # noqa: H601
     def create_transformers_ssc(
         self,
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
-        # pf_transformers_3w: Sequence[PFTypes.Transformer3W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
-
         transformers_2w = self.create_transformer_2w_ssc(pf_transformers_2w, grid_name)
-        # transformers_3w = self.create_transformer_3w_ssc(pf_transformers_3w, grid_name)
-
-        return self.pfi.list_from_sequences(transformers_2w)  # , transformers_3w)
+        return self.pfi.list_from_sequences(transformers_2w)
 
     def create_transformer_2w_ssc(
         self,
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
-
         transformers_2w: list[TransformerSSC] = []
         for transformer in pf_transformers_2w:
             name = self.pfi.create_name(transformer, grid_name)
@@ -1378,17 +1188,6 @@ class PowerfactoryExporter:  # noqa: H601
             transformers_2w.append(transformer_ssc)
 
         return transformers_2w
-
-    # def create_transformer_3w_ssc(
-    #     self,
-    #     pf_transformers_3w: Sequence[PFTypes.Transformer3W],
-    #     grid_name: str,
-    # ) -> Sequence[TransformerSSC]:
-
-    #     transformers_3w: list[TransformerSSC] = []
-    #     for _ in pf_transformers_3w:  # TODO implement
-    #         pass
-    #     return transformers_3w
 
     def create_external_grid_ssc(
         self,
@@ -1437,7 +1236,7 @@ class PowerfactoryExporter:  # noqa: H601
         logger.debug("Created steadystate for external grid %s.", ext_grid_ssc)
         return ext_grid_ssc
 
-    def create_loads_ssc(
+    def create_loads_ssc(  # noqa: TMN001
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -1446,26 +1245,12 @@ class PowerfactoryExporter:  # noqa: H601
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-
-        producers: list[Load] = []
-        for gen in generators:
-            gen_name = gen.loc_name
-            producer_system_type = self.producer_system_type_of(gen)
-            producer_phase_connection_type = self.producer_technology_of(gen)
-            external_controller_name = self.get_external_controller_name(gen)
-            power = self.calc_normal_gen_power(gen)
-            producer = self.create_producer(
-                gen=gen,
-                power=power,
-                gen_name=gen_name,
-                grid_name=grid_name,
-                producer_system_type=producer_system_type,
-                producer_phase_connection_type=producer_phase_connection_type,
-                external_controller_name=external_controller_name,
-            )
-            if producer is not None:
-                producers.append(producer)
-        return producers
+        normal_consumers = self.create_consumers_ssc_normal(consumers, grid_name)
+        lv_consumers = self.create_consumers_ssc_lv(consumers_lv, grid_name)
+        mv_consumers = self.create_loads_ssc_mv(consumers_mv, grid_name)
+        gen_producers = self.create_producers_ssc(generators)
+        pv_producers = self.create_producers_ssc(pv_systems)
+        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_consumers, gen_producers, pv_producers)
 
     def create_consumers_ssc_normal(
         self,
@@ -1475,21 +1260,71 @@ class PowerfactoryExporter:  # noqa: H601
         consumers_ssc = [self.create_consumer_ssc_normal(load, grid_name) for load in loads]
         return [e for e in consumers_ssc if e is not None]
 
-        producers: list[Load] = []
-        for gen in generators:
-            gen_name = gen.loc_name
-            producer_system_type = ProducerSystemType.PV
-            producer_phase_connection_type = self.producer_technology_of(gen)
-            external_controller_name = self.get_external_controller_name(gen)
-            power = self.calc_normal_gen_power(gen)
-            producer = self.create_producer(
-                gen=gen,
-                power=power,
-                gen_name=gen_name,
-                grid_name=grid_name,
-                producer_system_type=producer_system_type,
-                producer_phase_connection_type=producer_phase_connection_type,
-                external_controller_name=external_controller_name,
+    def create_consumer_ssc_normal(
+        self,
+        load: PFTypes.Load,
+        grid_name: str,
+    ) -> LoadSSC | None:
+        power = self.calc_normal_load_power(load)
+        if power is not None:
+            return self.create_consumer_ssc(load, power, grid_name)
+
+        return None
+
+    def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004
+        if not load.i_sym:
+            power = self.calc_normal_load_power_sym(load)
+        else:
+            power = self.calc_normal_load_power_asym(load)
+
+        if power is not None:  # noqa: SIM102
+            if not power.is_empty:
+                return power
+
+        logger.warning("Power is not set for load %s. Skipping.", load.loc_name)
+        return None
+
+    def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004, CCR001, TMN003
+        load_type = load.mode_inp
+        scaling = load.scale0
+        if load_type == "DEF" or load_type == "PQ":
+            return LoadPower.from_pq_sym(pow_act=load.plini, pow_react=load.qlini, scaling=scaling)
+
+        if load_type == "PC":
+            return LoadPower.from_pc_sym(pow_act=load.plini, cosphi=load.coslini, scaling=scaling)
+
+        if load_type == "IC":
+            return LoadPower.from_ic_sym(voltage=load.u0, current=load.ilini, cosphi=load.coslini, scaling=scaling)
+
+        if load_type == "SC":
+            return LoadPower.from_sc_sym(pow_app=load.slini, cosphi=load.coslini, scaling=scaling)
+
+        if load_type == "QC":
+            return LoadPower.from_qc_sym(pow_react=load.qlini, cosphi=load.coslini, scaling=scaling)
+
+        if load_type == "IP":
+            return LoadPower.from_ip_sym(voltage=load.u0, current=load.ilini, pow_act=load.plini, scaling=scaling)
+
+        if load_type == "SP":
+            return LoadPower.from_sp_sym(pow_app=load.slini, pow_act=load.plini, scaling=scaling)
+
+        if load_type == "SQ":
+            return LoadPower.from_sq_sym(pow_app=load.slini, pow_react=load.qlini, scaling=scaling)
+
+        raise RuntimeError("Unreachable")
+
+    def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004, CCR001, TMN003
+        load_type = load.mode_inp
+        scaling = load.scale0
+        if load_type == "DEF" or load_type == "PQ":
+            return LoadPower.from_pq_asym(
+                pow_act_r=load.plinir,
+                pow_act_s=load.plinis,
+                pow_act_t=load.plinit,
+                pow_react_r=load.qlinir,
+                pow_react_s=load.qlinis,
+                pow_react_t=load.qlinit,
+                scaling=scaling,
             )
 
         if load_type == "PC":
@@ -1645,9 +1480,9 @@ class PowerfactoryExporter:  # noqa: H601
         else:
             if load_type == 0:
                 power_fixed = LoadPower.from_sc_asym(
-                    pow_app_r=load.slinir * LV_TO_BASE_POW,
-                    pow_app_s=load.slinis * LV_TO_BASE_POW,
-                    pow_app_t=load.slinit * LV_TO_BASE_POW,
+                    pow_app_r=load.slinir,
+                    pow_app_s=load.slinis,
+                    pow_app_t=load.slinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -1655,9 +1490,9 @@ class PowerfactoryExporter:  # noqa: H601
                 )
             elif load_type == 1:
                 power_fixed = LoadPower.from_pc_asym(
-                    pow_act_r=load.plinir * LV_TO_BASE_POW,
-                    pow_act_s=load.plinis * LV_TO_BASE_POW,
-                    pow_act_t=load.plinit * LV_TO_BASE_POW,
+                    pow_act_r=load.plinir,
+                    pow_act_s=load.plinis,
+                    pow_act_t=load.plinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -1666,9 +1501,9 @@ class PowerfactoryExporter:  # noqa: H601
             elif load_type == 2:
                 power_fixed = LoadPower.from_ic_asym(
                     voltage=load.ulini,
-                    current_r=load.ilinir * LV_TO_BASE_CURR,
-                    current_s=load.ilinis * LV_TO_BASE_CURR,
-                    current_t=load.ilinit * LV_TO_BASE_CURR,
+                    current_r=load.ilinir,
+                    current_s=load.ilinis,
+                    current_t=load.ilinit,
                     cosphi_r=load.coslinir,
                     cosphi_s=load.coslinis,
                     cosphi_t=load.coslinit,
@@ -1678,12 +1513,12 @@ class PowerfactoryExporter:  # noqa: H601
             raise RuntimeError("Unreachable")
 
         power_night = LoadPower.from_pq_sym(
-            pow_act=load.pnight * LV_TO_BASE_POW,
+            pow_act=load.pnight,
             pow_react=0,
             scaling=1,
         )
         power_flexible = LoadPower.from_sc_sym(
-            pow_app=load.cSav * LV_TO_BASE_POW,
+            pow_app=load.cSav,
             cosphi=load.ccosphi,
             scaling=1,
         )
@@ -1692,18 +1527,18 @@ class PowerfactoryExporter:  # noqa: H601
     def calc_load_lv_power_sym(self, load: PFTypes.LoadLVP) -> LoadLV:  # noqa: FNE004
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
         power_night = LoadPower.from_pq_sym(
-            pow_act=load.pnight * LV_TO_BASE_POW,
+            pow_act=load.pnight,
             pow_react=0,
             scaling=1,
         )
         power_flexible = LoadPower.from_sc_sym(
-            pow_app=load.cSav * LV_TO_BASE_POW,
+            pow_app=load.cSav,
             cosphi=load.ccosphi,
             scaling=1,
         )
         return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
 
-    def calc_load_lv_power_fixed_sym(  # noqa: FNE004, TMN003
+    def calc_load_lv_power_fixed_sym(  # noqa: FNE004
         self,
         load: PFTypes.LoadLV | PFTypes.LoadLVP,
         scaling: float,
@@ -1711,14 +1546,14 @@ class PowerfactoryExporter:  # noqa: H601
         load_type = load.iopt_inp
         if load_type == 0:
             return LoadPower.from_sc_sym(
-                pow_app=load.slini * LV_TO_BASE_POW,
+                pow_app=load.slini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
 
         if load_type == 1:
             return LoadPower.from_pc_sym(
-                pow_act=load.plini * LV_TO_BASE_POW,
+                pow_act=load.plini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
@@ -1726,14 +1561,14 @@ class PowerfactoryExporter:  # noqa: H601
         if load_type == 2:
             return LoadPower.from_ic_sym(
                 voltage=load.ulini,
-                current=load.ilini * LV_TO_BASE_CURR,
+                current=load.ilini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
 
         if load_type == 3:
             return LoadPower.from_pc_sym(
-                pow_act=load.cplinia * LV_TO_BASE_POW,
+                pow_act=load.cplinia,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
@@ -1972,754 +1807,7 @@ class PowerfactoryExporter:  # noqa: H601
         logger.debug("Created steadystate for producer %s.", load_ssc)
         return load_ssc
 
-    @staticmethod
-    def transform_qu_slope(
-        slope: float,
-        given_format: Literal["2015", "2018"],
-        target_format: Literal["2015", "2018"],
-        u_n: float,
-    ) -> float:
-        """Transform slope of Q(U)-characteristic from given format type to another format type.
-
-        Arguments:
-            value {float} -- slope of Q(U)-characteristic
-            given_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
-            target_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
-            u_n {float} -- nominal voltage of the related controller, in V
-
-        Returns:
-            float -- transformed slope
-        """
-        if given_format == "2015" and target_format == "2018":
-            return slope / (1e3 / u_n * 100)  # 2018: (% von Pr) / (p.u. von Un)
-
-        if given_format == "2018" and target_format == "2015":
-            return slope * (1e3 / u_n * 100)  # 2015: (% von Pr) / kV
-
-        raise RuntimeError("Unreachable")
-
-        # Conversion: gen.ddroop = PF droop = 100%/m_tab2015 * 100*Exponents.VOLTAGE/u_n * 1/cosphi_r
-        # Conversion: gen.ddroop = PF droop = 100%/m_tar2018 * 1/cosphi_r
-
-    def create_transformers(
-        self,
-        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
-        # pf_transformers_3w: Sequence[PFTypes.Transformer3W],
-        grid_name: str,
-    ) -> Sequence[Transformer]:
-
-        transformers_2w = self.create_transformers_2w(pf_transformers_2w, grid_name)
-        # transformers_3w = self.create_transformers_3w(pf_transformers_3w, grid_name)
-
-        return self.pfi.list_from_sequences(transformers_2w)  # , transformers_3w)
-
-    def create_transformers_2w(  # noqa: CCR001 # TODO
-        self,
-        transformers_2w: Sequence[PFTypes.Transformer2W],
-        grid_name: str,
-    ) -> Sequence[Transformer]:
-
-        transformers: list[Transformer] = []
-        for transformer_2w in transformers_2w:
-            name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
-            export, description = self.get_description(transformer_2w)
-            if not export:
-                logger.warning("Transformer %s not set for export. Skipping.", name)
-                continue
-
-            if transformer_2w.buslv is None or transformer_2w.bushv is None:
-                logger.warning("Transformer %s not connected to buses on both sides. Skipping.", name)
-                continue
-
-            t_high = transformer_2w.bushv.cterm
-            t_low = transformer_2w.buslv.cterm
-
-            t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
-            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
-
-            t_type = transformer_2w.typ_id
-
-            if t_type is not None:
-                t_number = transformer_2w.ntnum
-                vector_group = t_type.vecgrp
-
-                ph_technology = self.transformer_phase_technology(t_type)
-
-                # Transformer Tap Changer
-                tap_u_abs = t_type.dutap
-                tap_u_phi = t_type.phitr
-                tap_min = t_type.ntpmn
-                tap_max = t_type.ntpmx
-                tap_neutral = t_type.nntap0
-                tap_side = self.transformer_tap_side(t_type)
-
-                if bool(t_type.itapch2) is True:
-                    logger.warning("Transformer %s has second tap changer. Not supported so far. Skipping.", name)
-
-                # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
-                u_ref_h = t_type.utrn_h
-                u_ref_l = t_type.utrn_l
-
-                # Nominal Voltage of connected nodes (CIM: BaseVoltage)
-                u_nom_h = transformer_2w.bushv.cterm.uknom
-                u_nom_l = transformer_2w.buslv.cterm.uknom
-
-                # Rated values
-                p_fe = t_type.pfe  # kW
-                i_0 = t_type.curmg  # %
-                s_r = t_type.strn  # MVA
-                # p_cu = t_type.pcutr  # kW
-                # u_k = t_type.uktr  # %
-
-                # Create Winding Objects
-                # Resulting impedance
-                pu2abs = u_ref_h**2 / s_r
-                r_1 = t_type.r1pu * pu2abs
-                r_0 = t_type.r0pu * pu2abs
-                x_1 = t_type.x1pu * pu2abs
-                x_0 = t_type.x0pu * pu2abs
-
-                # Optional
-                # z_0_uk = t_type.zx0hl_n  # Magnetic: Impedance / uk0;  uk0= x_0_pu
-                # r_x_0 = t_type.rtox0_n  # Magnetic: R/X
-                # z_sc = u_k / 100
-                # g_1 = 1 / ((u_ref_h * 1e3) ** 2 / (p_fe * 1000))
-                # y_1 = i_0 / 100 * s_r / u_ref_h**2
-                # b_1 = -g_1 * y_1 * math.sqrt(1 / g_1**2 - 1 / y_1**2)
-
-                # Wiring group
-                vector_h = t_type.tr2cn_h  # Wiring HV
-                vector_l = t_type.tr2cn_l  # Wiring LV
-                vector_phase_angle_clock = t_type.nt2ag
-
-                wh = Winding(
-                    node=t_high_name,
-                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                    u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    r1=r_1,
-                    r0=r_0,
-                    x1=x_1,
-                    x0=x_0,
-                    vector_group=vector_h,
-                    phase_angle_clock=0,
-                )
-
-                wl = Winding(
-                    node=t_low_name,
-                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                    u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    r1=float(0),
-                    r0=float(0),
-                    x1=float(0),
-                    x0=float(0),
-                    vector_group=vector_l,
-                    phase_angle_clock=int(vector_phase_angle_clock),
-                )
-
-                transformer = Transformer(
-                    node_1=t_high_name,
-                    node_2=t_low_name,
-                    name=name,
-                    number=t_number,
-                    i_0=i_0,
-                    p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
-                    vector_group=vector_group,
-                    tap_u_abs=tap_u_abs,
-                    tap_u_phi=tap_u_phi,
-                    tap_min=tap_min,
-                    tap_max=tap_max,
-                    tap_neutral=tap_neutral,
-                    tap_side=tap_side,
-                    description=description,
-                    phase_technology_type=ph_technology,
-                    windings=[wh, wl],
-                )
-                logger.debug("Created transformer %s", transformer)
-                transformers.append(transformer)
-            else:
-                logger.warning("Type not set for transformer %s. Skipping.", name)
-
-        return transformers
-
-    @staticmethod
-    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
-        if t_type.nt2ph == 1:
-            return TransformerPhaseTechnologyType.SINGLE_PH_E
-        elif t_type.nt2ph == 2:
-            return TransformerPhaseTechnologyType.SINGLE_PH
-        elif t_type.nt2ph == 3:
-            return TransformerPhaseTechnologyType.THREE_PH
-        else:
-            return None
-
-    @staticmethod
-    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
-        # TODO Adapt for Three Phase Trf
-        if bool(t_type.itapch) is True:
-            if t_type.tap_side == 0:
-                return TapSide.HV
-            elif t_type.tap_side == 1:
-                return TapSide.LV
-
-        return None
-
-    @staticmethod
-    def get_description(
-        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
-    ) -> tuple[bool, str]:
-        desc = element.desc
-        if desc[0]:
-            if (
-                desc[0] == "do_not_export"
-            ):  # if description explicitly contains "do_not_export", element does not have to be considered
-                return False, ""
-
-            return True, desc[0]
-
-    def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
-        switch_states = self.create_switch_states(data.switches)
-        coupler_states = self.create_coupler_states(data.couplers)
-        elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
-            data.loads,
-            data.loads_lv,
-            data.loads_mv,
-            data.generators,
-            data.pv_systems,
-            data.external_grids,
-        )
-        node_power_on_states = self.create_node_power_on_states(data.terminals)
-        line_power_on_states = self.create_element_power_on_states(data.lines)
-        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
-        # TODO: transformer_3w_power_on_states = self.create_transformer_3w_power_on_states(data.transformers_3w)
-        element_power_on_states = self.create_element_power_on_states(elements)
-        power_on_states = self.pfi.list_from_sequences(
-            switch_states,
-            coupler_states,
-            node_power_on_states,
-            line_power_on_states,
-            transformer_2w_power_on_states,
-            element_power_on_states,
-        )
-        power_on_states = self.merge_power_on_states(power_on_states)
-
-        return TopologyCase(meta=meta, elements=power_on_states)
-
-    def merge_power_on_states(self, power_on_states: list[ElementState]) -> list[ElementState]:
-        merged_states = []
-        entry_names = [entry.name for entry in power_on_states]
-        for entry_name in entry_names:
-            entries = [entry for entry in power_on_states if entry.name == entry_name]
-            merged_states.append(self.merge_entries(entry_name, entries))
-
-        return merged_states
-
-    def merge_entries(self, entry_name: str, entries: list[ElementState]) -> ElementState:
-        disabled = any([entry.disabled for entry in entries])
-        open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
-        return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
-
-    def create_switch_states(self, switches: Sequence[PFTypes.Switch]) -> Sequence[ElementState]:
-        """Create element states for all type of elements based on if the switch is open.
-
-        The element states contain a node reference.
-
-        Arguments:
-            switches {Sequence[PFTypes.Switch]} -- list of PowerFactory objects of type Switch
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for sw in switches:
-            if not sw.isclosed:
-                cub = sw.fold_id
-                element = cub.obj_id
-                if element is not None:
-                    terminal = cub.cterm
-                    node_name = self.pfi.create_name(terminal, self.grid_name)
-                    element_name = self.pfi.create_name(element, self.grid_name)
-                    element_state = ElementState(name=element_name, open_switches=(node_name,))
-                    relevancies.append(element_state)
-
-    # def create_transformers_3w(
-    #     self,
-    #     pf_transformers: Sequence[PFTypes.Transformer3W],
-    #     grid_name: str,
-    # ) -> Sequence[Transformer]:
-
-    def create_coupler_states(self, couplers: Sequence[PFTypes.Coupler]) -> Sequence[ElementState]:
-        """Create element states for all type of elements based on if the coupler is open.
-
-        The element states contain a node reference.
-
-        Arguments:
-            swtiches {Sequence[PFTypes.Coupler]} -- list of PowerFactory objects of type Coupler
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for c in couplers:
-            if not c.isclosed:
-                element_name = self.pfi.create_name(c, self.grid_name)
-                element_state = ElementState(name=element_name, disabled=True)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_node_power_on_states(self, terminals: Sequence[PFTypes.Terminal]) -> Sequence[ElementState]:
-        """Create element states based on if the connected nodes are out of service.
-
-        The element states contain a node reference.
-
-        Arguments:
-            terminals {Sequence[PFTypes.Terminal]} -- list of PowerFactory objects of type Terminal
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for t in terminals:
-            if t.outserv:
-                node_name = self.pfi.create_name(t, self.grid_name)
-                element_state = ElementState(name=node_name, disabled=True)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_element_power_on_states(
-        self, elements: Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W]
-    ) -> Sequence[ElementState]:
-        """Create element states for one-sided connected elements based on if the elements are out of service.
-
-        The element states contain no node reference.
-
-        Arguments:
-            elements {Sequence[ElementBase} -- list of one-sided connected PowerFactory objects
-
-        Returns:
-            Sequence[ElementState] -- list of element states
-        """
-
-        relevancies: list[ElementState] = []
-        for e in elements:
-            if e.outserv:
-                e_name = self.pfi.create_name(e, self.grid_name)
-                element_state = ElementState(name=e_name, disabled=True)
-                relevancies.append(element_state)
-
-        return relevancies
-
-    def create_steadystate_case(self, meta: Meta, data: PowerfactoryData) -> SteadystateCase:
-        loads = self.create_loads_ssc_states(
-            consumers=data.loads,
-            consumers_lv=data.loads_lv,
-            consumers_mv=data.loads_mv,
-            generators=data.generators,
-            pv_systems=data.pv_systems,
-            grid_name=data.name,
-        )
-        transformers = self.create_transformers_ssc_states(
-            pf_transformers_2w=data.transformers_2w,
-            pf_transformers_3w=data.transformers_3w,
-            grid_name=data.name,
-        )
-        external_grids = self.create_external_grids_ssc_states(
-            ext_grids=data.external_grids,
-            grid_name=data.name,
-        )
-
-        return SteadyStateCase(
-            meta=meta,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
-        )
-
-    def create_transformers_ssc_states(
-        self,
-        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
-        pf_transformers_3w: Sequence[PFTypes.Transformer3W],
-        grid_name: str,
-    ) -> Sequence[TransformerSSC]:
-
-        transformers_2w = self.create_transformer_2w_ssc_states(pf_transformers_2w, grid_name)
-        transformers_3w = self.create_transformer_3w_ssc_states(pf_transformers_3w, grid_name)
-
-        return self.pfi.list_from_sequences(transformers_2w, transformers_3w)
-
-    def create_transformer_2w_ssc_states(
-        self,
-        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
-        grid_name: str,
-    ) -> Sequence[TransformerSSC]:
-
-        transformers_2w: list[TransformerSSC] = []
-        for t in pf_transformers_2w:
-            name = self.pfi.create_name(t, grid_name)
-            export, description = self.get_description(t)
-            if not export:
-                logger.warning(f"Transformer {name} not set for export. Skipping.")
-                continue
-
-            # Transformer Tap Changer
-            t_type = t.typ_id
-            if t_type is None:
-                tap_pos = None
-            else:
-                tap_pos = t.nntap
-            transformer = TransformerSSC(name=name, tap_pos=tap_pos)
-            logger.debug(f"Created steadystate for transformer_2w {transformer}.")
-            transformers_2w.append(transformer)
-
-        return transformers_2w
-
-    def create_transformer_3w_ssc_states(
-        self,
-        pf_transformers_3w: Sequence[PFTypes.Transformer3W],
-        grid_name: str,
-    ) -> Sequence[TransformerSSC]:
-
-        transformers_3w: list[TransformerSSC] = []
-        for _ in pf_transformers_3w:  # TODO implement
-            pass
-        return transformers_3w
-
-    def create_external_grids_ssc_states(
-        self,
-        ext_grids: Sequence[PFTypes.ExternalGrid],
-        grid_name: str,
-    ) -> Sequence[ExternalGridSSC]:
-
-        grids: list[ExternalGridSSC] = []
-        for g in ext_grids:
-            name = self.pfi.create_name(g, grid_name)
-            export, description = self.get_description(g)
-            if not export:
-                logger.warning(f"External grid {name} not set for export. Skipping.")
-                continue
-
-            if g.bus1 is None:
-                logger.warning(f"External grid {name} not connected to any bus. Skipping.")
-                continue
-
-            g_type = GridType(g.bustp)
-            if g_type == GridType.SL:
-                grid = ExternalGridSSC(
-                    name=name,
-                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    phi_0=g.phiini,
-                )
-            elif g_type == GridType.PV:
-                grid = ExternalGridSSC(
-                    name=name,
-                    u_0=round(g.usetp * g.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
-                )
-            elif g_type == GridType.PQ:
-                grid = ExternalGridSSC(
-                    name=name,
-                    p_0=round(g.pgini * Exponents.POWER, DecimalDigits.POWER),
-                    q_0=round(g.qgini * Exponents.POWER, DecimalDigits.POWER),
-                )
-            else:
-                grid = ExternalGridSSC(name=name)
-
-            logger.debug(f"Created steadystate for external grid {grid}.")
-            grids.append(grid)
-
-        return grids
-
-    def create_loads_ssc_states(
-        self,
-        consumers: Sequence[PFTypes.Load],
-        consumers_lv: Sequence[PFTypes.LoadLV],
-        consumers_mv: Sequence[PFTypes.LoadMV],
-        generators: Sequence[PFTypes.Generator],
-        pv_systems: Sequence[PFTypes.PVSystem],
-        grid_name: str,
-    ) -> Sequence[LoadSSC]:
-
-        normal_consumers = self.create_consumer_ssc_states_normal(consumers, grid_name)
-        lv_consumers = self.create_consumer_ssc_states_lv(consumers_lv, grid_name)
-        mv_consumers = self.create_load_ssc_states_mv(consumers_mv, grid_name)
-        gen_producers = self.create_producers_ssc_states(generators)
-        pv_producers = self.create_producers_ssc_states(pv_systems)
-        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_consumers, gen_producers, pv_producers)
-
-    def create_consumer_ssc_states_normal(
-        self,
-        loads: Sequence[PFTypes.Load],
-        grid_name: str,
-    ) -> Sequence[LoadSSC]:
-
-        consumers_ssc: list[LoadSSC] = []
-        for load in loads:
-            power = self.calc_normal_load_power(load)
-            if power is not None:
-                consumer = self.create_consumer_ssc_state(load, power, grid_name)
-                if consumer is not None:
-                    consumers_ssc.append(consumer)
-        return consumers_ssc
-
-    def calc_normal_load_power(self, load: pft.Load) -> Optional[LoadPower]:
-        load_type = load.mode_inp
-        scaling = load.scale0
-        if not load.i_sym:
-            if load_type == "DEF" or load_type == "PQ":
-                power = LoadPower.from_pq_sym(p=load.plini, q=load.qlini, scaling=scaling)
-            elif load_type == "PC":
-                power = LoadPower.from_pc_sym(p=load.plini, cosphi=load.coslini, scaling=scaling)
-            elif load_type == "IC":
-                power = LoadPower.from_ic_sym(u=load.u0, i=load.ilini, cosphi=load.coslini, scaling=scaling)
-            elif load_type == "SC":
-                power = LoadPower.from_sc_sym(s=load.slini, cosphi=load.coslini, scaling=scaling)
-            elif load_type == "QC":
-                power = LoadPower.from_qc_sym(q=load.qlini, cosphi=load.coslini, scaling=scaling)
-            elif load_type == "IP":
-                power = LoadPower.from_ip_sym(u=load.u0, i=load.ilini, p=load.plini, scaling=scaling)
-            elif load_type == "SP":
-                power = LoadPower.from_sp_sym(s=load.slini, p=load.plini, scaling=scaling)
-            elif load_type == "SQ":
-                power = LoadPower.from_sq_sym(s=load.slini, q=load.qlini, scaling=scaling)
-            else:
-                raise RuntimeError("Unreachable")
-        else:
-            if load_type == "DEF" or load_type == "PQ":
-                power = LoadPower.from_pq_asym(
-                    pow_act_r=load.plinir,
-                    pow_act_s=load.plinis,
-                    pow_act_t=load.plinit,
-                    pow_react_r=load.qlinir,
-                    pow_react_s=load.qlinis,
-                    pow_react_t=load.qlinit,
-                    scaling=scaling,
-                )
-            elif load_type == "PC":
-                power = LoadPower.from_pc_asym(
-                    pow_act_r=load.plinir,
-                    pow_act_s=load.plinis,
-                    pow_act_t=load.plinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == "IC":
-                power = LoadPower.from_ic_asym(
-                    voltage=load.u0,
-                    current_r=load.ilinir,
-                    current_s=load.ilinis,
-                    current_t=load.ilinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == "SC":
-                power = LoadPower.from_sc_asym(
-                    pow_app_r=load.slinir,
-                    pow_app_s=load.slinis,
-                    pow_app_t=load.slinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == "QC":
-                power = LoadPower.from_qc_asym(
-                    pow_react_r=load.qlinir,
-                    pow_react_s=load.qlinis,
-                    pow_react_t=load.qlinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
-                    scaling=scaling,
-                )
-            elif load_type == "IP":
-                power = LoadPower.from_ipow_act_asym(
-                    u=load.u0,
-                    current_r=load.ilinir,
-                    current_s=load.ilinis,
-                    current_t=load.ilinit,
-                    pow_act_r=load.plinir,
-                    pow_act_s=load.plinis,
-                    pow_act_t=load.plinit,
-                    scaling=scaling,
-                )
-            elif load_type == "SP":
-                power = LoadPower.from_sp_asym(
-                    pow_app_r=load.slinir,
-                    pow_app_s=load.slinis,
-                    pow_app_t=load.slinit,
-                    pow_act_r=load.plinir,
-                    pow_act_s=load.plinis,
-                    pow_act_t=load.plinit,
-                    scaling=scaling,
-                )
-            elif load_type == "SQ":
-                power = LoadPower.from_sq_asym(
-                    pow_app_r=load.slinir,
-                    pow_app_s=load.slinis,
-                    pow_app_t=load.slinit,
-                    pow_react_r=load.qlinir,
-                    pow_react_s=load.qlinis,
-                    pow_react_t=load.qlinit,
-                    scaling=scaling,
-                )
-            else:
-                raise RuntimeError("Unreachable")
-        if power.isempty:
-            logger.warning(f"Power is not set for load {load.loc_name}. Skipping.")
-            return None
-        return power
-
-    def create_consumer_ssc_states_lv(
-        self,
-        loads: Sequence[PFTypes.LoadLV],
-        grid_name: str,
-    ) -> Sequence[LoadSSC]:
-        consumers_ssc: list[LoadSSC] = []
-        for load in loads:
-            powers = self.calc_load_lv_powers(load)
-            if len(powers) == 1:
-                sfx_pre = ""
-            else:
-                sfx_pre = "_({})"
-            for i, p in enumerate(powers):
-                consumer = (
-                    self.create_consumer_ssc_state(
-                        load,
-                        p.fixed,
-                        grid_name,
-                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.FIXED.value,
-                    )
-                    if p.fixed.pow_app_abs != 0
-                    else None
-                )
-                if consumer is not None:
-                    consumers_ssc.append(consumer)
-                consumer = (
-                    self.create_consumer_ssc_state(
-                        load,
-                        p.night,
-                        grid_name,
-                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
-                    )
-                    if p.night.pow_app_abs != 0
-                    else None
-                )
-                if consumer is not None:
-                    consumers_ssc.append(consumer)
-                consumer = (
-                    self.create_consumer_ssc_state(
-                        load,
-                        p.flexible,
-                        grid_name,
-                        name_suffix=sfx_pre.format(i) + "_" + ConsumerSystemType.VARIABLE.value,
-                    )
-                    if p.flexible.pow_app_abs != 0
-                    else None
-                )
-                if consumer is not None:
-                    consumers_ssc.append(consumer)
-        return consumers_ssc
-
-    def create_load_ssc_states_mv(
-        self,
-        loads: Sequence[PFTypes.LoadMV],
-        grid_name: str,
-    ) -> Sequence[LoadSSC]:
-
-        loads_ssc: list[LoadSSC] = []
-        for load in loads:
-            power = self.calc_load_mv_power(load)
-            consumer = self.create_consumer_ssc_state(load, power.consumer, grid_name, name_suffix="_CONSUMER")
-            if consumer is not None:
-                loads_ssc.append(consumer)
-            producer = self.create_consumer_ssc_state(load, power.producer, grid_name, name_suffix="_PRODUCER")
-            if producer is not None:
-                loads_ssc.append(producer)
-        return loads_ssc
-
-    def create_consumer_ssc_state(
-        self,
-        load: PFTypes.LoadBase,
-        power: LoadPower,
-        grid_name: str,
-        name_suffix: str = "",
-    ) -> LoadSSC | None:
-
-        name = self.pfi.create_name(load, grid_name) + name_suffix
-        export, _ = self.get_description(load)
-        if not export:
-            logger.warning(f"External grid {name} not set for export. Skipping.")
-            return None
-
-        active_power = power.as_active_power_ssc()
-        reactive_power = power.as_reactive_power_ssc()
-
-        consumer = LoadSSC(
-            name=name,
-            active_power=active_power,
-            reactive_power=reactive_power,
-        )
-        logger.debug(f"Created steadystate for consumer {consumer}.")
-        return consumer
-
-    def create_producers_ssc_states(
-        self,
-        generators: Sequence[PFTypes.GeneratorBase],
-    ) -> Sequence[LoadSSC]:
-
-        producers_ssc: list[LoadSSC] = []
-        for gen in generators:
-
-            gen_name = self.pfi.create_generator_name(gen)
-
-            export, _ = self.get_description(gen)
-            if not export:
-                logger.warning(f"Generator {gen_name} not set for export. Skipping.")
-                continue
-
-            bus = gen.bus1
-            if bus is None:
-                logger.warning(f"Generator {gen_name} not connected to any bus. Skipping.")
-                continue
-            else:
-                t = bus.cterm
-            u_n = round(t.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
-
-            power = LoadPower.from_pq_sym(
-                pow_act=gen.pgini_a * gen.ngnum,
-                pow_react=gen.qgini_a * gen.ngnum,
-                scaling=gen.scale0_a,
-            )
-
-            active_power = power.as_active_power_ssc()
-
-            # External Controller
-            ext_ctrl = gen.c_pstac
-            # Q-Controller
-            controller = self.create_q_controller(gen, gen_name, u_n, ext_ctrl=ext_ctrl)
-            reactive_power = power.as_reactive_power_ssc(controller=controller)
-
-            producer = LoadSSC(
-                name=gen_name,
-                active_power=active_power,
-                reactive_power=reactive_power,
-            )
-            logger.debug("Created steadystate for producer %s.", producer)
-            producers_ssc.append(producer)
-
-        return producers_ssc
-
-    def create_q_controller(  # noqa: CCR001, C901 # TODO
+    def create_q_controller(  # noqa: CCR001
         self,
         gen: PFTypes.GeneratorBase,
         gen_name: str,
@@ -2768,16 +1856,10 @@ class PowerfactoryExporter:  # noqa: H601
                 m_tar2018 = self.transform_qu_slope(slope=m_tab2015, given_format="2015", target_format="2018", u_n=u_n)
             elif controller_type == ControllerType.Q_P:
                 logger.warning("Generator %s Q(P) control is not implemented yet. Skipping.", gen_name)
-                # TODO: implement Q(P) control
             elif controller_type == ControllerType.COSPHI_P:
                 logger.warning("Generator %s cosphi(P) control is not implemented yet. Skipping.", gen_name)
-                # TODO: implement cosphi(P) control
-                # calculation below is only brief estimation
-                # qmax_ue = math.tan(math.acos(gen.pf_under)) * gen.p_under
-                # qmax_oe = math.tan(math.acos(gen.pf_over)) * gen.p_over
             elif controller_type == ControllerType.U_CONST:
                 logger.warning("Generator %s Const. U control is not implemented yet. Skipping.", gen_name)
-                # TODO: implement U_CONST control
             else:
                 raise RuntimeError("Unreachable")
 
@@ -2820,8 +1902,6 @@ class PowerfactoryExporter:  # noqa: H601
                                 / u_nom
                                 * math.tan(math.acos(cosphi_r))
                             )
-                            # PF droop = 100%/m_tab2015 * 100*Exponents.VOLTAGE/u_nom * tan(phi)
-                            # PF droop = 100%/m_tar2018 * tan(phi)
 
                         # in default there should q_rated=s_r, but user could enter incorrectly
                         m_tab2015 = m_tab2015 * q_rated / s_r
@@ -2837,10 +1917,6 @@ class PowerfactoryExporter:  # noqa: H601
 
                 elif controller_type == ControllerType.Q_P:
                     logger.warning("Generator %s: Q(P) control is not implemented yet. Skipping.", gen_name)
-                    # TODO: implement Q(P) control
-                    # calculation below is only brief estimation
-                    # qmax_ue = abs(ctrl_ext.Qmin)
-                    # qmax_oe = abs(ctrl_ext.Qmax)
                 else:
                     raise RuntimeError("Unreachable")
 
@@ -2906,6 +1982,196 @@ class PowerfactoryExporter:  # noqa: H601
             udeadband_up=udeadband_up,
             udeadband_low=udeadband_low,
         )
+
+    @staticmethod
+    def transform_qu_slope(
+        slope: float,
+        given_format: Literal["2015", "2018"],
+        target_format: Literal["2015", "2018"],
+        u_n: float,
+    ) -> float:
+        """Transform slope of Q(U)-characteristic from given format type to another format type.
+
+        Arguments:
+            value {float} -- slope of Q(U)-characteristic
+            given_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
+            target_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
+            u_n {float} -- nominal voltage of the related controller, in V
+
+        Returns:
+            float -- transformed slope
+        """
+        if given_format == "2015" and target_format == "2018":
+            return slope / (1e3 / u_n * 100)  # 2018: (% von Pr) / (p.u. von Un)
+
+        if given_format == "2018" and target_format == "2015":
+            return slope * (1e3 / u_n * 100)  # 2015: (% von Pr) / kV
+
+        raise RuntimeError("Unreachable")
+
+    def create_transformers(
+        self,
+        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
+        grid_name: str,
+    ) -> Sequence[Transformer]:
+
+        transformers_2w = self.create_transformers_2w(pf_transformers_2w, grid_name)
+
+        return self.pfi.list_from_sequences(transformers_2w)
+
+    def create_transformers_2w(  # noqa: CCR001
+        self,
+        transformers_2w: Sequence[PFTypes.Transformer2W],
+        grid_name: str,
+    ) -> Sequence[Transformer]:
+
+        transformers: list[Transformer] = []
+        for transformer_2w in transformers_2w:
+            name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
+            export, description = self.get_description(transformer_2w)
+            if not export:
+                logger.warning("Transformer %s not set for export. Skipping.", name)
+                continue
+
+            if transformer_2w.buslv is None or transformer_2w.bushv is None:
+                logger.warning("Transformer %s not connected to buses on both sides. Skipping.", name)
+                continue
+
+            t_high = transformer_2w.bushv.cterm
+            t_low = transformer_2w.buslv.cterm
+
+            t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
+            t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
+
+            t_type = transformer_2w.typ_id
+
+            if t_type is not None:
+                t_number = transformer_2w.ntnum
+                vector_group = t_type.vecgrp
+
+                ph_technology = self.transformer_phase_technology(t_type)
+
+                # Transformer Tap Changer
+                tap_u_abs = t_type.dutap
+                tap_u_phi = t_type.phitr
+                tap_min = t_type.ntpmn
+                tap_max = t_type.ntpmx
+                tap_neutral = t_type.nntap0
+                tap_side = self.transformer_tap_side(t_type)
+
+                if bool(t_type.itapch2) is True:
+                    logger.warning("Transformer %s has second tap changer. Not supported so far. Skipping.", name)
+                    continue
+
+                # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
+                u_ref_h = t_type.utrn_h
+                u_ref_l = t_type.utrn_l
+
+                # Nominal Voltage of connected nodes (CIM: BaseVoltage)
+                u_nom_h = transformer_2w.bushv.cterm.uknom
+                u_nom_l = transformer_2w.buslv.cterm.uknom
+
+                # Rated values
+                p_fe = t_type.pfe  # kW
+                i_0 = t_type.curmg  # %
+                s_r = t_type.strn  # MVA
+
+                # Create Winding Objects
+                # Resulting impedance
+                pu2abs = u_ref_h**2 / s_r
+                r_1 = t_type.r1pu * pu2abs
+                r_0 = t_type.r0pu * pu2abs
+                x_1 = t_type.x1pu * pu2abs
+                x_0 = t_type.x0pu * pu2abs
+
+                # Wiring group
+                vector_h = t_type.tr2cn_h  # Wiring HV
+                vector_l = t_type.tr2cn_l  # Wiring LV
+                vector_phase_angle_clock = t_type.nt2ag
+
+                wh = Winding(
+                    node=t_high_name,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    r1=r_1,
+                    r0=r_0,
+                    x1=x_1,
+                    x0=x_0,
+                    vector_group=vector_h,
+                    phase_angle_clock=0,
+                )
+
+                wl = Winding(
+                    node=t_low_name,
+                    s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                    u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                    r1=float(0),
+                    r0=float(0),
+                    x1=float(0),
+                    x0=float(0),
+                    vector_group=vector_l,
+                    phase_angle_clock=int(vector_phase_angle_clock),
+                )
+
+                transformer = Transformer(
+                    node_1=t_high_name,
+                    node_2=t_low_name,
+                    name=name,
+                    number=t_number,
+                    i_0=i_0,
+                    p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
+                    vector_group=vector_group,
+                    tap_u_abs=tap_u_abs,
+                    tap_u_phi=tap_u_phi,
+                    tap_min=tap_min,
+                    tap_max=tap_max,
+                    tap_neutral=tap_neutral,
+                    tap_side=tap_side,
+                    description=description,
+                    phase_technology_type=ph_technology,
+                    windings=[wh, wl],
+                )
+                logger.debug("Created transformer %s", transformer)
+                transformers.append(transformer)
+            else:
+                logger.warning("Type not set for transformer %s. Skipping.", name)
+
+        return transformers
+
+    @staticmethod
+    def get_description(
+        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
+    ) -> tuple[bool, str]:
+        desc = element.desc
+        if desc[0]:
+            if desc[0] == "do_not_export":
+                return False, ""
+
+            return True, desc[0]
+
+        return True, ""
+
+    @staticmethod
+    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
+        tech_mapping = {
+            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
+            2: TransformerPhaseTechnologyType.SINGLE_PH,
+            3: TransformerPhaseTechnologyType.THREE_PH,
+        }
+        return tech_mapping[t_type.nt2ph]
+
+    @staticmethod
+    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
+        side_mapping_2w = {
+            0: TapSide.HV,
+            1: TapSide.LV,
+        }
+        if t_type.itapch:
+            return side_mapping_2w.get(t_type.tap_side)
+
+        return None
 
 
 def export_powerfactory_data(  # noqa: TMN001
