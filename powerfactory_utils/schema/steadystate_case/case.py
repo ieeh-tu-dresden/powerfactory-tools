@@ -8,7 +8,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from loguru import logger
-from pydantic.class_validators import validator
 
 from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import Meta
