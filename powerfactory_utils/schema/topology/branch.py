@@ -7,8 +7,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import BaseModel
-
+from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import VoltageSystemType
 
 
@@ -17,7 +16,7 @@ class BranchType(Enum):
     COUPLER = "COUPLER"
 
 
-class Branch(BaseModel):
+class Branch(Base):
     node_1: str
     node_2: str
     name: str
@@ -36,3 +35,6 @@ class Branch(BaseModel):
     f_n: float | None = None  # nominal frequency the values x and b apply
     description: str | None = None
     energized: bool | None = None
+
+    class Config:
+        frozen = True

@@ -13,3 +13,6 @@ from powerfactory_utils.schema.topology.load_model import LoadModel
 class ActivePower(Base):
     load_model: LoadModel | None = None
     characteristic: Characteristic | None = None
+
+    class Config:
+        frozen = True

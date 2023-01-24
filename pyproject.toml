@@ -5,12 +5,12 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = ["loguru", "pydantic", "typing_extensions"]
+  dependencies = ["loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "powerfactory-utils"
   readme = "README.md"
-  requires-python = ">=3.9,<3.11"
+  requires-python = ">=3.10,<3.11"
   version = "1.3.1"
 
   [project.urls]
@@ -114,7 +114,7 @@
       ]
       prototype = ["ipykernel"]
       test = ["pytest", "pytest-cov", "pytest-xdist"]
-      typing = ["mypy"]
+      typing = ["mypy @ git+https://github.com/python/mypy.git@master"]
 
 [tool.flake8]
   author-re = "^Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>$"

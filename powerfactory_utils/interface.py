@@ -19,6 +19,7 @@ from powerfactory_utils.exceptions import Exceptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+    from collections.abc import Sequence
     from typing import Any
     from typing import Literal
     from typing import TypeVar
@@ -29,13 +30,13 @@ if TYPE_CHECKING:
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 POWERFACTORY_VERSION = "2022 SP2"
-PYTHON_VERSION = "3.9"
+PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
 @dcs.dataclass
 class UnitConversionSetting:
-    filtclass: list[str]
+    filtclass: Sequence[str]
     filtvar: str
     digunit: str
     cdigexp: PFTypes.MetricPrefix
@@ -121,6 +122,8 @@ class PowerfactoryInterface:  # noqa: H601
 
     def close(self) -> None:
         self.reset_unit_conversion_settings()
+        self.app.PostCommand("exit")
+        del self.app
 
     def connect_to_app(self, pf: PFTypes.PowerFactoryModule) -> PFTypes.Application:
         """Connect to PowerFactory Application.
@@ -135,7 +138,7 @@ class PowerfactoryInterface:  # noqa: H601
         try:
             return pf.GetApplicationExt(self.powerfactory_user_profile)
         except pf.ExitError as element:
-            raise Exceptions.CouldNotCloseAppError from element
+            raise Exceptions.CouldNotStartAppError from element
 
     def connect_to_project(self, project_name: str) -> PFTypes.Project:
         """Connect to a PowerFactory project.
@@ -168,7 +171,8 @@ class PowerfactoryInterface:  # noqa: H601
             raise Exceptions.GridDeactivationError
 
     def activate_scenario(self, scen: PFTypes.Scenario) -> None:
-        if scen.Activate():
+        active_scen = self.app.GetActiveScenario()
+        if active_scen != scen and scen.Activate():
             raise Exceptions.ScenarioActivationError
 
     def deactivate_scenario(self, scen: PFTypes.Scenario) -> None:
@@ -266,7 +270,7 @@ class PowerfactoryInterface:  # noqa: H601
         if self.project.Deactivate():
             raise Exceptions.ProjectDeactivationError
 
-    def subloads_of(self, load: PFTypes.LoadLV) -> list[PFTypes.LoadLVP]:
+    def subloads_of(self, load: PFTypes.LoadLV) -> Sequence[PFTypes.LoadLVP]:
         elements = self.elements_of(load, pattern="*.ElmLodlvp")
         return [typing.cast("PFTypes.LoadLVP", element) for element in elements]
 
@@ -274,7 +278,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.element_of(self.study_case_dir, name)
         return typing.cast("PFTypes.StudyCase", element) if element is not None else None
 
-    def study_cases(self, name: str = "*") -> list[PFTypes.StudyCase]:
+    def study_cases(self, name: str = "*") -> Sequence[PFTypes.StudyCase]:
         elements = self.elements_of(self.study_case_dir, name)
         return [typing.cast("PFTypes.StudyCase", element) for element in elements]
 
@@ -282,7 +286,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.element_of(self.scenario_dir, name)
         return typing.cast("PFTypes.Scenario", element) if element is not None else None
 
-    def scenarios(self, name: str = "*") -> list[PFTypes.Scenario]:
+    def scenarios(self, name: str = "*") -> Sequence[PFTypes.Scenario]:
         elements = self.elements_of(self.scenario_dir, name)
         return [typing.cast("PFTypes.Scenario", element) for element in elements]
 
@@ -290,41 +294,41 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_model_element("TypLne", name)
         return typing.cast("PFTypes.LineType", element) if element is not None else None
 
-    def line_types(self, name: str = "*") -> list[PFTypes.LineType]:
+    def line_types(self, name: str = "*") -> Sequence[PFTypes.LineType]:
         elements = self.grid_model_elements("TypLne", name)
         return [typing.cast("PFTypes.LineType", element) for element in elements]
 
     def load_type(self, name: str = "*") -> PFTypes.DataObject | None:  # noqa: FNE004
         return self.grid_model_element("TypLod", name)
 
-    def load_types(self, name: str = "*") -> list[PFTypes.DataObject]:  # noqa: FNE004
+    def load_types(self, name: str = "*") -> Sequence[PFTypes.DataObject]:  # noqa: FNE004
         return self.grid_model_elements("TypLod", name)
 
     def transformer_2w_type(self, name: str = "*") -> PFTypes.Transformer2WType | None:
         element = self.grid_model_element("TypTr2", name)
         return typing.cast("PFTypes.Transformer2WType", element) if element is not None else None
 
-    def transformer_2w_types(self, name: str = "*") -> list[PFTypes.Transformer2WType]:
+    def transformer_2w_types(self, name: str = "*") -> Sequence[PFTypes.Transformer2WType]:
         elements = self.grid_model_elements("TypTr2", name)
         return [typing.cast("PFTypes.Transformer2WType", element) for element in elements]
 
     def area(self, name: str = "*") -> PFTypes.DataObject | None:
         return self.grid_model_element("ElmArea", name)
 
-    def areas(self, name: str = "*") -> list[PFTypes.DataObject]:
+    def areas(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.grid_model_elements("ElmArea", name)
 
     def zone(self, name: str = "*") -> PFTypes.DataObject | None:
         return self.grid_model_element("ElmZone", name)
 
-    def zones(self, name: str = "*") -> list[PFTypes.DataObject]:
+    def zones(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.grid_model_elements("ElmZone", name)
 
     def grid_diagram(self, grid: str = "*") -> PFTypes.GridDiagram | None:
         element = self.grid_element("IntGrfnet", grid=grid)
         return typing.cast("PFTypes.GridDiagram", element) if element is not None else None
 
-    def grid_diagrams(self, grid: str = "*") -> list[PFTypes.GridDiagram]:
+    def grid_diagrams(self, grid: str = "*") -> Sequence[PFTypes.GridDiagram]:
         elements = self.grid_elements("IntGrfnet", grid=grid)
         return [typing.cast("PFTypes.GridDiagram", element) for element in elements]
 
@@ -332,7 +336,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmXNet", name, grid)
         return typing.cast("PFTypes.ExternalGrid", element) if element is not None else None
 
-    def external_grids(self, name: str = "*", grid: str = "*") -> list[PFTypes.ExternalGrid]:
+    def external_grids(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.ExternalGrid]:
         elements = self.grid_elements("ElmXNet", name, grid)
         return [typing.cast("PFTypes.ExternalGrid", element) for element in elements]
 
@@ -340,7 +344,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmTerm", name, grid)
         return typing.cast("PFTypes.Terminal", element) if element is not None else None
 
-    def terminals(self, name: str = "*", grid: str = "*") -> list[PFTypes.Terminal]:
+    def terminals(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Terminal]:
         elements = self.grid_elements("ElmTerm", name, grid)
         return [typing.cast("PFTypes.Terminal", element) for element in elements]
 
@@ -348,7 +352,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_elements("StaCubic", name, grid)
         return typing.cast("PFTypes.StationCubicle", element) if element is not None else None
 
-    def cubicles(self, name: str = "*", grid: str = "*") -> list[PFTypes.StationCubicle]:
+    def cubicles(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements("StaCubic", name, grid)
         return [typing.cast("PFTypes.StationCubicle", element) for element in elements]
 
@@ -356,7 +360,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmCoup", name, grid)
         return typing.cast("PFTypes.Coupler", element) if element is not None else None
 
-    def couplers(self, name: str = "*", grid: str = "*") -> list[PFTypes.Coupler]:
+    def couplers(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Coupler]:
         elements = self.grid_elements("ElmCoup", name, grid)
         return [typing.cast("PFTypes.Coupler", element) for element in elements]
 
@@ -364,7 +368,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("StaSwitch", name, grid)
         return typing.cast("PFTypes.Switch", element) if element is not None else None
 
-    def switches(self, name: str = "*", grid: str = "*") -> list[PFTypes.Switch]:
+    def switches(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Switch]:
         elements = self.grid_elements("StaSwitch", name, grid)
         return [typing.cast("PFTypes.Switch", element) for element in elements]
 
@@ -372,7 +376,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("RelFuse", name, grid)
         return typing.cast("PFTypes.Fuse", element) if element is not None else None
 
-    def fuses(self, name: str = "*", grid: str = "*") -> list[PFTypes.Fuse]:
+    def fuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Fuse]:
         elements = self.grid_elements("RelFuse", name, grid)
         return [typing.cast("PFTypes.Fuse", element) for element in elements]
 
@@ -380,7 +384,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmLne", name, grid)
         return typing.cast("PFTypes.Line", element) if element is not None else None
 
-    def lines(self, name: str = "*", grid: str = "*") -> list[PFTypes.Line]:
+    def lines(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Line]:
         elements = self.grid_elements("ElmLne", name, grid)
         return [typing.cast("PFTypes.Line", element) for element in elements]
 
@@ -388,7 +392,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmTr2", name, grid)
         return typing.cast("PFTypes.Transformer2W", element) if element is not None else None
 
-    def transformers_2w(self, name: str = "*", grid: str = "*") -> list[PFTypes.Transformer2W]:
+    def transformers_2w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer2W]:
         elements = self.grid_elements("ElmTr2", name, grid)
         return [typing.cast("PFTypes.Transformer2W", element) for element in elements]
 
@@ -396,7 +400,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmTr3", name, grid)
         return typing.cast("PFTypes.Transformer3W", element) if element is not None else None
 
-    def transformers_3w(self, name: str = "*", grid: str = "*") -> list[PFTypes.Transformer3W]:
+    def transformers_3w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer3W]:
         elements = self.grid_elements("ElmTr3", name, grid)
         return [typing.cast("PFTypes.Transformer3W", element) for element in elements]
 
@@ -404,7 +408,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmLod", name, grid)
         return typing.cast("PFTypes.Load", element) if element is not None else None
 
-    def loads(self, name: str = "*", grid: str = "*") -> list[PFTypes.Load]:
+    def loads(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Load]:
         elements = self.grid_elements("ElmLod", name, grid)
         return [typing.cast("PFTypes.Load", element) for element in elements]
 
@@ -412,7 +416,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmLodLv", name, grid)
         return typing.cast("PFTypes.LoadLV", element) if element is not None else None
 
-    def loads_lv(self, name: str = "*", grid: str = "*") -> list[PFTypes.LoadLV]:
+    def loads_lv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadLV]:
         elements = self.grid_elements("ElmLodLv", name, grid)
         return [typing.cast("PFTypes.LoadLV", element) for element in elements]
 
@@ -420,7 +424,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmLodMv", name, grid)
         return typing.cast("PFTypes.LoadMV", element) if element is not None else None
 
-    def loads_mv(self, name: str = "*", grid: str = "*") -> list[PFTypes.LoadMV]:
+    def loads_mv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadMV]:
         elements = self.grid_elements("ElmLodMv", name, grid)
         return [typing.cast("PFTypes.LoadMV", element) for element in elements]
 
@@ -428,7 +432,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmGenstat", name, grid)
         return typing.cast("PFTypes.Generator", element) if element is not None else None
 
-    def generators(self, name: str = "*", grid: str = "*") -> list[PFTypes.Generator]:
+    def generators(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Generator]:
         elements = self.grid_elements("ElmGenstat", name, grid)
         return [typing.cast("PFTypes.Generator", element) for element in elements]
 
@@ -436,7 +440,7 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_element("ElmPvsys", name, grid)
         return typing.cast("PFTypes.PVSystem", element) if element is not None else None
 
-    def pv_systems(self, name: str = "*", grid: str = "*") -> list[PFTypes.PVSystem]:
+    def pv_systems(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements("ElmPvsys", name, grid)
         return [typing.cast("PFTypes.PVSystem", element) for element in elements]
 
@@ -450,7 +454,7 @@ class PowerfactoryInterface:  # noqa: H601
 
         return elements[0]
 
-    def grid_elements(self, class_name: str, name: str = "*", grid: str = "*") -> list[PFTypes.DataObject]:
+    def grid_elements(self, class_name: str, name: str = "*", grid: str = "*") -> Sequence[PFTypes.DataObject]:
         rv = [self.elements_of(g, name + "." + class_name) for g in self.grids(grid)]
         return self.list_from_sequences(*rv)
 
@@ -458,14 +462,14 @@ class PowerfactoryInterface:  # noqa: H601
         element = self.grid_model_element("ElmNet", name)
         return typing.cast("PFTypes.Grid", element) if element is not None else None
 
-    def grids(self, name: str = "*") -> list[PFTypes.Grid]:
+    def grids(self, name: str = "*") -> Sequence[PFTypes.Grid]:
         elements = self.grid_model_elements("ElmNet", name)
         return [typing.cast("PFTypes.Grid", element) for element in elements]
 
     def grid_model_element(self, class_name: str, name: str = "*") -> PFTypes.DataObject | None:
         return self.element_of(self.grid_model, name + "." + class_name)
 
-    def grid_model_elements(self, class_name: str, name: str = "*") -> list[PFTypes.DataObject]:
+    def grid_model_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.elements_of(self.grid_model, name + "." + class_name)
 
     def create_unit_conversion_setting(
@@ -480,7 +484,7 @@ class PowerfactoryInterface:  # noqa: H601
         for uc in ucs:
             self.delete_object(uc)
 
-    def unit_conversion_settings(self) -> list[PFTypes.UnitConversionSetting]:
+    def unit_conversion_settings(self) -> Sequence[PFTypes.UnitConversionSetting]:
         elements = self.elements_of(self.unit_settings_dir, pattern="*.SetVariable")
         return [typing.cast("PFTypes.UnitConversionSetting", element) for element in elements]
 
@@ -524,7 +528,7 @@ class PowerfactoryInterface:  # noqa: H601
 
     def elements_of(
         self, element: PFTypes.DataObject, pattern: str = "*", recursive: bool = True
-    ) -> list[PFTypes.DataObject]:
+    ) -> Sequence[PFTypes.DataObject]:
         return element.GetContents(pattern, recursive)
 
     @staticmethod
@@ -609,7 +613,7 @@ class PowerfactoryInterface:  # noqa: H601
         return terminal.cpSubstat is not None
 
     @staticmethod
-    def list_from_sequences(*sequences: Iterable[T]) -> list[T]:
+    def list_from_sequences(*sequences: Iterable[T]) -> Sequence[T]:
         """Combine iterable sequences with the same base type into one list.
 
         Arguments:
@@ -619,3 +623,15 @@ class PowerfactoryInterface:  # noqa: H601
             list -- list of elements of base type T
         """
         return list(itertools.chain.from_iterable([*sequences]))
+
+    @staticmethod
+    def set_from_sequences(*sequences: Iterable[T]) -> set[T]:
+        """Combine iterable sequences with the same base type into one set.
+
+        Arguments:
+            sequences {Iterable[T]} -- enumeration of sequences (all the same base type T)
+
+        Returns:
+            set -- set of elements of base type T
+        """
+        return set(itertools.chain.from_iterable([*sequences]))

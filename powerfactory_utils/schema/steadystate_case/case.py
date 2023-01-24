@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from loguru import logger
@@ -23,21 +22,12 @@ if TYPE_CHECKING:
 
 class Case(Base):
     meta: Meta
-    loads: Sequence[Load]
-    transformers: Sequence[Transformer]
-    external_grids: Sequence[ExternalGrid]
+    loads: set[Load]
+    transformers: set[Transformer]
+    external_grids: set[ExternalGrid]
 
-    @validator("loads")
-    def validate_loads(cls, value: Sequence[Load]) -> Sequence[Load]:  # noqa: U100
-        return list(set(value))
-
-    @validator("transformers")
-    def validate_transformers(cls, value: Sequence[Transformer]) -> Sequence[Transformer]:  # noqa: U100
-        return list(set(value))
-
-    @validator("external_grids")
-    def validate_external_grids(cls, value: Sequence[ExternalGrid]) -> Sequence[ExternalGrid]:  # noqa: U100
-        return list(set(value))
+    class Config:
+        frozen = True
 
     def is_valid_topology(self, topology: Topology) -> bool:
         logger.info("Verifying steadystate case ...")

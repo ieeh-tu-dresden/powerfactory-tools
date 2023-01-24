@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import TYPE_CHECKING
 
 from pydantic import validator
 
@@ -14,9 +13,6 @@ from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import VoltageSystemType
 from powerfactory_utils.schema.topology.active_power import ActivePower
 from powerfactory_utils.schema.topology.reactive_power import ReactivePower
-
-if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
 
 
 class LoadType(Enum):
@@ -66,7 +62,7 @@ class ProducerPhaseConnectionType(Enum):
     ONE_PH_PH_PH = "1PH_PH-PH"  # 4
 
 
-PhaseConnectionType: TypeAlias = ConsumerPhaseConnectionType | ProducerPhaseConnectionType  # type: ignore # mypy bug
+PhaseConnectionType = ConsumerPhaseConnectionType | ProducerPhaseConnectionType
 
 
 class ConsumerSystemType(Enum):
@@ -85,6 +81,9 @@ class RatedPower(Base):
     cosphi_s: float | None  # rated cos(phi) (phase s)
     cosphi_t: float | None  # rated cos(phi) (phase t)
 
+    class Config:
+        frozen = True
+
 
 class Load(Base):  # including assets of type load and generator
     name: str
@@ -98,6 +97,9 @@ class Load(Base):  # including assets of type load and generator
     system_type: ConsumerSystemType | ProducerSystemType | None = None
     phase_connection_type: PhaseConnectionType | None = None
     voltage_system_type: VoltageSystemType | None = None
+
+    class Config:
+        frozen = True
 
     @validator("rated_power")
     def validate_rated_power(cls, value: RatedPower) -> RatedPower:  # noqa: U100

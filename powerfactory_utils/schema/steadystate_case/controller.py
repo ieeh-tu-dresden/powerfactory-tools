@@ -6,11 +6,15 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import TYPE_CHECKING
 
 from pydantic import root_validator
 from pydantic.class_validators import validator
 
 from powerfactory_utils.schema.base import Base
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class CosphiDir(Enum):
@@ -132,67 +136,67 @@ class Controller(Base):
         return value
 
     @root_validator()
-    def validate_controller_type(cls, controller: Controller) -> Controller:  # noqa: U100
-        controller_type = controller.controller_type
+    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: U100
+        controller_type = values["controller_type"]
         if controller_type == ControllerType.COSPHI_CONST:
-            return validate_cosphi_const_controller(controller)
+            return validate_cosphi_const_controller(values)
 
         if controller_type == ControllerType.Q_CONST:
-            return validate_q_const_controller(controller)
+            return validate_q_const_controller(values)
 
         if controller_type == ControllerType.Q_U:
-            return validate_q_u_controller(controller)
+            return validate_q_u_controller(values)
 
         if controller_type == ControllerType.TANPHI_CONST:
-            return validate_tanphi_const_controller(controller)
+            return validate_tanphi_const_controller(values)
 
-        return controller
+        return values
 
 
-def validate_cosphi_const_controller(controller: Controller) -> Controller:
-    if controller.cosphi is None:
+def validate_cosphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
+    if values["cosphi"] is None:
         raise Exceptions.CosphiNotSpecifiedError("Cosphi")
 
-    if controller.cosphi_type is None:
+    if values["cosphi_type"] is None:
         raise Exceptions.CosphiTypeNotSpecifiedError("Cosphi")
 
-    return controller
+    return values
 
 
-def validate_q_const_controller(controller: Controller) -> Controller:
-    if controller.q_set is None:
+def validate_q_const_controller(values: dict[str, Any]) -> dict[str, Any]:
+    if values["q_set"] is None:
         raise Exceptions.QSetNotSpecifiedError
 
-    return controller
+    return values
 
 
-def validate_q_u_controller(controller: Controller) -> Controller:
-    if controller.u_q0 is None:
+def validate_q_u_controller(values: dict[str, Any]) -> dict[str, Any]:
+    if values["u_q0"] is None:
         raise Exceptions.UQ0NotSpecifiedError
 
-    if controller.udeadband_up is None:
+    if values["udeadband_up"] is None:
         raise Exceptions.UdeadbandUpNotSpecifiedError
 
-    if controller.udeadband_low is None:
+    if values["udeadband_low"] is None:
         raise Exceptions.UdeadbandLowNotSpecifiedError
 
-    if controller.qmax_oe is None:
+    if values["qmax_oe"] is None:
         raise Exceptions.QmaxOENotSpecifiedError
 
-    if controller.qmax_ue is None:
+    if values["qmax_ue"] is None:
         raise Exceptions.QmaxUENotSpecifiedError
 
-    if controller.m_tab2015 is None and controller.m_tar2018 is None:
+    if values["m_tab2015"] is None and values["m_tar2018"] is None:
         raise Exceptions.TabTarNotSpecifiedError
 
-    return controller
+    return values
 
 
-def validate_tanphi_const_controller(controller: Controller) -> Controller:
-    if controller.cosphi is None:
+def validate_tanphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
+    if values["cosphi"] is None:
         raise Exceptions.CosphiNotSpecifiedError("Tanphi")
 
-    if controller.cosphi_type is None:
+    if values["cosphi_type"] is None:
         raise Exceptions.CosphiTypeNotSpecifiedError("Tanphi")
 
-    return controller
+    return values

@@ -24,9 +24,9 @@ class Exceptions:
         def __init__(self) -> None:
             super().__init__("Could not deactivate project.")
 
-    class CouldNotCloseAppError(RuntimeError):
+    class CouldNotStartAppError(RuntimeError):
         def __init__(self) -> None:
-            super().__init__("Could not close application.")
+            super().__init__("Could not start application.")
 
     class GridActivationError(RuntimeError):
         def __init__(self) -> None:

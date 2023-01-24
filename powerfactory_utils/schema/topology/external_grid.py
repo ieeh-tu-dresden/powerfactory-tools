@@ -23,3 +23,6 @@ class ExternalGrid(Base):
     type: GridType  # noqa: A003, VNE003
     short_circuit_power_max: float
     short_circuit_power_min: float
+
+    class Config:
+        frozen = True

@@ -5,10 +5,15 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import root_validator
 
 from powerfactory_utils.constants import DecimalDigits
 from powerfactory_utils.schema.base import Base
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class ActivePower(Base):
@@ -22,9 +27,9 @@ class ActivePower(Base):
         frozen = True
 
     @root_validator
-    def validate_power(cls, active_power: ActivePower) -> ActivePower:  # noqa: U100
-        p_total = round(active_power.value_r_0 + active_power.value_s_0 + active_power.value_t_0, DecimalDigits.POWER)
-        if not (p_total == active_power.value_0):
-            raise ValueError(f"Power mismatch: Total reactive power should be {p_total}, is {active_power.value_0}.")
+    def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: U100
+        p_total = round(values["value_r_0"] + values["value_s_0"] + values["value_t_0"], DecimalDigits.POWER)
+        if not (p_total == values["value_0"]):
+            raise ValueError(f"Power mismatch: Total reactive power should be {p_total}, is {values['value_0']}.")
 
-        return active_power
+        return values

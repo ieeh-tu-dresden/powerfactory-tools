@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+# :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :license: BSD 3-Clause
 
 from __future__ import annotations
-
-from collections.abc import Sequence
-
-from pydantic.class_validators import validator
 
 from powerfactory_utils.schema.base import Base
 from powerfactory_utils.schema.base import Meta
@@ -13,8 +12,7 @@ from powerfactory_utils.schema.topology_case.element_state import ElementState
 
 class Case(Base):
     meta: Meta
-    elements: Sequence[ElementState]
+    elements: set[ElementState]
 
-    @validator("elements")
-    def validate_elements(cls, value: Sequence[ElementState]) -> Sequence[ElementState]:  # noqa: U100
-        return list(set(value))
+    class Config:
+        frozen = True

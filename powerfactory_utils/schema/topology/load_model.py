@@ -5,9 +5,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pydantic import root_validator
 
 from powerfactory_utils.schema.base import Base
+
+if TYPE_CHECKING:
+    from typing import Any
 
 
 class LoadModel(Base):
@@ -24,26 +29,29 @@ class LoadModel(Base):
     exp_i: float = 1
     exp_z: float = 2
 
+    class Config:
+        frozen = True
+
     @root_validator
-    def validate_range_c(cls, load_model: LoadModel) -> LoadModel:  # noqa: U100
-        name = load_model.name
+    def validate_range_c(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: U100
+        name = values["name"]
 
         # validate c_p
-        c_p = load_model.c_p
+        c_p = values["c_p"]
         if not (0 <= c_p <= 1):
             raise ValueError(f"Load model {name!r}: Components must be in the range between 0 and 1, but {c_p=}.")
 
         # validate c_i
-        c_i = load_model.c_i
+        c_i = values["c_i"]
         if not (0 <= c_i <= 1):
             raise ValueError(f"Load model {name!r}: Components must be in the range between 0 and 1, but {c_i=}.")
 
         if c_p + c_i > 1:
             raise ValueError(f"Load model {name!r}: Sum of components must not exceed 1, but {(c_p + c_i)=}.")
 
-        return load_model
+        return values
 
     @root_validator
-    def compute_c_z(cls, load_model: LoadModel) -> LoadModel:  # noqa: U100
-        load_model.c_z = 1 - load_model.c_p - load_model.c_i
-        return load_model
+    def compute_c_z(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: U100
+        values["c_z"] = 1 - values["c_p"] - values["c_i"]
+        return values

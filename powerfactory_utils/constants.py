@@ -3,14 +3,18 @@
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
-import dataclasses as dcs
+from __future__ import annotations
 
-from powerfactory_utils.powerfactory_types import PowerFactoryTypes as PFTypes
+from typing import TYPE_CHECKING
 
-UnitConversion = tuple[str, PFTypes.MetricPrefix, PFTypes.MetricPrefix]
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from powerfactory_utils.powerfactory_types import PowerFactoryTypes as PFTypes
+
+    UnitConversion = tuple[str, PFTypes.MetricPrefix, PFTypes.MetricPrefix]
 
 
-@dcs.dataclass
 class Exponents:
     VOLTAGE = 10**3
     CURRENT = 10**3
@@ -21,8 +25,7 @@ class Exponents:
     POWER = 10**6
 
 
-@dcs.dataclass
-class DecimalDigits:
+class DecimalDigits:  # noqa: PIE795
     COSPHI = 6
     VOLTAGE = 3
     CURRENT = 3
@@ -30,12 +33,11 @@ class DecimalDigits:
     PU = 4
 
 
-@dcs.dataclass
-class BaseUnits:
+class BaseUnits:  # noqa: PIE793
     LENGTH: PFTypes.MetricPrefix = "k"
     POWER: PFTypes.MetricPrefix = "M"
     CURRENCY: PFTypes.Currency = "EUR"
-    UNITCONVERSIONS: dict[str, list[UnitConversion]] = {
+    UNITCONVERSIONS: dict[str, Sequence[UnitConversion]] = {
         "ElmLodlv": [
             ("A", "", "k"),
             ("W", "k", "M"),

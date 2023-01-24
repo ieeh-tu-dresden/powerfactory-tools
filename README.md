@@ -8,6 +8,7 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
   - [ Installation](#-installation)
+  - [ Compatibility](#-compatibility)
   - [ Development](#-development)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
@@ -42,6 +43,11 @@ Just install via pip:
 ```bash
 pip install powerfactory-utils
 ```
+
+## <div id="compatibility" /> Compatibility
+
+Due to very useful features in `python 3.10+` - which is supported by `PowerFactory 2022`, we decided to drop `python 3.9` starting from version `1.4`. Users that use an older `PowerFactory` version, please use version `1.3`.
+
 ## <div id="development" /> Development
 
 Install [pdm](https://github.com/pdm-project/pdm)

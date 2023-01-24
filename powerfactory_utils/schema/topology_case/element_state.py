@@ -9,9 +9,9 @@ from powerfactory_utils.schema.base import Base
 
 
 class ElementState(Base):
-    class Config:
-        frozen = True
-
     name: str
     disabled: bool = False
     open_switches: tuple[str, ...] = Field(default_factory=tuple)
+
+    class Config:
+        frozen = True

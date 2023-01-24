@@ -30,7 +30,7 @@ class Base(BaseModel):
         file_path = pathlib.Path(file_path)
         file_path.parent.mkdir(parents=True, exist_ok=True)
         with file_path.open("w+", encoding="utf-8") as file_handle:
-            file_handle.write(self.json(indent=indent))
+            file_handle.write(self.json(indent=indent, sort_keys=True))
 
     @classmethod
     def from_json(cls, json_str: str) -> Base:

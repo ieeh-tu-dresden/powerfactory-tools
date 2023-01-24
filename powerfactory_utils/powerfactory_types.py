@@ -6,12 +6,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 from typing import Literal
 from typing import Protocol
-
-if TYPE_CHECKING:
-    from typing_extensions import TypeAlias
 
 
 class PowerFactoryTypes:
@@ -116,7 +112,7 @@ class PowerFactoryTypes:
 
         def GetContents(  # noqa: N802
             self, filter: str, recursive: bool = False  # noqa: A002, VNE003
-        ) -> list[PowerFactoryTypes.DataObject]:
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
 
         def CreateObject(  # noqa: N802
@@ -173,7 +169,7 @@ class PowerFactoryTypes:
         currency: PowerFactoryTypes.Currency
 
     class UnitConversionSetting(DataObject, Protocol):
-        filtclass: list[str]
+        filtclass: Sequence[str]
         filtvar: str
         digunit: str
         cdigexp: PowerFactoryTypes.MetricPrefix
@@ -184,9 +180,6 @@ class PowerFactoryTypes:
 
     class DataDir(DataObject, Protocol):
         ...
-
-    BasePFReturnData: TypeAlias = DataObject | float | str  # type: ignore # mypy bug
-    DefaultPFReturnData = BasePFReturnData | list[BasePFReturnData] | None
 
     class Substation(DataObject, Protocol):
         ...
@@ -267,7 +260,7 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.SwitchType | None
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         isclosed: bool  # 0:open; 1:closed
-        desc: list[str]
+        desc: Sequence[str]
 
     class Grid(DataObject, Protocol):
         def Activate(self) -> bool:  # noqa: N802, FNE005
@@ -278,17 +271,17 @@ class PowerFactoryTypes:
 
     class LineBase(DataObject, Protocol):
         cDisplayName: str  # noqa: N815
-        desc: list[str]
+        desc: Sequence[str]
         outserv: bool
 
     class Terminal(DataObject, Protocol):
         cDisplayName: str  # noqa: N815
-        desc: list[str]
+        desc: Sequence[str]
         uknom: float
         iUsage: Literal[0, 1, 2]  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
         outserv: bool
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
-        cubics: list[PowerFactoryTypes.StationCubicle]
+        cubics: Sequence[PowerFactoryTypes.StationCubicle]
 
     class StationCubicle(DataObject, Protocol):
         cterm: PowerFactoryTypes.Terminal
@@ -338,7 +331,7 @@ class PowerFactoryTypes:
         ...
 
     class Element(DataObject, Protocol):
-        desc: list[str]
+        desc: Sequence[str]
         pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
@@ -475,7 +468,7 @@ class PowerFactoryTypes:
     class ExternalGrid(DataObject, Protocol):
         bustp: PowerFactoryTypes.BusType
         bus1: PowerFactoryTypes.StationCubicle | None
-        desc: list[str]
+        desc: Sequence[str]
         usetp: float  # in p.u.
         pgini: float  # in MW
         qgini: float  # in Mvar
@@ -498,7 +491,13 @@ class PowerFactoryTypes:
         def GetActiveProject(self) -> PowerFactoryTypes.Project:  # noqa: N802
             ...
 
+        def GetActiveScenario(self) -> PowerFactoryTypes.Scenario | None:  # noqa: N802
+            ...
+
         def GetProjectFolder(self, name: str) -> PowerFactoryTypes.DataObject:  # noqa: N802
+            ...
+
+        def PostCommand(self, command: Literal["exit"]) -> None:  # noqa: N802
             ...
 
     class PowerFactoryModule(Protocol):
