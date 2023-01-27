@@ -1,10 +1,10 @@
-# Powerfactory Utils
+# IEEH PowerFactory Utils
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
-- [Powerfactory Utils](#powerfactory-utils)
+- [IEEH PowerFactory Utils](#ieeh-powerfactory-utils)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
   - [ Installation](#-installation)
@@ -41,7 +41,7 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 Just install via pip:
 
 ```bash
-pip install powerfactory-utils
+pip install ieeh-powerfactory-utils
 ```
 
 ## <div id="compatibility" /> Compatibility
