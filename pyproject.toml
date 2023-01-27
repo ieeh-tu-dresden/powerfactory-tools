@@ -150,10 +150,12 @@
   max-complexity = 12
   max-function-return-stmts = 5
   max-line-length = 120
-  min_python_version = 3.10
+  min_python_version = "3.10"
   type-checking-pydantic-enabled = true
   unused-arguments-ignore-abstract-functions = true
   unused-arguments-ignore-stub-functions = true
+  [tool.flake8.known-modules]
+    ieeh-powerfactory-utils = ["powerfactory_utils"]
 
 [tool.black]
   line_length = 120
