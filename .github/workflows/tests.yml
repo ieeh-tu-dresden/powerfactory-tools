@@ -39,4 +39,4 @@ jobs:
         run: pdm install
 
       - name: Unit test using pytest
-        run: pdm run pytest --cov=powerfactory_utils tests/ -n 2
+        run: pdm run pytest --cov=powerfactory_tools tests/ -n 2

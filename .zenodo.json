@@ -1,6 +1,6 @@
 {
-  "description": "Powerfactory Utils is a toolbox for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
-  "title": "Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory",
+  "description": "Powerfactory Tools is a toolbox for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
+  "title": "Powerfactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory",
   "version": "1.3.1",
   "upload_type": "software",
   "keywords": [
@@ -18,11 +18,11 @@
   ],
   "license": "BSD-3-Clause",
   "access_right": "open",
-  "notes": "Specific Powerfactory Utils versions can be found in the \"Versions\" list on the right side of this page.<br>See the full list of authors <a href=\"https://github.com/ieeh-tu-dresden/powerfactory-utils/graphs/contributors\"> on GitHub</a>.",
+  "notes": "Specific Powerfactory Tools versions can be found in the \"Versions\" list on the right side of this page.<br>See the full list of authors <a href=\"https://github.com/ieeh-tu-dresden/powerfactory-tools/graphs/contributors\"> on GitHub</a>.",
   "related_identifiers": [
     {
       "scheme": "url",
-      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/1.3.1",
+      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-tools/tree/1.3.1",
       "relation": "isSupplementTo"
     }
   ]

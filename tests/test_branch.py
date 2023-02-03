@@ -1,5 +1,5 @@
-from powerfactory_utils.schema.topology.branch import Branch
-from powerfactory_utils.schema.topology.branch import BranchType
+from powerfactory_tools.schema.topology.branch import Branch
+from powerfactory_tools.schema.topology.branch import BranchType
 
 
 def test_init() -> None:

@@ -8,13 +8,13 @@
   dependencies = ["loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
-  name = "ieeh-powerfactory-utils"
+  name = "ieeh-powerfactory-tools"
   readme = "README.md"
   requires-python = ">=3.10,<3.11"
   version = "1.3.1"
 
   [project.urls]
-    Source = "https://github.com/ieeh-tu-dresden/powerfactory-utils"
+    Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
 
   [project.optional-dependencies]
 
@@ -155,7 +155,7 @@
   unused-arguments-ignore-abstract-functions = true
   unused-arguments-ignore-stub-functions = true
   [tool.flake8.known-modules]
-    ieeh-powerfactory-utils = ["powerfactory_utils"]
+    ieeh-powerfactory-tools = ["powerfactory_tools"]
 
 [tool.black]
   line_length = 120
@@ -179,7 +179,7 @@
 [tool.mypy]
   follow_imports         = "skip"
   ignore_missing_imports = true
-  mypy_path              = "powerfactory_utils"
+  mypy_path              = "powerfactory_tools"
   namespace_packages     = true
   plugins                = "pydantic.mypy"
   strict_optional        = true
@@ -188,14 +188,14 @@
   warn_unused_ignores    = true
 
 [tool.pytest.ini_options]
-  addopts      = "-ra --strict-markers -p pytester --cov=powerfactory_utils --cov-report xml --cov-report term"
+  addopts      = "-ra --strict-markers -p pytester --cov=powerfactory_tools --cov-report xml --cov-report term"
   python_files = "test_*.py"
   testpaths    = ["tests"]
 
 [tool.coverage.run]
   branch = true
   omit   = ["__pypackages__/*", "build/*", "tests/*"]
-  source = ["powerfactory_utils"]
+  source = ["powerfactory_tools"]
 
 [tool.coverage.report]
   show_missing = true

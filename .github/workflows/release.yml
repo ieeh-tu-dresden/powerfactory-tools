@@ -71,10 +71,10 @@ jobs:
         run: pdm run python -c '$COMMAND'
         env:
           COMMAND: |
-            from powerfactory_utils.schema.base import VERSION
-            from powerfactory_utils.schema.steadystate_case.case import Case as SteadystateCase
-            from powerfactory_utils.schema.topology.topology import Topology
-            from powerfactory_utils.schema.topology_case.case import Case as TopologyCase
+            from powerfactory_tools.schema.base import VERSION
+            from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
+            from powerfactory_tools.schema.topology.topology import Topology
+            from powerfactory_tools.schema.topology_case.case import Case as TopologyCase
             from pathlib import Path
             f_top = Path(f"./schema/{VERSION}/topology.json")
             f_top.parent.mkdir(exist_ok=True, parents=True)
@@ -100,7 +100,7 @@ jobs:
         run: echo "`jq '.publication_date="${{ steps.get_date.outputs.date }}"' .zenodo.json`" > .zenodo.json
 
       - name: Update .zenodo.json url
-        run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-utils/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
+        run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-tools/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
 
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@master
