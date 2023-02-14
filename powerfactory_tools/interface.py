@@ -196,7 +196,7 @@ class PowerfactoryInterface:
         project_settings.cspqexpgen = BaseUnits.POWER
         project_settings.currency = BaseUnits.CURRENCY
         for cls, data in BaseUnits.UNITCONVERSIONS.items():
-            for (unit, base_exp, exp) in data:
+            for unit, base_exp, exp in data:
                 name = f"{cls}-{unit}"
                 uc = UnitConversionSetting(
                     filtclass=[cls],

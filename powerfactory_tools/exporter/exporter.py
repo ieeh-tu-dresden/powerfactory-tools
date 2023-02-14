@@ -119,7 +119,6 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
     ) -> None:
-
         super().__init__()
         self.export_path = export_path
         self.project_name = project_name
@@ -501,7 +500,6 @@ class PowerfactoryExporter:
         couplers: Sequence[PFTypes.Coupler],
         grid_name: str,
     ) -> Sequence[Branch]:
-
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
 
@@ -679,7 +677,6 @@ class PowerfactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[Load]:
-
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
         load_mvs = self.create_loads_mv(consumers_mv, grid_name)
@@ -788,7 +785,6 @@ class PowerfactoryExporter:
         system_type: ConsumerSystemType | None = None,
         name_suffix: str = "",
     ) -> Load | None:
-
         export, description = self.get_description(load)
         if not export:
             logger.warning(
@@ -888,7 +884,6 @@ class PowerfactoryExporter:
     def consumer_technology_of(
         load: PFTypes.LoadBase,
     ) -> tuple[VoltageSystemType | None, ConsumerPhaseConnectionType | None]:
-
         phase_con_dict = {
             0: ConsumerPhaseConnectionType.THREE_PH_D,
             2: ConsumerPhaseConnectionType.THREE_PH_PH_E,
@@ -923,7 +918,6 @@ class PowerfactoryExporter:
         generators: Sequence[PFTypes.Generator],
         grid_name: str,
     ) -> set[Load]:
-
         producers: set[Load] = set()
         for gen in generators:
             producer_system_type = self.producer_system_type_of(gen)
@@ -990,7 +984,6 @@ class PowerfactoryExporter:
         generators: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> set[Load]:
-
         producers: set[Load] = set()
         for gen in generators:
             producer_system_type = ProducerSystemType.PV
@@ -1014,7 +1007,6 @@ class PowerfactoryExporter:
 
     @staticmethod
     def producer_technology_of(load: PFTypes.GeneratorBase) -> ProducerPhaseConnectionType | None:
-
         phase_con_dict = {
             0: ProducerPhaseConnectionType.THREE_PH,
             1: ProducerPhaseConnectionType.THREE_PH_E,
@@ -1057,7 +1049,6 @@ class PowerfactoryExporter:
         external_controller_name: str | None = None,
         name_suffix: str = "",
     ) -> Load | None:
-
         gen_name = self.pfi.create_name(gen, grid_name, element_name=gen_name) + name_suffix
 
         export, description = self.get_description(gen)
@@ -1674,7 +1665,6 @@ class PowerfactoryExporter:
         loads: Sequence[PFTypes.LoadMV],
         grid_name: str,
     ) -> set[LoadSSC]:
-
         loads_ssc: set[LoadSSC] = set()
         for load in loads:
             power = self.calc_load_mv_power(load)
@@ -1797,7 +1787,6 @@ class PowerfactoryExporter:
         grid_name: str,
         name_suffix: str = "",
     ) -> LoadSSC | None:
-
         name = self.pfi.create_name(load, grid_name) + name_suffix
         export, _ = self.get_description(load)
         if not export:
@@ -1819,10 +1808,8 @@ class PowerfactoryExporter:
         self,
         generators: Sequence[PFTypes.GeneratorBase],
     ) -> set[LoadSSC]:
-
         producers_ssc: set[LoadSSC] = set()
         for gen in generators:
-
             gen_name = self.pfi.create_generator_name(gen)
 
             export, _ = self.get_description(gen)
@@ -1910,7 +1897,6 @@ class PowerfactoryExporter:
         u_n: float,
         ext_ctrl: PFTypes.StationController | None,
     ) -> Controller:
-
         controller_type_dict_default = {
             "constv": ControllerType.U_CONST,
             "constc": ControllerType.COSPHI_CONST,
@@ -2130,7 +2116,6 @@ class PowerfactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
-
         transformers_2w = self.create_transformers_2w(pf_transformers_2w, grid_name)
 
         return self.pfi.list_from_sequences(transformers_2w)
@@ -2140,7 +2125,6 @@ class PowerfactoryExporter:
         transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> set[Transformer]:
-
         transformers: set[Transformer] = set()
         for transformer_2w in transformers_2w:
             name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)

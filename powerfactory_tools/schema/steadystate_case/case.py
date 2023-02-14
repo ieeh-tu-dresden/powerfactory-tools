@@ -99,7 +99,8 @@ class Case(Base):
         for ext_grid in topology.external_grids:
             if ext_grid.name not in external_grid_names:
                 logger.error(
-                    "External grid {ext_grid_name} is not in steadystate case.", extra={"ext_grid_name": ext_grid.name},
+                    "External grid {ext_grid_name} is not in steadystate case.",
+                    extra={"ext_grid_name": ext_grid.name},
                 )
                 return False
 
