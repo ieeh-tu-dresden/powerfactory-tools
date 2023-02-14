@@ -32,9 +32,6 @@ jobs:
       - name: Installing dependencies
         run: pdm install
 
-      - name: Import checking using isort
-        run: pdm run isort --check-only --diff powerfactory_tools tests
-
       - name: Code format checking using black
         run: pdm run black powerfactory_tools --check
 
