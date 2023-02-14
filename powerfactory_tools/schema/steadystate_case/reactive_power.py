@@ -7,8 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import root_validator
-from pydantic import validator
+import pydantic
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.schema.base import Base
@@ -29,11 +28,11 @@ class ReactivePower(Base):
     class Config:
         frozen = True
 
-    @validator("controller")
-    def validate_controller(cls, value: Controller) -> Controller:  # noqa: N805 # bug
+    @pydantic.validator("controller")
+    def validate_controller(cls, value: Controller) -> Controller:
         return value
 
-    @root_validator
+    @pydantic.root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
         q_total = round(values["value_r_0"] + values["value_s_0"] + values["value_t_0"], DecimalDigits.POWER)
         if q_total != values["value_0"]:

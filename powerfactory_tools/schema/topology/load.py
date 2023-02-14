@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import validator
+import pydantic
 
 from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.base import VoltageSystemType
@@ -101,8 +101,8 @@ class Load(Base):  # including assets of type load and generator
     class Config:
         frozen = True
 
-    @validator("rated_power")
-    def validate_rated_power(cls, value: RatedPower) -> RatedPower:  # noqa: N805 # bug
+    @pydantic.validator("rated_power")
+    def validate_rated_power(cls, value: RatedPower) -> RatedPower:
         cosphi = value.cosphi
         if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
             msg = f"Rated {cosphi=} must be within range [0 1]."

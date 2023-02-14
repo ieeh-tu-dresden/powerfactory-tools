@@ -8,8 +8,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import TYPE_CHECKING
 
-from pydantic import root_validator
-from pydantic.class_validators import validator
+import pydantic
 
 from powerfactory_tools.schema.base import Base
 
@@ -84,40 +83,40 @@ class Controller(Base):
     class Config:
         frozen = True
 
-    @validator("cosphi")
-    def validate_cosphi(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+    @pydantic.validator("cosphi")
+    def validate_cosphi(cls, value: float | None) -> float | None:
         if value is not None and (not (-1 <= value <= 1)):
             msg = f"Cosphi must be between -1 and 1, but is {value}."
             raise ValueError(msg)
 
         return value
 
-    @validator("qmax_ue")
-    def validate_qmax_ue(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+    @pydantic.validator("qmax_ue")
+    def validate_qmax_ue(cls, value: float | None) -> float | None:
         if value is not None and (value < 0):
             msg = f"qmax_ue must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
             raise ValueError(msg)
 
         return value
 
-    @validator("qmax_oe")
-    def validate_qmax_oe(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+    @pydantic.validator("qmax_oe")
+    def validate_qmax_oe(cls, value: float | None) -> float | None:
         if value is not None and (value < 0):
             msg = f"qmax_oe must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
             raise ValueError(msg)
 
         return value
 
-    @validator("udeadband_up")
-    def validate_udeadband_up(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+    @pydantic.validator("udeadband_up")
+    def validate_udeadband_up(cls, value: float | None) -> float | None:
         if value is not None and (value < 0):
             msg = f"udeadband_up must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
             raise ValueError(msg)
 
         return value
 
-    @validator("udeadband_low")
-    def validate_udeadband_low(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+    @pydantic.validator("udeadband_low")
+    def validate_udeadband_low(cls, value: float | None) -> float | None:
         if value is not None and (value < 0):
             msg = (
                 f"udeadband_low must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
@@ -126,8 +125,8 @@ class Controller(Base):
 
         return value
 
-    @root_validator()
-    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: N805 # bug
+    @pydantic.root_validator()
+    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:
         controller_type = values["controller_type"]
         if controller_type == ControllerType.COSPHI_CONST:
             return validate_cosphi_const_controller(values)

@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
+
 if TYPE_CHECKING:
     from collections.abc import Sequence
-
-    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 
     UnitConversion = tuple[str, PFTypes.MetricPrefix, PFTypes.MetricPrefix]
 
