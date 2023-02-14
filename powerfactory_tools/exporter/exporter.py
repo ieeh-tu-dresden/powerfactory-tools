@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -20,6 +20,10 @@ from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exceptions import Exceptions
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerfactoryInterface
+from powerfactory_tools.powerfactory_types import CosphiChar
+from powerfactory_tools.powerfactory_types import CtrlMode
+from powerfactory_tools.powerfactory_types import IOpt
+from powerfactory_tools.powerfactory_types import PowReactChar
 from powerfactory_tools.schema.base import Meta
 from powerfactory_tools.schema.base import VoltageSystemType
 from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
@@ -64,6 +68,9 @@ if TYPE_CHECKING:
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 POWERFACTORY_VERSION = "2022 SP2"
 
+FULL_DYNAMIC = 100
+M_TAB2015_MIN_THRESHOLD = 0.01
+
 
 @dataclass
 class LoadLV:
@@ -99,8 +106,9 @@ class PowerfactoryData:
 
 
 class PowerfactoryExporterProcess(multiprocessing.Process):
-    def __init__(  # noqa: TMN001
+    def __init__(
         self,
+        *,
         export_path: pathlib.Path,
         project_name: str,
         grid_name: str,
@@ -146,7 +154,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
 
 
 @dataclass
-class PowerfactoryExporter:  # noqa: H601
+class PowerfactoryExporter:
     project_name: str
     grid_name: str
     powerfactory_user_profile: str = ""
@@ -166,9 +174,9 @@ class PowerfactoryExporter:  # noqa: H601
 
     def __exit__(
         self,
-        exc_type: type[BaseException],  # noqa: U100
-        exc_val: BaseException,  # noqa: U100
-        exc_tb: TracebackType,  # noqa: U100
+        exc_type: type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType,
     ) -> None:
         self.pfi.close()
 
@@ -205,14 +213,19 @@ class PowerfactoryExporter:  # noqa: H601
 
         self.export_topology(topology=topology, topology_name=topology_name, export_path=export_path)
         self.export_topology_case(
-            topology_case=topology_case, topology_case_name=topology_case_name, export_path=export_path
+            topology_case=topology_case,
+            topology_case_name=topology_case_name,
+            export_path=export_path,
         )
         self.export_steadystate_case(
-            steadystate_case=steadystate_case, steadystate_case_name=steadystate_case_name, export_path=export_path
+            steadystate_case=steadystate_case,
+            steadystate_case_name=steadystate_case_name,
+            export_path=export_path,
         )
 
     def export_scenario(
         self,
+        *,
         export_path: pathlib.Path,
         scenario_name: str | None,
         topology_case_name: str | None = None,
@@ -248,10 +261,14 @@ class PowerfactoryExporter:  # noqa: H601
                 raise Exceptions.SteadystateCaseNotValidError
 
         self.export_topology_case(
-            topology_case=topology_case, topology_case_name=topology_case_name, export_path=export_path
+            topology_case=topology_case,
+            topology_case_name=topology_case_name,
+            export_path=export_path,
         )
         self.export_steadystate_case(
-            steadystate_case=steadystate_case, steadystate_case_name=steadystate_case_name, export_path=export_path
+            steadystate_case=steadystate_case,
+            steadystate_case_name=steadystate_case_name,
+            export_path=export_path,
         )
 
     def export_topology(self, topology: Topology, topology_name: str | None, export_path: pathlib.Path) -> None:
@@ -263,7 +280,10 @@ class PowerfactoryExporter:  # noqa: H601
         )
 
     def export_topology_case(
-        self, topology_case: TopologyCase, topology_case_name: str | None, export_path: pathlib.Path
+        self,
+        topology_case: TopologyCase,
+        topology_case_name: str | None,
+        export_path: pathlib.Path,
     ) -> None:
         self.export_data(
             data=topology_case,
@@ -273,7 +293,10 @@ class PowerfactoryExporter:  # noqa: H601
         )
 
     def export_steadystate_case(
-        self, steadystate_case: SteadystateCase, steadystate_case_name: str | None, export_path: pathlib.Path
+        self,
+        steadystate_case: SteadystateCase,
+        steadystate_case_name: str | None,
+        export_path: pathlib.Path,
     ) -> None:
         self.export_data(
             data=steadystate_case,
@@ -310,7 +333,7 @@ class PowerfactoryExporter:  # noqa: H601
         except OSError as e:
             logger.exception(
                 "File path {file_path} is not a valid path. Please provide a valid file path.",
-                extra={"file_path": file_path},
+                file_path=file_path,
             )
             raise Exceptions.InvalidPathError from e
 
@@ -323,7 +346,7 @@ class PowerfactoryExporter:  # noqa: H601
         else:
             logger.error(
                 "Study case {sc} does not exist. Cancel switch of study case.",
-                extra={"sc": sc},
+                sc=sc,
             )
             raise Exceptions.StudyCaseSwitchError(sc)
 
@@ -334,7 +357,7 @@ class PowerfactoryExporter:  # noqa: H601
         else:
             logger.error(
                 "Scenario {scen} does not exist. Cancel switch of scenario.",
-                extra={"scen": scen},
+                scen=scen,
             )
             raise Exceptions.ScenarioSwitchError(scen)
 
@@ -347,7 +370,8 @@ class PowerfactoryExporter:  # noqa: H601
                 grid = [e for e in grids if e.loc_name == self.grid_name][0]
                 name = grid.loc_name
             except IndexError as e:
-                raise RuntimeError(f"Grid {self.grid_name} does not exist.") from e
+                msg = f"Grid {self.grid_name} does not exist."
+                raise RuntimeError(msg) from e
 
         project = self.pfi.project.loc_name
         date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
@@ -416,14 +440,14 @@ class PowerfactoryExporter:  # noqa: H601
             if not export:
                 logger.warning(
                     "External grid {ext_grid_name} not set for export. Skipping.",
-                    extra={"ext_grid_name": name},
+                    ext_grid_name=name,
                 )
                 continue
 
             if grid.bus1 is None:
                 logger.warning(
                     "External grid {ext_grid_name} not connected to any bus. Skipping.",
-                    extra={"ext_grid_name": name},
+                    ext_grid_name=name,
                 )
                 continue
 
@@ -439,7 +463,7 @@ class PowerfactoryExporter:  # noqa: H601
             )
             logger.debug(
                 "Created external grid {ext_grid}.",
-                extra={"ext_grid": ext_grid},
+                ext_grid=ext_grid,
             )
             grids.add(ext_grid)
 
@@ -455,27 +479,27 @@ class PowerfactoryExporter:  # noqa: H601
         if not export:
             logger.warning(
                 "Node {node_name} not set for export. Skipping.",
-                extra={"node_name": name},
+                node_name=name,
             )
             return None
 
         u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            if description == "":
-                description = "substation internal"
-            else:
-                description = "substation internal; " + description
+            description = "substation internal" if description == "" else "substation internal; " + description
 
         node = Node(name=name, u_n=u_n, description=description)
         logger.debug(
             "Created node {node}.",
-            extra={"node": node},
+            node=node,
         )
         return node
 
     def create_branches(
-        self, lines: Sequence[PFTypes.Line], couplers: Sequence[PFTypes.Coupler], grid_name: str
+        self,
+        lines: Sequence[PFTypes.Line],
+        couplers: Sequence[PFTypes.Coupler],
+        grid_name: str,
     ) -> Sequence[Branch]:
 
         blines = [self.create_line(line, grid_name) for line in lines]
@@ -489,14 +513,14 @@ class PowerfactoryExporter:  # noqa: H601
         if not export:
             logger.warning(
                 "Line {line_name} not set for export. Skipping.",
-                extra={"line_name": name},
+                line_name=name,
             )
             return None
 
         if line.bus1 is None or line.bus2 is None:
             logger.warning(
                 "Line {line_name} not connected to buses on both sides. Skipping.",
-                extra={"line_name": name},
+                line_name=name,
             )
             return None
 
@@ -513,7 +537,7 @@ class PowerfactoryExporter:  # noqa: H601
         if l_type is None:
             logger.warning(
                 "Type not set for line {line_name}. Skipping.",
-                extra={"line_name": name},
+                line_name=name,
             )
             return None
 
@@ -554,7 +578,7 @@ class PowerfactoryExporter:  # noqa: H601
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
         )
-        logger.debug("Created line {branch}.", extra={"branch": branch})
+        logger.debug("Created line {branch}.", branch=branch)
         return branch
 
     @staticmethod
@@ -570,14 +594,14 @@ class PowerfactoryExporter:  # noqa: H601
         if not export:
             logger.warning(
                 "Coupler {coupler_name} not set for export. Skipping.",
-                extra={"coupler_name": name},
+                coupler_name=name,
             )
             return None
 
         if coupler.bus1 is None or coupler.bus2 is None:
             logger.warning(
                 "Coupler {coupler} not connected to buses on both sides. Skipping.",
-                extra={"coupler": coupler},
+                coupler=coupler,
             )
             return None
 
@@ -604,7 +628,7 @@ class PowerfactoryExporter:  # noqa: H601
         else:
             logger.warning(
                 "Coupler {coupler_name} couples busbars with different voltage levels. Skipping.",
-                extra={"coupler_name": name},
+                coupler_name=name,
             )
             return None
 
@@ -628,12 +652,15 @@ class PowerfactoryExporter:  # noqa: H601
         )
         logger.debug(
             "Created coupler {branch}.",
-            extra={"branch": branch},
+            branch=branch,
         )
         return branch
 
     def get_coupler_description(
-        self, terminal1: PFTypes.Terminal, terminal2: PFTypes.Terminal, description: str
+        self,
+        terminal1: PFTypes.Terminal,
+        terminal2: PFTypes.Terminal,
+        description: str,
     ) -> str:
         if self.pfi.is_within_substation(terminal1) and self.pfi.is_within_substation(terminal2):
             if description == "":
@@ -643,7 +670,7 @@ class PowerfactoryExporter:  # noqa: H601
 
         return description
 
-    def create_loads(  # noqa: TMN001
+    def create_loads(  # noqa: PLR0913 # fix
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -677,10 +704,7 @@ class PowerfactoryExporter:  # noqa: H601
 
     def create_consumers_lv_parts(self, load: PFTypes.LoadLV, grid_name: str) -> set[Load]:
         powers = self.calc_load_lv_powers(load)
-        if len(powers) == 1:
-            sfx_pre = ""
-        else:
-            sfx_pre = "_({})"  # noqa: P103
+        sfx_pre = "" if len(powers) == 1 else "_({})"
 
         consumer_lv_parts = [
             self.create_consumer_lv_parts(load=load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
@@ -688,7 +712,7 @@ class PowerfactoryExporter:  # noqa: H601
         ]
         return self.pfi.set_from_sequences(*consumer_lv_parts)
 
-    def create_consumer_lv_parts(
+    def create_consumer_lv_parts(  # noqa: PLR0913 # fix
         self,
         load: PFTypes.LoadLV,
         grid_name: str,
@@ -736,20 +760,27 @@ class PowerfactoryExporter:  # noqa: H601
         for load in loads:
             power = self.calc_load_mv_power(load)
             consumer = self.create_consumer(
-                load=load, power=power.consumer, grid_name=grid_name, name_suffix="_CONSUMER"
+                load=load,
+                power=power.consumer,
+                grid_name=grid_name,
+                name_suffix="_CONSUMER",
             )
             if consumer is not None:
                 _loads.add(consumer)
 
             producer = self.create_producer(
-                gen=load, power=power.producer, gen_name=load.loc_name, grid_name=grid_name, name_suffix="_PRODUCER"
+                gen=load,
+                power=power.producer,
+                gen_name=load.loc_name,
+                grid_name=grid_name,
+                name_suffix="_PRODUCER",
             )
             if producer is not None:
                 _loads.add(producer)
 
         return _loads
 
-    def create_consumer(
+    def create_consumer(  # noqa: PLR0913 # fix
         self,
         load: PFTypes.LoadBase,
         power: LoadPower,
@@ -762,7 +793,7 @@ class PowerfactoryExporter:  # noqa: H601
         if not export:
             logger.warning(
                 "Load {load_name} not set for export. Skipping.",
-                extra={"load_name": load.loc_name},
+                load_name=load.loc_name,
             )
             return None
 
@@ -770,7 +801,7 @@ class PowerfactoryExporter:  # noqa: H601
         if bus is None:
             logger.debug(
                 "Load {load_name} not connected to any bus. Skipping.",
-                extra={"load_name": load.loc_name},
+                load_name=load.loc_name,
             )
             return None
 
@@ -783,7 +814,7 @@ class PowerfactoryExporter:  # noqa: H601
         rated_power = power.as_rated_power()
         logger.debug(
             " {load_name}: there is no real rated, but 's' is calculated on basis of actual power.",
-            extra={"load_name": load.loc_name},
+            load_name=load.loc_name,
         )
 
         load_model_p = self.load_model_of(load, specifier="p")
@@ -809,21 +840,21 @@ class PowerfactoryExporter:  # noqa: H601
         )
         logger.debug(
             "Created consumer {consumer}.",
-            extra={"consumer": consumer},
+            consumer=consumer,
         )
         return consumer
 
     @staticmethod
-    def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:  # noqa: FNE004
+    def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:
         load_type = load.typ_id
         if load_type is not None:
-            if load_type.loddy != 100:
+            if load_type.loddy != FULL_DYNAMIC:
                 logger.warning(
                     "Please check load model setting of {load_name} for RMS simulation.",
-                    extra={"load_name": load.loc_name},
+                    load_name=load.loc_name,
                 )
                 logger.info(
-                    "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS)."
+                    "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
             name = load_type.loc_name
@@ -848,7 +879,8 @@ class PowerfactoryExporter:  # noqa: H601
                     exp_z=load_type.kqu,
                 )
 
-            raise RuntimeError("unreachable")
+            msg = "unreachable"
+            raise RuntimeError(msg)
 
         return LoadModel()  # default: 100% power-const. load
 
@@ -876,12 +908,13 @@ class PowerfactoryExporter:  # noqa: H601
             except KeyError:
                 logger.warning(
                     "Wrong phase connection identifier {load_phtech!r} for consumer {consumer_name}. Skipping.",
-                    extra={"load_phtech": load_type.phtech, "consumer_name": load.loc_name},
+                    load_phtech=load_type.phtech,
+                    consumer_name=load.loc_name,
                 )
 
             return system_type, phase_con
 
-        logger.debug("No load model defined for load {load_name}. Skipping.", extra={"load_name": load.loc_name})
+        logger.debug("No load model defined for load {load_name}. Skipping.", load_name=load.loc_name)
 
         return None, None
 
@@ -946,7 +979,8 @@ class PowerfactoryExporter:  # noqa: H601
             system_type = None
             logger.warning(
                 "Wrong system type identifier {load_category!r} for producer {consumer_name}. Skipping.",
-                extra={"load_category": load.cCategory, "consumer_name": load.loc_name},
+                load_category=load.cCategory,
+                consumer_name=load.loc_name,
             )
 
         return system_type
@@ -994,7 +1028,8 @@ class PowerfactoryExporter:  # noqa: H601
         except KeyError:
             logger.warning(
                 "Wrong phase connection identifier {load_phtech!r} for producer {producer_name}. Skipping.",
-                extra={"load_phtech": load.phtech, "producer_name": load.loc_name},
+                load_phtech=load.phtech,
+                producer_name=load.loc_name,
             )
 
         return phase_con
@@ -1011,7 +1046,7 @@ class PowerfactoryExporter:  # noqa: H601
         cosphi = gen.cosn
         return LoadPower.from_sc_sym(pow_app=pow_app, cosphi=cosphi, scaling=gen.scale0)
 
-    def create_producer(  # noqa: TMN001
+    def create_producer(  # noqa: PLR0913 # fix
         self,
         gen: PFTypes.GeneratorBase | PFTypes.LoadMV,
         gen_name: str,
@@ -1029,13 +1064,13 @@ class PowerfactoryExporter:  # noqa: H601
         if not export:
             logger.warning(
                 "Generator {gen_name} not set for export. Skipping.",
-                extra={"gen_name": gen_name},
+                gen_name=gen_name,
             )
             return None
 
         bus = gen.bus1
         if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", extra={"gen_name": gen_name})
+            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
             return None
 
         terminal = bus.cterm
@@ -1058,7 +1093,7 @@ class PowerfactoryExporter:  # noqa: H601
             system_type=producer_system_type,
             phase_connection_type=producer_phase_connection_type,
         )
-        logger.debug("Created producer {producer}.", extra={"producer": producer})
+        logger.debug("Created producer {producer}.", producer=producer)
         return producer
 
     def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
@@ -1171,7 +1206,8 @@ class PowerfactoryExporter:  # noqa: H601
         return relevancies
 
     def create_element_power_on_states(
-        self, elements: Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W]
+        self,
+        elements: Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W],
     ) -> set[ElementState]:
         """Create element states for one-sided connected elements based on if the elements are out of service.
 
@@ -1236,22 +1272,15 @@ class PowerfactoryExporter:  # noqa: H601
             name = self.pfi.create_name(transformer, grid_name)
             export, _ = self.get_description(transformer)
             if not export:
-                logger.warning(
-                    "Transformer {transformer_name} not set for export. Skipping.", extra={"transformer_name": name}
-                )
+                logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
                 continue
 
             # Transformer Tap Changer
             t_type = transformer.typ_id
-            if t_type is None:
-                tap_pos = None
-            else:
-                tap_pos = transformer.nntap
+            tap_pos = None if t_type is None else transformer.nntap
 
             transformer_ssc = TransformerSSC(name=name, tap_pos=tap_pos)
-            logger.debug(
-                "Created steadystate for transformer_2w {transformer_ssc}.", extra={"transformer_ssc": transformer_ssc}
-            )
+            logger.debug("Created steadystate for transformer_2w {transformer_ssc}.", transformer_ssc=transformer_ssc)
             transformers_2w.add(transformer_ssc)
 
         return transformers_2w
@@ -1272,13 +1301,11 @@ class PowerfactoryExporter:  # noqa: H601
         name = self.pfi.create_name(ext_grid, grid_name)
         export, _ = self.get_description(ext_grid)
         if not export:
-            logger.warning("External grid {ext_grid_name} not set for export. Skipping.", extra={"ext_grid_name": name})
+            logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
             return None
 
         if ext_grid.bus1 is None:
-            logger.warning(
-                "External grid {ext_grid_name} not connected to any bus. Skipping.", extra={"ext_grid_name": name}
-            )
+            logger.warning("External grid {ext_grid_name} not connected to any bus. Skipping.", ext_grid_name=name)
             return None
 
         g_type = GridType(ext_grid.bustp)
@@ -1302,10 +1329,10 @@ class PowerfactoryExporter:  # noqa: H601
             )
 
         ext_grid_ssc = ExternalGridSSC(name=name)
-        logger.debug("Created steadystate for external grid {ext_grid_ssc}.", extra={"ext_grid_ssc": ext_grid_ssc})
+        logger.debug("Created steadystate for external grid {ext_grid_ssc}.", ext_grid_ssc=ext_grid_ssc)
         return ext_grid_ssc
 
-    def create_loads_ssc(  # noqa: TMN001
+    def create_loads_ssc(  # noqa: PLR0913 # fix
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -1340,20 +1367,17 @@ class PowerfactoryExporter:  # noqa: H601
 
         return None
 
-    def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004
-        if not load.i_sym:
-            power = self.calc_normal_load_power_sym(load)
-        else:
-            power = self.calc_normal_load_power_asym(load)
+    def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:
+        power = self.calc_normal_load_power_sym(load) if not load.i_sym else self.calc_normal_load_power_asym(load)
 
         if power is not None:  # noqa: SIM102
             if not power.is_empty:
                 return power
 
-        logger.warning("Power is not set for load {load_name}. Skipping.", extra={"load_name": load.loc_name})
+        logger.warning("Power is not set for load {load_name}. Skipping.", load_name=load.loc_name)
         return None
 
-    def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004, CCR001, TMN003
+    def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
         if load_type == "DEF" or load_type == "PQ":
@@ -1380,9 +1404,10 @@ class PowerfactoryExporter:  # noqa: H601
         if load_type == "SQ":
             return LoadPower.from_sq_sym(pow_app=load.slini, pow_react=load.qlini, scaling=scaling)
 
-        raise RuntimeError("Unreachable")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
-    def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: FNE004, CCR001, TMN003
+    def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
         if load_type == "DEF" or load_type == "PQ":
@@ -1475,7 +1500,8 @@ class PowerfactoryExporter:  # noqa: H601
                 scaling=scaling,
             )
 
-        raise RuntimeError("Unreachable")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
     def create_consumers_ssc_lv(self, loads: Sequence[PFTypes.LoadLV], grid_name: str) -> Sequence[LoadSSC]:
         consumers_ssc_lv_parts = [self.create_consumers_ssc_lv_parts(load, grid_name) for load in loads]
@@ -1483,10 +1509,7 @@ class PowerfactoryExporter:  # noqa: H601
 
     def create_consumers_ssc_lv_parts(self, load: PFTypes.LoadLV, grid_name: str) -> Sequence[LoadSSC]:
         powers = self.calc_load_lv_powers(load)
-        if len(powers) == 1:
-            sfx_pre = ""
-        else:
-            sfx_pre = "_({})"  # noqa: P103
+        sfx_pre = "" if len(powers) == 1 else "_({})"
 
         consumer_ssc_lv_parts = [
             self.create_consumer_ssc_lv_parts(load=load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
@@ -1494,7 +1517,7 @@ class PowerfactoryExporter:  # noqa: H601
         ]
         return list(itertools.chain.from_iterable(consumer_ssc_lv_parts))
 
-    def create_consumer_ssc_lv_parts(
+    def create_consumer_ssc_lv_parts(  # noqa: PLR0913 # fix
         self,
         load: PFTypes.LoadLV,
         grid_name: str,
@@ -1534,20 +1557,20 @@ class PowerfactoryExporter:  # noqa: H601
         )
         return [e for e in [consumer_fixed_ssc, consumer_night_ssc, consumer_flexible_ssc] if e is not None]
 
-    def calc_load_lv_powers(self, load: PFTypes.LoadLV) -> Sequence[LoadLV]:  # noqa: FNE004
+    def calc_load_lv_powers(self, load: PFTypes.LoadLV) -> Sequence[LoadLV]:
         subloads = self.pfi.subloads_of(load)
         if not subloads:
             return [self.calc_load_lv_power(load)]
 
         return [self.calc_load_lv_power_sym(sl) for sl in subloads]
 
-    def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:  # noqa: FNE004
+    def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
         load_type = load.iopt_inp
         scaling = load.scale0
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
         else:
-            if load_type == 0:
+            if load_type == IOpt.SCosphi:
                 power_fixed = LoadPower.from_sc_asym(
                     pow_app_r=load.slinir,
                     pow_app_s=load.slinis,
@@ -1557,7 +1580,7 @@ class PowerfactoryExporter:  # noqa: H601
                     cosphi_t=load.coslinit,
                     scaling=scaling,
                 )
-            elif load_type == 1:
+            elif load_type == IOpt.PCosphi:
                 power_fixed = LoadPower.from_pc_asym(
                     pow_act_r=load.plinir,
                     pow_act_s=load.plinis,
@@ -1567,7 +1590,7 @@ class PowerfactoryExporter:  # noqa: H601
                     cosphi_t=load.coslinit,
                     scaling=scaling,
                 )
-            elif load_type == 2:
+            elif load_type == IOpt.UICosphi:
                 power_fixed = LoadPower.from_ic_asym(
                     voltage=load.ulini,
                     current_r=load.ilinir,
@@ -1579,7 +1602,8 @@ class PowerfactoryExporter:  # noqa: H601
                     scaling=scaling,
                 )
             else:
-                raise RuntimeError("Unreachable")
+                msg = "unreachable"
+                raise RuntimeError(msg)
 
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -1593,7 +1617,7 @@ class PowerfactoryExporter:  # noqa: H601
         )
         return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
 
-    def calc_load_lv_power_sym(self, load: PFTypes.LoadLVP) -> LoadLV:  # noqa: FNE004
+    def calc_load_lv_power_sym(self, load: PFTypes.LoadLVP) -> LoadLV:
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -1607,27 +1631,27 @@ class PowerfactoryExporter:  # noqa: H601
         )
         return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
 
-    def calc_load_lv_power_fixed_sym(  # noqa: FNE004
+    def calc_load_lv_power_fixed_sym(
         self,
         load: PFTypes.LoadLV | PFTypes.LoadLVP,
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        if load_type == 0:
+        if load_type == IOpt.SCosphi:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
 
-        if load_type == 1:
+        if load_type == IOpt.PCosphi:
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
 
-        if load_type == 2:
+        if load_type == IOpt.UICosphi:
             return LoadPower.from_ic_sym(
                 voltage=load.ulini,
                 current=load.ilini,
@@ -1635,14 +1659,15 @@ class PowerfactoryExporter:  # noqa: H601
                 scaling=scaling,
             )
 
-        if load_type == 3:
+        if load_type == IOpt.ECosphi:
             return LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
                 scaling=scaling,
             )
 
-        raise RuntimeError("Unreachable")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
     def create_loads_ssc_mv(
         self,
@@ -1663,13 +1688,13 @@ class PowerfactoryExporter:  # noqa: H601
 
         return loads_ssc
 
-    def calc_load_mv_power(self, load: PFTypes.LoadMV) -> LoadMV:  # noqa: FNE004
+    def calc_load_mv_power(self, load: PFTypes.LoadMV) -> LoadMV:
         if not load.ci_sym:
             return self.calc_load_mv_power_sym(load)
 
         return self.calc_load_mv_power_asym(load)
 
-    def calc_load_mv_power_sym(self, load: PFTypes.LoadMV) -> LoadMV:  # noqa: FNE004
+    def calc_load_mv_power_sym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale
@@ -1713,9 +1738,10 @@ class PowerfactoryExporter:  # noqa: H601
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
 
-        raise RuntimeError("Unreachable.")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
-    def calc_load_mv_power_asym(self, load: PFTypes.LoadMV) -> LoadMV:  # noqa: FNE004
+    def calc_load_mv_power_asym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale
@@ -1761,7 +1787,8 @@ class PowerfactoryExporter:  # noqa: H601
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
 
-        raise RuntimeError("Unreachable.")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
     def create_consumer_ssc(
         self,
@@ -1774,9 +1801,7 @@ class PowerfactoryExporter:  # noqa: H601
         name = self.pfi.create_name(load, grid_name) + name_suffix
         export, _ = self.get_description(load)
         if not export:
-            logger.warning(
-                "External grid {consumer_ssc_name} not set for export. Skipping.", extra={"consumer_ssc_name": name}
-            )
+            logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
             return None
 
         active_power = power.as_active_power_ssc()
@@ -1787,7 +1812,7 @@ class PowerfactoryExporter:  # noqa: H601
             active_power=active_power,
             reactive_power=reactive_power,
         )
-        logger.debug("Created steadystate for consumer {load_ssc}.", extra={"load_ssc": load_ssc})
+        logger.debug("Created steadystate for consumer {load_ssc}.", load_ssc=load_ssc)
         return load_ssc
 
     def create_producers_ssc(
@@ -1802,12 +1827,12 @@ class PowerfactoryExporter:  # noqa: H601
 
             export, _ = self.get_description(gen)
             if not export:
-                logger.warning("Generator {gen_name} not set for export. Skipping.", extra={"gen_name": gen_name})
+                logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
                 continue
 
             bus = gen.bus1
             if bus is None:
-                logger.warning("Generator {gen_name} not connected to any bus. Skipping.", extra={"gen_name": gen_name})
+                logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
                 continue
 
             terminal = bus.cterm
@@ -1832,7 +1857,7 @@ class PowerfactoryExporter:  # noqa: H601
                 active_power=active_power,
                 reactive_power=reactive_power,
             )
-            logger.debug("Created steadystate for producer {producer}.", extra={"producer": producer})
+            logger.debug("Created steadystate for producer {producer}.", producer=producer)
             producers_ssc.add(producer)
 
         return producers_ssc
@@ -1845,12 +1870,12 @@ class PowerfactoryExporter:  # noqa: H601
 
         export, _ = self.get_description(generator)
         if not export:
-            logger.warning("Generator {gen_name} not set for export. Skipping.", extra={"gen_name": gen_name})
+            logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
             return None
 
         bus = generator.bus1
         if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", extra={"gen_name": gen_name})
+            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
             return None
 
         terminal = bus.cterm
@@ -1875,10 +1900,10 @@ class PowerfactoryExporter:  # noqa: H601
             active_power=active_power,
             reactive_power=reactive_power,
         )
-        logger.debug("Created steadystate for producer {load_ssc}.", extra={"load_ssc": load_ssc})
+        logger.debug("Created steadystate for producer {load_ssc}.", load_ssc=load_ssc)
         return load_ssc
 
-    def create_q_controller(  # noqa: CCR001
+    def create_q_controller(  # noqa: PLR0912, PLR0915
         self,
         gen: PFTypes.GeneratorBase,
         gen_name: str,
@@ -1901,8 +1926,8 @@ class PowerfactoryExporter:  # noqa: H601
         cosphi_type = None
         cosphi = None
         q_set = None
-        m_tab2015 = None  # Q(U) droop related to VDE-AR-N 4120:2015
-        m_tar2018 = None  # Q(U) droop related to VDE-AR-N 4120:2018
+        m_tab2015 = None  # Q(U) droop/slope related to VDE-AR-N 4120:2015
+        m_tar2018 = None  # Q(U) droop/slope related to VDE-AR-N 4120:2018
         qmax_ue = q_r
         qmax_oe = q_r
         u_q0 = None
@@ -1918,43 +1943,42 @@ class PowerfactoryExporter:  # noqa: H601
             elif controller_type == ControllerType.Q_CONST:
                 q_set = gen.qgini
             elif controller_type == ControllerType.Q_U:
-                qmax_ue = abs(gen.Qfu_min)
-                qmax_oe = abs(gen.Qfu_max)
+                qmax_ue = abs(gen.Qfu_min)  # absolute value
+                qmax_oe = abs(gen.Qfu_max)  # absolute value
                 u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
                 udeadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
                 udeadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
                 m_tab2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_r  # (% von Pr) / kV
                 m_tar2018 = self.transform_qu_slope(slope=m_tab2015, given_format="2015", target_format="2018", u_n=u_n)
             elif controller_type == ControllerType.Q_P:
-                logger.warning(
-                    "Generator {gen_name} Q(P) control is not implemented yet. Skipping.", extra={"gen_name": gen_name}
-                )
+                logger.warning("Generator {gen_name} Q(P) control is not implemented yet. Skipping.", gen_name=gen_name)
             elif controller_type == ControllerType.COSPHI_P:
                 logger.warning(
                     "Generator {gen_name} cosphi(P) control is not implemented yet. Skipping.",
-                    extra={"gen_name": gen_name},
+                    gen_name=gen_name,
                 )
             elif controller_type == ControllerType.U_CONST:
                 logger.warning(
                     "Generator {gen_name} Const. U control is not implemented yet. Skipping.",
-                    extra={"gen_name": gen_name},
+                    gen_name=gen_name,
                 )
             else:
-                raise RuntimeError("Unreachable")
+                msg = "unreachable"
+                raise RuntimeError(msg)
 
         else:
             ext_ctrl_name = self.pfi.create_generator_name(gen, generator_name=ext_ctrl.loc_name)
 
             ctrl_mode = ext_ctrl.i_ctrl
-            if ctrl_mode == 0:  # voltage control mode
+            if ctrl_mode == CtrlMode.PowAct:  # voltage control mode
                 controller_type = ControllerType.U_CONST
-            elif ctrl_mode == 1:  # reactive power control mode
-                controller_type_dict_ext = {
-                    0: ControllerType.Q_CONST,
-                    1: ControllerType.Q_U,
-                    2: ControllerType.Q_P,
+            elif ctrl_mode == CtrlMode.PowReact:  # reactive power control mode
+                controller_type_dict_pow_react = {
+                    PowReactChar.const: ControllerType.Q_CONST,
+                    PowReactChar.U: ControllerType.Q_U,
+                    PowReactChar.P: ControllerType.Q_P,
                 }
-                controller_type = controller_type_dict_ext[ext_ctrl.qu_char]
+                controller_type = controller_type_dict_pow_react[ext_ctrl.qu_char]
 
                 if controller_type == ControllerType.Q_CONST:
                     q_dir = -1 if ext_ctrl.iQorient else 1  # negative counting --> under excited
@@ -1970,7 +1994,7 @@ class PowerfactoryExporter:  # noqa: H601
 
                     q_rated = ext_ctrl.Srated
                     try:
-                        if abs(abs(q_rated) - abs(s_r) / abs(s_r)) < 0.01:  # q_rated == s_r
+                        if abs((abs(q_rated) - abs(s_r)) / abs(s_r)) < M_TAB2015_MIN_THRESHOLD:  # q_rated == s_r
                             m_tab2015 = 100 / ext_ctrl.ddroop * 100 * Exponents.VOLTAGE / u_nom / cosphi_r
                         else:
                             m_tab2015 = (
@@ -1997,18 +2021,19 @@ class PowerfactoryExporter:  # noqa: H601
                 elif controller_type == ControllerType.Q_P:
                     logger.warning(
                         "Generator {gen_name}: Q(P) control is not implemented yet. Skipping.",
-                        extra={"gen_name": gen_name},
+                        gen_name=gen_name,
                     )
                 else:
-                    raise RuntimeError("Unreachable")
+                    msg = "unreachable"
+                    raise RuntimeError(msg)
 
-            elif ctrl_mode == 2:  # cosphi control mode
-                controller_type_dict_ext = {
-                    0: ControllerType.COSPHI_CONST,
-                    1: ControllerType.COSPHI_P,
-                    2: ControllerType.COSPHI_U,
+            elif ctrl_mode == CtrlMode.Cosphi:  # cosphi control mode
+                controller_type_dict_cosphi = {
+                    CosphiChar.const: ControllerType.COSPHI_CONST,
+                    CosphiChar.U: ControllerType.COSPHI_P,
+                    CosphiChar.P: ControllerType.COSPHI_U,
                 }
-                controller_type = controller_type_dict_ext[ext_ctrl.cosphi_char]
+                controller_type = controller_type_dict_cosphi[ext_ctrl.cosphi_char]
 
                 if controller_type == ControllerType.COSPHI_CONST:
                     cosphi = ext_ctrl.pfsetp
@@ -2017,22 +2042,24 @@ class PowerfactoryExporter:  # noqa: H601
                 elif controller_type == ControllerType.COSPHI_P:
                     logger.warning(
                         "Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.",
-                        extra={"gen_name": gen_name},
+                        gen_name=gen_name,
                     )
                 elif controller_type == ControllerType.COSPHI_U:
                     logger.warning(
                         "Generator {gen_name}: cosphi(U) control is not implemented yet. Skipping.",
-                        extra={"gen_name": gen_name},
+                        gen_name=gen_name,
                     )
                 else:
-                    raise RuntimeError("Unreachable")
+                    msg = "unreachable"
+                    raise RuntimeError(msg)
 
-            elif ctrl_mode == 3:  # tanphi control mode
+            elif ctrl_mode == CtrlMode.Tanphi:  # tanphi control mode
                 controller_type = ControllerType.TANPHI_CONST
                 cosphi = math.cos(math.atan(ext_ctrl.tansetp))
                 cosphi_type = CosphiDir.UE if ext_ctrl.iQorient else CosphiDir.OE
             else:
-                raise RuntimeError("Unreachable")
+                msg = "unreachable"
+                raise RuntimeError(msg)
 
         # final scaling and rounding
         if cosphi:
@@ -2095,7 +2122,8 @@ class PowerfactoryExporter:  # noqa: H601
         if given_format == "2018" and target_format == "2015":
             return slope * (1e3 / u_n * 100)  # 2015: (% von Pr) / kV
 
-        raise RuntimeError("Unreachable")
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
     def create_transformers(
         self,
@@ -2107,7 +2135,7 @@ class PowerfactoryExporter:  # noqa: H601
 
         return self.pfi.list_from_sequences(transformers_2w)
 
-    def create_transformers_2w(  # noqa: CCR001
+    def create_transformers_2w(
         self,
         transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
@@ -2118,15 +2146,13 @@ class PowerfactoryExporter:  # noqa: H601
             name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
             export, description = self.get_description(transformer_2w)
             if not export:
-                logger.warning(
-                    "Transformer {transformer_name} not set for export. Skipping.", extra={"transformer_name": name}
-                )
+                logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
                 continue
 
             if transformer_2w.buslv is None or transformer_2w.bushv is None:
                 logger.warning(
                     "Transformer {transformer_name} not connected to buses on both sides. Skipping.",
-                    extra={"transformer_name": name},
+                    transformer_name=name,
                 )
                 continue
 
@@ -2155,7 +2181,7 @@ class PowerfactoryExporter:  # noqa: H601
                 if bool(t_type.itapch2) is True:
                     logger.warning(
                         "Transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
-                        extra={"transformer_name": name},
+                        transformer_name=name,
                     )
                     continue
 
@@ -2229,12 +2255,10 @@ class PowerfactoryExporter:  # noqa: H601
                     phase_technology_type=ph_technology,
                     windings={wh, wl},
                 )
-                logger.debug("Created transformer {transformer}", extra={"transformer": transformer})
+                logger.debug("Created transformer {transformer}", transformer=transformer)
                 transformers.add(transformer)
             else:
-                logger.warning(
-                    "Type not set for transformer {transformer_name}. Skipping.", extra={"transformer_name": name}
-                )
+                logger.warning("Type not set for transformer {transformer_name}. Skipping.", transformer_name=name)
 
         return transformers
 
@@ -2272,7 +2296,7 @@ class PowerfactoryExporter:  # noqa: H601
         return None
 
 
-def export_powerfactory_data(  # noqa: TMN001
+def export_powerfactory_data(  # noqa: PLR0913 # fix
     export_path: pathlib.Path,
     project_name: str,
     grid_name: str,

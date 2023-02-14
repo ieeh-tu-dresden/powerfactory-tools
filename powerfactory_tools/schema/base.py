@@ -1,11 +1,11 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
 
-import datetime
+import datetime  # noqa: TCH003 # bug
 import pathlib
 import uuid
 from enum import Enum
@@ -41,7 +41,7 @@ class Meta(Base):
     version = VERSION
     name: str
     date: datetime.date  # date of export
-    id: uuid.UUID = Field(default_factory=uuid.uuid4)  # noqa: A003, VNE003
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)  # noqa: A003
     project: str | None = None  # project the export is related to
 
     class Config:

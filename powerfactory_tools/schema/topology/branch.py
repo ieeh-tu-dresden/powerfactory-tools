@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -26,7 +26,7 @@ class Branch(Base):
     x1: float  # positive sequence values of PI-representation
     g1: float  # positive sequence values of PI-representation
     b1: float  # positive sequence values of PI-representation
-    type: BranchType  # noqa: A003, VNE003
+    type: BranchType  # noqa: A003
     voltage_system_type: VoltageSystemType | None = None
     r0: float | None = None  # zero sequence values of PI-representation
     x0: float | None = None  # zero sequence values of PI-representation

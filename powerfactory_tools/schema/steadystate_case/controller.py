@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -35,14 +35,6 @@ class ControllerType(Enum):
 
 
 class Exceptions:
-    class CosphiNotSpecifiedError(ValueError):
-        def __init__(self, ctrl_type: str) -> None:
-            super().__init__(f"cosphi must be specified for constant-{ctrl_type}-control.")
-
-    class CosphiTypeNotSpecifiedError(ValueError):
-        def __init__(self, ctrl_type: str) -> None:
-            super().__init__(f"cosphi_type must be specified for constant-{ctrl_type}-control.")
-
     class QSetNotSpecifiedError(ValueError):
         def __init__(self) -> None:
             super().__init__("q_set must be specified for Q-setpoint-control.")
@@ -67,7 +59,7 @@ class Exceptions:
         def __init__(self) -> None:
             super().__init__("qmax_ue must be specified for Q(U)-characteristic-control.")
 
-    class TabTarNotSpecifiedError(ValueError):
+    class QUSlopeNotSpecifiedError(ValueError):
         def __init__(self) -> None:
             super().__init__("Either m_tab2015 or m_tar2018 must be specified for Q(U)-characteristic-control.")
 
@@ -81,62 +73,61 @@ class Controller(Base):
     # q-setpoint control mode
     q_set: float | None = None  # Setpoint of reactive power.
     # Q(U) characteristic control mode
-    m_tab2015: float | None = None  # Droop based on VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
-    m_tar2018: float | None = None  # Droop based on VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
+    m_tab2015: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
+    m_tar2018: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
     u_q0: float | None = None  # Voltage value, where Q=0: per unit value related to Un
     udeadband_up: float | None = None  # Width of upper deadband (U_1_up - U_Q0): per unit value related to Un
     udeadband_low: float | None = None  # Width of lower deadband (U_Q0 - U_1_low): per unit value related to Un
-    qmax_ue: float | None = None  # Over excited limit of Q: absolut per unit value related to Pr
-    qmax_oe: float | None = None  # Under excited limit of Q: absolut per unit value related to Pr
+    qmax_ue: float | None = None  # Over excited limit of Q: absolut value
+    qmax_oe: float | None = None  # Under excited limit of Q: absolut value
 
     class Config:
         frozen = True
 
     @validator("cosphi")
-    def validate_cosphi(cls, value: float | None) -> float | None:  # noqa: U100
+    def validate_cosphi(cls, value: float | None) -> float | None:  # noqa: N805 # bug
         if value is not None and (not (-1 <= value <= 1)):
-            raise ValueError(f"Cosphi must be between -1 and 1, but is {value}.")
+            msg = f"Cosphi must be between -1 and 1, but is {value}."
+            raise ValueError(msg)
 
         return value
 
     @validator("qmax_ue")
-    def validate_qmax_ue(cls, value: float | None) -> float | None:  # noqa: U100
-        if value is not None and (0 > value):
-            raise ValueError(
-                f"qmax_ue must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            )
+    def validate_qmax_ue(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+        if value is not None and (value < 0):
+            msg = f"qmax_ue must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
+            raise ValueError(msg)
 
         return value
 
     @validator("qmax_oe")
-    def validate_qmax_oe(cls, value: float | None) -> float | None:  # noqa: U100
-        if value is not None and (0 > value):
-            raise ValueError(
-                f"qmax_oe must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            )
+    def validate_qmax_oe(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+        if value is not None and (value < 0):
+            msg = f"qmax_oe must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
+            raise ValueError(msg)
 
         return value
 
     @validator("udeadband_up")
-    def validate_udeadband_up(cls, value: float | None) -> float | None:  # noqa: U100
-        if value is not None and (0 > value):
-            raise ValueError(
-                f"udeadband_up must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            )
+    def validate_udeadband_up(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+        if value is not None and (value < 0):
+            msg = f"udeadband_up must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
+            raise ValueError(msg)
 
         return value
 
     @validator("udeadband_low")
-    def validate_udeadband_low(cls, value: float | None) -> float | None:  # noqa: U100
-        if value is not None and (0 > value):
-            raise ValueError(
+    def validate_udeadband_low(cls, value: float | None) -> float | None:  # noqa: N805 # bug
+        if value is not None and (value < 0):
+            msg = (
                 f"udeadband_low must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
             )
+            raise ValueError(msg)
 
         return value
 
     @root_validator()
-    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: U100
+    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:  # noqa: N805 # bug
         controller_type = values["controller_type"]
         if controller_type == ControllerType.COSPHI_CONST:
             return validate_cosphi_const_controller(values)
@@ -155,10 +146,12 @@ class Controller(Base):
 
 def validate_cosphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
     if values["cosphi"] is None:
-        raise Exceptions.CosphiNotSpecifiedError("Cosphi")
+        msg = "cosphi must be specified for constant-cosphi-control."
+        raise ValueError(msg)
 
     if values["cosphi_type"] is None:
-        raise Exceptions.CosphiTypeNotSpecifiedError("Cosphi")
+        msg = "cosphi_type must be specified for constant-cosphi-control."
+        raise ValueError(msg)
 
     return values
 
@@ -187,16 +180,18 @@ def validate_q_u_controller(values: dict[str, Any]) -> dict[str, Any]:
         raise Exceptions.QmaxUENotSpecifiedError
 
     if values["m_tab2015"] is None and values["m_tar2018"] is None:
-        raise Exceptions.TabTarNotSpecifiedError
+        raise Exceptions.QUSlopeNotSpecifiedError
 
     return values
 
 
 def validate_tanphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
     if values["cosphi"] is None:
-        raise Exceptions.CosphiNotSpecifiedError("Tanphi")
+        msg = "cosphi must be specified for constant-tanphi-control."
+        raise ValueError(msg)
 
     if values["cosphi_type"] is None:
-        raise Exceptions.CosphiTypeNotSpecifiedError("Tanphi")
+        msg = "cosphi_type must be specified for constant-tanphi-control."
+        raise ValueError(msg)
 
     return values

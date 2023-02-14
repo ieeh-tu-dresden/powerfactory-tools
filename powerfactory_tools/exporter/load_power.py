@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -88,11 +88,16 @@ class LoadPower:
         return self.cosphi_r == self.cosphi_s == self.cosphi_t
 
     @property
-    def is_empty(self) -> bool:  # noqa: FNE002
+    def is_empty(self) -> bool:
         return self.pow_app_r == 0
 
     @staticmethod
-    def calc_pq(pow_act: float, pow_react: float, scaling: float) -> PowerDict:
+    def calc_pq(
+        *,
+        pow_act: float,
+        pow_react: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
         pow_react = pow_react * scaling * Exponents.POWER
         pow_app = math.sqrt(pow_act**2 + pow_react**2)
@@ -104,7 +109,12 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_pc(pow_act: float, cosphi: float, scaling: float) -> PowerDict:
+    def calc_pc(
+        *,
+        pow_act: float,
+        cosphi: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
         try:
             pow_app = pow_act / cosphi
@@ -116,21 +126,37 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_ic(voltage: float, current: float, cosphi: float, scaling: float) -> PowerDict:
+    def calc_ic(
+        *,
+        voltage: float,
+        current: float,
+        cosphi: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_app = voltage * current * scaling * Exponents.POWER
         pow_act = pow_app * cosphi
         pow_react = math.sqrt(pow_app**2 - pow_act**2)
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_sc(pow_app: float, cosphi: float, scaling: float) -> PowerDict:
+    def calc_sc(
+        *,
+        pow_app: float,
+        cosphi: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_app = pow_app * scaling * Exponents.POWER
         pow_act = pow_app * cosphi
         pow_react = math.sqrt(pow_app**2 - pow_act**2)
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_qc(pow_react: float, cosphi: float, scaling: float) -> PowerDict:
+    def calc_qc(
+        *,
+        pow_react: float,
+        cosphi: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_react = pow_react * scaling * Exponents.POWER
         try:
             pow_app = pow_react / math.sin(math.acos(cosphi))
@@ -142,7 +168,13 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_ip(voltage: float, current: float, pow_act: float, scaling: float) -> PowerDict:
+    def calc_ip(
+        *,
+        voltage: float,
+        current: float,
+        pow_act: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
         pow_app = voltage * current * scaling * Exponents.POWER
         try:
@@ -154,7 +186,12 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_sp(pow_app: float, pow_act: float, scaling: float) -> PowerDict:
+    def calc_sp(
+        *,
+        pow_app: float,
+        pow_act: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_app = pow_app * scaling * Exponents.POWER
         pow_act = pow_act * scaling * Exponents.POWER
         cosphi = pow_app / pow_act
@@ -162,7 +199,12 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @staticmethod
-    def calc_sq(pow_app: float, pow_react: float, scaling: float) -> PowerDict:
+    def calc_sq(
+        *,
+        pow_app: float,
+        pow_react: float,
+        scaling: float,
+    ) -> PowerDict:
         pow_app = pow_app * scaling * Exponents.POWER
         pow_react = pow_react * scaling * Exponents.POWER
         pow_act = math.sqrt(pow_app**2 - pow_react**2)
@@ -174,152 +216,203 @@ class LoadPower:
         return {"power_apparent": pow_app, "power_active": pow_act, "power_reactive": pow_react, "cosphi": cosphi}
 
     @classmethod
-    def from_pq_sym(cls, pow_act: float, pow_react: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_pq(pow_act, pow_react, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_pc_sym(cls, pow_act: float, cosphi: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_pc(pow_act, cosphi, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_ic_sym(cls, voltage: float, current: float, cosphi: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_ic(voltage, current, cosphi, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_sc_sym(cls, pow_app: float, cosphi: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_sc(pow_app, cosphi, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_qc_sym(cls, pow_react: float, cosphi: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_qc(pow_react, cosphi, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_ip_sym(cls, voltage: float, current: float, pow_act: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_ip(voltage, current, pow_act, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_sp_sym(cls, pow_app: float, pow_act: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_sp(pow_app, pow_act, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_sq_sym(cls, pow_app: float, pow_react: float, scaling: float) -> LoadPower:
-        power_dict = cls.calc_sq(pow_app, pow_react, scaling)
-        return LoadPower(
-            pow_app_r=power_dict["power_apparent"] / 3,
-            pow_app_s=power_dict["power_apparent"] / 3,
-            pow_app_t=power_dict["power_apparent"] / 3,
-            pow_act_r=power_dict["power_active"] / 3,
-            pow_act_s=power_dict["power_active"] / 3,
-            pow_act_t=power_dict["power_active"] / 3,
-            pow_react_r=power_dict["power_reactive"] / 3,
-            pow_react_s=power_dict["power_reactive"] / 3,
-            pow_react_t=power_dict["power_reactive"] / 3,
-            cosphi_r=power_dict["cosphi"],
-            cosphi_s=power_dict["cosphi"],
-            cosphi_t=power_dict["cosphi"],
-        )
-
-    @classmethod
-    def from_pq_asym(  # noqa: TMN001
+    def from_pq_sym(
         cls,
+        *,
+        pow_act: float,
+        pow_react: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_pq(pow_act=pow_act, pow_react=pow_react, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_pc_sym(
+        cls,
+        *,
+        pow_act: float,
+        cosphi: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_pc(pow_act=pow_act, cosphi=cosphi, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_ic_sym(
+        cls,
+        *,
+        voltage: float,
+        current: float,
+        cosphi: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_ic(voltage=voltage, current=current, cosphi=cosphi, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_sc_sym(
+        cls,
+        *,
+        pow_app: float,
+        cosphi: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_sc(pow_app=pow_app, cosphi=cosphi, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_qc_sym(
+        cls,
+        *,
+        pow_react: float,
+        cosphi: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_qc(pow_react=pow_react, cosphi=cosphi, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_ip_sym(
+        cls,
+        *,
+        voltage: float,
+        current: float,
+        pow_act: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_ip(voltage=voltage, current=current, pow_act=pow_act, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_sp_sym(
+        cls,
+        *,
+        pow_app: float,
+        pow_act: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_sp(pow_app=pow_app, pow_act=pow_act, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_sq_sym(
+        cls,
+        *,
+        pow_app: float,
+        pow_react: float,
+        scaling: float,
+    ) -> LoadPower:
+        power_dict = cls.calc_sq(pow_app=pow_app, pow_react=pow_react, scaling=scaling)
+        return LoadPower(
+            pow_app_r=power_dict["power_apparent"] / 3,
+            pow_app_s=power_dict["power_apparent"] / 3,
+            pow_app_t=power_dict["power_apparent"] / 3,
+            pow_act_r=power_dict["power_active"] / 3,
+            pow_act_s=power_dict["power_active"] / 3,
+            pow_act_t=power_dict["power_active"] / 3,
+            pow_react_r=power_dict["power_reactive"] / 3,
+            pow_react_s=power_dict["power_reactive"] / 3,
+            pow_react_t=power_dict["power_reactive"] / 3,
+            cosphi_r=power_dict["cosphi"],
+            cosphi_s=power_dict["cosphi"],
+            cosphi_t=power_dict["cosphi"],
+        )
+
+    @classmethod
+    def from_pq_asym(
+        cls,
+        *,
         pow_act_r: float,
         pow_act_s: float,
         pow_act_t: float,
@@ -328,9 +421,9 @@ class LoadPower:
         pow_react_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_pq(pow_act_r, pow_react_r, scaling)
-        power_dict_s = cls.calc_pq(pow_act_s, pow_react_s, scaling)
-        power_dict_t = cls.calc_pq(pow_act_t, pow_react_t, scaling)
+        power_dict_r = cls.calc_pq(pow_act=pow_act_r, pow_react=pow_react_r, scaling=scaling)
+        power_dict_s = cls.calc_pq(pow_act=pow_act_s, pow_react=pow_react_s, scaling=scaling)
+        power_dict_t = cls.calc_pq(pow_act=pow_act_t, pow_react=pow_react_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -347,8 +440,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_pc_asym(  # noqa: TMN001
+    def from_pc_asym(
         cls,
+        *,
         pow_act_r: float,
         pow_act_s: float,
         pow_act_t: float,
@@ -357,9 +451,9 @@ class LoadPower:
         cosphi_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_pc(pow_act_r, cosphi_r, scaling)
-        power_dict_s = cls.calc_pc(pow_act_s, cosphi_s, scaling)
-        power_dict_t = cls.calc_pc(pow_act_t, cosphi_t, scaling)
+        power_dict_r = cls.calc_pc(pow_act=pow_act_r, cosphi=cosphi_r, scaling=scaling)
+        power_dict_s = cls.calc_pc(pow_act=pow_act_s, cosphi=cosphi_s, scaling=scaling)
+        power_dict_t = cls.calc_pc(pow_act=pow_act_t, cosphi=cosphi_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -376,8 +470,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ic_asym(  # noqa: TMN001
+    def from_ic_asym(
         cls,
+        *,
         voltage: float,
         current_r: float,
         current_s: float,
@@ -388,9 +483,9 @@ class LoadPower:
         scaling: float,
     ) -> LoadPower:
         voltage = voltage / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
-        power_dict_r = cls.calc_ic(voltage, current_r, cosphi_r, scaling)
-        power_dict_s = cls.calc_ic(voltage, current_s, cosphi_s, scaling)
-        power_dict_t = cls.calc_ic(voltage, current_t, cosphi_t, scaling)
+        power_dict_r = cls.calc_ic(voltage=voltage, current=current_r, cosphi=cosphi_r, scaling=scaling)
+        power_dict_s = cls.calc_ic(voltage=voltage, current=current_s, cosphi=cosphi_s, scaling=scaling)
+        power_dict_t = cls.calc_ic(voltage=voltage, current=current_t, cosphi=cosphi_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -407,8 +502,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sc_asym(  # noqa: TMN001
+    def from_sc_asym(
         cls,
+        *,
         pow_app_r: float,
         pow_app_s: float,
         pow_app_t: float,
@@ -417,9 +513,9 @@ class LoadPower:
         cosphi_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_sc(pow_app_r, cosphi_r, scaling)
-        power_dict_s = cls.calc_sc(pow_app_s, cosphi_s, scaling)
-        power_dict_t = cls.calc_sc(pow_app_t, cosphi_t, scaling)
+        power_dict_r = cls.calc_sc(pow_app=pow_app_r, cosphi=cosphi_r, scaling=scaling)
+        power_dict_s = cls.calc_sc(pow_app=pow_app_s, cosphi=cosphi_s, scaling=scaling)
+        power_dict_t = cls.calc_sc(pow_app=pow_app_t, cosphi=cosphi_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -436,8 +532,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_qc_asym(  # noqa: TMN001
+    def from_qc_asym(
         cls,
+        *,
         pow_react_r: float,
         pow_react_s: float,
         pow_react_t: float,
@@ -446,9 +543,9 @@ class LoadPower:
         cosphi_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_qc(pow_react_r, cosphi_r, scaling)
-        power_dict_s = cls.calc_qc(pow_react_s, cosphi_s, scaling)
-        power_dict_t = cls.calc_qc(pow_react_t, cosphi_t, scaling)
+        power_dict_r = cls.calc_qc(pow_react=pow_react_r, cosphi=cosphi_r, scaling=scaling)
+        power_dict_s = cls.calc_qc(pow_react=pow_react_s, cosphi=cosphi_s, scaling=scaling)
+        power_dict_t = cls.calc_qc(pow_react=pow_react_t, cosphi=cosphi_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -465,8 +562,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ip_asym(  # noqa: TMN001
+    def from_ip_asym(
         cls,
+        *,
         voltage: float,
         current_r: float,
         current_s: float,
@@ -477,9 +575,9 @@ class LoadPower:
         scaling: float,
     ) -> LoadPower:
         voltage = voltage / math.sqrt(3)  # for asymmetric calc, u_le has to be used instead of u_ll
-        power_dict_r = cls.calc_ip(voltage, current_r, pow_act_r, scaling)
-        power_dict_s = cls.calc_ip(voltage, current_s, pow_act_s, scaling)
-        power_dict_t = cls.calc_ip(voltage, current_t, pow_act_t, scaling)
+        power_dict_r = cls.calc_ip(voltage=voltage, current=current_r, pow_act=pow_act_r, scaling=scaling)
+        power_dict_s = cls.calc_ip(voltage=voltage, current=current_s, pow_act=pow_act_s, scaling=scaling)
+        power_dict_t = cls.calc_ip(voltage=voltage, current=current_t, pow_act=pow_act_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -496,8 +594,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sp_asym(  # noqa: TMN001
+    def from_sp_asym(
         cls,
+        *,
         pow_app_r: float,
         pow_app_s: float,
         pow_app_t: float,
@@ -506,9 +605,9 @@ class LoadPower:
         pow_act_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_sp(pow_app_r, pow_act_r, scaling)
-        power_dict_s = cls.calc_sp(pow_app_s, pow_act_s, scaling)
-        power_dict_t = cls.calc_sp(pow_app_t, pow_act_t, scaling)
+        power_dict_r = cls.calc_sp(pow_app=pow_app_r, pow_act=pow_act_r, scaling=scaling)
+        power_dict_s = cls.calc_sp(pow_app=pow_app_s, pow_act=pow_act_s, scaling=scaling)
+        power_dict_t = cls.calc_sp(pow_app=pow_app_t, pow_act=pow_act_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],
@@ -525,8 +624,9 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sq_asym(  # noqa: TMN001
+    def from_sq_asym(
         cls,
+        *,
         pow_app_r: float,
         pow_app_s: float,
         pow_app_t: float,
@@ -535,9 +635,9 @@ class LoadPower:
         pow_react_t: float,
         scaling: float,
     ) -> LoadPower:
-        power_dict_r = cls.calc_sq(pow_app_r, pow_react_r, scaling)
-        power_dict_s = cls.calc_sq(pow_app_s, pow_react_s, scaling)
-        power_dict_t = cls.calc_sq(pow_app_t, pow_react_t, scaling)
+        power_dict_r = cls.calc_sq(pow_app=pow_app_r, pow_react=pow_react_r, scaling=scaling)
+        power_dict_s = cls.calc_sq(pow_app=pow_app_s, pow_react=pow_react_s, scaling=scaling)
+        power_dict_t = cls.calc_sq(pow_app=pow_app_t, pow_react=pow_react_t, scaling=scaling)
         return LoadPower(
             pow_app_r=power_dict_r["power_apparent"],
             pow_app_s=power_dict_s["power_apparent"],

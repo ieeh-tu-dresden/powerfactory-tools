@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -11,9 +11,9 @@ from loguru import logger
 
 from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.base import Meta
-from powerfactory_tools.schema.steadystate_case.external_grid import ExternalGrid
-from powerfactory_tools.schema.steadystate_case.load import Load
-from powerfactory_tools.schema.steadystate_case.transformer import Transformer
+from powerfactory_tools.schema.steadystate_case.external_grid import ExternalGrid  # noqa: TCH001
+from powerfactory_tools.schema.steadystate_case.load import Load  # noqa: TCH001
+from powerfactory_tools.schema.steadystate_case.transformer import Transformer  # noqa: TCH001
 
 if TYPE_CHECKING:
     from powerfactory_tools.schema.topology.topology import Topology
@@ -99,7 +99,7 @@ class Case(Base):
         for ext_grid in topology.external_grids:
             if ext_grid.name not in external_grid_names:
                 logger.error(
-                    "External grid {ext_grid_name} is not in steadystate case.", extra={"ext_grid_name": ext_grid.name}
+                    "External grid {ext_grid_name} is not in steadystate case.", extra={"ext_grid_name": ext_grid.name},
                 )
                 return False
 

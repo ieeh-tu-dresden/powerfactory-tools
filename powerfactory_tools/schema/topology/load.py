@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -11,8 +11,8 @@ from pydantic import validator
 
 from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.base import VoltageSystemType
-from powerfactory_tools.schema.topology.active_power import ActivePower
-from powerfactory_tools.schema.topology.reactive_power import ReactivePower
+from powerfactory_tools.schema.topology.active_power import ActivePower  # noqa: TCH001
+from powerfactory_tools.schema.topology.reactive_power import ReactivePower  # noqa: TCH001
 
 
 class LoadType(Enum):
@@ -93,7 +93,7 @@ class Load(Base):  # including assets of type load and generator
     rated_power: RatedPower
     active_power: ActivePower
     reactive_power: ReactivePower
-    type: LoadType  # noqa:A003, VNE003
+    type: LoadType  # noqa: A003
     system_type: ConsumerSystemType | ProducerSystemType | None = None
     phase_connection_type: PhaseConnectionType | None = None
     voltage_system_type: VoltageSystemType | None = None
@@ -102,13 +102,15 @@ class Load(Base):  # including assets of type load and generator
         frozen = True
 
     @validator("rated_power")
-    def validate_rated_power(cls, value: RatedPower) -> RatedPower:  # noqa: U100
+    def validate_rated_power(cls, value: RatedPower) -> RatedPower:  # noqa: N805 # bug
         cosphi = value.cosphi
         if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
-            raise ValueError(f"Rated {cosphi=} must be within range [0 1].")
+            msg = f"Rated {cosphi=} must be within range [0 1]."
+            raise ValueError(msg)
 
         power = value.value
         if value.value < 0:
-            raise ValueError(f"Rated {power=} value must be positive.")
+            msg = f"Rated {power=} value must be positive."
+            raise ValueError(msg)
 
         return value

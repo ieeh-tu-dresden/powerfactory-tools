@@ -1,15 +1,15 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Sequence  # noqa: TCH003
 from enum import Enum
 
 from powerfactory_tools.schema.base import Base
-from powerfactory_tools.schema.topology.windings import Winding
+from powerfactory_tools.schema.topology.windings import Winding  # noqa: TCH001
 
 
 class TapSide(Enum):

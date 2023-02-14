@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
@@ -25,7 +25,7 @@ class Exponents:
     POWER = 10**6
 
 
-class DecimalDigits:  # noqa: PIE795
+class DecimalDigits:
     COSPHI = 6
     VOLTAGE = 3
     CURRENT = 3
@@ -33,7 +33,7 @@ class DecimalDigits:  # noqa: PIE795
     PU = 4
 
 
-class BaseUnits:  # noqa: PIE793
+class BaseUnits:
     LENGTH: PFTypes.MetricPrefix = "k"
     POWER: PFTypes.MetricPrefix = "M"
     CURRENCY: PFTypes.Currency = "EUR"

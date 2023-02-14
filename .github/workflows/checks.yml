@@ -38,8 +38,8 @@ jobs:
       - name: Code format checking using black
         run: pdm run black powerfactory_tools --check
 
-      - name: Code checking using flake8
-        run: pdm run flake8 powerfactory_tools
+      - name: Code checking using ruff
+        run: pdm run ruff powerfactory_tools
 
       - name: Type checking using mypy
         run: pdm run mypy powerfactory_tools

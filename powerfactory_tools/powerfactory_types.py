@@ -1,20 +1,49 @@
-# -*- coding: utf-8 -*-
+#! /usr/bin/python
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from typing import Literal
 from typing import Protocol
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+
+class CtrlMode:  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
+    PowAct = 0
+    PowReact = 1
+    Cosphi = 2
+    Tanphi = 3
+
+
+class CosphiChar:  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
+    const = 0
+    U = 1
+    P = 2
+
+
+class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
+    const = 0
+    U = 1
+    P = 2
+
+
+class IOpt:  # 0:const. Q; 1:Q(U); 2: Q(P)
+    SCosphi = 0
+    PCosphi = 1
+    UICosphi = 2
+    ECosphi = 3
 
 
 class PowerFactoryTypes:
     ModeInpLoad = Literal["DEF", "PQ", "PC", "IC", "SC", "QC", "IP", "SP", "SQ"]
     ModeInpGen = Literal["DEF", "PQ", "PC", "SC", "QC", "SP", "SQ"]
     ModeInpMV = Literal["PC", "SC", "EC"]
-    IOptInp = Literal[0, 1, 2, 3]
+    IOptInp = Literal[0, 1, 2]  # 0:const. Q; 1:Q(U); 2: Q(P)
     PFRecap = Literal[0, 1]
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
@@ -111,12 +140,18 @@ class PowerFactoryTypes:
         fold_id: PowerFactoryTypes.DataObject | None
 
         def GetContents(  # noqa: N802
-            self, filter: str, recursive: bool = False  # noqa: A002, VNE003
+            self,
+            *,
+            filter: str,  # noqa: A002
+            recursive: bool = False,
         ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
 
         def CreateObject(  # noqa: N802
-            self, class_name: str, name: str | int | None, /  # noqa: W504
+            self,
+            class_name: str,
+            name: str | int | None,
+            /,
         ) -> PowerFactoryTypes.DataObject | None:
             ...
 
@@ -143,21 +178,21 @@ class PowerFactoryTypes:
     class Project(DataObject, Protocol):
         pPrjSettings: PowerFactoryTypes.ProjectSettings  # noqa: N815
 
-        def Deactivate(self) -> bool:  # noqa: N802, FNE005
+        def Deactivate(self) -> bool:  # noqa: N802
             ...
 
     class Scenario(DataObject, Protocol):
-        def Activate(self) -> bool:  # noqa: N802, FNE005
+        def Activate(self) -> bool:  # noqa: N802
             ...
 
-        def Deactivate(self) -> bool:  # noqa: N802, FNE005
+        def Deactivate(self) -> bool:  # noqa: N802
             ...
 
     class StudyCase(DataObject, Protocol):
-        def Activate(self) -> bool:  # noqa: N802, FNE005
+        def Activate(self) -> bool:  # noqa: N802
             ...
 
-        def Deactivate(self) -> bool:  # noqa: N802, FNE005
+        def Deactivate(self) -> bool:  # noqa: N802
             ...
 
     class ProjectSettings(DataObject, Protocol):
@@ -263,10 +298,10 @@ class PowerFactoryTypes:
         desc: Sequence[str]
 
     class Grid(DataObject, Protocol):
-        def Activate(self) -> bool:  # noqa: N802, FNE005
+        def Activate(self) -> bool:  # noqa: N802
             ...
 
-        def Deactivate(self) -> bool:  # noqa: N802, FNE005
+        def Deactivate(self) -> bool:  # noqa: N802
             ...
 
     class LineBase(DataObject, Protocol):
