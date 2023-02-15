@@ -16,7 +16,6 @@ from loguru import logger
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exceptions import Exceptions
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerfactoryInterface
 from powerfactory_tools.powerfactory_types import CosphiChar
@@ -206,8 +205,8 @@ class PowerfactoryExporter:
         steadystate_case = self.create_steadystate_case(meta=meta, data=data)
 
         if steadystate_case.is_valid_topology(topology) is False:
-            logger.error("Steadystate case is not valid.")
-            raise Exceptions.SteadystateCaseNotValidError
+            msg = "Steadystate case does not match specified topology."
+            raise ValueError(msg)
 
         self.export_topology(topology=topology, topology_name=topology_name, export_path=export_path)
         self.export_topology_case(
@@ -255,8 +254,8 @@ class PowerfactoryExporter:
         if verify_steadystate_case is True:
             topology = self.create_topology(meta=meta, data=data)
             if steadystate_case.is_valid_topology(topology) is False:
-                logger.error("Steadystate case is not valid.")
-                raise Exceptions.SteadystateCaseNotValidError
+                msg = "Steadystate case does not match specified topology."
+                raise ValueError(msg)
 
         self.export_topology_case(
             topology_case=topology_case,
@@ -329,11 +328,8 @@ class PowerfactoryExporter:
         try:
             file_path.resolve()
         except OSError as e:
-            logger.exception(
-                "File path {file_path} is not a valid path. Please provide a valid file path.",
-                file_path=file_path,
-            )
-            raise Exceptions.InvalidPathError from e
+            msg = f"File path {file_path} is not a valid path."
+            raise FileNotFoundError(msg) from e
 
         data.to_json(file_path)
 
@@ -342,22 +338,16 @@ class PowerfactoryExporter:
         if study_case is not None:
             self.pfi.activate_study_case(study_case)
         else:
-            logger.error(
-                "Study case {sc} does not exist. Cancel switch of study case.",
-                sc=sc,
-            )
-            raise Exceptions.StudyCaseSwitchError(sc)
+            msg = f"Study case {sc} does not exist."
+            raise RuntimeError(msg)
 
     def switch_scenario(self, scen: str) -> None:
         scenario = self.pfi.scenario(name=scen)
         if scenario is not None:
             self.pfi.activate_scenario(scenario)
         else:
-            logger.error(
-                "Scenario {scen} does not exist. Cancel switch of scenario.",
-                scen=scen,
-            )
-            raise Exceptions.ScenarioSwitchError(scen)
+            msg = f"Scenario {scen} does not exist."
+            raise RuntimeError(msg)
 
     def compile_powerfactory_data(self) -> PowerfactoryData:
         if self.grid_name == "*":

@@ -46,21 +46,24 @@ class Case(Base):
         if len(self.loads) != len(topology.loads):
             logger.error(
                 "Number of loads does not match. Is {n_act}, should be {n_ref}.",
-                extra={"n_act": len(self.loads), "n_ref": len(topology.loads)},
+                n_act=len(self.loads),
+                n_ref=len(topology.loads),
             )
             return False
 
         if len(self.transformers) != len(topology.transformers):
             logger.error(
                 "Number of transformers does not match. Is {n_act}, should be {n_ref}.",
-                extra={"n_act": len(self.transformers), "n_ref": len(topology.transformers)},
+                n_act=len(self.transformers),
+                n_ref=len(topology.transformers),
             )
             return False
 
         if len(self.external_grids) != len(topology.external_grids):
             logger.error(
                 "Number of external grids does not match. Is {n_act}, should be {n_ref}.",
-                extra={"n_act": len(self.external_grids), "n_ref": len(topology.external_grids)},
+                n_act=len(self.external_grids),
+                n_ref=len(topology.external_grids),
             )
             return False
 
@@ -79,7 +82,7 @@ class Case(Base):
         load_names = [e.name for e in self.loads]
         for load in topology.loads:
             if load.name not in load_names:
-                logger.error("Load {load_name} is not in steadystate case.", extra={"load_name": load.name})
+                logger.error("Load {load_name} is not in steadystate case.", load_name=load.name)
                 return False
 
         return True
@@ -88,7 +91,7 @@ class Case(Base):
         transformer_names = [e.name for e in self.transformers]
         for trafo in topology.transformers:
             if trafo.name not in transformer_names:
-                logger.error("Transformer {trafo_name} is not in steadystate case.", extra={"trafo_name": trafo.name})
+                logger.error("Transformer {trafo_name} is not in steadystate case.", trafo_name=trafo.name)
                 return False
 
         return True
@@ -99,7 +102,7 @@ class Case(Base):
             if ext_grid.name not in external_grid_names:
                 logger.error(
                     "External grid {ext_grid_name} is not in steadystate case.",
-                    extra={"ext_grid_name": ext_grid.name},
+                    ext_grid_name=ext_grid.name,
                 )
                 return False
 

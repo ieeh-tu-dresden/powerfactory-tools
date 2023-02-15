@@ -14,7 +14,6 @@ from typing import TYPE_CHECKING
 from loguru import logger
 
 from powerfactory_tools.constants import BaseUnits
-from powerfactory_tools.exceptions import Exceptions
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -66,9 +65,6 @@ class PowerfactoryInterface:
         pf = self.load_powerfactory_module_from_path()
         self.app = self.connect_to_app(pf)
         self.project = self.connect_to_project(self.project_name)
-        if self.project is None:
-            raise Exceptions.ProjectAccessError
-
         self.load_project_folders_from_pf_db()
         self.set_default_unit_conversion()
 
@@ -103,19 +99,22 @@ class PowerfactoryInterface:
                 spec.loader.exec_module(pfm)
                 return typing.cast("PFTypes.PowerFactoryModule", pfm)
 
-        raise Exceptions.LoadPFModuleError
+        msg = "Could not load PowerFactory Module."
+        raise RuntimeError(msg)
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         settings_dir = self.element_of(element=self.project, pattern="*.SetFold", recursive=False)
         if settings_dir is None:
-            raise Exceptions.SettingsAccessError
+            msg = "Could not access settings."
+            raise RuntimeError(msg)
 
         return typing.cast("PFTypes.DataDir", settings_dir)
 
     def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
         unit_settings_dir = self.element_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
         if unit_settings_dir is None:
-            raise Exceptions.UnitSettingsAccessError
+            msg = "Could not access unit settings."
+            raise RuntimeError(msg)
 
         return typing.cast("PFTypes.DataDir", unit_settings_dir)
 
@@ -137,7 +136,8 @@ class PowerfactoryInterface:
         try:
             return pf.GetApplicationExt(self.powerfactory_user_profile)
         except pf.ExitError as element:
-            raise Exceptions.CouldNotStartAppError from element
+            msg = "Could not start application."
+            raise RuntimeError(msg) from element
 
     def connect_to_project(self, project_name: str) -> PFTypes.Project:
         """Connect to a PowerFactory project.
@@ -153,13 +153,15 @@ class PowerfactoryInterface:
 
         project = self.app.GetActiveProject()
         if project is None:
-            raise Exceptions.ProjectAccessError
+            msg = "Could not access project."
+            raise RuntimeError(msg)
 
         return project
 
     def activate_grid(self, grid: PFTypes.Grid) -> None:
         if grid.Activate():
-            raise Exceptions.GridActivationError
+            msg = "Could not activate grid."
+            raise RuntimeError(msg)
 
     def deactivate_grids(self) -> None:
         for grid in self.grids():
@@ -167,24 +169,29 @@ class PowerfactoryInterface:
 
     def deactivate_grid(self, grid: PFTypes.Grid) -> None:
         if grid.Deactivate():
-            raise Exceptions.GridDeactivationError
+            msg = "Could not deactivate grid."
+            raise RuntimeError(msg)
 
     def activate_scenario(self, scen: PFTypes.Scenario) -> None:
         active_scen = self.app.GetActiveScenario()
         if active_scen != scen and scen.Activate():
-            raise Exceptions.ScenarioActivationError
+            msg = "Could not activate scenario."
+            raise RuntimeError(msg)
 
     def deactivate_scenario(self, scen: PFTypes.Scenario) -> None:
         if scen.Deactivate():
-            raise Exceptions.ScenarioDeactivationError
+            msg = "Could not deactivate scenario."
+            raise RuntimeError(msg)
 
     def activate_study_case(self, stc: PFTypes.StudyCase) -> None:
         if stc.Activate():
-            raise Exceptions.StudyCaseActivationError
+            msg = "Could not activate case study."
+            raise RuntimeError(msg)
 
     def deactivate_study_case(self, stc: PFTypes.StudyCase) -> None:
         if stc.Deactivate():
-            raise Exceptions.StudyCaseDeactivationError
+            msg = "Could not deactivate case study."
+            raise RuntimeError(msg)
 
     def set_default_unit_conversion(self) -> None:
         self.save_unit_conversion_settings_to_temp()
@@ -253,7 +260,8 @@ class PowerfactoryInterface:
     def load_project_settings_dir_from_pf(self) -> PFTypes.ProjectSettings:
         project_settings = self.project.pPrjSettings
         if project_settings is None:
-            raise Exceptions.ProjectSettingsAccessError
+            msg = "Could not access project settings."
+            raise RuntimeError(msg)
 
         return project_settings
 
@@ -263,11 +271,13 @@ class PowerfactoryInterface:
 
     def activate_project(self, name: str) -> None:
         if self.app.ActivateProject(name + ".IntPrj"):
-            raise Exceptions.ProjectActivationError
+            msg = "Could not activate project."
+            raise RuntimeError(msg)
 
     def deactivate_project(self) -> None:
         if self.project.Deactivate():
-            raise Exceptions.ProjectDeactivationError
+            msg = "Could not deactivate project."
+            raise RuntimeError(msg)
 
     def subloads_of(self, load: PFTypes.LoadLV) -> Sequence[PFTypes.LoadLVP]:
         elements = self.elements_of(element=load, pattern="*.ElmLodlvp")
@@ -504,7 +514,8 @@ class PowerfactoryInterface:
             if update is False:
                 logger.warning(
                     "{object_name}.{class_name} already exists. Use force=True to create it anyway or update=True to update it.",
-                    extra={"object_name": name, "class_name": class_name},
+                    object_name=name,
+                    class_name=class_name,
                 )
         else:
             element = location.CreateObject(class_name, name)
@@ -551,7 +562,8 @@ class PowerfactoryInterface:
     @staticmethod
     def delete_object(element: PFTypes.DataObject) -> None:
         if element.Delete():
-            raise Exceptions.ElementDeletionError(element)
+            msg = f"Could not delete element {element}."
+            raise RuntimeError(msg)
 
     @staticmethod
     def create_name(element: PFTypes.DataObject, grid_name: str, element_name: str | None = None) -> str:
