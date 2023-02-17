@@ -141,8 +141,9 @@ class PowerFactoryTypes:
 
         def GetContents(  # noqa: N802
             self,
+            name: str,
+            /,
             *,
-            filter: str,  # noqa: A002
             recursive: bool = False,
         ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...

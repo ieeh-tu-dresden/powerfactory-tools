@@ -550,7 +550,7 @@ class PowerfactoryInterface:
         pattern: str = "*",
         recursive: bool = True,
     ) -> Sequence[PFTypes.DataObject]:
-        return element.GetContents(filter=pattern, recursive=recursive)
+        return element.GetContents(pattern, recursive=recursive)
 
     @staticmethod
     def update_object(element: PFTypes.DataObject, data: dict[str, Any]) -> PFTypes.DataObject:
