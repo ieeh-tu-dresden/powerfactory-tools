@@ -458,9 +458,9 @@ class PowerfactoryExporter:
 
         return grids
 
-    def create_nodes(self, terminals: Sequence[PFTypes.Terminal], grid_name: str) -> Sequence[Node]:
+    def create_nodes(self, terminals: Sequence[PFTypes.Terminal], grid_name: str) -> set[Node]:
         nodes = [self.create_node(terminal, grid_name) for terminal in terminals]
-        return [e for e in nodes if e is not None]
+        return self.pfi.set_from_sequences([e for e in nodes if e is not None])
 
     def create_node(self, terminal: PFTypes.Terminal, grid_name: str) -> Node | None:
         export, description = self.get_description(terminal)
@@ -489,11 +489,11 @@ class PowerfactoryExporter:
         lines: Sequence[PFTypes.Line],
         couplers: Sequence[PFTypes.Coupler],
         grid_name: str,
-    ) -> Sequence[Branch]:
+    ) -> set[Branch]:
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
 
-        return [e for sublist in [blines, bcouplers] for e in sublist if e is not None]
+        return self.pfi.set_from_sequences([e for sublist in [blines, bcouplers] for e in sublist if e is not None])
 
     def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(line, grid_name)
@@ -666,13 +666,13 @@ class PowerfactoryExporter:
         generators: Sequence[PFTypes.Generator],
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
-    ) -> Sequence[Load]:
+    ) -> set[Load]:
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
         load_mvs = self.create_loads_mv(consumers_mv, grid_name)
         gen_producers = self.create_producers_normal(generators, grid_name)
         pv_producers = self.create_producers_pv(pv_systems, grid_name)
-        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
+        return self.pfi.set_from_sets(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
 
     def create_consumers_normal(self, loads: Sequence[PFTypes.Load], grid_name: str) -> set[Load]:
         consumers: set[Load] = set()
@@ -2105,10 +2105,9 @@ class PowerfactoryExporter:
         self,
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
-    ) -> Sequence[Transformer]:
-        transformers_2w = self.create_transformers_2w(pf_transformers_2w, grid_name)
+    ) -> set[Transformer]:
 
-        return self.pfi.list_from_sequences(transformers_2w)
+        return self.create_transformers_2w(pf_transformers_2w, grid_name)
 
     def create_transformers_2w(
         self,

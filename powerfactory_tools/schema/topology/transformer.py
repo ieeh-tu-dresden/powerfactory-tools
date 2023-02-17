@@ -1,10 +1,10 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
 
-from collections.abc import Sequence  # noqa: TCH003
 from enum import Enum
 
 from powerfactory_tools.schema.base import Base
@@ -31,7 +31,7 @@ class Transformer(Base):
     vector_group: str  # specifier for connection of wiring e.g. DYn5
     i_0: float  # no-load current in %
     p_fe: float  # no-load losses (Iron losses)
-    windings: Sequence[Winding]  # winding object for each voltage level
+    windings: frozenset[Winding]  # winding object for each voltage level
     phase_technology_type: TransformerPhaseTechnologyType | None = None  # three- or single-phase-transformer
     description: str | None = None
     tap_u_abs: float | None = None  # voltage deviation per tap position change in %
