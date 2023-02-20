@@ -2092,7 +2092,6 @@ class PowerfactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
-
         return self.create_transformers_2w(pf_transformers_2w, grid_name)
 
     def create_transformers_2w(
