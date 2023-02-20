@@ -647,37 +647,5 @@ class PowerfactoryInterface:
         return list(itertools.chain.from_iterable([*sequences]))
 
     @staticmethod
-    def list_from_sets(*sets: Iterable[T]) -> Sequence[T]:
-        """Combine iterable sets with the same base type into one list.
-
-        Arguments:
-            sets {Iterable[T]} -- enumeration of sets (all the same base type T)
-
-        Returns:
-            list -- list of elements of base type T
-        """
-        return list(itertools.chain.from_iterable([*sets]))
-
-    @staticmethod
-    def set_from_sets(*sets: Iterable[T]) -> Sequence[T]:
-        """Combine iterable sets with the same base type into one list.
-
-        Arguments:
-            sets {Iterable[T]} -- enumeration of sets (all the same base type T)
-
-        Returns:
-            set -- set of elements of base type T
-        """
-        return set(itertools.chain.from_iterable([*sets]))
-
-    @staticmethod
-    def set_from_sequences(*sequences: Iterable[T]) -> set[T]:
-        """Combine iterable sequences with the same base type into one set.
-
-        Arguments:
-            sequences {Iterable[T]} -- enumeration of sequences (all the same base type T)
-
-        Returns:
-            set -- set of elements of base type T
-        """
-        return set(itertools.chain.from_iterable([*sequences]))
+    def filter_none(data: Sequence[T | None]) -> Sequence[T]:
+        return [e for e in data if e is not None]

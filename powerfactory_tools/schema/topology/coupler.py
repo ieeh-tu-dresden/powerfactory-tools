@@ -11,6 +11,3 @@ class Coupler(Base):
     element: str
     node: str
     state: bool  # 0:opened; 1:closed
-
-    class Config:
-        frozen = True

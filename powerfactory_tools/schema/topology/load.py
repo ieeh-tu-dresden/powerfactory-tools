@@ -80,9 +80,6 @@ class RatedPower(Base):
     cosphi_s: float | None  # rated cos(phi) (phase s)
     cosphi_t: float | None  # rated cos(phi) (phase t)
 
-    class Config:
-        frozen = True
-
 
 class Load(Base):  # including assets of type load and generator
     name: str
@@ -96,9 +93,6 @@ class Load(Base):  # including assets of type load and generator
     system_type: ConsumerSystemType | ProducerSystemType | None = None
     phase_connection_type: PhaseConnectionType | None = None
     voltage_system_type: VoltageSystemType | None = None
-
-    class Config:
-        frozen = True
 
     @pydantic.validator("rated_power")
     def validate_rated_power(cls, value: RatedPower) -> RatedPower:

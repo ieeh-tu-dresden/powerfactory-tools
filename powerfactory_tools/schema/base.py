@@ -9,8 +9,7 @@ import pathlib
 import uuid
 from enum import Enum
 
-from pydantic import BaseModel
-from pydantic import Field
+import pydantic
 
 VERSION = "1.1.0"
 
@@ -20,7 +19,10 @@ class VoltageSystemType(Enum):
     DC = "DC"
 
 
-class Base(BaseModel):
+class Base(pydantic.BaseModel):
+    class Config:
+        frozen = True
+
     @classmethod
     def from_file(cls, file_path: str | pathlib.Path) -> Base:
         return cls.parse_file(file_path)
@@ -40,8 +42,5 @@ class Meta(Base):
     version = VERSION
     name: str
     date: datetime.date  # date of export
-    id: uuid.UUID = Field(default_factory=uuid.uuid4)  # noqa: A003
+    id: uuid.UUID = pydantic.Field(default_factory=uuid.uuid4)  # noqa: A003
     project: str | None = None  # project the export is related to
-
-    class Config:
-        frozen = True

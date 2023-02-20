@@ -6,6 +6,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pydantic  # noqa: TCH002
 from loguru import logger
 
 from powerfactory_tools.schema.base import Base
@@ -20,12 +21,9 @@ if TYPE_CHECKING:
 
 class Case(Base):
     meta: Meta
-    loads: set[Load]
-    transformers: set[Transformer]
-    external_grids: set[ExternalGrid]
-
-    class Config:
-        frozen = True
+    loads: pydantic.conlist(Load, unique_items=True)  # type: ignore[valid-type]
+    transformers: pydantic.conlist(Transformer, unique_items=True)  # type: ignore[valid-type]
+    external_grids: pydantic.conlist(ExternalGrid, unique_items=True)  # type: ignore[valid-type]
 
     def is_valid_topology(self, topology: Topology) -> bool:
         logger.info("Verifying steadystate case ...")

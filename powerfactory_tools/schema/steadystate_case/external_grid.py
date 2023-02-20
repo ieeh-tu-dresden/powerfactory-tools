@@ -13,6 +13,3 @@ class ExternalGrid(Base):
     phi_0: float | None = None
     p_0: float | None = None
     q_0: float | None = None
-
-    class Config:
-        frozen = True

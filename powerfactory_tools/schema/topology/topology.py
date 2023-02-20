@@ -4,6 +4,8 @@
 
 from __future__ import annotations
 
+import pydantic  # noqa: TCH002
+
 from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.base import Meta
 from powerfactory_tools.schema.topology.branch import Branch  # noqa: TCH001
@@ -15,11 +17,8 @@ from powerfactory_tools.schema.topology.transformer import Transformer  # noqa: 
 
 class Topology(Base):
     meta: Meta
-    branches: set[Branch]
-    nodes: set[Node]
-    loads: set[Load]
-    transformers: set[Transformer]
-    external_grids: set[ExternalGrid]
-
-    class Config:
-        frozen = True
+    branches: pydantic.conlist(Branch, unique_items=True)  # type: ignore[valid-type]
+    nodes: pydantic.conlist(Node, unique_items=True)  # type: ignore[valid-type]
+    loads: pydantic.conlist(Load, unique_items=True)  # type: ignore[valid-type]
+    transformers: pydantic.conlist(Transformer, unique_items=True)  # type: ignore[valid-type]
+    external_grids: pydantic.conlist(ExternalGrid, unique_items=True)  # type: ignore[valid-type]

@@ -11,6 +11,3 @@ from powerfactory_tools.schema.topology.load_model import LoadModel  # noqa: TCH
 class ReactivePower(Base):
     load_model: LoadModel | None = None
     external_controller_name: str | None = None  # Name of optional external load flow controller
-
-    class Config:
-        frozen = True

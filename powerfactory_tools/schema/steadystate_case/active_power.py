@@ -22,9 +22,6 @@ class ActivePower(Base):
     value_t_0: float  # actual active power (phase t)
     is_symmetrical: bool
 
-    class Config:
-        frozen = True
-
     @root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
         p_total = round(values["value_r_0"] + values["value_s_0"] + values["value_t_0"], DecimalDigits.POWER)

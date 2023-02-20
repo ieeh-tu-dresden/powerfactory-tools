@@ -12,6 +12,3 @@ from powerfactory_tools.schema.topology.load_model import LoadModel  # noqa: TCH
 class ActivePower(Base):
     load_model: LoadModel | None = None
     characteristic: Characteristic | None = None
-
-    class Config:
-        frozen = True

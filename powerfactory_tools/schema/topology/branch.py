@@ -34,6 +34,3 @@ class Branch(Base):
     f_n: float | None = None  # nominal frequency the values x and b apply
     description: str | None = None
     energized: bool | None = None
-
-    class Config:
-        frozen = True

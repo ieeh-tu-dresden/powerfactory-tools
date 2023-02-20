@@ -13,6 +13,3 @@ class Load(Base):  # including assets of type load and generator
     name: str
     active_power: ActivePower
     reactive_power: ReactivePower
-
-    class Config:
-        frozen = True

@@ -80,9 +80,6 @@ class Controller(Base):
     qmax_ue: float | None = None  # Over excited limit of Q: absolut value
     qmax_oe: float | None = None  # Under excited limit of Q: absolut value
 
-    class Config:
-        frozen = True
-
     @pydantic.validator("cosphi")
     def validate_cosphi(cls, value: float | None) -> float | None:
         if value is not None and (not (-1 <= value <= 1)):

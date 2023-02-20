@@ -9,6 +9,3 @@ class Node(Base):
     name: str
     u_n: float
     description: str | None = None
-
-    class Config:
-        frozen = True

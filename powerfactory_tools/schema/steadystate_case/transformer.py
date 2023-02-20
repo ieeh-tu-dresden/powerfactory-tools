@@ -10,6 +10,3 @@ from powerfactory_tools.schema.base import Base
 class Transformer(Base):
     name: str
     tap_pos: int | None = None  # actual tap position
-
-    class Config:
-        frozen = True

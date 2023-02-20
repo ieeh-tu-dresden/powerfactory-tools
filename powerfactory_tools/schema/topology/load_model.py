@@ -29,9 +29,6 @@ class LoadModel(Base):
     exp_i: float = 1
     exp_z: float = 2
 
-    class Config:
-        frozen = True
-
     @root_validator
     def validate_range_c(cls, values: dict[str, Any]) -> dict[str, Any]:
         name = values["name"]

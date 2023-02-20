@@ -18,6 +18,3 @@ class Winding(Base):
     x0: float | None = None
     phase_angle_clock: int | None = None
     vector_group: str | None = None
-
-    class Config:
-        frozen = True

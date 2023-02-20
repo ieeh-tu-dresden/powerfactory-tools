@@ -11,6 +11,3 @@ class ElementState(Base):
     name: str
     disabled: bool = False
     open_switches: tuple[str, ...] = Field(default_factory=tuple)
-
-    class Config:
-        frozen = True

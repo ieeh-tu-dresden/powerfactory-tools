@@ -9,6 +9,3 @@ from powerfactory_tools.schema.base import Base
 
 class Characteristic(Base):
     description: str | None = None
-
-    class Config:
-        frozen = True

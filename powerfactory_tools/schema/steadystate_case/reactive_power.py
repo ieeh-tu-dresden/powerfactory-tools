@@ -24,9 +24,6 @@ class ReactivePower(Base):
     is_symmetrical: bool
     controller: Controller | None = None
 
-    class Config:
-        frozen = True
-
     @pydantic.validator("controller")
     def validate_controller(cls, value: Controller) -> Controller:
         return value
