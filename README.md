@@ -1,14 +1,15 @@
-# Powerfactory Utils
+# IEEH PowerFactory Tools
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
-- [Powerfactory Utils](#powerfactory-utils)
+- [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
   - [ Installation](#-installation)
-  - [ Developement](#-developement)
+  - [ Compatibility](#-compatibility)
+  - [ Development](#-development)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
 
@@ -19,7 +20,7 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
 The following functionalities are provided:
 
-* export of calculation relevant grid data from a PowerFactory project into three common readable JSON files utilizing predefined [schemas](./powerfactory_utils/schema):
+* export of calculation relevant grid data from a PowerFactory project into three common readable JSON files utilizing predefined [schemas](./powerfactory_tools/schema):
   * grid topology:
     * base topology containing all elements of the exported grid
   * topology case;
@@ -40,9 +41,14 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 Just install via pip:
 
 ```bash
-pip install powerfactory-utils
+pip install ieeh-powerfactory-tools
 ```
-## <div id="developement" /> Developement
+
+## <div id="compatibility" /> Compatibility
+
+Due to very useful features in `python 3.10+` - which is supported by `PowerFactory 2022`, we decided to drop `python 3.9` starting from version `1.4`. Users that use an older `PowerFactory` version, please use version `1.3`.
+
+## <div id="development" /> Development
 
 Install [pdm](https://github.com/pdm-project/pdm)
 
@@ -65,23 +71,23 @@ pdm plugin add pdm-venv
 pdm config venv.in_project true
 ```
 
-Clone `powerfactory-utils`
+Clone `powerfactory-tools`
 
 ```bash
-git@github.com:ieeh-tu-dresden/powerfactory-utils.git
+git@github.com:ieeh-tu-dresden/powerfactory-tools.git
 ```
 
 ```bash
-cd powerfactory-utils
+cd powerfactory-tools
 ```
 
-Install `powerfactory-utils` as a production tool
+Install `powerfactory-tools` as a production tool
 
 ```bash
 pdm install --prod
 ```
 
-Install `powerfactory-utils` in development mode
+Install `powerfactory-tools` in development mode
 
 ```bash
 pdm install
@@ -103,10 +109,10 @@ This code was tested with `DIgSILENT PowerFactory 2021 SP5` and `DIgSILENT Power
 
 Please provide a link to this repository:
 
-<https://github.com/ieeh-tu-dresden/powerfactory-utils>
+<https://github.com/ieeh-tu-dresden/powerfactory-tools>
 
 Please cite as:
 
-Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _Powerfactory Utils - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
+Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _Powerfactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)

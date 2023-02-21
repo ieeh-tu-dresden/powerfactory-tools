@@ -18,7 +18,7 @@ jobs:
     needs: [checks]
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.10"]
 
     steps:
       - name: Check out repository
@@ -39,4 +39,4 @@ jobs:
         run: pdm install
 
       - name: Unit test using pytest
-        run: pdm run pytest --cov=powerfactory_utils tests/ -n 2
+        run: pdm run pytest --cov=powerfactory_tools tests/ -n 2

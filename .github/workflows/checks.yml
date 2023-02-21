@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10"]
+        python-version: ["3.10"]
 
     steps:
       - name: Checking out repository
@@ -32,14 +32,11 @@ jobs:
       - name: Installing dependencies
         run: pdm install
 
-      - name: Import checking using isort
-        run: pdm run isort --check-only --diff powerfactory_utils tests
-
       - name: Code format checking using black
-        run: pdm run black powerfactory_utils --check
+        run: pdm run black powerfactory_tools --check
 
-      - name: Code checking using flake8
-        run: pdm run flake8 powerfactory_utils
+      - name: Code checking using ruff
+        run: pdm run ruff powerfactory_tools
 
       - name: Type checking using mypy
-        run: pdm run mypy powerfactory_utils
+        run: pdm run mypy powerfactory_tools

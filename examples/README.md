@@ -41,4 +41,4 @@ Further, two different scenarios are available:
 ![HV_8_Bus grid](./grids/HV_8_Bus.png)
 
 [link_to_example_grids]: ./grids
-[link_to_interface]: ../powerfactory_utils/interface.py
+[link_to_interface]: ../powerfactory_tools/interface.py
