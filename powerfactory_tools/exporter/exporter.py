@@ -2141,7 +2141,7 @@ class PowerfactoryExporter:
             if bool(t_type.itapch2) is True:
                 logger.warning(
                     "Transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
-                    _name=name,
+                    transformer_name=name,
                 )
                 return None
 
