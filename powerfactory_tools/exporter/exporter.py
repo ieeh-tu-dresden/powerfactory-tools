@@ -636,6 +636,171 @@ class PowerfactoryExporter:
 
         return description
 
+    def create_transformers(
+        self,
+        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
+        grid_name: str,
+    ) -> Sequence[Transformer]:
+        return self.create_transformers_2w(pf_transformers_2w, grid_name)
+
+    def create_transformers_2w(
+        self,
+        transformers_2w: Sequence[PFTypes.Transformer2W],
+        grid_name: str,
+    ) -> Sequence[Transformer]:
+        transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
+        return self.pfi.filter_none(transformers)
+
+    def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
+        name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
+        export, description = self.get_description(transformer_2w)
+        if not export:
+            logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
+            return None
+
+        if transformer_2w.buslv is None or transformer_2w.bushv is None:
+            logger.warning(
+                "Transformer {transformer_name} not connected to buses on both sides. Skipping.",
+                transformer_name=name,
+            )
+            return None
+
+        t_high = transformer_2w.bushv.cterm
+        t_low = transformer_2w.buslv.cterm
+
+        t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
+        t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
+
+        t_type = transformer_2w.typ_id
+
+        if t_type is not None:
+            t_number = transformer_2w.ntnum
+            vector_group = t_type.vecgrp
+
+            ph_technology = self.transformer_phase_technology(t_type)
+
+            # Transformer Tap Changer
+            tap_u_abs = t_type.dutap
+            tap_u_phi = t_type.phitr
+            tap_min = t_type.ntpmn
+            tap_max = t_type.ntpmx
+            tap_neutral = t_type.nntap0
+            tap_side = self.transformer_tap_side(t_type)
+
+            if bool(t_type.itapch2) is True:
+                logger.warning(
+                    "Transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
+                    transformer_name=name,
+                )
+                return None
+
+            # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
+            u_ref_h = t_type.utrn_h
+            u_ref_l = t_type.utrn_l
+
+            # Nominal Voltage of connected nodes (CIM: BaseVoltage)
+            u_nom_h = transformer_2w.bushv.cterm.uknom
+            u_nom_l = transformer_2w.buslv.cterm.uknom
+
+            # Rated values
+            p_fe = t_type.pfe  # kW
+            i_0 = t_type.curmg  # %
+            s_r = t_type.strn  # MVA
+
+            # Create Winding Objects
+            # Resulting impedance
+            pu2abs = u_ref_h**2 / s_r
+            r_1 = t_type.r1pu * pu2abs
+            r_0 = t_type.r0pu * pu2abs
+            x_1 = t_type.x1pu * pu2abs
+            x_0 = t_type.x0pu * pu2abs
+
+            # Wiring group
+            vector_h = t_type.tr2cn_h  # Wiring HV
+            vector_l = t_type.tr2cn_l  # Wiring LV
+            vector_phase_angle_clock = t_type.nt2ag
+
+            wh = Winding(
+                node=t_high_name,
+                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                r1=r_1,
+                r0=r_0,
+                x1=x_1,
+                x0=x_0,
+                vector_group=vector_h,
+                phase_angle_clock=0,
+            )
+
+            wl = Winding(
+                node=t_low_name,
+                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
+                u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
+                r1=float(0),
+                r0=float(0),
+                x1=float(0),
+                x0=float(0),
+                vector_group=vector_l,
+                phase_angle_clock=int(vector_phase_angle_clock),
+            )
+
+            return Transformer(
+                node_1=t_high_name,
+                node_2=t_low_name,
+                name=name,
+                number=t_number,
+                i_0=i_0,
+                p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
+                vector_group=vector_group,
+                tap_u_abs=tap_u_abs,
+                tap_u_phi=tap_u_phi,
+                tap_min=tap_min,
+                tap_max=tap_max,
+                tap_neutral=tap_neutral,
+                tap_side=tap_side,
+                description=description,
+                phase_technology_type=ph_technology,
+                windings=[wh, wl],
+            )
+
+        logger.warning("Type not set for transformer {transformer_name}. Skipping.", transformer_name=name)
+        return None
+
+    @staticmethod
+    def get_description(
+        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
+    ) -> tuple[bool, str]:
+        desc = element.desc
+        if desc:
+            if desc[0] == "do_not_export":
+                return False, ""
+
+            return True, desc[0]
+
+        return True, ""
+
+    @staticmethod
+    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
+        tech_mapping = {
+            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
+            2: TransformerPhaseTechnologyType.SINGLE_PH,
+            3: TransformerPhaseTechnologyType.THREE_PH,
+        }
+        return tech_mapping[t_type.nt2ph]
+
+    @staticmethod
+    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
+        side_mapping_2w = {
+            0: TapSide.HV,
+            1: TapSide.LV,
+        }
+        if t_type.itapch:
+            return side_mapping_2w.get(t_type.tap_side)
+
+        return None
+
     def create_loads(  # noqa: PLR0913 # fix
         self,
         consumers: Sequence[PFTypes.Load],
@@ -2086,172 +2251,6 @@ class PowerfactoryExporter:
 
         msg = "unreachable"
         raise RuntimeError(msg)
-
-    def create_transformers(
-        self,
-        pf_transformers_2w: Sequence[PFTypes.Transformer2W],
-        grid_name: str,
-    ) -> Sequence[Transformer]:
-        return self.create_transformers_2w(pf_transformers_2w, grid_name)
-
-    def create_transformers_2w(
-        self,
-        transformers_2w: Sequence[PFTypes.Transformer2W],
-        grid_name: str,
-    ) -> Sequence[Transformer]:
-        transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
-        return self.pfi.filter_none(transformers)
-
-    def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
-        name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
-        export, description = self.get_description(transformer_2w)
-        if not export:
-            logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
-            return None
-
-        if transformer_2w.buslv is None or transformer_2w.bushv is None:
-            logger.warning(
-                "Transformer {transformer_name} not connected to buses on both sides. Skipping.",
-                transformer_name=name,
-            )
-            return None
-
-        t_high = transformer_2w.bushv.cterm
-        t_low = transformer_2w.buslv.cterm
-
-        t_high_name = self.pfi.create_name(element=t_high, grid_name=grid_name)
-        t_low_name = self.pfi.create_name(element=t_low, grid_name=grid_name)
-
-        t_type = transformer_2w.typ_id
-
-        if t_type is not None:
-            t_number = transformer_2w.ntnum
-            vector_group = t_type.vecgrp
-
-            ph_technology = self.transformer_phase_technology(t_type)
-
-            # Transformer Tap Changer
-            tap_u_abs = t_type.dutap
-            tap_u_phi = t_type.phitr
-            tap_min = t_type.ntpmn
-            tap_max = t_type.ntpmx
-            tap_neutral = t_type.nntap0
-            tap_side = self.transformer_tap_side(t_type)
-
-            if bool(t_type.itapch2) is True:
-                logger.warning(
-                    "Transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
-                    transformer_name=name,
-                )
-                return None
-
-            # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
-            u_ref_h = t_type.utrn_h
-            u_ref_l = t_type.utrn_l
-
-            # Nominal Voltage of connected nodes (CIM: BaseVoltage)
-            u_nom_h = transformer_2w.bushv.cterm.uknom
-            u_nom_l = transformer_2w.buslv.cterm.uknom
-
-            # Rated values
-            p_fe = t_type.pfe  # kW
-            i_0 = t_type.curmg  # %
-            s_r = t_type.strn  # MVA
-
-            # Create Winding Objects
-            # Resulting impedance
-            pu2abs = u_ref_h**2 / s_r
-            r_1 = t_type.r1pu * pu2abs
-            r_0 = t_type.r0pu * pu2abs
-            x_1 = t_type.x1pu * pu2abs
-            x_0 = t_type.x0pu * pu2abs
-
-            # Wiring group
-            vector_h = t_type.tr2cn_h  # Wiring HV
-            vector_l = t_type.tr2cn_l  # Wiring LV
-            vector_phase_angle_clock = t_type.nt2ag
-
-            wh = Winding(
-                node=t_high_name,
-                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=r_1,
-                r0=r_0,
-                x1=x_1,
-                x0=x_0,
-                vector_group=vector_h,
-                phase_angle_clock=0,
-            )
-
-            wl = Winding(
-                node=t_low_name,
-                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=float(0),
-                r0=float(0),
-                x1=float(0),
-                x0=float(0),
-                vector_group=vector_l,
-                phase_angle_clock=int(vector_phase_angle_clock),
-            )
-
-            return Transformer(
-                node_1=t_high_name,
-                node_2=t_low_name,
-                name=name,
-                number=t_number,
-                i_0=i_0,
-                p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
-                vector_group=vector_group,
-                tap_u_abs=tap_u_abs,
-                tap_u_phi=tap_u_phi,
-                tap_min=tap_min,
-                tap_max=tap_max,
-                tap_neutral=tap_neutral,
-                tap_side=tap_side,
-                description=description,
-                phase_technology_type=ph_technology,
-                windings=[wh, wl],
-            )
-
-        logger.warning("Type not set for transformer {transformer_name}. Skipping.", transformer_name=name)
-        return None
-
-    @staticmethod
-    def get_description(
-        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
-    ) -> tuple[bool, str]:
-        desc = element.desc
-        if desc:
-            if desc[0] == "do_not_export":
-                return False, ""
-
-            return True, desc[0]
-
-        return True, ""
-
-    @staticmethod
-    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
-        tech_mapping = {
-            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
-            2: TransformerPhaseTechnologyType.SINGLE_PH,
-            3: TransformerPhaseTechnologyType.THREE_PH,
-        }
-        return tech_mapping[t_type.nt2ph]
-
-    @staticmethod
-    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
-        side_mapping_2w = {
-            0: TapSide.HV,
-            1: TapSide.LV,
-        }
-        if t_type.itapch:
-            return side_mapping_2w.get(t_type.tap_side)
-
-        return None
-
 
 def export_powerfactory_data(  # noqa: PLR0913 # fix
     export_path: pathlib.Path,
