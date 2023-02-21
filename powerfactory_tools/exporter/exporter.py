@@ -1241,7 +1241,7 @@ class PowerfactoryExporter:
         return TopologyCase(meta=meta, elements=power_on_states)
 
     def merge_power_on_states(self, power_on_states: Sequence[ElementState]) -> Sequence[ElementState]:
-        entry_names = [entry.name for entry in power_on_states]
+        entry_names = {entry.name for entry in power_on_states}
         return [
             self.merge_entries(entry_name=entry_name, power_on_states=power_on_states) for entry_name in entry_names
         ]
