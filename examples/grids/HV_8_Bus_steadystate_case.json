@@ -90,24 +90,6 @@
     },
     {
       "active_power": {
-        "is_symmetrical": false,
-        "value_0": 8441.0,
-        "value_r_0": 2078.46,
-        "value_s_0": 3510.29,
-        "value_t_0": 2852.11
-      },
-      "name": "LV_Load_7a_FIXED",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": false,
-        "value_0": 3098.0,
-        "value_r_0": 1006.64,
-        "value_s_0": 1153.78,
-        "value_t_0": 937.44
-      }
-    },
-    {
-      "active_power": {
         "is_symmetrical": true,
         "value_0": 10000.0,
         "value_r_0": 3333.33,
@@ -158,6 +140,24 @@
         "value_r_0": 499.6,
         "value_s_0": 499.6,
         "value_t_0": 499.6
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": false,
+        "value_0": 8441.0,
+        "value_r_0": 2078.46,
+        "value_s_0": 3510.29,
+        "value_t_0": 2852.11
+      },
+      "name": "LV_Load_7a_FIXED",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": false,
+        "value_0": 3098.0,
+        "value_r_0": 1006.64,
+        "value_s_0": 1153.78,
+        "value_t_0": 937.44
       }
     },
     {
@@ -323,10 +323,10 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 1600000.0,
-        "value_r_0": 533333.33,
-        "value_s_0": 533333.33,
-        "value_t_0": 533333.33
+        "value_0": 16000000.0,
+        "value_r_0": 5333333.33,
+        "value_s_0": 5333333.33,
+        "value_t_0": 5333333.33
       },
       "name": "PV-System",
       "reactive_power": {
@@ -337,35 +337,35 @@
           "external_controller_name": null,
           "m_tab2015": null,
           "m_tar2018": null,
-          "q_set": 774916.0,
-          "qmax_oe": 1200000.0,
-          "qmax_ue": 1200000.0,
+          "q_set": 7749140.0,
+          "qmax_oe": 12000000.0,
+          "qmax_ue": 12000000.0,
           "u_q0": null,
           "udeadband_low": null,
           "udeadband_up": null
         },
         "is_symmetrical": true,
-        "value_0": 774915.0,
-        "value_r_0": 258305.16,
-        "value_s_0": 258305.16,
-        "value_t_0": 258305.16
+        "value_0": 7749140.0,
+        "value_r_0": 2583046.55,
+        "value_s_0": 2583046.55,
+        "value_t_0": 2583046.55
       }
     }
   ],
   "meta": {
-    "date": "2023-02-20",
-    "id": "148cbc2e-7585-4a6f-a265-97c4485ec242",
+    "date": "2023-02-21",
+    "id": "44b9803e-aaf7-415c-af79-c3adb62d816d",
     "name": "HV_8_Bus",
-    "project": "PowerFactory-Utils",
+    "project": "PowerFactory-Tools",
     "version": "1.1.0"
   },
   "transformers": [
     {
-      "name": "Transformer_2w_110/20",
-      "tap_pos": 7
+      "name": "Transformer_2w_20/0.4",
+      "tap_pos": 0
     },
     {
-      "name": "Transformer_2w_20/0.4",
+      "name": "Transformer_2w_110/20",
       "tap_pos": 0
     }
   ]
