@@ -70,15 +70,48 @@ class ConsumerSystemType(Enum):
     VARIABLE = "VARIABLE"
 
 
+def validate_cosphi(cosphi: float) -> float:
+    if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
+        msg = f"Rated {cosphi=} must be within range [0 1]."
+        raise ValueError(msg)
+
+    return cosphi
+
+
+def validate_power(power: float) -> float:
+    if power < 0:
+        msg = f"Rated {power=} must be positive."
+        raise ValueError(msg)
+
+    return power
+
+
 class RatedPower(Base):
     value: float  # rated apparent power; base for p.u. calculation
-    value_r: float  # rated apparent power (phase r)
-    value_s: float  # rated apparent power (phase s)
-    value_t: float  # rated apparent power (phase t)
-    cosphi: float | None  # rated cos(phi) in relation to rated power
-    cosphi_r: float | None  # rated cos(phi) (phase r)
-    cosphi_s: float | None  # rated cos(phi) (phase s)
-    cosphi_t: float | None  # rated cos(phi) (phase t)
+    value_a: float  # rated apparent power (phase a)
+    value_b: float  # rated apparent power (phase b)
+    value_c: float  # rated apparent power (phase c)
+    cosphi_ue: float = 1  # rated cos(phi) in relation to rated power
+    cosphi_a_ue: float = 1  # rated cos(phi) (phase a)
+    cosphi_b_ue: float = 1  # rated cos(phi) (phase b)
+    cosphi_c_ue: float = 1  # rated cos(phi) (phase c)
+    cosphi_oe: float = 1  # rated cos(phi) in relation to rated power
+    cosphi_a_oe: float = 1  # rated cos(phi) (phase a)
+    cosphi_b_oe: float = 1  # rated cos(phi) (phase b)
+    cosphi_c_oe: float = 1  # rated cos(phi) (phase c)
+
+    _validate_cosphi_ue = pydantic.validator("cosphi_ue", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_a_ue = pydantic.validator("cosphi_a_ue", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_b_ue = pydantic.validator("cosphi_b_ue", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_c_ue = pydantic.validator("cosphi_c_ue", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_oe = pydantic.validator("cosphi_oe", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_a_oe = pydantic.validator("cosphi_a_oe", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_b_oe = pydantic.validator("cosphi_b_oe", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_c_oe = pydantic.validator("cosphi_c_oe", allow_reuse=True)(validate_cosphi)
+    _validate_power = pydantic.validator("value", allow_reuse=True)(validate_power)
+    _validate_power_a = pydantic.validator("value_a", allow_reuse=True)(validate_power)
+    _validate_power_b = pydantic.validator("value_b", allow_reuse=True)(validate_power)
+    _validate_power_c = pydantic.validator("value_c", allow_reuse=True)(validate_power)
 
 
 class Load(Base):  # including assets of type load and generator
@@ -93,17 +126,3 @@ class Load(Base):  # including assets of type load and generator
     system_type: ConsumerSystemType | ProducerSystemType | None = None
     phase_connection_type: PhaseConnectionType | None = None
     voltage_system_type: VoltageSystemType | None = None
-
-    @pydantic.validator("rated_power")
-    def validate_rated_power(cls, value: RatedPower) -> RatedPower:
-        cosphi = value.cosphi
-        if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
-            msg = f"Rated {cosphi=} must be within range [0 1]."
-            raise ValueError(msg)
-
-        power = value.value
-        if value.value < 0:
-            msg = f"Rated {power=} value must be positive."
-            raise ValueError(msg)
-
-        return value

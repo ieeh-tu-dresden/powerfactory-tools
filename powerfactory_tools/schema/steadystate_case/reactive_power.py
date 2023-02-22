@@ -18,21 +18,25 @@ if TYPE_CHECKING:
 
 class ReactivePower(Base):
     value_0: float  # actual reactive power (three-phase)
-    value_r_0: float  # actual reactive power (phase r)
-    value_s_0: float  # actual reactive power (phase s)
-    value_t_0: float  # actual reactive power (phase t)
+    value_a_0: float  # actual reactive power (phase a)
+    value_b_0: float  # actual reactive power (phase b)
+    value_c_0: float  # actual reactive power (phase c)
     is_symmetrical: bool
     controller: Controller | None = None
 
-    @pydantic.validator("controller")
-    def validate_controller(cls, value: Controller) -> Controller:
-        return value
-
     @pydantic.root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
-        q_total = round(values["value_r_0"] + values["value_s_0"] + values["value_t_0"], DecimalDigits.POWER)
+        q_total = round(values["value_a_0"] + values["value_b_0"] + values["value_c_0"], DecimalDigits.POWER)
         if q_total != values["value_0"]:
-            msg = f"Power mismatch: Total reactive values should be {q_total}, is {values['value_0']}."
+            msg = f"Power mismatch: Total reactive power should be {q_total}, is {values['value_0']}."
+            raise ValueError(msg)
+
+        return values
+
+    @pydantic.root_validator
+    def validate_symmetry(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["is_symmetrical"] and not (values["value_a_0"] == values["value_b_0"] == values["value_c_0"]):
+            msg = "Power mismatch: Rective power is not symmetrical."
             raise ValueError(msg)
 
         return values
