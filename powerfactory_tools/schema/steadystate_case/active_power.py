@@ -1,4 +1,5 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
@@ -8,11 +9,12 @@ from typing import TYPE_CHECKING
 
 import pydantic
 
-from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.schema.base import Base
 
 if TYPE_CHECKING:
     from typing import Any
+
+THRESHOLD = 0.01
 
 
 class ActivePower(Base):
@@ -24,8 +26,9 @@ class ActivePower(Base):
 
     @pydantic.root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
-        p_total = round(values["value_a_0"] + values["value_b_0"] + values["value_c_0"], DecimalDigits.POWER)
-        if p_total != values["value_0"]:
+        p_total = values["value_a_0"] + values["value_b_0"] + values["value_c_0"]
+        diff = abs(values["value_0"] - p_total)
+        if diff > THRESHOLD:
             msg = f"Power mismatch: Total active power should be {p_total}, is {values['value_0']}."
             raise ValueError(msg)
 
