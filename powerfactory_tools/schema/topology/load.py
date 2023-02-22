@@ -91,11 +91,11 @@ class RatedPower(Base):
     value_a: float  # rated apparent power (phase a)
     value_b: float  # rated apparent power (phase b)
     value_c: float  # rated apparent power (phase c)
-    cosphi_ue: float = 1  # rated cos(phi) in relation to rated power
+    cosphi_ue: float = 1  # rated cos(phi) in relation to rated power [under excited]
     cosphi_a_ue: float = 1  # rated cos(phi) (phase a)
     cosphi_b_ue: float = 1  # rated cos(phi) (phase b)
     cosphi_c_ue: float = 1  # rated cos(phi) (phase c)
-    cosphi_oe: float = 1  # rated cos(phi) in relation to rated power
+    cosphi_oe: float = 1  # rated cos(phi) in relation to rated power [over excited]
     cosphi_a_oe: float = 1  # rated cos(phi) (phase a)
     cosphi_b_oe: float = 1  # rated cos(phi) (phase b)
     cosphi_c_oe: float = 1  # rated cos(phi) (phase c)

@@ -36,7 +36,7 @@ class ReactivePower(Base):
     @pydantic.root_validator
     def validate_symmetry(cls, values: dict[str, Any]) -> dict[str, Any]:
         if values["is_symmetrical"] and not (values["value_a_0"] == values["value_b_0"] == values["value_c_0"]):
-            msg = "Power mismatch: Rective power is not symmetrical."
+            msg = "Power mismatch: Three-phase reactive power of load is not symmetrical."
             raise ValueError(msg)
 
         return values
