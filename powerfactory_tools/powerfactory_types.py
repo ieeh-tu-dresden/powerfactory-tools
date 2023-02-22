@@ -458,6 +458,7 @@ class PowerFactoryTypes:
         pnight: float
         cSav: float  # noqa: N815
         ccosphi: float
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
         i_sym: bool  # 0:symmetrical; 1:asymmetrical
@@ -481,6 +482,7 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
         pfg_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
 
     class Switch(DataObject, Protocol):
