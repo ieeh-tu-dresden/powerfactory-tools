@@ -14,6 +14,11 @@ from powerfactory_tools.schema.topology.active_power import ActivePower  # noqa:
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower  # noqa: TCH001
 
 
+class CosphiDir(Enum):
+    UE = "UE"  # under excited operation
+    OE = "OE"  # over excited operation
+
+
 class LoadType(Enum):
     CONSUMER = "CONSUMER"
     PRODUCER = "PRODUCER"
@@ -91,23 +96,15 @@ class RatedPower(Base):
     value_a: float  # rated apparent power (phase a)
     value_b: float  # rated apparent power (phase b)
     value_c: float  # rated apparent power (phase c)
-    cosphi_ue: float = 1  # rated cos(phi) in relation to rated power [under excited]
-    cosphi_a_ue: float = 1  # rated cos(phi) (phase a)
-    cosphi_b_ue: float = 1  # rated cos(phi) (phase b)
-    cosphi_c_ue: float = 1  # rated cos(phi) (phase c)
-    cosphi_oe: float = 1  # rated cos(phi) in relation to rated power [over excited]
-    cosphi_a_oe: float = 1  # rated cos(phi) (phase a)
-    cosphi_b_oe: float = 1  # rated cos(phi) (phase b)
-    cosphi_c_oe: float = 1  # rated cos(phi) (phase c)
+    cosphi: float = 1  # rated cos(phi) in relation to rated power
+    cosphi_a: float = 1  # rated cos(phi) (phase a)
+    cosphi_b: float = 1  # rated cos(phi) (phase b)
+    cosphi_c: float = 1  # rated cos(phi) (phase c)
 
-    _validate_cosphi_ue = pydantic.validator("cosphi_ue", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_a_ue = pydantic.validator("cosphi_a_ue", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_b_ue = pydantic.validator("cosphi_b_ue", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_c_ue = pydantic.validator("cosphi_c_ue", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_oe = pydantic.validator("cosphi_oe", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_a_oe = pydantic.validator("cosphi_a_oe", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_b_oe = pydantic.validator("cosphi_b_oe", allow_reuse=True)(validate_cosphi)
-    _validate_cosphi_c_oe = pydantic.validator("cosphi_c_oe", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi = pydantic.validator("cosphi", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_a = pydantic.validator("cosphi_a", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_b = pydantic.validator("cosphi_b", allow_reuse=True)(validate_cosphi)
+    _validate_cosphi_c = pydantic.validator("cosphi_c", allow_reuse=True)(validate_cosphi)
     _validate_power = pydantic.validator("value", allow_reuse=True)(validate_power)
     _validate_power_a = pydantic.validator("value_a", allow_reuse=True)(validate_power)
     _validate_power_b = pydantic.validator("value_b", allow_reuse=True)(validate_power)

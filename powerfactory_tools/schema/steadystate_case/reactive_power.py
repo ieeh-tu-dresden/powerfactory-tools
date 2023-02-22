@@ -8,12 +8,13 @@ from typing import TYPE_CHECKING
 
 import pydantic
 
-from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.steadystate_case.controller import Controller  # noqa: TCH001
 
 if TYPE_CHECKING:
     from typing import Any
+
+THRESHOLD = 0.01
 
 
 class ReactivePower(Base):
@@ -26,8 +27,9 @@ class ReactivePower(Base):
 
     @pydantic.root_validator
     def validate_power(cls, values: dict[str, Any]) -> dict[str, Any]:
-        q_total = round(values["value_a_0"] + values["value_b_0"] + values["value_c_0"], DecimalDigits.POWER)
-        if q_total != values["value_0"]:
+        q_total = values["value_a_0"] + values["value_b_0"] + values["value_c_0"]
+        diff = abs(values["value_0"] - q_total)
+        if diff > THRESHOLD:
             msg = f"Power mismatch: Total reactive power should be {q_total}, is {values['value_0']}."
             raise ValueError(msg)
 

@@ -11,14 +11,10 @@ from typing import TYPE_CHECKING
 import pydantic
 
 from powerfactory_tools.schema.base import Base
+from powerfactory_tools.schema.topology.load import CosphiDir  # noqa: TCH001
 
 if TYPE_CHECKING:
     from typing import Any
-
-
-class CosphiDir(Enum):
-    UE = "UE"  # under excited operation
-    OE = "OE"  # over excited operation
 
 
 class ControllerType(Enum):
