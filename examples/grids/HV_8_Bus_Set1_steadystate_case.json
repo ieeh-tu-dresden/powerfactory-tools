@@ -19,190 +19,190 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 10000000.0,
-        "value_r_0": 3333333.33,
-        "value_s_0": 3333333.33,
-        "value_t_0": 3333333.33
-      },
-      "name": "Load_1",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value_0": 60000000.0,
-        "value_r_0": 20000000.0,
-        "value_s_0": 20000000.0,
-        "value_t_0": 20000000.0
-      },
-      "name": "Load_3",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value_0": 50000000.0,
-        "value_r_0": 16666666.67,
-        "value_s_0": 16666666.67,
-        "value_t_0": 16666666.67
-      },
-      "name": "Load_2",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
         "value_0": 20000000.0,
-        "value_r_0": 6666666.67,
-        "value_s_0": 6666666.67,
-        "value_t_0": 6666666.67
+        "value_a_0": 6666666.67,
+        "value_b_0": 6666666.67,
+        "value_c_0": 6666666.67
       },
       "name": "Load_8",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 10000000.0,
-        "value_r_0": 3333333.33,
-        "value_s_0": 3333333.33,
-        "value_t_0": 3333333.33
+        "value_a_0": 3333333.33,
+        "value_b_0": 3333333.33,
+        "value_c_0": 3333333.33
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value_0": 60000000.0,
+        "value_a_0": 20000000.0,
+        "value_b_0": 20000000.0,
+        "value_c_0": 20000000.0
+      },
+      "name": "Load_3",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value_0": 0.0,
+        "value_a_0": 0.0,
+        "value_b_0": 0.0,
+        "value_c_0": 0.0
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value_0": 10000000.0,
+        "value_a_0": 3333333.33,
+        "value_b_0": 3333333.33,
+        "value_c_0": 3333333.33
+      },
+      "name": "Load_1",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value_0": 1402395.0,
+        "value_a_0": 467465.02,
+        "value_b_0": 467465.02,
+        "value_c_0": 467465.02
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value_0": 49999997.0,
+        "value_a_0": 16666665.83,
+        "value_b_0": 16666665.83,
+        "value_c_0": 16666665.83
+      },
+      "name": "Load_2",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value_0": -10000012.0,
+        "value_a_0": -3333337.39,
+        "value_b_0": -3333337.39,
+        "value_c_0": -3333337.39
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
         "value_0": 10000.0,
-        "value_r_0": 3333.33,
-        "value_s_0": 3333.33,
-        "value_t_0": 3333.33
+        "value_a_0": 3333.33,
+        "value_b_0": 3333.33,
+        "value_c_0": 3333.33
       },
       "name": "LV_Load_7b_(0)_FIXED",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
+        "value_a_0": 0.0,
+        "value_b_0": 0.0,
+        "value_c_0": 0.0
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
         "value_0": 2000.0,
-        "value_r_0": 666.67,
-        "value_s_0": 666.67,
-        "value_t_0": 666.67
+        "value_a_0": 666.67,
+        "value_b_0": 666.67,
+        "value_c_0": 666.67
       },
       "name": "LV_Load_7b_(0)_NIGHT_STORAGE",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
+        "value_a_0": 0.0,
+        "value_b_0": 0.0,
+        "value_c_0": 0.0
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
         "value_0": 4560.0,
-        "value_r_0": 1520.0,
-        "value_s_0": 1520.0,
-        "value_t_0": 1520.0
+        "value_a_0": 1520.0,
+        "value_b_0": 1520.0,
+        "value_c_0": 1520.0
       },
       "name": "LV_Load_7b_(1)_VARIABLE",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 1499.0,
-        "value_r_0": 499.6,
-        "value_s_0": 499.6,
-        "value_t_0": 499.6
+        "value_a_0": 499.6,
+        "value_b_0": 499.6,
+        "value_c_0": 499.6
       }
     },
     {
       "active_power": {
         "is_symmetrical": false,
         "value_0": 8441.0,
-        "value_r_0": 2078.46,
-        "value_s_0": 3510.29,
-        "value_t_0": 2852.11
+        "value_a_0": 2078.46,
+        "value_b_0": 3510.29,
+        "value_c_0": 2852.11
       },
       "name": "LV_Load_7a_FIXED",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": false,
         "value_0": 3098.0,
-        "value_r_0": 1006.64,
-        "value_s_0": 1153.78,
-        "value_t_0": 937.44
+        "value_a_0": 1006.64,
+        "value_b_0": 1153.78,
+        "value_c_0": 937.44
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
         "value_0": 9500000.0,
-        "value_r_0": 3166666.63,
-        "value_s_0": 3166666.63,
-        "value_t_0": 3166666.63
+        "value_a_0": 3166666.63,
+        "value_b_0": 3166666.63,
+        "value_c_0": 3166666.63
       },
       "name": "MV_Load_6_CONSUMER",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 3122499.0,
-        "value_r_0": 1040833.12,
-        "value_s_0": 1040833.12,
-        "value_t_0": 1040833.12
+        "value_a_0": 1040833.12,
+        "value_b_0": 1040833.12,
+        "value_c_0": 1040833.12
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
         "value_0": 180000.0,
-        "value_r_0": 60000.0,
-        "value_s_0": 60000.0,
-        "value_t_0": 60000.0
+        "value_a_0": 60000.0,
+        "value_b_0": 60000.0,
+        "value_c_0": 60000.0
       },
       "name": "MV_Load_6_PRODUCER",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
         "value_0": 87178.0,
-        "value_r_0": 29059.33,
-        "value_s_0": 29059.33,
-        "value_t_0": 29059.33
+        "value_a_0": 29059.33,
+        "value_b_0": 29059.33,
+        "value_c_0": 29059.33
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 500000.0,
-        "value_r_0": 166666.67,
-        "value_s_0": 166666.67,
-        "value_t_0": 166666.67
+        "value_0": -500000.0,
+        "value_a_0": -166666.67,
+        "value_b_0": -166666.67,
+        "value_c_0": -166666.67
       },
       "name": "StatGenerator_1",
       "reactive_power": {
@@ -213,7 +213,7 @@
           "external_controller_name": null,
           "m_tab2015": null,
           "m_tar2018": null,
-          "q_set": 300000.0,
+          "q_set": -300000.0,
           "qmax_oe": 600000.0,
           "qmax_ue": 600000.0,
           "u_q0": null,
@@ -221,19 +221,19 @@
           "udeadband_up": null
         },
         "is_symmetrical": true,
-        "value_0": 300000.0,
-        "value_r_0": 100000.0,
-        "value_s_0": 100000.0,
-        "value_t_0": 100000.0
+        "value_0": -300000.0,
+        "value_a_0": -100000.0,
+        "value_b_0": -100000.0,
+        "value_c_0": -100000.0
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 400000.0,
-        "value_r_0": 133333.34,
-        "value_s_0": 133333.34,
-        "value_t_0": 133333.34
+        "value_0": -400000.0,
+        "value_a_0": -133333.34,
+        "value_b_0": -133333.34,
+        "value_c_0": -133333.34
       },
       "name": "StatGenerator_2",
       "reactive_power": {
@@ -252,50 +252,19 @@
           "udeadband_up": null
         },
         "is_symmetrical": true,
-        "value_0": 100249.0,
-        "value_r_0": 33416.49,
-        "value_s_0": 33416.49,
-        "value_t_0": 33416.49
+        "value_0": -100249.0,
+        "value_a_0": -33416.49,
+        "value_b_0": -33416.49,
+        "value_c_0": -33416.49
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 5000000.0,
-        "value_r_0": 1666666.67,
-        "value_s_0": 1666666.67,
-        "value_t_0": 1666666.67
-      },
-      "name": "WTG",
-      "reactive_power": {
-        "controller": {
-          "controller_type": "Q_U",
-          "cosphi": null,
-          "cosphi_type": null,
-          "external_controller_name": null,
-          "m_tab2015": 0.0084,
-          "m_tar2018": 0.0093,
-          "q_set": null,
-          "qmax_oe": 4800000.0,
-          "qmax_ue": 4800000.0,
-          "u_q0": 1.0,
-          "udeadband_low": 0.01,
-          "udeadband_up": 0.01
-        },
-        "is_symmetrical": true,
-        "value_0": 0.0,
-        "value_r_0": 0.0,
-        "value_s_0": 0.0,
-        "value_t_0": 0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value_0": 500000.0,
-        "value_r_0": 166666.67,
-        "value_s_0": 166666.67,
-        "value_t_0": 166666.67
+        "value_0": -500000.0,
+        "value_a_0": -166666.67,
+        "value_b_0": -166666.67,
+        "value_c_0": -166666.67
       },
       "name": "StatGenerator_3",
       "reactive_power": {
@@ -314,19 +283,50 @@
           "udeadband_up": null
         },
         "is_symmetrical": true,
-        "value_0": -510102.0,
-        "value_r_0": -170034.01,
-        "value_s_0": -170034.01,
-        "value_t_0": -170034.01
+        "value_0": 510102.0,
+        "value_a_0": 170034.01,
+        "value_b_0": 170034.01,
+        "value_c_0": 170034.01
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value_0": 16000000.0,
-        "value_r_0": 5333333.33,
-        "value_s_0": 5333333.33,
-        "value_t_0": 5333333.33
+        "value_0": -5000000.0,
+        "value_a_0": -1666666.67,
+        "value_b_0": -1666666.67,
+        "value_c_0": -1666666.67
+      },
+      "name": "WTG",
+      "reactive_power": {
+        "controller": {
+          "controller_type": "Q_U",
+          "cosphi": null,
+          "cosphi_type": null,
+          "external_controller_name": null,
+          "m_tab2015": 0.0084,
+          "m_tar2018": 0.0093,
+          "q_set": null,
+          "qmax_oe": 4800000.0,
+          "qmax_ue": 4800000.0,
+          "u_q0": 1.0,
+          "udeadband_low": 0.01,
+          "udeadband_up": 0.01
+        },
+        "is_symmetrical": true,
+        "value_0": -0.0,
+        "value_a_0": -0.0,
+        "value_b_0": -0.0,
+        "value_c_0": -0.0
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value_0": -16000000.0,
+        "value_a_0": -5333333.33,
+        "value_b_0": -5333333.33,
+        "value_c_0": -5333333.33
       },
       "name": "PV-System",
       "reactive_power": {
@@ -337,7 +337,7 @@
           "external_controller_name": null,
           "m_tab2015": null,
           "m_tar2018": null,
-          "q_set": 7749140.0,
+          "q_set": -7749140.0,
           "qmax_oe": 12000000.0,
           "qmax_ue": 12000000.0,
           "u_q0": null,
@@ -345,16 +345,16 @@
           "udeadband_up": null
         },
         "is_symmetrical": true,
-        "value_0": 7749140.0,
-        "value_r_0": 2583046.55,
-        "value_s_0": 2583046.55,
-        "value_t_0": 2583046.55
+        "value_0": -7749140.0,
+        "value_a_0": -2583046.55,
+        "value_b_0": -2583046.55,
+        "value_c_0": -2583046.55
       }
     }
   ],
   "meta": {
-    "date": "2023-02-21",
-    "id": "d134cda4-d4ba-411d-b481-f79f1aa1ea89",
+    "date": "2023-02-23",
+    "id": "d91ec83b-31ba-4675-8e7e-a8be94deea19",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
     "version": "1.1.0"
