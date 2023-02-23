@@ -1163,7 +1163,8 @@ class PowerfactoryExporter:
     def calc_normal_gen_power(self, gen: PFTypes.Generator | PFTypes.PVSystem) -> LoadPower:
         pow_app = gen.sgn * gen.ngnum
         cosphi = gen.cosn
-        cosphi_dir = CosphiDir.OE if gen.pf_recap == 0 else CosphiDir.UE
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
         return LoadPower.from_sc_sym(pow_app=pow_app, cosphi=cosphi, cosphi_dir=cosphi_dir, scaling=gen.scale0)
 
     def create_producer(  # noqa: PLR0913 # fix
@@ -1509,7 +1510,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
-        cosphi_dir = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_sym(pow_act=load.plini, pow_react=load.qlini, scaling=scaling)
 
@@ -1562,7 +1563,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
-        cosphi_dir = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_asym(
                 pow_act_a=load.plinir,
@@ -1725,7 +1726,7 @@ class PowerfactoryExporter:
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
         load_type = load.iopt_inp
         scaling = load.scale0
-        cosphi_dir = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
         else:
@@ -1787,7 +1788,7 @@ class PowerfactoryExporter:
             pow_react=0,
             scaling=1,
         )
-        cosphi_dir = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
@@ -1802,7 +1803,7 @@ class PowerfactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == IOpt.SCosphi:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
@@ -1868,7 +1869,9 @@ class PowerfactoryExporter:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale
-        cosphi_dir_cons = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
         cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
@@ -1923,7 +1926,9 @@ class PowerfactoryExporter:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale
-        cosphi_dir_cons = CosphiDir.OE if load.pf_recap == 0 else CosphiDir.UE
+        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
         cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
@@ -2025,8 +2030,8 @@ class PowerfactoryExporter:
         u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
         power = LoadPower.from_pq_sym(
-            pow_act=generator.pgini_a * generator.ngnum,
-            pow_react=generator.qgini_a * generator.ngnum,
+            pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
+            pow_react=generator.qgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
             scaling=generator.scale0_a,
         )
 
@@ -2045,47 +2050,6 @@ class PowerfactoryExporter:
         )
         logger.debug("Created steadystate for producer {producer_ssc}.", producer_ssc=producer_ssc)
         return producer_ssc
-
-    def create_producers_ssc_state(
-        self,
-        generator: PFTypes.GeneratorBase,
-    ) -> LoadSSC | None:
-        gen_name = self.pfi.create_generator_name(generator)
-
-        export, _ = self.get_description(generator)
-        if not export:
-            logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
-            return None
-
-        bus = generator.bus1
-        if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
-            return None
-
-        terminal = bus.cterm
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
-
-        power = LoadPower.from_pq_sym(
-            pow_act=generator.pgini_a * generator.ngnum,
-            pow_react=generator.qgini_a * generator.ngnum,
-            scaling=generator.scale0_a,
-        )
-
-        active_power = power.as_active_power_ssc()
-
-        # External Controller
-        ext_ctrl = generator.c_pstac
-        # Q-Controller
-        controller = self.create_q_controller(generator, gen_name, u_n, ext_ctrl=ext_ctrl)
-        reactive_power = power.as_reactive_power_ssc(controller=controller)
-
-        load_ssc = LoadSSC(
-            name=gen_name,
-            active_power=active_power,
-            reactive_power=reactive_power,
-        )
-        logger.debug("Created steadystate for producer {load_ssc}.", load_ssc=load_ssc)
-        return load_ssc
 
     def create_q_controller(  # noqa: PLR0912, PLR0915
         self,
@@ -2122,9 +2086,9 @@ class PowerfactoryExporter:
             controller_type = controller_type_dict_default[gen.av_mode]
             if controller_type == ControllerType.COSPHI_CONST:
                 cosphi = gen.cosgini
-                cosphi_type = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+                cosphi_type = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             elif controller_type == ControllerType.Q_CONST:
-                q_set = gen.qgini
+                q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             elif controller_type == ControllerType.Q_U:
                 qmax_ue = abs(gen.Qfu_min)  # absolute value
                 qmax_oe = abs(gen.Qfu_max)  # absolute value
@@ -2164,8 +2128,8 @@ class PowerfactoryExporter:
                 controller_type = controller_type_dict_pow_react[ext_ctrl.qu_char]
 
                 if controller_type == ControllerType.Q_CONST:
-                    q_dir = -1 if ext_ctrl.iQorient else 1  # negative counting --> under excited
-                    q_set = ext_ctrl.qsetp * q_dir
+                    q_dir = -1 if ext_ctrl.iQorient else 1
+                    q_set = ext_ctrl.qsetp * q_dir  # negative value = under excited --> counting based on demand side
                 elif controller_type == ControllerType.Q_U:
                     u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
@@ -2221,6 +2185,7 @@ class PowerfactoryExporter:
                 if controller_type == ControllerType.COSPHI_CONST:
                     cosphi = ext_ctrl.pfsetp
                     ue = ext_ctrl.pf_recap ^ ext_ctrl.iQorient  # OE/UE XOR +Q/-Q
+                    # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
                     cosphi_type = CosphiDir.UE if ue else CosphiDir.OE
                 elif controller_type == ControllerType.COSPHI_P:
                     logger.warning(

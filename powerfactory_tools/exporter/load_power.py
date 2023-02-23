@@ -814,6 +814,7 @@ class LoadPower:
         )
 
     def as_reactive_power_ssc(self, controller: Controller | None = None) -> ReactivePower:
+        # remark: actual reactive power set by external controller is not shown in ReactivePower
         return ReactivePower(
             value_0=round(self.pow_react, DecimalDigits.POWER),
             value_a_0=round(self.pow_react_a, DecimalDigits.POWER + 2),

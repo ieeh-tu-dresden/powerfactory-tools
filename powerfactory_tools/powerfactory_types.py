@@ -364,7 +364,7 @@ class PowerFactoryTypes:
         udeadbup: float
         cosphi_char: PowerFactoryTypes.CosphiChar  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
         pfsetp: float
-        pf_recap: PowerFactoryTypes.PFRecap
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         tansetp: float
 
     class CompoundModel(DataObject, Protocol):
@@ -372,7 +372,7 @@ class PowerFactoryTypes:
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -383,7 +383,7 @@ class PowerFactoryTypes:
         pgini: float
         qgini: float
         cosgini: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         Kpf: float
         ddroop: float
         Qfu_min: float
@@ -398,7 +398,7 @@ class PowerFactoryTypes:
         pgini_a: float
         qgini_a: float
         cosgini_a: float
-        pf_recap_a: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap_a: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         scale0_a: float
         c_pstac: PowerFactoryTypes.StationController | None
         c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
@@ -463,7 +463,7 @@ class PowerFactoryTypes:
         pnight: float
         cSav: float  # noqa: N815
         ccosphi: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
         i_sym: bool  # 0:symmetrical; 1:asymmetrical
@@ -487,8 +487,8 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
-        pfg_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pfg_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
 
     class Switch(DataObject, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle
