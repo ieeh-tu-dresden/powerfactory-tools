@@ -1510,7 +1510,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
-        u_nom = load.bus1.cterm.uknom
+        u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_sym(pow_act=load.plini, pow_react=load.qlini, scaling=scaling)
@@ -1524,13 +1524,20 @@ class PowerfactoryExporter:
             )
 
         if load_type == "IC":
-            return LoadPower.from_ic_sym(
-                voltage=load.u0 * u_nom,
-                current=load.ilini,
-                cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ic_sym(
+                    voltage=load.u0 * u_nom,
+                    current=load.ilini,
+                    cosphi=load.coslini,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SC":
             return LoadPower.from_sc_sym(
@@ -1544,13 +1551,19 @@ class PowerfactoryExporter:
             return LoadPower.from_qc_sym(pow_react=load.qlini, cosphi=load.coslini, scaling=scaling)
 
         if load_type == "IP":
-            return LoadPower.from_ip_sym(
-                voltage=load.u0 * u_nom,
-                current=load.ilini,
-                pow_act=load.plini,
-                cosphi_dir=cosphi_dir,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ip_sym(
+                    voltage=load.u0 * u_nom,
+                    current=load.ilini,
+                    pow_act=load.plini,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SP":
             return LoadPower.from_sp_sym(pow_app=load.slini, pow_act=load.plini, cosphi_dir=cosphi_dir, scaling=scaling)
@@ -1564,7 +1577,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
-        u_nom = load.bus1.cterm.uknom
+        u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_asym(
@@ -1590,17 +1603,23 @@ class PowerfactoryExporter:
             )
 
         if load_type == "IC":
-            return LoadPower.from_ic_asym(
-                voltage=load.u0 * u_nom,
-                current_a=load.ilinir,
-                current_b=load.ilinis,
-                current_c=load.ilinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ic_asym(
+                    voltage=load.u0 * u_nom,
+                    current_a=load.ilinir,
+                    current_b=load.ilinis,
+                    current_c=load.ilinit,
+                    cosphi_a=load.coslinir,
+                    cosphi_b=load.coslinis,
+                    cosphi_c=load.coslinit,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SC":
             return LoadPower.from_sc_asym(
@@ -1626,17 +1645,23 @@ class PowerfactoryExporter:
             )
 
         if load_type == "IP":
-            return LoadPower.from_ip_asym(
-                voltage=load.u0 * u_nom,
-                current_a=load.ilinir,
-                current_b=load.ilinis,
-                current_c=load.ilinit,
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
-                cosphi_dir=cosphi_dir,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ip_asym(
+                    voltage=load.u0 * u_nom,
+                    current_a=load.ilinir,
+                    current_b=load.ilinis,
+                    current_c=load.ilinit,
+                    pow_act_a=load.plinir,
+                    pow_act_b=load.plinis,
+                    pow_act_c=load.plinit,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SP":
             return LoadPower.from_sp_asym(
@@ -1994,7 +2019,7 @@ class PowerfactoryExporter:
             logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
             return None
 
-        active_power = power.as_active_power_ssc()
+        active_power = power.as_active_power_ssc()  # TODO
         reactive_power = power.as_reactive_power_ssc()
 
         load_ssc = LoadSSC(
