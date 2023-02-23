@@ -45,7 +45,12 @@ class PowerFactoryTypes:
     ModeInpMV = Literal["PC", "SC", "EC"]
     BusType = Literal["SL", "PV", "PQ"]
     NodeType = Literal[0, 1, 2]  # 0:bus bar; 1:junction node; 2:internal node
+    CtrlMode = Literal[0, 1, 2, 3]  # cfg. class CtrlMode
+    IOpt = Literal[0, 1, 2, 3]  # cfg. class IOpt
+    CosphiChar = Literal[0, 1, 2]  # cfg. class CosphiChar
+    PowReactChar = Literal[0, 1, 2]  # cfg. class PowReactChar
     PFRecap = Literal[0, 1]  # 0:ind. ; 1:kap.
+    QOrient = Literal[0, 1]  # 0:+Q; 1:-Q
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
     QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
@@ -346,10 +351,10 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: CtrlMode  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
-        qu_char: PowReactChar  # 0:const. Q; 1:Q(U); 2: Q(P)
+        i_ctrl: PowerFactoryTypes.CtrlMode  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
+        qu_char: PowerFactoryTypes.PowReactChar  # 0:const. Q; 1:Q(U); 2: Q(P)
         qsetp: float
-        iQorient: Literal[0, 1]  # noqa: N815  # 0:+Q; 1:-Q
+        iQorient: PowerFactoryTypes.QOrient  # noqa: N815  # 0:+Q; 1:-Q
         refbar: PowerFactoryTypes.Terminal
         Srated: float
         ddroop: float
@@ -357,7 +362,7 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: CosphiChar
+        cosphi_char: PowerFactoryTypes.CosphiChar  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
         pfsetp: float
         pf_recap: PowerFactoryTypes.PFRecap
         tansetp: float
@@ -446,7 +451,7 @@ class PowerFactoryTypes:
         u0: float
 
     class LoadLVP(DataObject, Protocol):
-        iopt_inp: IOpt  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
+        iopt_inp: PowerFactoryTypes.IOpt  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
         elini: float
         cplinia: float
         slini: float
