@@ -14,7 +14,7 @@ from powerfactory_tools.schema.base import Base
 if TYPE_CHECKING:
     from typing import Any
 
-THRESHOLD = 0.01
+THRESHOLD = 0.51  # acceptable rounding error (0.5 W) + epsilon for calculation accuracy (0.01 W)
 
 
 class ActivePower(Base):
