@@ -66,7 +66,7 @@ class LoadPower:
     def cosphi(self) -> float:
         pow_act = self.pow_app_a * self.cosphi_a + self.pow_app_b * self.cosphi_b + self.pow_app_c * self.cosphi_c
         try:
-            return pow_act / self.pow_app
+            return abs(pow_act / self.pow_app)
         except ZeroDivisionError:
             return 0
 
@@ -106,7 +106,7 @@ class LoadPower:
         cosphi_dir = CosphiDir.OE if pow_react < 0 else CosphiDir.UE
         pow_app = math.sqrt(pow_act**2 + pow_react**2)
         try:
-            cosphi = pow_act / pow_app
+            cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
             cosphi = 0
 
@@ -220,7 +220,7 @@ class LoadPower:
         pow_act = pow_act * scaling * Exponents.POWER
         pow_app = voltage * current * scaling * Exponents.POWER / math.sqrt(3)
         try:
-            cosphi = pow_act / pow_app
+            cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
             cosphi = 0
 
@@ -244,7 +244,11 @@ class LoadPower:
     ) -> PowerDict:
         pow_app = pow_app * scaling * Exponents.POWER
         pow_act = pow_act * scaling * Exponents.POWER
-        cosphi = pow_app / pow_act
+        try:
+            cosphi = abs(pow_act / pow_app)
+        except ZeroDivisionError:
+            cosphi = 0
+
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
         return {
@@ -266,7 +270,7 @@ class LoadPower:
         pow_react = pow_react * scaling * Exponents.POWER
         pow_act = math.sqrt(pow_app**2 - pow_react**2)
         try:
-            cosphi = pow_act / pow_app
+            cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
             cosphi = 0
 
