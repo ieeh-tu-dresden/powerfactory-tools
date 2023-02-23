@@ -1510,6 +1510,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
+        u_nom = load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_sym(pow_act=load.plini, pow_react=load.qlini, scaling=scaling)
@@ -1524,7 +1525,7 @@ class PowerfactoryExporter:
 
         if load_type == "IC":
             return LoadPower.from_ic_sym(
-                voltage=load.u0,
+                voltage=load.u0 * u_nom,
                 current=load.ilini,
                 cosphi=load.coslini,
                 cosphi_dir=cosphi_dir,
@@ -1544,7 +1545,7 @@ class PowerfactoryExporter:
 
         if load_type == "IP":
             return LoadPower.from_ip_sym(
-                voltage=load.u0,
+                voltage=load.u0 * u_nom,
                 current=load.ilini,
                 pow_act=load.plini,
                 cosphi_dir=cosphi_dir,
@@ -1563,6 +1564,7 @@ class PowerfactoryExporter:
     def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
+        u_nom = load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_asym(
@@ -1589,7 +1591,7 @@ class PowerfactoryExporter:
 
         if load_type == "IC":
             return LoadPower.from_ic_asym(
-                voltage=load.u0,
+                voltage=load.u0 * u_nom,
                 current_a=load.ilinir,
                 current_b=load.ilinis,
                 current_c=load.ilinit,
@@ -1625,7 +1627,7 @@ class PowerfactoryExporter:
 
         if load_type == "IP":
             return LoadPower.from_ip_asym(
-                voltage=load.u0,
+                voltage=load.u0 * u_nom,
                 current_a=load.ilinir,
                 current_b=load.ilinis,
                 current_c=load.ilinit,
