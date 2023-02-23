@@ -1,4 +1,5 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
+# :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
@@ -128,7 +129,7 @@ class LoadPower:
     ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
         try:
-            pow_app = pow_act / cosphi
+            pow_app = abs(pow_act / cosphi)
         except ZeroDivisionError:
             logger.warning("`cosphi` is 0, but only active power is given. Actual state could not be determined.")
             return {"power_apparent": 0, "power_active": 0, "power_reactive": 0, "cosphi": 0, "cosphi_dir": cosphi_dir}
@@ -152,7 +153,7 @@ class LoadPower:
         cosphi_dir: CosphiDir,
         scaling: float,
     ) -> PowerDict:
-        pow_app = voltage * current * scaling * Exponents.POWER / math.sqrt(3)
+        pow_app = abs(voltage * current * scaling) * Exponents.POWER / math.sqrt(3)
         pow_act = pow_app * cosphi
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -172,7 +173,7 @@ class LoadPower:
         cosphi_dir: CosphiDir,
         scaling: float,
     ) -> PowerDict:
-        pow_app = pow_app * scaling * Exponents.POWER
+        pow_app = abs(pow_app * scaling) * Exponents.POWER
         pow_act = pow_app * cosphi
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -194,7 +195,7 @@ class LoadPower:
         pow_react = pow_react * scaling * Exponents.POWER
         cosphi_dir = CosphiDir.OE if pow_react < 0 else CosphiDir.UE
         try:
-            pow_app = pow_react / math.sin(math.acos(cosphi))
+            pow_app = abs(pow_react / math.sin(math.acos(cosphi)))
         except ZeroDivisionError:
             logger.warning("`cosphi` is 1, but only reactive power is given. Actual state could not be determined.")
             return {"power_apparent": 0, "power_active": 0, "power_reactive": 0, "cosphi": 0, "cosphi_dir": cosphi_dir}
@@ -218,7 +219,7 @@ class LoadPower:
         scaling: float,
     ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
-        pow_app = voltage * current * scaling * Exponents.POWER / math.sqrt(3)
+        pow_app = abs(voltage * current * scaling) * Exponents.POWER / math.sqrt(3)
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
@@ -242,7 +243,7 @@ class LoadPower:
         cosphi_dir: CosphiDir,
         scaling: float,
     ) -> PowerDict:
-        pow_app = pow_app * scaling * Exponents.POWER
+        pow_app = abs(pow_app * scaling) * Exponents.POWER
         pow_act = pow_act * scaling * Exponents.POWER
         try:
             cosphi = abs(pow_act / pow_app)
@@ -266,7 +267,7 @@ class LoadPower:
         pow_react: float,
         scaling: float,
     ) -> PowerDict:
-        pow_app = pow_app * scaling * Exponents.POWER
+        pow_app = abs(pow_app * scaling) * Exponents.POWER
         pow_react = pow_react * scaling * Exponents.POWER
         pow_act = math.sqrt(pow_app**2 - pow_react**2)
         try:

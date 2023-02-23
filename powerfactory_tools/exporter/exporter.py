@@ -1895,7 +1895,7 @@ class PowerfactoryExporter:
     def calc_load_mv_power_sym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
-        scaling_prod = load.gscale
+        scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
         cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
@@ -1952,7 +1952,7 @@ class PowerfactoryExporter:
     def calc_load_mv_power_asym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
-        scaling_prod = load.gscale
+        scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
         cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
@@ -2019,7 +2019,7 @@ class PowerfactoryExporter:
             logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
             return None
 
-        active_power = power.as_active_power_ssc()  # TODO
+        active_power = power.as_active_power_ssc()
         reactive_power = power.as_reactive_power_ssc()
 
         load_ssc = LoadSSC(
