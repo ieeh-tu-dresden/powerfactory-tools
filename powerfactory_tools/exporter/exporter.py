@@ -2213,8 +2213,8 @@ class PowerfactoryExporter:
             elif ctrl_mode == CtrlMode.Cosphi:  # cosphi control mode
                 controller_type_dict_cosphi = {
                     CosphiChar.const: ControllerType.COSPHI_CONST,
-                    CosphiChar.U: ControllerType.COSPHI_P,
-                    CosphiChar.P: ControllerType.COSPHI_U,
+                    CosphiChar.P: ControllerType.COSPHI_P,
+                    CosphiChar.U: ControllerType.COSPHI_U,
                 }
                 controller_type = controller_type_dict_cosphi[ext_ctrl.cosphi_char]
 

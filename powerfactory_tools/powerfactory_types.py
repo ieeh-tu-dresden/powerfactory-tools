@@ -22,8 +22,8 @@ class CtrlMode:  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control
 
 class CosphiChar:  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
     const = 0
-    U = 1
-    P = 2
+    P = 1
+    U = 2
 
 
 class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
@@ -32,7 +32,7 @@ class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
     P = 2
 
 
-class IOpt:  # 0:const. Q; 1:Q(U); 2: Q(P)
+class IOpt:  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
     SCosphi = 0
     PCosphi = 1
     UICosphi = 2
@@ -43,10 +43,12 @@ class PowerFactoryTypes:
     ModeInpLoad = Literal["DEF", "PQ", "PC", "IC", "SC", "QC", "IP", "SP", "SQ"]
     ModeInpGen = Literal["DEF", "PQ", "PC", "SC", "QC", "SP", "SQ"]
     ModeInpMV = Literal["PC", "SC", "EC"]
-    IOptInp = Literal[0, 1, 2]  # 0:const. Q; 1:Q(U); 2: Q(P)
-    PFRecap = Literal[0, 1]
+    BusType = Literal["SL", "PV", "PQ"]
+    NodeType = Literal[0, 1, 2]  # 0:bus bar; 1:junction node; 2:internal node
+    PFRecap = Literal[0, 1]  # 0:ind. ; 1:kap.
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
+    QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
     TrfVector = Literal["Y", "YN", "Z", "ZN", "D"]
     TrfVectorGroup = Literal[
         "Dd0",
@@ -86,8 +88,6 @@ class PowerFactoryTypes:
     ]
     TrfPhaseTechnology = Literal[1, 2, 3]  # Single core for each Phase or three phases combined
     TrfTapSide = Literal[0, 1, 2, 3]  # Transformer side of tap changer
-    QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
-    BusType = Literal["SL", "PV", "PQ"]
     GenSystemType = Literal[
         "coal",
         "oil",
@@ -313,7 +313,7 @@ class PowerFactoryTypes:
         cDisplayName: str  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: Literal[0, 1, 2]  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
+        iUsage: PowerFactoryTypes.NodeType  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
         outserv: bool
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
@@ -346,8 +346,8 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: Literal[0, 1, 2, 3]  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
-        qu_char: Literal[0, 1, 2]  # 0:const. Q; 1:Q(U); 2: Q(P)
+        i_ctrl: CtrlMode  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
+        qu_char: PowReactChar  # 0:const. Q; 1:Q(U); 2: Q(P)
         qsetp: float
         iQorient: Literal[0, 1]  # noqa: N815  # 0:+Q; 1:-Q
         refbar: PowerFactoryTypes.Terminal
@@ -357,7 +357,7 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: Literal[0, 1, 2]  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
+        cosphi_char: CosphiChar
         pfsetp: float
         pf_recap: PowerFactoryTypes.PFRecap
         tansetp: float
@@ -446,7 +446,7 @@ class PowerFactoryTypes:
         u0: float
 
     class LoadLVP(DataObject, Protocol):
-        iopt_inp: PowerFactoryTypes.IOptInp  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
+        iopt_inp: IOpt  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
         elini: float
         cplinia: float
         slini: float
