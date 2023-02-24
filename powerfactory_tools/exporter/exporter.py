@@ -972,7 +972,7 @@ class PowerfactoryExporter:
                     "Please check load model setting of {load_name} for RMS simulation.",
                     load_name=load.loc_name,
                 )
-                logger.info(
+                logger.info(  # noqa: PLE1206
                     "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
@@ -1163,7 +1163,9 @@ class PowerfactoryExporter:
     def calc_normal_gen_power(self, gen: PFTypes.Generator | PFTypes.PVSystem) -> LoadPower:
         pow_app = gen.sgn * gen.ngnum
         cosphi = gen.cosn
-        return LoadPower.from_sc_sym(pow_app=pow_app, cosphi=cosphi, scaling=gen.scale0)
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+        return LoadPower.from_sc_sym(pow_app=pow_app, cosphi=cosphi, cosphi_dir=cosphi_dir, scaling=gen.scale0)
 
     def create_producer(  # noqa: PLR0913 # fix
         self,
@@ -1508,26 +1510,63 @@ class PowerfactoryExporter:
     def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
+        u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_sym(pow_act=load.plini, pow_react=load.qlini, scaling=scaling)
 
         if load_type == "PC":
-            return LoadPower.from_pc_sym(pow_act=load.plini, cosphi=load.coslini, scaling=scaling)
+            return LoadPower.from_pc_sym(
+                pow_act=load.plini,
+                cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
 
         if load_type == "IC":
-            return LoadPower.from_ic_sym(voltage=load.u0, current=load.ilini, cosphi=load.coslini, scaling=scaling)
+            if u_nom is not None:
+                return LoadPower.from_ic_sym(
+                    voltage=load.u0 * u_nom,
+                    current=load.ilini,
+                    cosphi=load.coslini,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                load_name=load.loc_name,
+            )
+            return None
 
         if load_type == "SC":
-            return LoadPower.from_sc_sym(pow_app=load.slini, cosphi=load.coslini, scaling=scaling)
+            return LoadPower.from_sc_sym(
+                pow_app=load.slini,
+                cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
 
         if load_type == "QC":
             return LoadPower.from_qc_sym(pow_react=load.qlini, cosphi=load.coslini, scaling=scaling)
 
         if load_type == "IP":
-            return LoadPower.from_ip_sym(voltage=load.u0, current=load.ilini, pow_act=load.plini, scaling=scaling)
+            if u_nom is not None:
+                return LoadPower.from_ip_sym(
+                    voltage=load.u0 * u_nom,
+                    current=load.ilini,
+                    pow_act=load.plini,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
+                load_name=load.loc_name,
+            )
+            return None
 
         if load_type == "SP":
-            return LoadPower.from_sp_sym(pow_app=load.slini, pow_act=load.plini, scaling=scaling)
+            return LoadPower.from_sp_sym(pow_app=load.slini, pow_act=load.plini, cosphi_dir=cosphi_dir, scaling=scaling)
 
         if load_type == "SQ":
             return LoadPower.from_sq_sym(pow_app=load.slini, pow_react=load.qlini, scaling=scaling)
@@ -1538,93 +1577,112 @@ class PowerfactoryExporter:
     def calc_normal_load_power_asym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
         load_type = load.mode_inp
         scaling = load.scale0
+        u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == "DEF" or load_type == "PQ":
             return LoadPower.from_pq_asym(
-                pow_act_r=load.plinir,
-                pow_act_s=load.plinis,
-                pow_act_t=load.plinit,
-                pow_react_r=load.qlinir,
-                pow_react_s=load.qlinis,
-                pow_react_t=load.qlinit,
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                pow_react_a=load.qlinir,
+                pow_react_b=load.qlinis,
+                pow_react_c=load.qlinit,
                 scaling=scaling,
             )
 
         if load_type == "PC":
             return LoadPower.from_pc_asym(
-                pow_act_r=load.plinir,
-                pow_act_s=load.plinis,
-                pow_act_t=load.plinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
         if load_type == "IC":
-            return LoadPower.from_ic_asym(
-                voltage=load.u0,
-                current_r=load.ilinir,
-                current_s=load.ilinis,
-                current_t=load.ilinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ic_asym(
+                    voltage=load.u0 * u_nom,
+                    current_a=load.ilinir,
+                    current_b=load.ilinis,
+                    current_c=load.ilinit,
+                    cosphi_a=load.coslinir,
+                    cosphi_b=load.coslinis,
+                    cosphi_c=load.coslinit,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SC":
             return LoadPower.from_sc_asym(
-                pow_app_r=load.slinir,
-                pow_app_s=load.slinis,
-                pow_app_t=load.slinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
         if load_type == "QC":
             return LoadPower.from_qc_asym(
-                pow_react_r=load.qlinir,
-                pow_react_s=load.qlinis,
-                pow_react_t=load.qlinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
+                pow_react_a=load.qlinir,
+                pow_react_b=load.qlinis,
+                pow_react_c=load.qlinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
                 scaling=scaling,
             )
 
         if load_type == "IP":
-            return LoadPower.from_ip_asym(
-                voltage=load.u0,
-                current_r=load.ilinir,
-                current_s=load.ilinis,
-                current_t=load.ilinit,
-                pow_act_r=load.plinir,
-                pow_act_s=load.plinis,
-                pow_act_t=load.plinit,
-                scaling=scaling,
+            if u_nom is not None:
+                return LoadPower.from_ip_asym(
+                    voltage=load.u0 * u_nom,
+                    current_a=load.ilinir,
+                    current_b=load.ilinis,
+                    current_c=load.ilinit,
+                    pow_act_a=load.plinir,
+                    pow_act_b=load.plinis,
+                    pow_act_c=load.plinit,
+                    cosphi_dir=cosphi_dir,
+                    scaling=scaling,
+                )
+            logger.warning(
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
+                load_name=load.loc_name,
             )
+            return None
 
         if load_type == "SP":
             return LoadPower.from_sp_asym(
-                pow_app_r=load.slinir,
-                pow_app_s=load.slinis,
-                pow_app_t=load.slinit,
-                pow_act_r=load.plinir,
-                pow_act_s=load.plinis,
-                pow_act_t=load.plinit,
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
         if load_type == "SQ":
             return LoadPower.from_sq_asym(
-                pow_app_r=load.slinir,
-                pow_app_s=load.slinis,
-                pow_app_t=load.slinit,
-                pow_react_r=load.qlinir,
-                pow_react_s=load.qlinis,
-                pow_react_t=load.qlinit,
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                pow_react_a=load.qlinir,
+                pow_react_b=load.qlinis,
+                pow_react_c=load.qlinit,
                 scaling=scaling,
             )
 
@@ -1695,38 +1753,42 @@ class PowerfactoryExporter:
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
         load_type = load.iopt_inp
         scaling = load.scale0
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
         else:
             if load_type == IOpt.SCosphi:
                 power_fixed = LoadPower.from_sc_asym(
-                    pow_app_r=load.slinir,
-                    pow_app_s=load.slinis,
-                    pow_app_t=load.slinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
+                    pow_app_a=load.slinir,
+                    pow_app_b=load.slinis,
+                    pow_app_c=load.slinit,
+                    cosphi_a=load.coslinir,
+                    cosphi_b=load.coslinis,
+                    cosphi_c=load.coslinit,
+                    cosphi_dir=cosphi_dir,
                     scaling=scaling,
                 )
             elif load_type == IOpt.PCosphi:
                 power_fixed = LoadPower.from_pc_asym(
-                    pow_act_r=load.plinir,
-                    pow_act_s=load.plinis,
-                    pow_act_t=load.plinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
+                    pow_act_a=load.plinir,
+                    pow_act_b=load.plinis,
+                    pow_act_c=load.plinit,
+                    cosphi_a=load.coslinir,
+                    cosphi_b=load.coslinis,
+                    cosphi_c=load.coslinit,
+                    cosphi_dir=cosphi_dir,
                     scaling=scaling,
                 )
             elif load_type == IOpt.UICosphi:
                 power_fixed = LoadPower.from_ic_asym(
                     voltage=load.ulini,
-                    current_r=load.ilinir,
-                    current_s=load.ilinis,
-                    current_t=load.ilinit,
-                    cosphi_r=load.coslinir,
-                    cosphi_s=load.coslinis,
-                    cosphi_t=load.coslinit,
+                    current_a=load.ilinir,
+                    current_b=load.ilinis,
+                    current_c=load.ilinit,
+                    cosphi_a=load.coslinir,
+                    cosphi_b=load.coslinis,
+                    cosphi_c=load.coslinit,
+                    cosphi_dir=cosphi_dir,
                     scaling=scaling,
                 )
             else:
@@ -1741,6 +1803,7 @@ class PowerfactoryExporter:
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
+            cosphi_dir=cosphi_dir,
             scaling=1,
         )
         return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
@@ -1752,9 +1815,11 @@ class PowerfactoryExporter:
             pow_react=0,
             scaling=1,
         )
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
+            cosphi_dir=cosphi_dir,
             scaling=1,
         )
         return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
@@ -1765,10 +1830,12 @@ class PowerfactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if load_type == IOpt.SCosphi:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
@@ -1776,6 +1843,7 @@ class PowerfactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
@@ -1784,6 +1852,7 @@ class PowerfactoryExporter:
                 voltage=load.ulini,
                 current=load.ilini,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
@@ -1791,6 +1860,7 @@ class PowerfactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
 
@@ -1825,16 +1895,22 @@ class PowerfactoryExporter:
     def calc_load_mv_power_sym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
-        scaling_prod = load.gscale
+        scaling_prod = load.gscale * -1  # to be in line with demand based counting system
+        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.cosgini,
+                cosphi_dir=cosphi_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -1843,11 +1919,13 @@ class PowerfactoryExporter:
             power_consumer = LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_sc_sym(
                 pow_app=load.sgini,
                 cosphi=load.cosgini,
+                cosphi_dir=cosphi_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -1857,11 +1935,13 @@ class PowerfactoryExporter:
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.pgini,
                 cosphi=load.cosgini,
+                cosphi_dir=cosphi_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -1872,45 +1952,53 @@ class PowerfactoryExporter:
     def calc_load_mv_power_asym(self, load: PFTypes.LoadMV) -> LoadMV:
         load_type = load.mode_inp
         scaling_cons = load.scale0
-        scaling_prod = load.gscale
+        scaling_prod = load.gscale * -1  # to be in line with demand based counting system
+        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
-                pow_act_r=load.plinir,
-                pow_act_s=load.plinis,
-                pow_act_t=load.plinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_pc_asym(
-                pow_act_r=load.pginir,
-                pow_act_s=load.pginis,
-                pow_act_t=load.pginit,
-                cosphi_r=load.cosginir,
-                cosphi_s=load.cosginis,
-                cosphi_t=load.cosginit,
+                pow_act_a=load.pginir,
+                pow_act_b=load.pginis,
+                pow_act_c=load.pginit,
+                cosphi_a=load.cosginir,
+                cosphi_b=load.cosginis,
+                cosphi_c=load.cosginit,
+                cosphi_dir=cosphi_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
 
         if load_type == "SC":
             power_consumer = LoadPower.from_sc_asym(
-                pow_app_r=load.slinir,
-                pow_app_s=load.slinis,
-                pow_app_t=load.slinit,
-                cosphi_r=load.coslinir,
-                cosphi_s=load.coslinis,
-                cosphi_t=load.coslinit,
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_sc_asym(
-                pow_app_r=load.sginir,
-                pow_app_s=load.sginis,
-                pow_app_t=load.sginit,
-                cosphi_r=load.cosginir,
-                cosphi_s=load.cosginis,
-                cosphi_t=load.cosginit,
+                pow_app_a=load.sginir,
+                pow_app_b=load.sginis,
+                pow_app_c=load.sginit,
+                cosphi_a=load.cosginir,
+                cosphi_b=load.cosginis,
+                cosphi_c=load.cosginit,
+                cosphi_dir=cosphi_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -1969,8 +2057,8 @@ class PowerfactoryExporter:
         u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
 
         power = LoadPower.from_pq_sym(
-            pow_act=generator.pgini_a * generator.ngnum,
-            pow_react=generator.qgini_a * generator.ngnum,
+            pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
+            pow_react=generator.qgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
             scaling=generator.scale0_a,
         )
 
@@ -1990,47 +2078,6 @@ class PowerfactoryExporter:
         logger.debug("Created steadystate for producer {producer_ssc}.", producer_ssc=producer_ssc)
         return producer_ssc
 
-    def create_producers_ssc_state(
-        self,
-        generator: PFTypes.GeneratorBase,
-    ) -> LoadSSC | None:
-        gen_name = self.pfi.create_generator_name(generator)
-
-        export, _ = self.get_description(generator)
-        if not export:
-            logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
-            return None
-
-        bus = generator.bus1
-        if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
-            return None
-
-        terminal = bus.cterm
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
-
-        power = LoadPower.from_pq_sym(
-            pow_act=generator.pgini_a * generator.ngnum,
-            pow_react=generator.qgini_a * generator.ngnum,
-            scaling=generator.scale0_a,
-        )
-
-        active_power = power.as_active_power_ssc()
-
-        # External Controller
-        ext_ctrl = generator.c_pstac
-        # Q-Controller
-        controller = self.create_q_controller(generator, gen_name, u_n, ext_ctrl=ext_ctrl)
-        reactive_power = power.as_reactive_power_ssc(controller=controller)
-
-        load_ssc = LoadSSC(
-            name=gen_name,
-            active_power=active_power,
-            reactive_power=reactive_power,
-        )
-        logger.debug("Created steadystate for producer {load_ssc}.", load_ssc=load_ssc)
-        return load_ssc
-
     def create_q_controller(  # noqa: PLR0912, PLR0915
         self,
         gen: PFTypes.GeneratorBase,
@@ -2047,10 +2094,10 @@ class PowerfactoryExporter:
             "cpchar": ControllerType.COSPHI_P,
         }
         s_r = gen.sgn
-        cosphi_r = gen.cosn
-        q_r = s_r * math.sin(math.acos(cosphi_r))
+        cosphi_a = gen.cosn
+        q_r = s_r * math.sin(math.acos(cosphi_a))
 
-        cosphi_type = None
+        cosphi_dir = None
         cosphi = None
         q_set = None
         m_tab2015 = None  # Q(U) droop/slope related to VDE-AR-N 4120:2015
@@ -2066,16 +2113,16 @@ class PowerfactoryExporter:
             controller_type = controller_type_dict_default[gen.av_mode]
             if controller_type == ControllerType.COSPHI_CONST:
                 cosphi = gen.cosgini
-                cosphi_type = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+                cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             elif controller_type == ControllerType.Q_CONST:
-                q_set = gen.qgini
+                q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             elif controller_type == ControllerType.Q_U:
                 qmax_ue = abs(gen.Qfu_min)  # absolute value
                 qmax_oe = abs(gen.Qfu_max)  # absolute value
                 u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
                 udeadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
                 udeadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
-                m_tab2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_r  # (% von Pr) / kV
+                m_tab2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a  # (% von Pr) / kV
                 m_tar2018 = self.transform_qu_slope(slope=m_tab2015, given_format="2015", target_format="2018", u_n=u_n)
             elif controller_type == ControllerType.Q_P:
                 logger.warning("Generator {gen_name} Q(P) control is not implemented yet. Skipping.", gen_name=gen_name)
@@ -2108,8 +2155,8 @@ class PowerfactoryExporter:
                 controller_type = controller_type_dict_pow_react[ext_ctrl.qu_char]
 
                 if controller_type == ControllerType.Q_CONST:
-                    q_dir = -1 if ext_ctrl.iQorient else 1  # negative counting --> under excited
-                    q_set = ext_ctrl.qsetp * q_dir
+                    q_dir = -1 if ext_ctrl.iQorient else 1
+                    q_set = ext_ctrl.qsetp * q_dir  # negative value = under excited --> counting based on demand side
                 elif controller_type == ControllerType.Q_U:
                     u_nom = round(ext_ctrl.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
 
@@ -2122,7 +2169,7 @@ class PowerfactoryExporter:
                     q_rated = ext_ctrl.Srated
                     try:
                         if abs((abs(q_rated) - abs(s_r)) / abs(s_r)) < M_TAB2015_MIN_THRESHOLD:  # q_rated == s_r
-                            m_tab2015 = 100 / ext_ctrl.ddroop * 100 * Exponents.VOLTAGE / u_nom / cosphi_r
+                            m_tab2015 = 100 / ext_ctrl.ddroop * 100 * Exponents.VOLTAGE / u_nom / cosphi_a
                         else:
                             m_tab2015 = (
                                 100
@@ -2130,7 +2177,7 @@ class PowerfactoryExporter:
                                 * 100
                                 * Exponents.VOLTAGE
                                 / u_nom
-                                * math.tan(math.acos(cosphi_r))
+                                * math.tan(math.acos(cosphi_a))
                             )
 
                         # in default there should q_rated=s_r, but user could enter incorrectly
@@ -2157,15 +2204,16 @@ class PowerfactoryExporter:
             elif ctrl_mode == CtrlMode.Cosphi:  # cosphi control mode
                 controller_type_dict_cosphi = {
                     CosphiChar.const: ControllerType.COSPHI_CONST,
-                    CosphiChar.U: ControllerType.COSPHI_P,
-                    CosphiChar.P: ControllerType.COSPHI_U,
+                    CosphiChar.P: ControllerType.COSPHI_P,
+                    CosphiChar.U: ControllerType.COSPHI_U,
                 }
                 controller_type = controller_type_dict_cosphi[ext_ctrl.cosphi_char]
 
                 if controller_type == ControllerType.COSPHI_CONST:
                     cosphi = ext_ctrl.pfsetp
                     ue = ext_ctrl.pf_recap ^ ext_ctrl.iQorient  # OE/UE XOR +Q/-Q
-                    cosphi_type = CosphiDir.UE if ue else CosphiDir.OE
+                    # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+                    cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
                 elif controller_type == ControllerType.COSPHI_P:
                     logger.warning(
                         "Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.",
@@ -2183,7 +2231,7 @@ class PowerfactoryExporter:
             elif ctrl_mode == CtrlMode.Tanphi:  # tanphi control mode
                 controller_type = ControllerType.TANPHI_CONST
                 cosphi = math.cos(math.atan(ext_ctrl.tansetp))
-                cosphi_type = CosphiDir.UE if ext_ctrl.iQorient else CosphiDir.OE
+                cosphi_dir = CosphiDir.UE if ext_ctrl.iQorient else CosphiDir.OE
             else:
                 msg = "unreachable"
                 raise RuntimeError(msg)
@@ -2213,7 +2261,7 @@ class PowerfactoryExporter:
         return Controller(
             controller_type=controller_type,
             external_controller_name=ext_ctrl_name,
-            cosphi_type=cosphi_type,
+            cosphi_dir=cosphi_dir,
             cosphi=cosphi,
             q_set=q_set,
             m_tab2015=m_tab2015,

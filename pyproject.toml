@@ -35,6 +35,7 @@
       typing     = ["mypy @ git+https://github.com/python/mypy.git@master"]
 
 [tool.ruff]
+  extend-exclude = ["tests"]
   ignore = [
     "ANN002",
     "ANN003",

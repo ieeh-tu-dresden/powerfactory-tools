@@ -22,8 +22,8 @@ class CtrlMode:  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control
 
 class CosphiChar:  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
     const = 0
-    U = 1
-    P = 2
+    P = 1
+    U = 2
 
 
 class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
@@ -32,7 +32,7 @@ class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
     P = 2
 
 
-class IOpt:  # 0:const. Q; 1:Q(U); 2: Q(P)
+class IOpt:  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
     SCosphi = 0
     PCosphi = 1
     UICosphi = 2
@@ -43,10 +43,17 @@ class PowerFactoryTypes:
     ModeInpLoad = Literal["DEF", "PQ", "PC", "IC", "SC", "QC", "IP", "SP", "SQ"]
     ModeInpGen = Literal["DEF", "PQ", "PC", "SC", "QC", "SP", "SQ"]
     ModeInpMV = Literal["PC", "SC", "EC"]
-    IOptInp = Literal[0, 1, 2]  # 0:const. Q; 1:Q(U); 2: Q(P)
-    PFRecap = Literal[0, 1]
+    BusType = Literal["SL", "PV", "PQ"]
+    NodeType = Literal[0, 1, 2]  # 0:bus bar; 1:junction node; 2:internal node
+    CtrlMode = Literal[0, 1, 2, 3]  # cfg. class CtrlMode
+    IOpt = Literal[0, 1, 2, 3]  # cfg. class IOpt
+    CosphiChar = Literal[0, 1, 2]  # cfg. class CosphiChar
+    PowReactChar = Literal[0, 1, 2]  # cfg. class PowReactChar
+    PFRecap = Literal[0, 1]  # 0:ind. ; 1:kap.
+    QOrient = Literal[0, 1]  # 0:+Q; 1:-Q
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
+    QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
     TrfVector = Literal["Y", "YN", "Z", "ZN", "D"]
     TrfVectorGroup = Literal[
         "Dd0",
@@ -86,8 +93,6 @@ class PowerFactoryTypes:
     ]
     TrfPhaseTechnology = Literal[1, 2, 3]  # Single core for each Phase or three phases combined
     TrfTapSide = Literal[0, 1, 2, 3]  # Transformer side of tap changer
-    QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
-    BusType = Literal["SL", "PV", "PQ"]
     GenSystemType = Literal[
         "coal",
         "oil",
@@ -313,7 +318,7 @@ class PowerFactoryTypes:
         cDisplayName: str  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: Literal[0, 1, 2]  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
+        iUsage: PowerFactoryTypes.NodeType  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
         outserv: bool
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
@@ -346,10 +351,10 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: Literal[0, 1, 2, 3]  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
-        qu_char: Literal[0, 1, 2]  # 0:const. Q; 1:Q(U); 2: Q(P)
+        i_ctrl: PowerFactoryTypes.CtrlMode  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
+        qu_char: PowerFactoryTypes.PowReactChar  # 0:const. Q; 1:Q(U); 2: Q(P)
         qsetp: float
-        iQorient: Literal[0, 1]  # noqa: N815  # 0:+Q; 1:-Q
+        iQorient: PowerFactoryTypes.QOrient  # noqa: N815  # 0:+Q; 1:-Q
         refbar: PowerFactoryTypes.Terminal
         Srated: float
         ddroop: float
@@ -357,9 +362,9 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: Literal[0, 1, 2]  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
+        cosphi_char: PowerFactoryTypes.CosphiChar  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
         pfsetp: float
-        pf_recap: PowerFactoryTypes.PFRecap
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         tansetp: float
 
     class CompoundModel(DataObject, Protocol):
@@ -367,7 +372,7 @@ class PowerFactoryTypes:
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -378,7 +383,7 @@ class PowerFactoryTypes:
         pgini: float
         qgini: float
         cosgini: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         Kpf: float
         ddroop: float
         Qfu_min: float
@@ -393,7 +398,7 @@ class PowerFactoryTypes:
         pgini_a: float
         qgini_a: float
         cosgini_a: float
-        pf_recap_a: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap_a: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         scale0_a: float
         c_pstac: PowerFactoryTypes.StationController | None
         c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
@@ -446,7 +451,7 @@ class PowerFactoryTypes:
         u0: float
 
     class LoadLVP(DataObject, Protocol):
-        iopt_inp: PowerFactoryTypes.IOptInp  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
+        iopt_inp: PowerFactoryTypes.IOpt  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
         elini: float
         cplinia: float
         slini: float
@@ -458,6 +463,7 @@ class PowerFactoryTypes:
         pnight: float
         cSav: float  # noqa: N815
         ccosphi: float
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
         i_sym: bool  # 0:symmetrical; 1:asymmetrical
@@ -481,7 +487,8 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
-        pfg_recap: PowerFactoryTypes.PFRecap  # 0:over excited; 1:under excited
+        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pfg_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
 
     class Switch(DataObject, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle

@@ -14,6 +14,11 @@ from powerfactory_tools.schema.topology.active_power import ActivePower  # noqa:
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower  # noqa: TCH001
 
 
+class CosphiDir(Enum):
+    UE = "UE"  # under excited operation
+    OE = "OE"  # over excited operation
+
+
 class LoadType(Enum):
     CONSUMER = "CONSUMER"
     PRODUCER = "PRODUCER"
@@ -70,15 +75,40 @@ class ConsumerSystemType(Enum):
     VARIABLE = "VARIABLE"
 
 
+THRESHOLD = 0.51  # acceptable rounding error (0.5 W) + epsilon for calculation accuracy (0.01 W)
+
+
+def validate_total(values: dict[str, float]) -> dict[str, float]:
+    pow_total = values["value_a"] + values["value_b"] + values["value_c"]
+    diff = abs(values["value"] - pow_total)
+    if diff > THRESHOLD:
+        msg = f"Power mismatch: Total power should be {pow_total}, is {values['value']}."
+        raise ValueError(msg)
+
+    return values
+
+
+def validate_symmetry(values: dict[str, float]) -> dict[str, float]:
+    if values["is_symmetrical"] and not (values["value_a"] == values["value_b"] == values["value_c"]):
+        msg = "Power mismatch: Three-phase power of load is not symmetrical."
+        raise ValueError(msg)
+
+    return values
+
+
 class RatedPower(Base):
-    value: float  # rated apparent power; base for p.u. calculation
-    value_r: float  # rated apparent power (phase r)
-    value_s: float  # rated apparent power (phase s)
-    value_t: float  # rated apparent power (phase t)
-    cosphi: float | None  # rated cos(phi) in relation to rated power
-    cosphi_r: float | None  # rated cos(phi) (phase r)
-    cosphi_s: float | None  # rated cos(phi) (phase s)
-    cosphi_t: float | None  # rated cos(phi) (phase t)
+    value: float = pydantic.Field(..., ge=0)  # rated apparent power; base for p.u. calculation
+    value_a: float = pydantic.Field(..., ge=0)  # rated apparent power (phase a)
+    value_b: float = pydantic.Field(..., ge=0)  # rated apparent power (phase b)
+    value_c: float = pydantic.Field(..., ge=0)  # rated apparent power (phase c)
+    cosphi: float = pydantic.Field(1, ge=0, le=1)  # rated cos(phi) in relation to rated power
+    cosphi_a: float = pydantic.Field(1, ge=0, le=1)  # rated cos(phi) (phase a)
+    cosphi_b: float = pydantic.Field(1, ge=0, le=1)  # rated cos(phi) (phase b)
+    cosphi_c: float = pydantic.Field(1, ge=0, le=1)  # rated cos(phi) (phase c)
+
+    @pydantic.root_validator(skip_on_failure=True)
+    def _validate_total(cls, values: dict[str, float]) -> dict[str, float]:
+        return validate_total(values)
 
 
 class Load(Base):  # including assets of type load and generator
@@ -93,17 +123,3 @@ class Load(Base):  # including assets of type load and generator
     system_type: ConsumerSystemType | ProducerSystemType | None = None
     phase_connection_type: PhaseConnectionType | None = None
     voltage_system_type: VoltageSystemType | None = None
-
-    @pydantic.validator("rated_power")
-    def validate_rated_power(cls, value: RatedPower) -> RatedPower:
-        cosphi = value.cosphi
-        if cosphi is not None and (abs(cosphi) > 1 or abs(cosphi) < 0):
-            msg = f"Rated {cosphi=} must be within range [0 1]."
-            raise ValueError(msg)
-
-        power = value.value
-        if value.value < 0:
-            msg = f"Rated {power=} value must be positive."
-            raise ValueError(msg)
-
-        return value

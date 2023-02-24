@@ -427,25 +427,25 @@
           "c_i": 0.0,
           "c_p": 0.0,
           "c_z": 1.0,
-          "exp_i": 0.0,
+          "exp_i": 1.0,
           "exp_p": 0.0,
           "exp_z": 2.0,
-          "name": "Load_general"
+          "name": "Load_const_impedance"
         }
       },
       "description": "",
-      "name": "Load_1",
-      "node": "Node_1",
+      "name": "Load_8",
+      "node": "Node_8/Field_2",
       "phase_connection_type": "3PH_D",
       "rated_power": {
-        "cosphi": 1.0,
-        "cosphi_r": 1.0,
-        "cosphi_s": 1.0,
-        "cosphi_t": 1.0,
-        "value": 10000000.0,
-        "value_r": 3333333.33,
-        "value_s": 3333333.33,
-        "value_t": 3333333.33
+        "cosphi": 0.894427,
+        "cosphi_a": 0.894427,
+        "cosphi_b": 0.894427,
+        "cosphi_c": 0.894427,
+        "value": 22360680.0,
+        "value_a": 7453559.92,
+        "value_b": 7453559.92,
+        "value_c": 7453559.92
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -453,10 +453,10 @@
           "c_i": 0.0,
           "c_p": 0.0,
           "c_z": 1.0,
-          "exp_i": 0.0,
+          "exp_i": 1.0,
           "exp_p": 0.0,
           "exp_z": 2.0,
-          "name": "Load_general"
+          "name": "Load_const_impedance"
         }
       },
       "system_type": null,
@@ -483,13 +483,13 @@
       "phase_connection_type": "3PH_D",
       "rated_power": {
         "cosphi": 1.0,
-        "cosphi_r": 1.0,
-        "cosphi_s": 1.0,
-        "cosphi_t": 1.0,
+        "cosphi_a": 1.0,
+        "cosphi_b": 1.0,
+        "cosphi_c": 1.0,
         "value": 60000000.0,
-        "value_r": 20000000.0,
-        "value_s": 20000000.0,
-        "value_t": 20000000.0
+        "value_a": 20000000.0,
+        "value_b": 20000000.0,
+        "value_c": 20000000.0
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -501,6 +501,50 @@
           "exp_p": 0.0,
           "exp_z": 2.0,
           "name": "Load_const_current"
+        }
+      },
+      "system_type": null,
+      "type": "CONSUMER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": {
+          "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 0.0,
+          "exp_p": 0.0,
+          "exp_z": 2.0,
+          "name": "Load_general"
+        }
+      },
+      "description": "",
+      "name": "Load_1",
+      "node": "Node_1",
+      "phase_connection_type": "3PH_D",
+      "rated_power": {
+        "cosphi": 0.990309,
+        "cosphi_a": 0.990309,
+        "cosphi_b": 0.990309,
+        "cosphi_c": 0.990309,
+        "value": 10097857.0,
+        "value_a": 3365952.27,
+        "value_b": 3365952.27,
+        "value_c": 3365952.27
+      },
+      "reactive_power": {
+        "external_controller_name": null,
+        "load_model": {
+          "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 0.0,
+          "exp_p": 0.0,
+          "exp_z": 2.0,
+          "name": "Load_general"
         }
       },
       "system_type": null,
@@ -526,14 +570,14 @@
       "node": "Node_2",
       "phase_connection_type": "3PH_D",
       "rated_power": {
-        "cosphi": 1.0,
-        "cosphi_r": 1.0,
-        "cosphi_s": 1.0,
-        "cosphi_t": 1.0,
-        "value": 50000000.0,
-        "value_r": 16666666.67,
-        "value_s": 16666666.67,
-        "value_t": 16666666.67
+        "cosphi": 0.980581,
+        "cosphi_a": 0.980581,
+        "cosphi_b": 0.980581,
+        "cosphi_c": 0.980581,
+        "value": 50990195.0,
+        "value_a": 16996731.69,
+        "value_b": 16996731.69,
+        "value_c": 16996731.69
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -545,50 +589,6 @@
           "exp_p": 0.0,
           "exp_z": 2.0,
           "name": "Load_const_power"
-        }
-      },
-      "system_type": null,
-      "type": "CONSUMER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 1.0,
-          "exp_p": 0.0,
-          "exp_z": 2.0,
-          "name": "Load_const_impedance"
-        }
-      },
-      "description": "",
-      "name": "Load_8",
-      "node": "Node_8/Field_2",
-      "phase_connection_type": "3PH_D",
-      "rated_power": {
-        "cosphi": 0.894427,
-        "cosphi_r": 0.894427,
-        "cosphi_s": 0.894427,
-        "cosphi_t": 0.894427,
-        "value": 22360680.0,
-        "value_r": 7453559.92,
-        "value_s": 7453559.92,
-        "value_t": 7453559.92
-      },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 1.0,
-          "exp_p": 0.0,
-          "exp_z": 2.0,
-          "name": "Load_const_impedance"
         }
       },
       "system_type": null,
@@ -615,13 +615,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 1.0,
-        "cosphi_r": 1.0,
-        "cosphi_s": 1.0,
-        "cosphi_t": 1.0,
+        "cosphi_a": 1.0,
+        "cosphi_b": 1.0,
+        "cosphi_c": 1.0,
         "value": 10000.0,
-        "value_r": 3333.33,
-        "value_s": 3333.33,
-        "value_t": 3333.33
+        "value_a": 3333.33,
+        "value_b": 3333.33,
+        "value_c": 3333.33
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -659,13 +659,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 1.0,
-        "cosphi_r": 1.0,
-        "cosphi_s": 1.0,
-        "cosphi_t": 1.0,
+        "cosphi_a": 1.0,
+        "cosphi_b": 1.0,
+        "cosphi_c": 1.0,
         "value": 2000.0,
-        "value_r": 666.67,
-        "value_s": 666.67,
-        "value_t": 666.67
+        "value_a": 666.67,
+        "value_b": 666.67,
+        "value_c": 666.67
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -703,13 +703,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 0.95,
-        "cosphi_r": 0.95,
-        "cosphi_s": 0.95,
-        "cosphi_t": 0.95,
+        "cosphi_a": 0.95,
+        "cosphi_b": 0.95,
+        "cosphi_c": 0.95,
         "value": 4800.0,
-        "value_r": 1600.0,
-        "value_s": 1600.0,
-        "value_t": 1600.0
+        "value_a": 1600.0,
+        "value_b": 1600.0,
+        "value_c": 1600.0
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -747,13 +747,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 0.937179,
-        "cosphi_r": 0.9,
-        "cosphi_s": 0.95,
-        "cosphi_t": 0.95,
+        "cosphi_a": 0.9,
+        "cosphi_b": 0.95,
+        "cosphi_c": 0.95,
         "value": 9007.0,
-        "value_r": 2309.4,
-        "value_s": 3695.04,
-        "value_t": 3002.22
+        "value_a": 2309.4,
+        "value_b": 3695.04,
+        "value_c": 3002.22
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -791,13 +791,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 0.95,
-        "cosphi_r": 0.95,
-        "cosphi_s": 0.95,
-        "cosphi_t": 0.95,
+        "cosphi_a": 0.95,
+        "cosphi_b": 0.95,
+        "cosphi_c": 0.95,
         "value": 10000000.0,
-        "value_r": 3333333.33,
-        "value_s": 3333333.33,
-        "value_t": 3333333.33
+        "value_a": 3333333.33,
+        "value_b": 3333333.33,
+        "value_c": 3333333.33
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -827,13 +827,13 @@
       "phase_connection_type": null,
       "rated_power": {
         "cosphi": 0.9,
-        "cosphi_r": 0.9,
-        "cosphi_s": 0.9,
-        "cosphi_t": 0.9,
+        "cosphi_a": 0.9,
+        "cosphi_b": 0.9,
+        "cosphi_c": 0.9,
         "value": 200000.0,
-        "value_r": 66666.67,
-        "value_s": 66666.67,
-        "value_t": 66666.67
+        "value_a": 66666.67,
+        "value_b": 66666.67,
+        "value_c": 66666.67
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -855,13 +855,13 @@
       "phase_connection_type": "3PH",
       "rated_power": {
         "cosphi": 0.8,
-        "cosphi_r": 0.8,
-        "cosphi_s": 0.8,
-        "cosphi_t": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
         "value": 1000000.0,
-        "value_r": 333333.33,
-        "value_s": 333333.33,
-        "value_t": 333333.33
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -883,13 +883,13 @@
       "phase_connection_type": "3PH",
       "rated_power": {
         "cosphi": 0.8,
-        "cosphi_r": 0.8,
-        "cosphi_s": 0.8,
-        "cosphi_t": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
         "value": 1000000.0,
-        "value_r": 333333.33,
-        "value_s": 333333.33,
-        "value_t": 333333.33
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
       },
       "reactive_power": {
         "external_controller_name": "Anlagenregelung_konstphi(P)",
@@ -905,19 +905,19 @@
         "characteristic": null,
         "load_model": null
       },
-      "description": "Q-Control: Q(U)-Charakteristik",
-      "name": "WTG",
-      "node": "Node_WTG",
+      "description": "Q-Control: konst cosphi",
+      "name": "StatGenerator_3",
+      "node": "Node_4",
       "phase_connection_type": "3PH",
       "rated_power": {
-        "cosphi": 0.9,
-        "cosphi_r": 0.9,
-        "cosphi_s": 0.9,
-        "cosphi_t": 0.9,
-        "value": 11110000.0,
-        "value_r": 3703333.22,
-        "value_s": 3703333.22,
-        "value_t": 3703333.22
+        "cosphi": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -933,19 +933,19 @@
         "characteristic": null,
         "load_model": null
       },
-      "description": "Q-Control: konst cosphi",
-      "name": "StatGenerator_3",
-      "node": "Node_4",
+      "description": "Q-Control: Q(U)-Charakteristik",
+      "name": "WTG",
+      "node": "Node_WTG",
       "phase_connection_type": "3PH",
       "rated_power": {
-        "cosphi": 0.8,
-        "cosphi_r": 0.8,
-        "cosphi_s": 0.8,
-        "cosphi_t": 0.8,
-        "value": 1000000.0,
-        "value_r": 333333.33,
-        "value_s": 333333.33,
-        "value_t": 333333.33
+        "cosphi": 0.9,
+        "cosphi_a": 0.9,
+        "cosphi_b": 0.9,
+        "cosphi_c": 0.9,
+        "value": 11110000.0,
+        "value_a": 3703333.22,
+        "value_b": 3703333.22,
+        "value_c": 3703333.22
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -967,13 +967,13 @@
       "phase_connection_type": "3PH",
       "rated_power": {
         "cosphi": 0.8,
-        "cosphi_r": 0.8,
-        "cosphi_s": 0.8,
-        "cosphi_t": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
         "value": 20000000.0,
-        "value_r": 6666666.67,
-        "value_s": 6666666.67,
-        "value_t": 6666666.67
+        "value_a": 6666666.67,
+        "value_b": 6666666.67,
+        "value_c": 6666666.67
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -986,8 +986,8 @@
     }
   ],
   "meta": {
-    "date": "2023-02-21",
-    "id": "44b9803e-aaf7-415c-af79-c3adb62d816d",
+    "date": "2023-02-23",
+    "id": "e44a1217-77f5-4cf3-b59e-daec319381d6",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
     "version": "1.1.0"
