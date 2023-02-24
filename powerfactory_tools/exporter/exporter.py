@@ -972,7 +972,7 @@ class PowerfactoryExporter:
                     "Please check load model setting of {load_name} for RMS simulation.",
                     load_name=load.loc_name,
                 )
-                logger.info(
+                logger.info(  # noqa: PLE1206
                     "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
