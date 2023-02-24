@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from typing import Any
 
 
-class ControllerType(Enum):
+class ControlStrategy(Enum):
     U_CONST = "U_CONST"
     COSPHI_CONST = "COSPHI_CONST"
     Q_CONST = "Q_CONST"
@@ -29,10 +29,240 @@ class ControllerType(Enum):
     ND = "ND"
 
 
+class ControlledVoltageRef(Enum):
+    POS_SEQUENCE = "POSITIVE SEQUENCE"
+    AVERAGE = "AVERAGE"
+    A = "A"
+    B = "B"
+    C = "C"
+    AB = "AB"
+    BC = "BC"
+    CA = "CA"
+
+
+class ControlBase(Base):
+    node_target: str | None = None  # the controlled node (which can be differ from node the load is connected to)
+
+
+class ControlQConst(ControlBase):
+    # q-setpoint control mode
+    control_strategy = ControlStrategy.Q_CONST
+    q_set: float  # Setpoint of reactive power. Counted demand based.
+
+    @pydantic.root_validator()
+    def validate_q_const_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["q_set"] is None:
+            raise Exceptions.QSetNotSpecifiedError
+
+        return values
+
+
+class ControlUConst(ControlBase):
+    # u-setpoint control mode
+    control_strategy = ControlStrategy.U_CONST
+    u_set: float  # Setpoint of voltage.
+    u_type: ControlledVoltageRef = ControlledVoltageRef.MITSYSTEM  # voltage reference
+
+    @pydantic.root_validator()
+    def validate_u_const_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["u_set"] is None:
+            raise Exceptions.USetNotSpecifiedError
+
+        return values
+
+
+class ControlTanphiConst(ControlBase):
+    # cos(phi) control mode
+    control_strategy = ControlStrategy.TANPHI_CONST
+    cosphi_dir: CosphiDir  # CosphiDir
+    cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
+
+    @pydantic.root_validator()
+    def validate_cosphi_const_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["cosphi"] is None:
+            msg = "cosphi must be specified for constant-tanphi-control."
+            raise ValueError(msg)
+
+        if values["cosphi_dir"] is None:
+            msg = "cosphi_dir must be specified for constant-tanphi-control."
+            raise ValueError(msg)
+
+        return values
+
+
+class ControlCosphiConst(ControlBase):
+    # cos(phi) control mode
+    control_strategy = ControlStrategy.COSPHI_CONST
+    cosphi_dir: CosphiDir  # CosphiDir
+    cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
+
+    @pydantic.root_validator()
+    def validate_cosphi_const_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["cosphi"] is None:
+            msg = "cosphi must be specified for constant-cosphi-control."
+            raise ValueError(msg)
+
+        if values["cosphi_dir"] is None:
+            msg = "cosphi_dir must be specified for constant-cosphi-control."
+            raise ValueError(msg)
+
+        return values
+
+
+class ControlCosphiP(ControlBase):
+    # cos(phi(P)) control mode
+    control_strategy = ControlStrategy.COSPHI_P
+    cosphi_ue: float = pydantic.Field(
+        ge=0,
+        le=1,
+    )  # under excited: cos(phi) for calculation of Q in relation to P.
+    cosphi_oe: float = pydantic.Field(
+        ge=0,
+        le=1,
+    )  # over excited: cos(phi) for calculation of Q in relation to P.
+    p_treshold_ue: float = pydantic.Field(le=0)  # under excited: threshold for P.
+    p_treshold_oe: float = pydantic.Field(le=0)  # over excited: threshold for P.
+
+    @pydantic.root_validator()
+    def validate_cosphi_p_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["cosphi_ue"] is None:
+            msg = "cosphi_ue must be specified for cosphi(P)-control."
+            raise ValueError(msg)
+
+        if values["cosphi_oe"] is None:
+            msg = "cosphi_oe must be specified for cosphi(P)-control."
+            raise ValueError(msg)
+
+        if values["p_treshold_ue"] is None:
+            raise Exceptions.PThresholdUeNotSpecifiedError
+
+        if values["p_treshold_oe"] is None:
+            raise Exceptions.PThresholdOeNotSpecifiedError
+
+        return values
+
+
+class ControlCosphiU(ControlBase):
+    # cos(phi(U)) control mode
+    control_strategy = ControlStrategy.COSPHI_U
+    cosphi_ue: float = pydantic.Field(
+        ge=0,
+        le=1,
+    )  # under excited: cos(phi) for calculation of Q in relation to P.
+    cosphi_oe: float = pydantic.Field(
+        ge=0,
+        le=1,
+    )  # over excited: cos(phi) for calculation of Q in relation to P.
+    u_treshold_ue: float = pydantic.Field(ge=0)  # under excited: threshold for U.
+    u_treshold_oe: float = pydantic.Field(ge=0)  # over excited: threshold for U.
+
+    @pydantic.root_validator()
+    def validate_cosphi_p_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["cosphi_ue"] is None:
+            msg = "cosphi_ue must be specified for cosphi(U)-control."
+            raise ValueError(msg)
+
+        if values["cosphi_oe"] is None:
+            msg = "cosphi_oe must be specified for cosphi(U)-control."
+            raise ValueError(msg)
+
+        if values["u_treshold_ue"] is None:
+            raise Exceptions.UThresholdUeNotSpecifiedError
+
+        if values["u_treshold_oe"] is None:
+            raise Exceptions.UThresholdOeNotSpecifiedError
+
+        return values
+
+
+class ControlQU(ControlBase):
+    control_strategy = ControlStrategy.Q_U
+    # Q(U) characteristic control mode
+    m_tg_2015: float = pydantic.Field(
+        ge=0,
+    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
+    m_tg_2018: float = pydantic.Field(
+        ge=0,
+    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
+    u_q0: float = pydantic.Field(ge=0)  # Voltage value, where Q=0: per unit value related to Un
+    u_deadband_up: float = pydantic.Field(
+        ge=0,
+    )  # Width of upper deadband (U_1_up - U_Q0): per unit value related to Un
+    u_deadband_low: float = pydantic.Field(
+        ge=0,
+    )  # Width of lower deadband (U_Q0 - U_1_low): per unit value related to Un
+    q_max_ue: float = pydantic.Field(ge=0)  # Under excited limit of Q: absolut value
+    q_max_oe: float = pydantic.Field(ge=0)  # Over excited limit of Q: absolut value
+
+    @pydantic.root_validator()
+    def validate_q_u_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["u_q0"] is None:
+            raise Exceptions.UQ0NotSpecifiedError
+
+        if values["udeadband_up"] is None:
+            raise Exceptions.UdeadbandUpNotSpecifiedError
+
+        if values["udeadband_low"] is None:
+            raise Exceptions.UdeadbandLowNotSpecifiedError
+
+        if values["qmax_oe"] is None:
+            msg = "qmax_oe must be specified for Q(U)-characteristic-control."
+            raise ValueError(msg)
+
+        if values["qmax_ue"] is None:
+            msg = "qmax_ue must be specified for Q(U)-characteristic-control."
+            raise ValueError(msg)
+
+        if values["m_tg_2015"] is None and values["m_tg_2018"] is None:
+            raise Exceptions.QUSlopeNotSpecifiedError
+
+        return values
+
+
+class ControlQP(ControlBase):
+    control_strategy = ControlStrategy.Q_P
+    # Q(P) characteristic control mode
+    q_p_characteristic_name: str
+    q_max_ue: float | None = pydantic.Field(None, ge=0)  # Under excited limit of Q: absolut value
+    q_max_oe: float | None = pydantic.Field(None, ge=0)  # Over excited limit of Q: absolut value
+
+    @pydantic.root_validator()
+    def validate_q_u_controller(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values["qmax_oe"] is None:
+            msg = "qmax_oe must be specified for Q(P)-characteristic-control."
+            raise ValueError(msg)
+
+        if values["qmax_ue"] is None:
+            msg = "qmax_ue must be specified for Q(P)-characteristic-control."
+            raise ValueError(msg)
+
+        return values
+
+
 class Exceptions:
+    class USetNotSpecifiedError(ValueError):
+        def __init__(self) -> None:
+            super().__init__("u_set must be specified for U-constant-control.")
+
+    class PThresholdUeNotSpecifiedError(ValueError):
+        def __init__(self) -> None:
+            super().__init__("p_treshold_ue must be specified for cosphi(P)-control.")
+
+    class PThresholdOeNotSpecifiedError(ValueError):
+        def __init__(self) -> None:
+            super().__init__("p_treshold_oe must be specified for cosphi(P)-control.")
+
+    class UThresholdUeNotSpecifiedError(ValueError):
+        def __init__(self) -> None:
+            super().__init__("p_treshold_ue must be specified for cosphi(U)-control.")
+
+    class UThresholdOeNotSpecifiedError(ValueError):
+        def __init__(self) -> None:
+            super().__init__("p_treshold_oe must be specified for cosphi(U)-control.")
+
     class QSetNotSpecifiedError(ValueError):
         def __init__(self) -> None:
-            super().__init__("q_set must be specified for Q-setpoint-control.")
+            super().__init__("q_set must be specified for Q-constant-control.")
 
     class UQ0NotSpecifiedError(ValueError):
         def __init__(self) -> None:
@@ -56,98 +286,9 @@ class Exceptions:
 
     class QUSlopeNotSpecifiedError(ValueError):
         def __init__(self) -> None:
-            super().__init__("Either m_tab2015 or m_tar2018 must be specified for Q(U)-characteristic-control.")
+            super().__init__("Either m_tg_2015 or m_tg_2018 must be specified for Q(U)-characteristic-control.")
 
 
 class Controller(Base):
-    controller_type: ControllerType
+    controller_type: ControlQU | ControlQConst | ControlUConst | ControlCosphiConst | ControlTanphiConst | None = None
     external_controller_name: str | None = None  # if external controller is specified --> name
-    # cos(phi) control mode
-    cosphi_dir: CosphiDir | None = None  # CosphiDir
-    cosphi: float | None = pydantic.Field(None, ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
-    # q-setpoint control mode
-    q_set: float | None = None  # Setpoint of reactive power.
-    # Q(U) characteristic control mode
-    m_tab2015: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
-    m_tar2018: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
-    u_q0: float | None = None  # Voltage value, where Q=0: per unit value related to Un
-    udeadband_up: float | None = pydantic.Field(
-        None,
-        ge=0,
-    )  # Width of upper deadband (U_1_up - U_Q0): per unit value related to Un
-    udeadband_low: float | None = pydantic.Field(
-        None,
-        ge=0,
-    )  # Width of lower deadband (U_Q0 - U_1_low): per unit value related to Un
-    qmax_ue: float | None = pydantic.Field(None, ge=0)  # Over excited limit of Q: absolut value
-    qmax_oe: float | None = pydantic.Field(None, ge=0)  # Under excited limit of Q: absolut value
-
-    @pydantic.root_validator()
-    def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:
-        controller_type = values["controller_type"]
-        if controller_type == ControllerType.COSPHI_CONST:
-            return validate_cosphi_const_controller(values)
-
-        if controller_type == ControllerType.Q_CONST:
-            return validate_q_const_controller(values)
-
-        if controller_type == ControllerType.Q_U:
-            return validate_q_u_controller(values)
-
-        if controller_type == ControllerType.TANPHI_CONST:
-            return validate_tanphi_const_controller(values)
-
-        return values
-
-
-def validate_cosphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
-    if values["cosphi"] is None:
-        msg = "cosphi must be specified for constant-cosphi-control."
-        raise ValueError(msg)
-
-    if values["cosphi_dir"] is None:
-        msg = "cosphi_dir must be specified for constant-cosphi-control."
-        raise ValueError(msg)
-
-    return values
-
-
-def validate_q_const_controller(values: dict[str, Any]) -> dict[str, Any]:
-    if values["q_set"] is None:
-        raise Exceptions.QSetNotSpecifiedError
-
-    return values
-
-
-def validate_q_u_controller(values: dict[str, Any]) -> dict[str, Any]:
-    if values["u_q0"] is None:
-        raise Exceptions.UQ0NotSpecifiedError
-
-    if values["udeadband_up"] is None:
-        raise Exceptions.UdeadbandUpNotSpecifiedError
-
-    if values["udeadband_low"] is None:
-        raise Exceptions.UdeadbandLowNotSpecifiedError
-
-    if values["qmax_oe"] is None:
-        raise Exceptions.QmaxOENotSpecifiedError
-
-    if values["qmax_ue"] is None:
-        raise Exceptions.QmaxUENotSpecifiedError
-
-    if values["m_tab2015"] is None and values["m_tar2018"] is None:
-        raise Exceptions.QUSlopeNotSpecifiedError
-
-    return values
-
-
-def validate_tanphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
-    if values["cosphi"] is None:
-        msg = "cosphi must be specified for constant-tanphi-control."
-        raise ValueError(msg)
-
-    if values["cosphi_dir"] is None:
-        msg = "cosphi_dir must be specified for constant-tanphi-control."
-        raise ValueError(msg)
-
-    return values
