@@ -76,7 +76,14 @@ class PowerFactoryTypes:
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
     QCtrlTypes = Literal[
-        "constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"
+        "constv",
+        "vdroop",
+        "idroop",
+        "constq",
+        "qpchar",
+        "qvchar",
+        "constc",
+        "cpchar",
     ]  # cfg. class LocalQCtrlMode
     CtrlVoltageRef = Literal[0, 1, 2, 3, 4, 5, 6, 7]  # cfg. class CtrlVoltageRef
     TrfVector = Literal["Y", "YN", "Z", "ZN", "D"]
