@@ -270,11 +270,11 @@ dependencies = [
 
 [[package]]
 name = "mypy"
-version = "1.1.0+dev.ed3a6c1c019a8098f65e768697f1048d1f97a4a1"
+version = "1.2.0+dev.54635dec2379e2ac8b65b6ef07778015c69cfb6a"
 requires_python = ">=3.7"
 git = "https://github.com/python/mypy.git"
 ref = "master"
-revision = "ed3a6c1c019a8098f65e768697f1048d1f97a4a1"
+revision = "54635dec2379e2ac8b65b6ef07778015c69cfb6a"
 summary = "Optional static typing for Python"
 dependencies = [
     "mypy-extensions>=1.0.0",

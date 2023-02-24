@@ -63,60 +63,24 @@ class Controller(Base):
     controller_type: ControllerType
     external_controller_name: str | None = None  # if external controller is specified --> name
     # cos(phi) control mode
-    cosphi_type: CosphiDir | None = None  # CosphiDir
-    cosphi: float | None = None  # cos(phi) for calculation of Q in relation to P.
+    cosphi_dir: CosphiDir | None = None  # CosphiDir
+    cosphi: float | None = pydantic.Field(None, ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
     # q-setpoint control mode
     q_set: float | None = None  # Setpoint of reactive power.
     # Q(U) characteristic control mode
     m_tab2015: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
     m_tar2018: float | None = None  # Droop/Slope based on VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
     u_q0: float | None = None  # Voltage value, where Q=0: per unit value related to Un
-    udeadband_up: float | None = None  # Width of upper deadband (U_1_up - U_Q0): per unit value related to Un
-    udeadband_low: float | None = None  # Width of lower deadband (U_Q0 - U_1_low): per unit value related to Un
-    qmax_ue: float | None = None  # Over excited limit of Q: absolut value
-    qmax_oe: float | None = None  # Under excited limit of Q: absolut value
-
-    @pydantic.validator("cosphi")
-    def validate_cosphi(cls, value: float | None) -> float | None:
-        if value is not None and (not (-1 <= value <= 1)):
-            msg = f"Cosphi must be between -1 and 1, but is {value}."
-            raise ValueError(msg)
-
-        return value
-
-    @pydantic.validator("qmax_ue")
-    def validate_qmax_ue(cls, value: float | None) -> float | None:
-        if value is not None and (value < 0):
-            msg = f"qmax_ue must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            raise ValueError(msg)
-
-        return value
-
-    @pydantic.validator("qmax_oe")
-    def validate_qmax_oe(cls, value: float | None) -> float | None:
-        if value is not None and (value < 0):
-            msg = f"qmax_oe must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            raise ValueError(msg)
-
-        return value
-
-    @pydantic.validator("udeadband_up")
-    def validate_udeadband_up(cls, value: float | None) -> float | None:
-        if value is not None and (value < 0):
-            msg = f"udeadband_up must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            raise ValueError(msg)
-
-        return value
-
-    @pydantic.validator("udeadband_low")
-    def validate_udeadband_low(cls, value: float | None) -> float | None:
-        if value is not None and (value < 0):
-            msg = (
-                f"udeadband_low must be greater/equal than 0(p.u.), as it is defined as absolut value, but is {value}."
-            )
-            raise ValueError(msg)
-
-        return value
+    udeadband_up: float | None = pydantic.Field(
+        None,
+        ge=0,
+    )  # Width of upper deadband (U_1_up - U_Q0): per unit value related to Un
+    udeadband_low: float | None = pydantic.Field(
+        None,
+        ge=0,
+    )  # Width of lower deadband (U_Q0 - U_1_low): per unit value related to Un
+    qmax_ue: float | None = pydantic.Field(None, ge=0)  # Over excited limit of Q: absolut value
+    qmax_oe: float | None = pydantic.Field(None, ge=0)  # Under excited limit of Q: absolut value
 
     @pydantic.root_validator()
     def validate_controller_type(cls, values: dict[str, Any]) -> dict[str, Any]:

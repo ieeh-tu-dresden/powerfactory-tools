@@ -811,20 +811,20 @@ class LoadPower:
 
     def as_active_power_ssc(self) -> ActivePower:
         return ActivePower(
-            value_0=round(self.pow_act, DecimalDigits.POWER),
-            value_a_0=round(self.pow_act_a, DecimalDigits.POWER + 2),
-            value_b_0=round(self.pow_act_b, DecimalDigits.POWER + 2),
-            value_c_0=round(self.pow_act_c, DecimalDigits.POWER + 2),
+            value=round(self.pow_act, DecimalDigits.POWER),
+            value_a=round(self.pow_act_a, DecimalDigits.POWER + 2),
+            value_b=round(self.pow_act_b, DecimalDigits.POWER + 2),
+            value_c=round(self.pow_act_c, DecimalDigits.POWER + 2),
             is_symmetrical=self.is_symmetrical,
         )
 
     def as_reactive_power_ssc(self, controller: Controller | None = None) -> ReactivePower:
         # remark: actual reactive power set by external controller is not shown in ReactivePower
         return ReactivePower(
-            value_0=round(self.pow_react, DecimalDigits.POWER),
-            value_a_0=round(self.pow_react_a, DecimalDigits.POWER + 2),
-            value_b_0=round(self.pow_react_b, DecimalDigits.POWER + 2),
-            value_c_0=round(self.pow_react_c, DecimalDigits.POWER + 2),
+            value=round(self.pow_react, DecimalDigits.POWER),
+            value_a=round(self.pow_react_a, DecimalDigits.POWER + 2),
+            value_b=round(self.pow_react_b, DecimalDigits.POWER + 2),
+            value_c=round(self.pow_react_c, DecimalDigits.POWER + 2),
             is_symmetrical=self.is_symmetrical,
             controller=controller,
         )

@@ -13,10 +13,10 @@ from powerfactory_tools.schema.steadystate_case.reactive_power import ReactivePo
 class TestReactivePower:
     @pytest.mark.parametrize(
         (
-            "value_0",
-            "value_a_0",
-            "value_b_0",
-            "value_c_0",
+            "value",
+            "value_a",
+            "value_b",
+            "value_c",
             "is_symmetrical",
             "expectation",
         ),
@@ -32,18 +32,18 @@ class TestReactivePower:
     )
     def test_init(
         self,
-        value_0,
-        value_a_0,
-        value_b_0,
-        value_c_0,
+        value,
+        value_a,
+        value_b,
+        value_c,
         is_symmetrical,
         expectation,
     ) -> None:
         with expectation:
             ReactivePower(
-                value_0=value_0,
-                value_a_0=value_a_0,
-                value_b_0=value_b_0,
-                value_c_0=value_c_0,
+                value=value,
+                value_a=value_a,
+                value_b=value_b,
+                value_c=value_c,
                 is_symmetrical=is_symmetrical,
             )

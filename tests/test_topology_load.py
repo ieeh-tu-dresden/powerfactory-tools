@@ -25,10 +25,11 @@ class TestRatedPower:
         ),
         [
             (0, 0, 0, 0, 0, 0, 0, 0, does_not_raise()),
-            (1, 1, 1, 1, 1, 1, 1, 1, does_not_raise()),
-            (2, 2, 1, 1, 1, 1, 1, 1, does_not_raise()),
+            (3, 1, 1, 1, 1, 1, 1, 1, does_not_raise()),
+            (4, 2, 1, 1, 1, 1, 1, 1, does_not_raise()),
             (2, 2, 1, 1, 1, 1, 2, 1, pytest.raises(pydantic.ValidationError)),
             (2, -2, 1, 1, 1, 1, 1, 1, pytest.raises(pydantic.ValidationError)),
+            (0, -2, 1, 1, 1, 1, 1, 1, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(
