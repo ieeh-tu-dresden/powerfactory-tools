@@ -105,8 +105,8 @@ def validate_cosphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
         msg = "cosphi must be specified for constant-cosphi-control."
         raise ValueError(msg)
 
-    if values["cosphi_type"] is None:
-        msg = "cosphi_type must be specified for constant-cosphi-control."
+    if values["cosphi_dir"] is None:
+        msg = "cosphi_dir must be specified for constant-cosphi-control."
         raise ValueError(msg)
 
     return values
@@ -146,8 +146,8 @@ def validate_tanphi_const_controller(values: dict[str, Any]) -> dict[str, Any]:
         msg = "cosphi must be specified for constant-tanphi-control."
         raise ValueError(msg)
 
-    if values["cosphi_type"] is None:
-        msg = "cosphi_type must be specified for constant-tanphi-control."
+    if values["cosphi_dir"] is None:
+        msg = "cosphi_dir must be specified for constant-tanphi-control."
         raise ValueError(msg)
 
     return values

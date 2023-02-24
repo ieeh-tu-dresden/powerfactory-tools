@@ -2097,7 +2097,7 @@ class PowerfactoryExporter:
         cosphi_a = gen.cosn
         q_r = s_r * math.sin(math.acos(cosphi_a))
 
-        cosphi_type = None
+        cosphi_dir = None
         cosphi = None
         q_set = None
         m_tab2015 = None  # Q(U) droop/slope related to VDE-AR-N 4120:2015
@@ -2113,7 +2113,7 @@ class PowerfactoryExporter:
             controller_type = controller_type_dict_default[gen.av_mode]
             if controller_type == ControllerType.COSPHI_CONST:
                 cosphi = gen.cosgini
-                cosphi_type = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
+                cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             elif controller_type == ControllerType.Q_CONST:
                 q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             elif controller_type == ControllerType.Q_U:
@@ -2213,7 +2213,7 @@ class PowerfactoryExporter:
                     cosphi = ext_ctrl.pfsetp
                     ue = ext_ctrl.pf_recap ^ ext_ctrl.iQorient  # OE/UE XOR +Q/-Q
                     # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-                    cosphi_type = CosphiDir.UE if ue else CosphiDir.OE
+                    cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
                 elif controller_type == ControllerType.COSPHI_P:
                     logger.warning(
                         "Generator {gen_name}: cosphi(P) control is not implemented yet. Skipping.",
@@ -2231,7 +2231,7 @@ class PowerfactoryExporter:
             elif ctrl_mode == CtrlMode.Tanphi:  # tanphi control mode
                 controller_type = ControllerType.TANPHI_CONST
                 cosphi = math.cos(math.atan(ext_ctrl.tansetp))
-                cosphi_type = CosphiDir.UE if ext_ctrl.iQorient else CosphiDir.OE
+                cosphi_dir = CosphiDir.UE if ext_ctrl.iQorient else CosphiDir.OE
             else:
                 msg = "unreachable"
                 raise RuntimeError(msg)
@@ -2261,7 +2261,7 @@ class PowerfactoryExporter:
         return Controller(
             controller_type=controller_type,
             external_controller_name=ext_ctrl_name,
-            cosphi_type=cosphi_type,
+            cosphi_dir=cosphi_dir,
             cosphi=cosphi,
             q_set=q_set,
             m_tab2015=m_tab2015,
