@@ -31,6 +31,9 @@ if TYPE_CHECKING:
         cosphi_dir: CosphiDir
 
 
+COSPHI_DEFAULT = 1
+
+
 @dataclass
 class LoadPower:
     pow_app_a: float
@@ -69,7 +72,7 @@ class LoadPower:
         try:
             return abs(pow_act / self.pow_app)
         except ZeroDivisionError:
-            return 0
+            return COSPHI_DEFAULT
 
     @property
     def is_symmetrical(self) -> bool:
@@ -109,7 +112,7 @@ class LoadPower:
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = 0
+            cosphi = COSPHI_DEFAULT
 
         return {
             "power_apparent": pow_app,
@@ -132,7 +135,13 @@ class LoadPower:
             pow_app = abs(pow_act / cosphi)
         except ZeroDivisionError:
             logger.warning("`cosphi` is 0, but only active power is given. Actual state could not be determined.")
-            return {"power_apparent": 0, "power_active": 0, "power_reactive": 0, "cosphi": 0, "cosphi_dir": cosphi_dir}
+            return {
+                "power_apparent": 0,
+                "power_active": 0,
+                "power_reactive": 0,
+                "cosphi": COSPHI_DEFAULT,
+                "cosphi_dir": cosphi_dir,
+            }
 
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -198,7 +207,13 @@ class LoadPower:
             pow_app = abs(pow_react / math.sin(math.acos(cosphi)))
         except ZeroDivisionError:
             logger.warning("`cosphi` is 1, but only reactive power is given. Actual state could not be determined.")
-            return {"power_apparent": 0, "power_active": 0, "power_reactive": 0, "cosphi": 0, "cosphi_dir": cosphi_dir}
+            return {
+                "power_apparent": 0,
+                "power_active": 0,
+                "power_reactive": 0,
+                "cosphi": COSPHI_DEFAULT,
+                "cosphi_dir": cosphi_dir,
+            }
 
         pow_act = pow_app * cosphi
         return {
@@ -223,7 +238,7 @@ class LoadPower:
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = 0
+            cosphi = COSPHI_DEFAULT
 
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -248,7 +263,7 @@ class LoadPower:
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = 0
+            cosphi = COSPHI_DEFAULT
 
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -273,7 +288,7 @@ class LoadPower:
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = 0
+            cosphi = COSPHI_DEFAULT
 
         cosphi_dir = CosphiDir.OE if pow_react < 0 else CosphiDir.UE
         return {
