@@ -877,34 +877,6 @@
         "characteristic": null,
         "load_model": null
       },
-      "description": "Q-Control: cosphi(P)-Charakteristik",
-      "name": "StatGenerator_2",
-      "node": "Node_4",
-      "phase_connection_type": "3PH",
-      "rated_power": {
-        "cosphi": 0.8,
-        "cosphi_a": 0.8,
-        "cosphi_b": 0.8,
-        "cosphi_c": 0.8,
-        "value": 1000000.0,
-        "value_a": 333333.33,
-        "value_b": 333333.33,
-        "value_c": 333333.33
-      },
-      "reactive_power": {
-        "external_controller_name": "Anlagenregelung_konstphi(P)",
-        "load_model": null
-      },
-      "system_type": "STAT_GEN",
-      "type": "PRODUCER",
-      "u_n": 110000.0,
-      "voltage_system_type": null
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": null
-      },
       "description": "Q-Control: konst cosphi",
       "name": "StatGenerator_3",
       "node": "Node_4",
@@ -961,6 +933,34 @@
         "characteristic": null,
         "load_model": null
       },
+      "description": "Q-Control: cosphi(P)-Charakteristik",
+      "name": "StatGenerator_2",
+      "node": "Node_4",
+      "phase_connection_type": "3PH",
+      "rated_power": {
+        "cosphi": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
+      },
+      "reactive_power": {
+        "external_controller_name": "Anlagenregelung_cosphi(P)",
+        "load_model": null
+      },
+      "system_type": "STAT_GEN",
+      "type": "PRODUCER",
+      "u_n": 110000.0,
+      "voltage_system_type": null
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": null
+      },
       "description": "",
       "name": "PV-System",
       "node": "Node_4",
@@ -986,8 +986,8 @@
     }
   ],
   "meta": {
-    "date": "2023-02-23",
-    "id": "e44a1217-77f5-4cf3-b59e-daec319381d6",
+    "date": "2023-02-25",
+    "id": "450201a0-bb33-403b-9097-ab9163412832",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
     "version": "1.1.0"
