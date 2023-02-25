@@ -46,7 +46,7 @@ class ControlBase(Base):
 
 class ControlQConst(ControlBase):
     # q-setpoint control mode
-    control_strategy = ControlStrategy.Q_CONST
+    control_strategy = pydantic.Field(ControlStrategy.Q_CONST, const=True)
     q_set: float  # Setpoint of reactive power. Counted demand based.
 
     @pydantic.root_validator()
@@ -59,7 +59,7 @@ class ControlQConst(ControlBase):
 
 class ControlUConst(ControlBase):
     # u-setpoint control mode
-    control_strategy = ControlStrategy.U_CONST
+    control_strategy = pydantic.Field(ControlStrategy.U_CONST, const=True)
     u_set: float  # Setpoint of voltage.
     u_meas_tref: ControlledVoltageRef = ControlledVoltageRef.POS_SEQUENCE  # voltage reference
 
@@ -76,7 +76,7 @@ class ControlUConst(ControlBase):
 
 class ControlTanphiConst(ControlBase):
     # cos(phi) control mode
-    control_strategy = ControlStrategy.TANPHI_CONST
+    control_strategy = pydantic.Field(ControlStrategy.TANPHI_CONST, const=True)
     cosphi_dir: CosphiDir  # CosphiDir
     cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
 
@@ -95,7 +95,7 @@ class ControlTanphiConst(ControlBase):
 
 class ControlCosphiConst(ControlBase):
     # cos(phi) control mode
-    control_strategy = ControlStrategy.COSPHI_CONST
+    control_strategy = pydantic.Field(ControlStrategy.COSPHI_CONST, const=True)
     cosphi_dir: CosphiDir  # CosphiDir
     cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
 
@@ -114,7 +114,7 @@ class ControlCosphiConst(ControlBase):
 
 class ControlCosphiP(ControlBase):
     # cos(phi(P)) control mode
-    control_strategy = ControlStrategy.COSPHI_P
+    control_strategy = pydantic.Field(ControlStrategy.COSPHI_P, const=True)
     cosphi_ue: float = pydantic.Field(
         ge=0,
         le=1,
@@ -147,7 +147,7 @@ class ControlCosphiP(ControlBase):
 
 class ControlCosphiU(ControlBase):
     # cos(phi(U)) control mode
-    control_strategy = ControlStrategy.COSPHI_U
+    control_strategy = pydantic.Field(ControlStrategy.COSPHI_U, const=True)
     cosphi_ue: float = pydantic.Field(
         ge=0,
         le=1,
@@ -180,7 +180,7 @@ class ControlCosphiU(ControlBase):
 
 class ControlQU(ControlBase):
     # Q(U) characteristic control mode
-    control_strategy = ControlStrategy.Q_U
+    control_strategy = pydantic.Field(ControlStrategy.Q_U, const=True)
     m_tg_2015: float = pydantic.Field(
         ge=0,
     )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2015: '%/kV'-value --> Q = m_% * Pr * dU_kV
@@ -223,7 +223,7 @@ class ControlQU(ControlBase):
 
 
 class ControlQP(ControlBase):
-    control_strategy = ControlStrategy.Q_P
+    control_strategy = pydantic.Field(ControlStrategy.Q_P, const=True)
     # Q(P) characteristic control mode
     q_p_characteristic_name: str
     q_max_ue: float | None = pydantic.Field(None, ge=0)  # Under excited limit of Q: absolut value
