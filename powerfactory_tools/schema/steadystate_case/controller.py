@@ -183,10 +183,10 @@ class ControlQU(ControlBase):
     control_strategy = ControlStrategy.Q_U
     m_tg_2015: float = pydantic.Field(
         ge=0,
-    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2015: '%'-value --> Q = m_% * Pr * dU_kV
+    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2015: '%/kV'-value --> Q = m_% * Pr * dU_kV
     m_tg_2018: float = pydantic.Field(
         ge=0,
-    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2018: '%'-value --> Q = m_% * Pr * dU_(% of Un)
+    )  # Droop/Slope based on technical guideline VDE-AR-N 4120:2018: '%/pu'-value --> Q = m_% * Pr * dU_(% of Un)
     u_q0: float = pydantic.Field(ge=0)  # Voltage value, where Q=0: per unit value related to Un
     u_deadband_up: float = pydantic.Field(
         ge=0,

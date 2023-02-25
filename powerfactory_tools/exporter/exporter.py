@@ -478,7 +478,7 @@ class PowerfactoryExporter:
             logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
             description = "substation internal" if description == "" else "substation internal; " + description
@@ -941,7 +941,7 @@ class PowerfactoryExporter:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
         t_name = self.pfi.create_name(terminal, grid_name)
 
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         rated_power = power.as_rated_power()
         logger.debug(
@@ -1205,7 +1205,7 @@ class PowerfactoryExporter:
 
         terminal = bus.cterm
         t_name = self.pfi.create_name(terminal, grid_name)
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         # Rated Values of single unit
         rated_power = power.as_rated_power()
@@ -2066,7 +2066,7 @@ class PowerfactoryExporter:
             return None
 
         terminal = bus.cterm
-        u_n = round(terminal.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         power = LoadPower.from_pq_sym(
             pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
@@ -2124,7 +2124,7 @@ class PowerfactoryExporter:
             u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
             u_deadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
             u_deadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
-            m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a  # (% von Pr) / kV
+            m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a * Exponents.VOLTAGE  # (% von Pr) / kV
             m_tg_2018 = self.transform_qu_slope(slope=m_tg_2015, given_format="2015", target_format="2018", u_n=u_n)
             q_controller = ControlQU(
                 m_tg_2015=round(m_tg_2015, DecimalDigits.PU),
@@ -2230,7 +2230,7 @@ class PowerfactoryExporter:
             if controller.qu_char == PowReactChar.U:  # Q(U)
                 s_r = gen.sgn
                 cosphi_a = gen.cosn
-                u_nom = round(controller.refbar.uknom, DecimalDigits.VOLTAGE) * Exponents.VOLTAGE  # voltage in V
+                u_nom = round(controller.refbar.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
                 q_max_ue = abs(controller.Qmin)
                 q_max_oe = abs(controller.Qmax)
@@ -2241,15 +2241,15 @@ class PowerfactoryExporter:
                 q_rated = controller.Srated
                 try:
                     if abs((abs(q_rated) - abs(s_r)) / abs(s_r)) < M_TAB2015_MIN_THRESHOLD:  # q_rated == s_r
-                        m_tg_2015 = 100 / controller.ddroop * 100 * Exponents.VOLTAGE / u_nom / cosphi_a
+                        m_tg_2015 = 100 / controller.ddroop * 100 / u_nom / cosphi_a * Exponents.VOLTAGE
                     else:
                         m_tg_2015 = (
                             100
                             / abs(controller.ddroop)
                             * 100
-                            * Exponents.VOLTAGE
                             / u_nom
                             * math.tan(math.acos(cosphi_a))
+                            * Exponents.VOLTAGE
                         )
 
                     # in default there should q_rated=s_r, but user could enter incorrectly
