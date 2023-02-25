@@ -30,7 +30,7 @@ class TestReactivePower:
             (4, 1, 2, 1, True, pytest.raises(pydantic.ValidationError)),
         ],
     )
-    def test_init(
+    def test_init(  # noqa: PLR0913
         self,
         value,
         value_a,
