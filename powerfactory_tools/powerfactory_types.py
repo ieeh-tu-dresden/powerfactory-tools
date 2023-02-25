@@ -452,7 +452,7 @@ class PowerFactoryTypes:
         usetp: float
 
     class QPCharacteristic(DataObject, Protocol):
-        inputmod = Literal[0, 1]
+        inputmod: Literal[0, 1]
 
     class Generator(GeneratorBase, Protocol):
         cCategory: PowerFactoryTypes.GenSystemType  # noqa: N815

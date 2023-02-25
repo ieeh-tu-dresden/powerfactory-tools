@@ -1481,11 +1481,11 @@ class PowerfactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        normal_consumers = self.create_consumers_ssc_normal(consumers, grid_name)
-        lv_consumers = self.create_consumers_ssc_lv(consumers_lv, grid_name)
-        mv_consumers = self.create_loads_ssc_mv(consumers_mv, grid_name)
-        gen_producers = self.create_producers_ssc(generators, grid_name)
-        pv_producers = self.create_producers_ssc(pv_systems)
+        normal_consumers = self.create_consumers_ssc_normal(loads=consumers, grid_name=grid_name)
+        lv_consumers = self.create_consumers_ssc_lv(loads=consumers_lv, grid_name=grid_name)
+        mv_consumers = self.create_loads_ssc_mv(loads=consumers_mv, grid_name=grid_name)
+        gen_producers = self.create_producers_ssc(loads=generators, grid_name=grid_name)
+        pv_producers = self.create_producers_ssc(loads=pv_systems, grid_name=grid_name)
         return self.pfi.list_from_sequences(normal_consumers, lv_consumers, mv_consumers, gen_producers, pv_producers)
 
     def create_consumers_ssc_normal(
@@ -2042,10 +2042,10 @@ class PowerfactoryExporter:
 
     def create_producers_ssc(
         self,
-        generators: Sequence[PFTypes.GeneratorBase],
+        loads: Sequence[PFTypes.GeneratorBase],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        producers_ssc = [self.create_producer_ssc(generator=generator, grid_name=grid_name) for generator in generators]
+        producers_ssc = [self.create_producer_ssc(generator=load, grid_name=grid_name) for load in loads]
         return self.pfi.filter_none(producers_ssc)
 
     def create_producer_ssc(
@@ -2138,7 +2138,7 @@ class PowerfactoryExporter:
             return Controller(controller_type=q_controller)
 
         if gen.av_mode == LocalQCtrlMode.QP:
-            q_p_char_name = gen.pQPcurve.loc_name
+            q_p_char_name = None if gen.pQPcurve is None else gen.pQPcurve.loc_name
             q_controller = ControlQP(q_p_characteristic_name=q_p_char_name)
             return Controller(controller_type=q_controller)
 
@@ -2150,8 +2150,8 @@ class PowerfactoryExporter:
             q_controller = ControlCosphiP(
                 cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                 cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                p_treshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                p_treshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
             return Controller(controller_type=q_controller)
 
@@ -2194,11 +2194,11 @@ class PowerfactoryExporter:
                 gen_name=gen.loc_name,
             )
             return None
-        node_target_name = self.pfi.create_name(element=node_target_cub.cterm.loc_name, grid_name=grid_name)
+        node_target_name = self.pfi.create_name(element=node_target_cub.cterm, grid_name=grid_name)
 
         ctrl_mode = controller.i_ctrl
         if ctrl_mode == CtrlMode.PowAct:  # voltage control mode -> const. U
-            u_ctrl_ref_dict = {
+            u_meas_ref_dict = {
                 CtrlVoltageRef.PosSeq: ControlledVoltageRef.POS_SEQUENCE,
                 CtrlVoltageRef.Avg: ControlledVoltageRef.AVERAGE,
                 CtrlVoltageRef.A: ControlledVoltageRef.A,
@@ -2209,10 +2209,10 @@ class PowerfactoryExporter:
                 CtrlVoltageRef.CA: ControlledVoltageRef.CA,
             }
             u_set = controller.usetp
-            u_ctrl_ref = u_ctrl_ref_dict[controller.i_phase]
+            u_meas_ref = u_meas_ref_dict[controller.i_phase]
             q_controller = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
-                u_type=u_ctrl_ref,
+                u_meas_ref=u_meas_ref,
                 node_target=node_target_name,
             )
             return Controller(controller_type=q_controller, external_controller_name=controller_name)
@@ -2314,8 +2314,8 @@ class PowerfactoryExporter:
                 q_controller = ControlCosphiP(
                     cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                    p_treshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    p_treshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                    p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                    p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     node_target=node_target_name,
                 )
                 return Controller(controller_type=q_controller, external_controller_name=controller_name)
@@ -2328,8 +2328,8 @@ class PowerfactoryExporter:
                 q_controller = ControlCosphiU(
                     cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                    u_treshold_ue=round(u_threshold_ue * u_n, DecimalDigits.VOLTAGE),
-                    u_treshold_oe=round(u_threshold_oe * u_n, DecimalDigits.VOLTAGE),
+                    u_threshold_ue=round(u_threshold_ue * u_n, DecimalDigits.VOLTAGE),
+                    u_threshold_oe=round(u_threshold_oe * u_n, DecimalDigits.VOLTAGE),
                     node_target=node_target_name,
                 )
                 return Controller(controller_type=q_controller, external_controller_name=controller_name)

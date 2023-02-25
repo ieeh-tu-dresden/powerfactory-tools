@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from pydantic import root_validator
+import pydantic
 
 from powerfactory_tools.schema.base import Base
 
@@ -29,7 +29,7 @@ class LoadModel(Base):
     exp_i: float = 1
     exp_z: float = 2
 
-    @root_validator
+    @pydantic.root_validator
     def validate_range_c(cls, values: dict[str, Any]) -> dict[str, Any]:
         name = values["name"]
 
@@ -51,7 +51,7 @@ class LoadModel(Base):
 
         return values
 
-    @root_validator
+    @pydantic.root_validator
     def compute_c_z(cls, values: dict[str, Any]) -> dict[str, Any]:
         values["c_z"] = 1 - values["c_p"] - values["c_i"]
         return values
