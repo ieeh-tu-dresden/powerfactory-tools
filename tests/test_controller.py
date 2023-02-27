@@ -23,27 +23,23 @@ from powerfactory_tools.schema.topology.load import CosphiDir
 class TestControlQConst:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "q_set",
             "expectation",
         ),
         [
-            (ControlStrategy.Q_CONST, -1500, does_not_raise()),
-            (ControlStrategy.Q_CONST, 1500, does_not_raise()),
-            (ControlStrategy.Q_CONST, 0, does_not_raise()),
-            (ControlStrategy.Q_CONST, None, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.U_CONST, 0, pytest.raises(pydantic.ValidationError)),
+            (-1500, does_not_raise()),
+            (1500, does_not_raise()),
+            (0, does_not_raise()),
+            (None, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(
         self,
-        control_strategy,
         q_set,
         expectation,
     ) -> None:
         with expectation:
             ControlQConst(
-                control_strategy=control_strategy,
                 q_set=q_set,
             )
 
@@ -51,40 +47,30 @@ class TestControlQConst:
 class TestControlUConst:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "u_set",
             "u_meas_tref",
             "expectation",
         ),
         [
-            (ControlStrategy.U_CONST, 110000, ControlledVoltageRef.POS_SEQUENCE, does_not_raise()),
-            (ControlStrategy.U_CONST, 100000, ControlledVoltageRef.AVERAGE, does_not_raise()),
-            (ControlStrategy.U_CONST, 110000, None, pytest.raises(pydantic.ValidationError)),
+            (110000, ControlledVoltageRef.POS_SEQ, does_not_raise()),
+            (100000, ControlledVoltageRef.AVG, does_not_raise()),
+            (110000, None, pytest.raises(pydantic.ValidationError)),
             (
-                ControlStrategy.U_CONST,
                 -110000,
-                ControlledVoltageRef.POS_SEQUENCE,
+                ControlledVoltageRef.POS_SEQ,
                 pytest.raises(pydantic.ValidationError),
             ),
-            (ControlStrategy.U_CONST, None, ControlledVoltageRef.POS_SEQUENCE, pytest.raises(pydantic.ValidationError)),
-            (
-                ControlStrategy.Q_CONST,
-                110000,
-                ControlledVoltageRef.POS_SEQUENCE,
-                pytest.raises(pydantic.ValidationError),
-            ),
+            (None, ControlledVoltageRef.POS_SEQ, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(
         self,
-        control_strategy,
         u_set,
         u_meas_tref,
         expectation,
     ) -> None:
         with expectation:
             ControlUConst(
-                control_strategy=control_strategy,
                 u_set=u_set,
                 u_meas_tref=u_meas_tref,
             )
@@ -93,32 +79,28 @@ class TestControlUConst:
 class TestControlTanphiConst:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "cosphi_dir",
             "cosphi",
             "expectation",
         ),
         [
-            (ControlStrategy.TANPHI_CONST, CosphiDir.UE, 1, does_not_raise()),
-            (ControlStrategy.TANPHI_CONST, CosphiDir.UE, 0, does_not_raise()),
-            (ControlStrategy.TANPHI_CONST, CosphiDir.OE, 0.9, does_not_raise()),
-            (ControlStrategy.TANPHI_CONST, None, 0.9, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.TANPHI_CONST, CosphiDir.OE, -0.9, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.TANPHI_CONST, CosphiDir.OE, 2, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.TANPHI_CONST, CosphiDir.OE, None, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, CosphiDir.UE, 0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.UE, 1, does_not_raise()),
+            (CosphiDir.UE, 0, does_not_raise()),
+            (CosphiDir.OE, 0.9, does_not_raise()),
+            (None, 0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, -0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, 2, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, None, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(
         self,
-        control_strategy,
         cosphi_dir,
         cosphi,
         expectation,
     ) -> None:
         with expectation:
             ControlTanphiConst(
-                control_strategy=control_strategy,
                 cosphi_dir=cosphi_dir,
                 cosphi=cosphi,
             )
@@ -127,32 +109,28 @@ class TestControlTanphiConst:
 class TestControlCosphiConst:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "cosphi_dir",
             "cosphi",
             "expectation",
         ),
         [
-            (ControlStrategy.COSPHI_CONST, CosphiDir.UE, 1, does_not_raise()),
-            (ControlStrategy.COSPHI_CONST, CosphiDir.UE, 0, does_not_raise()),
-            (ControlStrategy.COSPHI_CONST, CosphiDir.OE, 0.9, does_not_raise()),
-            (ControlStrategy.COSPHI_CONST, None, 0.9, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_CONST, CosphiDir.OE, -0.9, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_CONST, CosphiDir.OE, 2, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_CONST, CosphiDir.OE, None, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, CosphiDir.UE, 0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.UE, 1, does_not_raise()),
+            (CosphiDir.UE, 0, does_not_raise()),
+            (CosphiDir.OE, 0.9, does_not_raise()),
+            (None, 0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, -0.9, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, 2, pytest.raises(pydantic.ValidationError)),
+            (CosphiDir.OE, None, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(
         self,
-        control_strategy,
         cosphi_dir,
         cosphi,
         expectation,
     ) -> None:
         with expectation:
             ControlCosphiConst(
-                control_strategy=control_strategy,
                 cosphi_dir=cosphi_dir,
                 cosphi=cosphi,
             )
@@ -161,7 +139,6 @@ class TestControlCosphiConst:
 class TestControlCosphiP:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "cosphi_ue",
             "cosphi_oe",
             "p_threshold_ue",
@@ -169,20 +146,18 @@ class TestControlCosphiP:
             "expectation",
         ),
         [
-            (ControlStrategy.COSPHI_P, 0.9, 0.9, -1, -2, does_not_raise()),
-            (ControlStrategy.COSPHI_P, 1, 0, -2, -1, does_not_raise()),
-            (ControlStrategy.COSPHI_P, 0.9, 1.1, -2, -1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_P, 1.1, 0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_P, -0.9, 0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_P, 0.9, -0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_P, 0.9, 0.9, 2, -1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_P, 0.9, 0.9, -2, 1, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, 0.9, 0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, -1, -2, does_not_raise()),
+            (1, 0, -2, -1, does_not_raise()),
+            (0.9, 1.1, -2, -1, pytest.raises(pydantic.ValidationError)),
+            (1.1, 0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
+            (-0.9, 0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
+            (0.9, -0.9, -2, -1, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, 2, -1, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, -2, 1, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(  # noqa: PLR0913
         self,
-        control_strategy,
         cosphi_ue,
         cosphi_oe,
         p_threshold_ue,
@@ -191,7 +166,6 @@ class TestControlCosphiP:
     ) -> None:
         with expectation:
             ControlCosphiP(
-                control_strategy=control_strategy,
                 cosphi_ue=cosphi_ue,
                 cosphi_oe=cosphi_oe,
                 p_threshold_ue=p_threshold_ue,
@@ -202,7 +176,6 @@ class TestControlCosphiP:
 class TestControlCosphiU:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "cosphi_ue",
             "cosphi_oe",
             "u_threshold_ue",
@@ -210,20 +183,18 @@ class TestControlCosphiU:
             "expectation",
         ),
         [
-            (ControlStrategy.COSPHI_U, 0.9, 0.9, 20000, 24000, does_not_raise()),
-            (ControlStrategy.COSPHI_U, 1, 0, 24000, 20000, does_not_raise()),
-            (ControlStrategy.COSPHI_U, 0.9, 1.1, 24000, 20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_U, 1.1, 0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_U, -0.9, 0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_U, 0.9, -0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_U, 0.9, 0.9, -24000, 20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.COSPHI_U, 0.9, 0.9, 20000, -20000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, 0.9, 0.9, 20000, 24000, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, 20000, 24000, does_not_raise()),
+            (1, 0, 24000, 20000, does_not_raise()),
+            (0.9, 1.1, 24000, 20000, pytest.raises(pydantic.ValidationError)),
+            (1.1, 0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
+            (-0.9, 0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
+            (0.9, -0.9, 24000, 20000, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, -24000, 20000, pytest.raises(pydantic.ValidationError)),
+            (0.9, 0.9, 20000, -20000, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(  # noqa: PLR0913
         self,
-        control_strategy,
         cosphi_ue,
         cosphi_oe,
         u_threshold_ue,
@@ -232,7 +203,6 @@ class TestControlCosphiU:
     ) -> None:
         with expectation:
             ControlCosphiU(
-                control_strategy=control_strategy,
                 cosphi_ue=cosphi_ue,
                 cosphi_oe=cosphi_oe,
                 u_threshold_ue=u_threshold_ue,
@@ -243,7 +213,6 @@ class TestControlCosphiU:
 class TestControlQU:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "m_tg_2015",
             "m_tg_2018",
             "u_q0",
@@ -254,21 +223,19 @@ class TestControlQU:
             "expectation",
         ),
         [
-            (ControlStrategy.Q_U, 5, 6, 110000, 1000, 1000, 10000, 10000, does_not_raise()),
-            (ControlStrategy.Q_U, 5, 6, 110000, 1000, 2000, 20000, 10000, does_not_raise()),
-            (ControlStrategy.Q_U, -5, 6, 110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, -6, 110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, 6, -110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, 6, 110000, -1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, 6, 110000, 1000, -2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, 6, 110000, 1000, 2000, -20000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_U, 5, 6, 110000, 1000, 2000, 20000, -10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, 5, 6, 110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, 110000, 1000, 1000, 10000, 10000, does_not_raise()),
+            (5, 6, 110000, 1000, 2000, 20000, 10000, does_not_raise()),
+            (-5, 6, 110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, -6, 110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, -110000, 1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, 110000, -1000, 2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, 110000, 1000, -2000, 20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, 110000, 1000, 2000, -20000, 10000, pytest.raises(pydantic.ValidationError)),
+            (5, 6, 110000, 1000, 2000, 20000, -10000, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(  # noqa: PLR0913
         self,
-        control_strategy,
         m_tg_2015,
         m_tg_2018,
         u_q0,
@@ -280,7 +247,6 @@ class TestControlQU:
     ) -> None:
         with expectation:
             ControlQU(
-                control_strategy=control_strategy,
                 m_tg_2015=m_tg_2015,
                 m_tg_2018=m_tg_2018,
                 u_q0=u_q0,
@@ -294,24 +260,21 @@ class TestControlQU:
 class TestControlQP:
     @pytest.mark.parametrize(
         (
-            "control_strategy",
             "q_p_characteristic_name",
             "q_max_ue",
             "q_max_oe",
             "expectation",
         ),
         [
-            (ControlStrategy.Q_P, "Q(P)-char", 10000, 10000, does_not_raise()),
-            (ControlStrategy.Q_P, "Q(P)-char", 10000, 20000, does_not_raise()),
-            (ControlStrategy.Q_P, None, 10000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_P, "Q(P)-char", -10000, 10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_P, "Q(P)-char", 10000, -10000, pytest.raises(pydantic.ValidationError)),
-            (ControlStrategy.Q_CONST, "Q(P)-char", 10000, 10000, pytest.raises(pydantic.ValidationError)),
+            ("Q(P)-char", 10000, 10000, does_not_raise()),
+            ("Q(P)-char", 10000, 20000, does_not_raise()),
+            (None, 10000, 10000, pytest.raises(pydantic.ValidationError)),
+            ("Q(P)-char", -10000, 10000, pytest.raises(pydantic.ValidationError)),
+            ("Q(P)-char", 10000, -10000, pytest.raises(pydantic.ValidationError)),
         ],
     )
     def test_init(  # noqa: PLR0913
         self,
-        control_strategy,
         q_p_characteristic_name,
         q_max_ue,
         q_max_oe,
@@ -319,7 +282,6 @@ class TestControlQP:
     ) -> None:
         with expectation:
             ControlQP(
-                control_strategy=control_strategy,
                 q_p_characteristic_name=q_p_characteristic_name,
                 q_max_ue=q_max_ue,
                 q_max_oe=q_max_oe,

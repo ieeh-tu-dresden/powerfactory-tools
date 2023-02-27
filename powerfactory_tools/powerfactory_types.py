@@ -14,45 +14,45 @@ if TYPE_CHECKING:
 
 
 class LocalQCtrlMode:
-    UConst = "constv"
-    CosphiConst = "constc"
-    QConst = "constq"
-    QU = "qvchar"
-    QP = "qpchar"
-    CosphiP = "cpchar"
-    UQDroop = "vdroop"
-    UIDroop = "idroop"
+    U_CONST = "constv"
+    COSPHI_CONST = "constc"
+    Q_CONST = "constq"
+    Q_U = "qvchar"
+    Q_P = "qpchar"
+    COSPHI_P = "cpchar"
+    U_Q_DROOP = "vdroop"
+    U_I_DROOP = "idroop"
 
 
 class CtrlMode:
-    PowAct = 0  # 0:Voltage Control
-    PowReact = 1  # 1:Reactive Power Control
-    Cosphi = 2  # 2:Cosphi Control
-    Tanphi = 3  # 3:Tanphi Control
+    U = 0
+    Q = 1
+    COSPHI = 2
+    TANPHI = 3
 
 
 class CosphiChar:
-    const = 0  # 0:const. Cosphi
-    P = 1  # 1:Cosphi(P)
-    U = 2  # 2:Cosphi(U)
+    CONST = 0
+    P = 1
+    U = 2
 
 
-class PowReactChar:
-    const = 0  # 0:const. Q
-    U = 1  # 1:Q(U)
-    P = 2  # 2: Q(P)
+class QChar:
+    CONST = 0
+    U = 1
+    P = 2
 
 
 class IOpt:
-    SCosphi = 0  # 0:S,cosphi
-    PCosphi = 1  # 1:P,cosphi
-    UICosphi = 2  # 2:U,I,cosphi
-    ECosphi = 3  # 3:E,cosphi
+    S_COSPHI = 0
+    P_COSPHI = 1
+    U_I_COSPHI = 2
+    E_COSPHI = 3
 
 
 class CtrlVoltageRef:
-    PosSeq = 0  # positive sequence value of voltage
-    Avg = 1  # average value of voltage
+    POS_SEQ = 0  # positive sequence value of voltage
+    AVG = 1  # average value of voltage
     A = 2
     B = 3
     C = 4
