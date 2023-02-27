@@ -13,30 +13,52 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class CtrlMode:  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
-    PowAct = 0
-    PowReact = 1
-    Cosphi = 2
-    Tanphi = 3
+class LocalQCtrlMode:
+    U_CONST = "constv"
+    COSPHI_CONST = "constc"
+    Q_CONST = "constq"
+    Q_U = "qvchar"
+    Q_P = "qpchar"
+    COSPHI_P = "cpchar"
+    U_Q_DROOP = "vdroop"
+    U_I_DROOP = "idroop"
 
 
-class CosphiChar:  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
-    const = 0
+class CtrlMode:
+    U = 0
+    Q = 1
+    COSPHI = 2
+    TANPHI = 3
+
+
+class CosphiChar:
+    CONST = 0
     P = 1
     U = 2
 
 
-class PowReactChar:  # 0:const. Q; 1:Q(U); 2: Q(P)
-    const = 0
+class QChar:
+    CONST = 0
     U = 1
     P = 2
 
 
-class IOpt:  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
-    SCosphi = 0
-    PCosphi = 1
-    UICosphi = 2
-    ECosphi = 3
+class IOpt:
+    S_COSPHI = 0
+    P_COSPHI = 1
+    U_I_COSPHI = 2
+    E_COSPHI = 3
+
+
+class CtrlVoltageRef:
+    POS_SEQ = 0  # positive sequence value of voltage
+    AVG = 1  # average value of voltage
+    A = 2
+    B = 3
+    C = 4
+    AB = 5
+    BC = 6
+    CA = 7
 
 
 class PowerFactoryTypes:
@@ -53,7 +75,17 @@ class PowerFactoryTypes:
     QOrient = Literal[0, 1]  # 0:+Q; 1:-Q
     PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
     PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
-    QCtrlTypes = Literal["constv", "vdroop", "idroop", "constq", "qpchar", "qvchar", "constc", "cpchar"]
+    QCtrlTypes = Literal[
+        "constv",
+        "vdroop",
+        "idroop",
+        "constq",
+        "qpchar",
+        "qvchar",
+        "constc",
+        "cpchar",
+    ]  # cfg. class LocalQCtrlMode
+    CtrlVoltageRef = Literal[0, 1, 2, 3, 4, 5, 6, 7]  # cfg. class CtrlVoltageRef
     TrfVector = Literal["Y", "YN", "Z", "ZN", "D"]
     TrfVectorGroup = Literal[
         "Dd0",
@@ -366,6 +398,16 @@ class PowerFactoryTypes:
         pfsetp: float
         pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
         tansetp: float
+        usetp: float
+        pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
+        p_cub: PowerFactoryTypes.StationCubicle
+        u_under: float
+        u_over: float
+        pf_under: float
+        pf_over: float
+        p_under: float
+        p_over: float
+        i_phase: PowerFactoryTypes.CtrlVoltageRef
 
     class CompoundModel(DataObject, Protocol):
         ...
@@ -402,6 +444,15 @@ class PowerFactoryTypes:
         scale0_a: float
         c_pstac: PowerFactoryTypes.StationController | None
         c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
+        pQPcurve: PowerFactoryTypes.QPCharacteristic | None  # noqa: N815 # Q(P)-characteristic curve
+        pf_under: float
+        pf_over: float
+        p_under: float
+        p_over: float
+        usetp: float
+
+    class QPCharacteristic(DataObject, Protocol):
+        inputmod: Literal[0, 1]
 
     class Generator(GeneratorBase, Protocol):
         cCategory: PowerFactoryTypes.GenSystemType  # noqa: N815

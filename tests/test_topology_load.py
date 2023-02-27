@@ -32,7 +32,7 @@ class TestRatedPower:
             (0, -2, 1, 1, 1, 1, 1, 1, pytest.raises(pydantic.ValidationError)),
         ],
     )
-    def test_init(
+    def test_init(  # noqa: PLR0913
         self,
         value,
         value_a,
