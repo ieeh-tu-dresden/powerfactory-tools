@@ -15,15 +15,18 @@ from typing import TYPE_CHECKING
 from loguru import logger
 
 from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.powerfactory_types import Currency
+from powerfactory_tools.powerfactory_types import MetricPrefix
+from powerfactory_tools.powerfactory_types import UnitSystem
+from powerfactory_tools.schema.base import Base
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from collections.abc import Sequence
     from typing import Any
-    from typing import Literal
     from typing import TypeVar
 
-    from powerfactory_tools.api import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 
     T = TypeVar("T")
 
@@ -33,25 +36,32 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-@dcs.dataclass
-class UnitConversionSetting:
+class UnitConversionSetting(Base):
     filtclass: Sequence[str]
     filtvar: str
     digunit: str
-    cdigexp: PFTypes.MetricPrefix
+    cdigexp: MetricPrefix
     userunit: str
-    cuserexp: PFTypes.MetricPrefix
+    cuserexp: MetricPrefix
     ufacA: float  # noqa: N815
     ufacB: float  # noqa: N815
 
 
-@dcs.dataclass
-class ProjectUnitSetting:
-    ilenunit: Literal[0, 1, 2]
-    clenexp: PFTypes.MetricPrefix  # Lengths
-    cspqexp: PFTypes.MetricPrefix  # Loads etc.
-    cspqexpgen: PFTypes.MetricPrefix  # Generators etc.
-    currency: PFTypes.Currency
+class ProjectUnitSetting(Base):
+    ilenunit: UnitSystem
+    clenexp: MetricPrefix  # Lengths
+    cspqexp: MetricPrefix  # Loads etc.
+    cspqexpgen: MetricPrefix  # Generators etc.
+    currency: Currency
+
+
+DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
+    ilenunit=UnitSystem.METRIC,
+    clenexp=BaseUnits.LENGTH,
+    cspqexp=BaseUnits.POWER,
+    cspqexpgen=BaseUnits.POWER,
+    currency=BaseUnits.CURRENCY,
+)
 
 
 @dcs.dataclass
@@ -197,11 +207,11 @@ class PowerfactoryInterface:
     def set_default_unit_conversion(self) -> None:
         self.save_unit_conversion_settings_to_temp()
         project_settings = self.load_project_settings_dir_from_pf()
-        project_settings.ilenunit = 0
-        project_settings.clenexp = BaseUnits.LENGTH
-        project_settings.cspqexp = BaseUnits.POWER
-        project_settings.cspqexpgen = BaseUnits.POWER
-        project_settings.currency = BaseUnits.CURRENCY
+        project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
+        project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
+        project_settings.cspqexp = DEFAULT_PROJECT_UNIT_SETTING.cspqexp
+        project_settings.cspqexpgen = DEFAULT_PROJECT_UNIT_SETTING.cspqexpgen
+        project_settings.currency = DEFAULT_PROJECT_UNIT_SETTING.currency
         for cls, data in BaseUnits.UNITCONVERSIONS.items():
             for unit, base_exp, exp in data:
                 name = f"{cls}-{unit}"
@@ -222,11 +232,11 @@ class PowerfactoryInterface:
     def save_unit_conversion_settings_to_temp(self) -> None:
         project_settings = self.load_project_settings_dir_from_pf()
         self.project_unit_setting = ProjectUnitSetting(
-            ilenunit=project_settings.ilenunit,
-            clenexp=project_settings.clenexp,
-            cspqexp=project_settings.cspqexp,
-            cspqexpgen=project_settings.cspqexpgen,
-            currency=project_settings.currency,
+            ilenunit=UnitSystem(project_settings.ilenunit),
+            clenexp=MetricPrefix(project_settings.clenexp),
+            cspqexp=MetricPrefix(project_settings.cspqexp),
+            cspqexpgen=MetricPrefix(project_settings.cspqexpgen),
+            currency=Currency(project_settings.currency),
         )
         unit_conversion_settings = self.unit_conversion_settings()
         self.unit_conv_settings: dict[str, UnitConversionSetting] = {}
@@ -487,7 +497,7 @@ class PowerfactoryInterface:
         name: str,
         uc: UnitConversionSetting,
     ) -> PFTypes.UnitConversionSetting | None:
-        data = dcs.asdict(uc)
+        data = uc.dict()
         element = self.create_object(name=name, class_name="SetVariable", location=self.unit_settings_dir, data=data)
         return typing.cast("PFTypes.UnitConversionSetting", element) if element is not None else None
 
