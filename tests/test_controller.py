@@ -14,7 +14,6 @@ from powerfactory_tools.schema.steadystate_case.controller import ControlledVolt
 from powerfactory_tools.schema.steadystate_case.controller import ControlQConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlQP
 from powerfactory_tools.schema.steadystate_case.controller import ControlQU
-from powerfactory_tools.schema.steadystate_case.controller import ControlStrategy
 from powerfactory_tools.schema.steadystate_case.controller import ControlTanphiConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlUConst
 from powerfactory_tools.schema.topology.load import CosphiDir
@@ -40,6 +39,7 @@ class TestControlQConst:
     ) -> None:
         with expectation:
             ControlQConst(
+                node_target="A",
                 q_set=q_set,
             )
 
@@ -48,7 +48,7 @@ class TestControlUConst:
     @pytest.mark.parametrize(
         (
             "u_set",
-            "u_meas_tref",
+            "u_meas_ref",
             "expectation",
         ),
         [
@@ -66,13 +66,14 @@ class TestControlUConst:
     def test_init(
         self,
         u_set,
-        u_meas_tref,
+        u_meas_ref,
         expectation,
     ) -> None:
         with expectation:
             ControlUConst(
+                node_target="A",
                 u_set=u_set,
-                u_meas_tref=u_meas_tref,
+                u_meas_ref=u_meas_ref,
             )
 
 
@@ -101,6 +102,7 @@ class TestControlTanphiConst:
     ) -> None:
         with expectation:
             ControlTanphiConst(
+                node_target="A",
                 cosphi_dir=cosphi_dir,
                 cosphi=cosphi,
             )
@@ -131,6 +133,7 @@ class TestControlCosphiConst:
     ) -> None:
         with expectation:
             ControlCosphiConst(
+                node_target="A",
                 cosphi_dir=cosphi_dir,
                 cosphi=cosphi,
             )
@@ -166,6 +169,7 @@ class TestControlCosphiP:
     ) -> None:
         with expectation:
             ControlCosphiP(
+                node_target="A",
                 cosphi_ue=cosphi_ue,
                 cosphi_oe=cosphi_oe,
                 p_threshold_ue=p_threshold_ue,
@@ -203,6 +207,7 @@ class TestControlCosphiU:
     ) -> None:
         with expectation:
             ControlCosphiU(
+                node_target="A",
                 cosphi_ue=cosphi_ue,
                 cosphi_oe=cosphi_oe,
                 u_threshold_ue=u_threshold_ue,
@@ -247,6 +252,7 @@ class TestControlQU:
     ) -> None:
         with expectation:
             ControlQU(
+                node_target="A",
                 m_tg_2015=m_tg_2015,
                 m_tg_2018=m_tg_2018,
                 u_q0=u_q0,
@@ -282,6 +288,7 @@ class TestControlQP:
     ) -> None:
         with expectation:
             ControlQP(
+                node_target="A",
                 q_p_characteristic_name=q_p_characteristic_name,
                 q_max_ue=q_max_ue,
                 q_max_oe=q_max_oe,
