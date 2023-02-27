@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from typing import Literal
     from typing import TypeVar
 
-    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.api import PowerFactoryTypes as PFTypes
 
     T = TypeVar("T")
 

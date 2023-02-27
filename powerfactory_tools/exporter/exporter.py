@@ -5,12 +5,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import itertools
 import math
 import multiprocessing
 import pathlib
-from dataclasses import dataclass
+import textwrap
 from typing import TYPE_CHECKING
 
 from loguru import logger
@@ -22,9 +23,18 @@ from powerfactory_tools.interface import PowerfactoryInterface
 from powerfactory_tools.powerfactory_types import CosphiChar
 from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
+from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
+from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
+from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
+from powerfactory_tools.powerfactory_types import PowReactChar
 from powerfactory_tools.powerfactory_types import QChar
+from powerfactory_tools.powerfactory_types import QCtrlTypes
+from powerfactory_tools.powerfactory_types import Vector
+from powerfactory_tools.powerfactory_types import VectorGroup
+from powerfactory_tools.powerfactory_types import Phase as PFPhase
+from powerfactory_tools.powerfactory_types import VoltageSystemType as PFVoltageSystemType
 from powerfactory_tools.schema.base import Meta
 from powerfactory_tools.schema.base import VoltageSystemType
 from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
@@ -47,11 +57,11 @@ from powerfactory_tools.schema.topology.branch import Branch
 from powerfactory_tools.schema.topology.branch import BranchType
 from powerfactory_tools.schema.topology.external_grid import ExternalGrid
 from powerfactory_tools.schema.topology.external_grid import GridType
-from powerfactory_tools.schema.topology.load import ConsumerPhaseConnectionType
 from powerfactory_tools.schema.topology.load import ConsumerSystemType
 from powerfactory_tools.schema.topology.load import Load
 from powerfactory_tools.schema.topology.load import LoadType
-from powerfactory_tools.schema.topology.load import ProducerPhaseConnectionType
+from powerfactory_tools.schema.topology.load import Phase
+from powerfactory_tools.schema.topology.load import PhaseConnectionType
 from powerfactory_tools.schema.topology.load import ProducerSystemType
 from powerfactory_tools.schema.topology.load_model import LoadModel
 from powerfactory_tools.schema.topology.node import Node
@@ -60,6 +70,8 @@ from powerfactory_tools.schema.topology.topology import Topology
 from powerfactory_tools.schema.topology.transformer import TapSide
 from powerfactory_tools.schema.topology.transformer import Transformer
 from powerfactory_tools.schema.topology.transformer import TransformerPhaseTechnologyType
+from powerfactory_tools.schema.topology.transformer import VectorGroup as TVectorGroup
+from powerfactory_tools.schema.topology.windings import VectorGroup as WVectorGroup
 from powerfactory_tools.schema.topology.windings import Winding
 from powerfactory_tools.schema.topology_case.case import Case as TopologyCase
 from powerfactory_tools.schema.topology_case.element_state import ElementState
@@ -82,20 +94,20 @@ FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 
 
-@dataclass
+@dataclasses.dataclass
 class LoadLV:
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
 
 
-@dataclass
+@dataclasses.dataclass
 class LoadMV:
     consumer: LoadPower
     producer: LoadPower
 
 
-@dataclass
+@dataclasses.dataclass
 class PowerfactoryData:
     name: str
     date: datetime.date
@@ -162,7 +174,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
-@dataclass
+@dataclasses.dataclass
 class PowerfactoryExporter:
     project_name: str
     grid_name: str
@@ -686,7 +698,7 @@ class PowerfactoryExporter:
 
         if t_type is not None:
             t_number = transformer_2w.ntnum
-            vector_group = t_type.vecgrp
+            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
 
             ph_technology = self.transformer_phase_technology(t_type)
 
@@ -727,9 +739,9 @@ class PowerfactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_h = t_type.tr2cn_h  # Wiring HV
-            vector_l = t_type.tr2cn_l  # Wiring LV
             vector_phase_angle_clock = t_type.nt2ag
+            vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
+            vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
 
             wh = Winding(
                 node=t_high_name,
@@ -740,7 +752,7 @@ class PowerfactoryExporter:
                 r0=r_0,
                 x1=x_1,
                 x0=x_0,
-                vector_group=vector_h,
+                vector_group=vector_group_h,
                 phase_angle_clock=0,
             )
 
@@ -753,7 +765,7 @@ class PowerfactoryExporter:
                 r0=float(0),
                 x1=float(0),
                 x0=float(0),
-                vector_group=vector_l,
+                vector_group=vector_group_l,
                 phase_angle_clock=int(vector_phase_angle_clock),
             )
 
@@ -834,8 +846,19 @@ class PowerfactoryExporter:
 
     def create_consumer_normal(self, load: PFTypes.Load, grid_name: str) -> Load | None:
         power = self.calc_normal_load_power(load)
+        phase_connection_type = (
+            LoadPhaseConnectionType(load.typ_id.phtech)
+            if load.typ_id is not None
+            else LoadPhaseConnectionType.THREE_PH_D
+        )
         if power is not None:
-            return self.create_consumer(load, power, grid_name)
+            return self.create_consumer(
+                load,
+                power,
+                grid_name,
+                system_type=ConsumerSystemType.FIXED,
+                phase_connection_type=phase_connection_type,
+            )
 
         return None
 
@@ -861,12 +884,14 @@ class PowerfactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[Load]:
+        phase_connection_type = LoadPhaseConnectionType(load.phtech)
         consumer_fixed = (
             self.create_consumer(
                 load,
                 power.fixed,
                 grid_name,
                 system_type=ConsumerSystemType.FIXED,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.FIXED.value,
             )
             if power.fixed.pow_app_abs != 0
@@ -878,6 +903,7 @@ class PowerfactoryExporter:
                 power.night,
                 grid_name,
                 system_type=ConsumerSystemType.NIGHT_STORAGE,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
             )
             if power.night.pow_app_abs != 0
@@ -889,6 +915,7 @@ class PowerfactoryExporter:
                 power.flexible,
                 grid_name,
                 system_type=ConsumerSystemType.VARIABLE,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.VARIABLE.value,
             )
             if power.flexible.pow_app_abs != 0
@@ -903,18 +930,26 @@ class PowerfactoryExporter:
 
     def create_load_mv(self, load: PFTypes.LoadMV, grid_name: str) -> Sequence[Load | None]:
         power = self.calc_load_mv_power(load)
+        phase_connection_type = (
+            LoadPhaseConnectionType(load.typ_id.phtech)
+            if load.typ_id is not None
+            else LoadPhaseConnectionType.THREE_PH_D
+        )
         consumer = self.create_consumer(
             load=load,
             power=power.consumer,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
+            system_type=ConsumerSystemType.FIXED,
             name_suffix="_CONSUMER",
         )
-
         producer = self.create_producer(
             generator=load,
             power=power.producer,
             gen_name=load.loc_name,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
+            system_type=ProducerSystemType.OTHER,
             name_suffix="_PRODUCER",
         )
 
@@ -925,7 +960,8 @@ class PowerfactoryExporter:
         load: PFTypes.LoadBase,
         power: LoadPower,
         grid_name: str,
-        system_type: ConsumerSystemType | None = None,
+        system_type: ConsumerSystemType,
+        phase_connection_type: LoadPhaseConnectionType,
         name_suffix: str = "",
     ) -> Load | None:
         export, description = self.get_description(load)
@@ -956,7 +992,13 @@ class PowerfactoryExporter:
         load_model_q = self.load_model_of(load, specifier="q")
         reactive_power = ReactivePower(load_model=load_model_q)
 
-        u_system_type, ph_con = self.consumer_technology_of(load)
+        phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
+        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+        voltage_system_type = (
+            VoltageSystemType[PFVoltageSystemType(load.typ_id.systp).name]
+            if load.typ_id is not None
+            else VoltageSystemType.AC
+        )
 
         consumer = Load(
             name=l_name,
@@ -967,9 +1009,10 @@ class PowerfactoryExporter:
             active_power=active_power,
             reactive_power=reactive_power,
             type=LoadType.CONSUMER,
+            connected_phases=connected_phases,
             system_type=system_type,
-            voltage_system_type=u_system_type,
-            phase_connection_type=ph_con,
+            phase_connection_type=phase_connection_type_,
+            voltage_system_type=voltage_system_type,
         )
         logger.debug("Created consumer {consumer}.", consumer=consumer)
         return consumer
@@ -1014,39 +1057,6 @@ class PowerfactoryExporter:
 
         return LoadModel()  # default: 100% power-const. load
 
-    @staticmethod
-    def consumer_technology_of(
-        load: PFTypes.LoadBase,
-    ) -> tuple[VoltageSystemType | None, ConsumerPhaseConnectionType | None]:
-        phase_con_dict = {
-            0: ConsumerPhaseConnectionType.THREE_PH_D,
-            2: ConsumerPhaseConnectionType.THREE_PH_PH_E,
-            3: ConsumerPhaseConnectionType.THREE_PH_YN,
-            4: ConsumerPhaseConnectionType.TWO_PH_PH_E,
-            5: ConsumerPhaseConnectionType.TWO_PH_YN,
-            7: ConsumerPhaseConnectionType.ONE_PH_PH_PH,
-            8: ConsumerPhaseConnectionType.ONE_PH_PH_E,
-            9: ConsumerPhaseConnectionType.ONE_PH_PH_N,
-        }
-        load_type = load.typ_id
-        if load_type is not None:
-            system_type = VoltageSystemType.DC if load_type.systp else VoltageSystemType.AC  # AC or DC
-            phase_con = None
-            try:
-                phase_con = phase_con_dict[load_type.phtech]
-            except KeyError:
-                logger.warning(
-                    "Wrong phase connection identifier {load_phtech!r} for consumer {consumer_name}. Skipping.",
-                    load_phtech=load_type.phtech,
-                    consumer_name=load.loc_name,
-                )
-
-            return system_type, phase_con
-
-        logger.debug("No load model defined for load {load_name}. Skipping.", load_name=load.loc_name)
-
-        return None, None
-
     def create_producers_normal(
         self,
         generators: Sequence[PFTypes.Generator],
@@ -1060,60 +1070,20 @@ class PowerfactoryExporter:
         generator: PFTypes.Generator,
         grid_name: str,
     ) -> Load | None:
-        producer_system_type = self.producer_system_type_of(generator)
-        producer_phase_connection_type = self.producer_technology_of(generator)
-        external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
+        system_type = ProducerSystemType[GeneratorSystemType(generator.aCategory).name]
+        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        external_controller_name = self.get_external_controller_name(generator)
         return self.create_producer(
             generator=generator,
             power=power,
             gen_name=gen_name,
             grid_name=grid_name,
-            producer_system_type=producer_system_type,
-            producer_phase_connection_type=producer_phase_connection_type,
+            phase_connection_type=phase_connection_type,
+            system_type=system_type,
             external_controller_name=external_controller_name,
         )
-
-    @staticmethod
-    def producer_system_type_of(load: PFTypes.Generator) -> ProducerSystemType | None:
-        # dict of plant categories, consisting of english and german key words
-        system_type_dict = {
-            **dict.fromkeys(["Coal", "Kohle"], ProducerSystemType.COAL),
-            **dict.fromkeys(["Oil", "Öl"], ProducerSystemType.OIL),
-            **dict.fromkeys(["Diesel", "Diesel"], ProducerSystemType.DIESEL),
-            **dict.fromkeys(["Nuclear", "Nuklear"], ProducerSystemType.NUCLEAR),
-            **dict.fromkeys(["Hydro", "Wasser"], ProducerSystemType.HYDRO),
-            **dict.fromkeys(["Pump storage", "Pumpspeicher"], ProducerSystemType.PUMP_STORAGE),
-            **dict.fromkeys(["Wind", "Wind"], ProducerSystemType.WIND),
-            **dict.fromkeys(["Biogas", "Biogas"], ProducerSystemType.BIOGAS),
-            **dict.fromkeys(["Solar", "Solar"], ProducerSystemType.SOLAR),
-            **dict.fromkeys(["Others", "Sonstige"], ProducerSystemType.OTHERS),
-            **dict.fromkeys(["Photovoltaic", "Fotovoltaik"], ProducerSystemType.PV),
-            **dict.fromkeys(["Renewable Generation", "Erneuerbare Erzeugung"], ProducerSystemType.RENEWABLE_ENERGY),
-            **dict.fromkeys(["Fuel Cell", "Brennstoffzelle"], ProducerSystemType.FUELCELL),
-            **dict.fromkeys(["Peat", "Torf"], ProducerSystemType.PEAT),
-            **dict.fromkeys(["Other Static Generator", "Statischer Generator"], ProducerSystemType.STAT_GEN),
-            **dict.fromkeys(["HVDC Terminal", "HGÜ-Anschluss"], ProducerSystemType.HVDC),
-            **dict.fromkeys(
-                ["Reactive Power Compensation", "Blindleistungskompensation"],
-                ProducerSystemType.REACTIVE_POWER_COMPENSATOR,
-            ),
-            **dict.fromkeys(["Storage", "Batterie"], ProducerSystemType.BATTERY_STORAGE),
-            **dict.fromkeys(["External Grids", "Externe Netze"], ProducerSystemType.EXTERNAL_GRID_EQUIVALENT),
-        }
-
-        try:
-            system_type = system_type_dict[load.cCategory]
-        except KeyError:
-            system_type = None
-            logger.warning(
-                "Wrong system type identifier {load_category!r} for producer {consumer_name}. Skipping.",
-                load_category=load.cCategory,
-                consumer_name=load.loc_name,
-            )
-
-        return system_type
 
     def create_producers_pv(
         self,
@@ -1128,41 +1098,18 @@ class PowerfactoryExporter:
         generator: PFTypes.PVSystem,
         grid_name: str,
     ) -> Load | None:
-        producer_system_type = ProducerSystemType.PV
-        producer_phase_connection_type = self.producer_technology_of(generator)
-        external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
+        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        system_type = ProducerSystemType.PV
         return self.create_producer(
             generator=generator,
             power=power,
             gen_name=gen_name,
             grid_name=grid_name,
-            producer_system_type=producer_system_type,
-            producer_phase_connection_type=producer_phase_connection_type,
-            external_controller_name=external_controller_name,
+            phase_connection_type=phase_connection_type,
+            system_type=system_type,
         )
-
-    @staticmethod
-    def producer_technology_of(load: PFTypes.GeneratorBase) -> ProducerPhaseConnectionType | None:
-        phase_con_dict = {
-            0: ProducerPhaseConnectionType.THREE_PH,
-            1: ProducerPhaseConnectionType.THREE_PH_E,
-            2: ProducerPhaseConnectionType.ONE_PH_PH_E,
-            3: ProducerPhaseConnectionType.ONE_PH_PH_N,
-            4: ProducerPhaseConnectionType.ONE_PH_PH_PH,
-        }
-        phase_con = None
-        try:
-            phase_con = phase_con_dict[load.phtech]
-        except KeyError:
-            logger.warning(
-                "Wrong phase connection identifier {load_phtech!r} for producer {producer_name}. Skipping.",
-                load_phtech=load.phtech,
-                producer_name=load.loc_name,
-            )
-
-        return phase_con
 
     def get_external_controller_name(self, gen: PFTypes.Generator | PFTypes.PVSystem) -> str | None:
         controller = gen.c_pstac
@@ -1184,8 +1131,8 @@ class PowerfactoryExporter:
         gen_name: str,
         power: LoadPower,
         grid_name: str,
-        producer_system_type: ProducerSystemType | None = None,
-        producer_phase_connection_type: ProducerPhaseConnectionType | None = None,
+        system_type: ProducerSystemType,
+        phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
         external_controller_name: str | None = None,
         name_suffix: str = "",
     ) -> Load | None:
@@ -1212,6 +1159,9 @@ class PowerfactoryExporter:
         rated_power = power.as_rated_power()
         reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
+        phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
+        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+
         producer = Load(
             name=gen_name,
             node=t_name,
@@ -1221,8 +1171,10 @@ class PowerfactoryExporter:
             active_power=ActivePower(),
             reactive_power=reactive_power,
             type=LoadType.PRODUCER,
-            system_type=producer_system_type,
-            phase_connection_type=producer_phase_connection_type,
+            connected_phases=connected_phases,
+            system_type=system_type,
+            phase_connection_type=phase_connection_type_,
+            voltage_system_type=VoltageSystemType.AC,
         )
         logger.debug("Created producer {producer}.", producer=producer)
         return producer
@@ -1473,7 +1425,7 @@ class PowerfactoryExporter:
         logger.debug("Created steadystate for external grid {ext_grid_ssc}.", ext_grid_ssc=ext_grid_ssc)
         return ext_grid_ssc
 
-    def create_loads_ssc(  # noqa: PLR0913 # fix
+    def create_loads_ssc(  # noqa: PLR0913
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -1511,9 +1463,8 @@ class PowerfactoryExporter:
     def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:
         power = self.calc_normal_load_power_sym(load) if not load.i_sym else self.calc_normal_load_power_asym(load)
 
-        if power is not None:  # noqa: SIM102
-            if not power.is_empty:
-                return power
+        if power:
+            return power
 
         logger.warning("Power is not set for load {load_name}. Skipping.", load_name=load.loc_name)
         return None
@@ -2393,7 +2344,7 @@ class PowerfactoryExporter:
         raise RuntimeError(msg)
 
 
-def export_powerfactory_data(  # noqa: PLR0913 # fix
+def export_powerfactory_data(  # noqa: PLR0913
     export_path: pathlib.Path,
     project_name: str,
     grid_name: str,

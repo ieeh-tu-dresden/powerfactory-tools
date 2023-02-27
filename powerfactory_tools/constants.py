@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.api import PowerFactoryTypes as PFTypes
 
     UnitConversion = tuple[str, PFTypes.MetricPrefix, PFTypes.MetricPrefix]
 

@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+import enum
 
 import pydantic  # noqa: TCH002
 
@@ -13,16 +13,53 @@ from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.topology.windings import Winding  # noqa: TCH001
 
 
-class TapSide(Enum):
-    HV = "HV"  # high voltage side of transformer
-    MV = "MV"  # medium voltage side of transformer (only if 3 winding)
-    LV = "LV"  # low voltage side of transformer
+class TapSide(enum.Enum):
+    HV = enum.auto()
+    MV = enum.auto()
+    LV = enum.auto()
 
 
-class TransformerPhaseTechnologyType(Enum):
-    SINGLE_PH_E = "1PH-E"  # Single Phase Transformer, earthed
-    SINGLE_PH = "1PH"  # Single Phase Transformer
-    THREE_PH = "3PH"  # Three Phase Transformer
+class TransformerPhaseTechnologyType(enum.Enum):
+    SINGLE_PH_E = enum.auto()
+    SINGLE_PH = enum.auto()
+    THREE_PH = enum.auto()
+
+
+class VectorGroup(enum.Enum):
+    Dd0 = enum.auto()
+    Yy0 = enum.auto()
+    YNy0 = enum.auto()
+    Yyn0 = enum.auto()
+    YNyn0 = enum.auto()
+    Dz0 = enum.auto()
+    Dzn0 = enum.auto()
+    Zd0 = enum.auto()
+    ZNd0 = enum.auto()
+    Dy5 = enum.auto()
+    Dyn5 = enum.auto()
+    Yd5 = enum.auto()
+    YNd5 = enum.auto()
+    Yz5 = enum.auto()
+    YNz5 = enum.auto()
+    Yzn5 = enum.auto()
+    YNzn5 = enum.auto()
+    Dd6 = enum.auto()
+    Yy6 = enum.auto()
+    YNy6 = enum.auto()
+    Yyn6 = enum.auto()
+    YNyn6 = enum.auto()
+    Dz6 = enum.auto()
+    Dzn6 = enum.auto()
+    Zd6 = enum.auto()
+    ZNd6 = enum.auto()
+    Dy11 = enum.auto()
+    Dyn11 = enum.auto()
+    Yd11 = enum.auto()
+    YNd11 = enum.auto()
+    Yz11 = enum.auto()
+    YNz11 = enum.auto()
+    Yzn11 = enum.auto()
+    YNzn11 = enum.auto()
 
 
 class Transformer(Base):
@@ -30,7 +67,7 @@ class Transformer(Base):
     node_2: str
     name: str
     number: int  # number of parallel units
-    vector_group: str  # specifier for connection of wiring e.g. DYn5
+    vector_group: VectorGroup  # specifier for connection of wiring e.g. DYn5
     i_0: float  # no-load current in %
     p_fe: float  # no-load losses (Iron losses)
     windings: pydantic.conlist(Winding, unique_items=True)  # type: ignore[valid-type]  # winding object for each voltage level
