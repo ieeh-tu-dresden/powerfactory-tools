@@ -14,52 +14,52 @@ from powerfactory_tools.schema.topology.windings import Winding  # noqa: TCH001
 
 
 class TapSide(enum.Enum):
-    HV = enum.auto()
-    MV = enum.auto()
-    LV = enum.auto()
+    HV = "HV"
+    MV = "MV"
+    LV = "LV"
 
 
 class TransformerPhaseTechnologyType(enum.Enum):
-    SINGLE_PH_E = enum.auto()
-    SINGLE_PH = enum.auto()
-    THREE_PH = enum.auto()
+    SINGLE_PH_E = "SINGLE_PH_E"
+    SINGLE_PH = "SINGLE_PH"
+    THREE_PH = "THREE_PH"
 
 
 class VectorGroup(enum.Enum):
-    Dd0 = enum.auto()
-    Yy0 = enum.auto()
-    YNy0 = enum.auto()
-    Yyn0 = enum.auto()
-    YNyn0 = enum.auto()
-    Dz0 = enum.auto()
-    Dzn0 = enum.auto()
-    Zd0 = enum.auto()
-    ZNd0 = enum.auto()
-    Dy5 = enum.auto()
-    Dyn5 = enum.auto()
-    Yd5 = enum.auto()
-    YNd5 = enum.auto()
-    Yz5 = enum.auto()
-    YNz5 = enum.auto()
-    Yzn5 = enum.auto()
-    YNzn5 = enum.auto()
-    Dd6 = enum.auto()
-    Yy6 = enum.auto()
-    YNy6 = enum.auto()
-    Yyn6 = enum.auto()
-    YNyn6 = enum.auto()
-    Dz6 = enum.auto()
-    Dzn6 = enum.auto()
-    Zd6 = enum.auto()
-    ZNd6 = enum.auto()
-    Dy11 = enum.auto()
-    Dyn11 = enum.auto()
-    Yd11 = enum.auto()
-    YNd11 = enum.auto()
-    Yz11 = enum.auto()
-    YNz11 = enum.auto()
-    Yzn11 = enum.auto()
-    YNzn11 = enum.auto()
+    Dd0 = "Dd0"
+    Yy0 = "Yy0"
+    YNy0 = "YNy0"
+    Yyn0 = "Yyn0"
+    YNyn0 = "YNyn0"
+    Dz0 = "Dz0"
+    Dzn0 = "Dzn0"
+    Zd0 = "Zd0"
+    ZNd0 = "ZNd0"
+    Dy5 = "Dy5"
+    Dyn5 = "Dyn5"
+    Yd5 = "Yd5"
+    YNd5 = "YNd5"
+    Yz5 = "Yz5"
+    YNz5 = "YNz5"
+    Yzn5 = "Yzn5"
+    YNzn5 = "YNzn5"
+    Dd6 = "Dd6"
+    Yy6 = "Yy6"
+    YNy6 = "YNy6"
+    Yyn6 = "Yyn6"
+    YNyn6 = "YNyn6"
+    Dz6 = "Dz6"
+    Dzn6 = "Dzn6"
+    Zd6 = "Zd6"
+    ZNd6 = "ZNd6"
+    Dy11 = "Dy11"
+    Dyn11 = "Dyn11"
+    Yd11 = "Yd11"
+    YNd11 = "YNd11"
+    Yz11 = "Yz11"
+    YNz11 = "YNz11"
+    Yzn11 = "Yzn11"
+    YNzn11 = "YNzn11"
 
 
 class Transformer(Base):

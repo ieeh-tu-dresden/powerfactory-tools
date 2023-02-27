@@ -19,6 +19,11 @@ class VoltageSystemType(enum.Enum):
     DC = "DC"
 
 
+class CosphiDir(enum.Enum):
+    UE = "UE"
+    OE = "OE"
+
+
 class Base(pydantic.BaseModel):
     class Config:
         frozen = True

@@ -10,11 +10,11 @@ from powerfactory_tools.schema.base import Base
 
 
 class VectorGroup(enum.Enum):
-    Y = enum.auto()
-    YN = enum.auto()
-    Z = enum.auto()
-    ZN = enum.auto()
-    D = enum.auto()
+    Y = "Y"
+    YN = "YN"
+    Z = "Z"
+    ZN = "ZN"
+    D = "D"
 
 
 class Winding(Base):

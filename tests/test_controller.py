@@ -7,6 +7,7 @@ from contextlib import nullcontext as does_not_raise
 import pydantic
 import pytest
 
+from powerfactory_tools.schema.base import CosphiDir
 from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiP
 from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiU
@@ -16,7 +17,6 @@ from powerfactory_tools.schema.steadystate_case.controller import ControlQP
 from powerfactory_tools.schema.steadystate_case.controller import ControlQU
 from powerfactory_tools.schema.steadystate_case.controller import ControlTanphiConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlUConst
-from powerfactory_tools.schema.topology.load import CosphiDir
 
 
 class TestControlQConst:

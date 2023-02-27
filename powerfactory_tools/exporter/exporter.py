@@ -28,13 +28,13 @@ from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
-from powerfactory_tools.powerfactory_types import PowReactChar
 from powerfactory_tools.powerfactory_types import QChar
-from powerfactory_tools.powerfactory_types import QCtrlTypes
+from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
-from powerfactory_tools.powerfactory_types import VoltageSystemType as PFVoltageSystemType
+from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
+from powerfactory_tools.schema.base import CosphiDir
 from powerfactory_tools.schema.base import Meta
 from powerfactory_tools.schema.base import VoltageSystemType
 from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
@@ -48,7 +48,6 @@ from powerfactory_tools.schema.steadystate_case.controller import ControlQP
 from powerfactory_tools.schema.steadystate_case.controller import ControlQU
 from powerfactory_tools.schema.steadystate_case.controller import ControlTanphiConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlUConst
-from powerfactory_tools.schema.steadystate_case.controller import CosphiDir
 from powerfactory_tools.schema.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from powerfactory_tools.schema.steadystate_case.load import Load as LoadSSC
 from powerfactory_tools.schema.steadystate_case.transformer import Transformer as TransformerSSC
@@ -57,12 +56,11 @@ from powerfactory_tools.schema.topology.branch import Branch
 from powerfactory_tools.schema.topology.branch import BranchType
 from powerfactory_tools.schema.topology.external_grid import ExternalGrid
 from powerfactory_tools.schema.topology.external_grid import GridType
-from powerfactory_tools.schema.topology.load import ConsumerSystemType
 from powerfactory_tools.schema.topology.load import Load
 from powerfactory_tools.schema.topology.load import LoadType
 from powerfactory_tools.schema.topology.load import Phase
 from powerfactory_tools.schema.topology.load import PhaseConnectionType
-from powerfactory_tools.schema.topology.load import ProducerSystemType
+from powerfactory_tools.schema.topology.load import SystemType
 from powerfactory_tools.schema.topology.load_model import LoadModel
 from powerfactory_tools.schema.topology.node import Node
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower
@@ -525,6 +523,10 @@ class PowerfactoryExporter:
         t1 = line.bus1.cterm
         t2 = line.bus2.cterm
 
+        if t1.systype != t2.systype:
+            logger.warning("Line {line_name} connected to DC and AC bus. Skipping.", line_name=name)
+            return None
+
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
 
@@ -554,8 +556,7 @@ class PowerfactoryExporter:
         b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
         f_nom = l_type.frnom  # usually 50 Hertz
-
-        u_system_type = VoltageSystemType.DC if l_type.systp else VoltageSystemType.AC  # AC or DC
+        u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
         branch = Branch(
             name=name,
@@ -597,6 +598,13 @@ class PowerfactoryExporter:
             logger.warning("Coupler {coupler} not connected to buses on both sides. Skipping.", coupler=coupler)
             return None
 
+        t1 = coupler.bus1.cterm
+        t2 = coupler.bus2.cterm
+
+        if t1.systype != t2.systype:
+            logger.warning("Coupler {coupler} connected to DC and AC bus. Skipping.", coupler=coupler)
+            return None
+
         if coupler.typ_id is not None:
             r1 = coupler.typ_id.R_on
             x1 = coupler.typ_id.X_on
@@ -608,9 +616,6 @@ class PowerfactoryExporter:
 
         b1 = 0
         g1 = 0
-
-        t1 = coupler.bus1.cterm
-        t2 = coupler.bus2.cterm
 
         u_nom_1 = t1.uknom
         u_nom_2 = t2.uknom
@@ -629,6 +634,8 @@ class PowerfactoryExporter:
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
 
+        u_system_type = VoltageSystemType[TerminalVoltageSystemType(t1.systype).name]
+
         branch = Branch(
             name=name,
             node_1=t1_name,
@@ -641,6 +648,7 @@ class PowerfactoryExporter:
             description=description,
             u_n=u_nom,
             type=BranchType.COUPLER,
+            voltage_system_type=u_system_type,
         )
         logger.debug("Created coupler {branch}.", branch=branch)
         return branch
@@ -856,7 +864,7 @@ class PowerfactoryExporter:
                 load,
                 power,
                 grid_name,
-                system_type=ConsumerSystemType.FIXED,
+                system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
             )
 
@@ -890,9 +898,9 @@ class PowerfactoryExporter:
                 load,
                 power.fixed,
                 grid_name,
-                system_type=ConsumerSystemType.FIXED,
+                system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.FIXED.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -902,9 +910,9 @@ class PowerfactoryExporter:
                 load,
                 power.night,
                 grid_name,
-                system_type=ConsumerSystemType.NIGHT_STORAGE,
+                system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -914,9 +922,9 @@ class PowerfactoryExporter:
                 load,
                 power.flexible,
                 grid_name,
-                system_type=ConsumerSystemType.VARIABLE,
+                system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.VARIABLE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -940,7 +948,7 @@ class PowerfactoryExporter:
             power=power.consumer,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            system_type=ConsumerSystemType.FIXED,
+            system_type=SystemType.FIXED_CONSUMPTION,
             name_suffix="_CONSUMER",
         )
         producer = self.create_producer(
@@ -949,7 +957,7 @@ class PowerfactoryExporter:
             gen_name=load.loc_name,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            system_type=ProducerSystemType.OTHER,
+            system_type=SystemType.OTHER,
             name_suffix="_PRODUCER",
         )
 
@@ -960,7 +968,7 @@ class PowerfactoryExporter:
         load: PFTypes.LoadBase,
         power: LoadPower,
         grid_name: str,
-        system_type: ConsumerSystemType,
+        system_type: SystemType,
         phase_connection_type: LoadPhaseConnectionType,
         name_suffix: str = "",
     ) -> Load | None:
@@ -995,9 +1003,9 @@ class PowerfactoryExporter:
         phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
         connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
         voltage_system_type = (
-            VoltageSystemType[PFVoltageSystemType(load.typ_id.systp).name]
+            VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
             if load.typ_id is not None
-            else VoltageSystemType.AC
+            else VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
         )
 
         consumer = Load(
@@ -1072,7 +1080,7 @@ class PowerfactoryExporter:
     ) -> Load | None:
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
-        system_type = ProducerSystemType[GeneratorSystemType(generator.aCategory).name]
+        system_type = SystemType[GeneratorSystemType(generator.aCategory).name]
         phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
         external_controller_name = self.get_external_controller_name(generator)
         return self.create_producer(
@@ -1101,7 +1109,7 @@ class PowerfactoryExporter:
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
         phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
-        system_type = ProducerSystemType.PV
+        system_type = SystemType.PV
         return self.create_producer(
             generator=generator,
             power=power,
@@ -1131,7 +1139,7 @@ class PowerfactoryExporter:
         gen_name: str,
         power: LoadPower,
         grid_name: str,
-        system_type: ProducerSystemType,
+        system_type: SystemType,
         phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
         external_controller_name: str | None = None,
         name_suffix: str = "",
@@ -1678,7 +1686,7 @@ class PowerfactoryExporter:
                 load,
                 power.fixed,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.FIXED.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1688,7 +1696,7 @@ class PowerfactoryExporter:
                 load,
                 power.night,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1698,7 +1706,7 @@ class PowerfactoryExporter:
                 load,
                 power.flexible,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.VARIABLE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -2060,7 +2068,9 @@ class PowerfactoryExporter:
         else:
             return None
 
-        if gen.av_mode == LocalQCtrlMode.COSPHI_CONST:
+        av_mode = LocalQCtrlMode(gen.av_mode)
+
+        if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
             cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             q_controller: ControlType = ControlCosphiConst(
@@ -2070,7 +2080,7 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_CONST:
+        if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             q_controller = ControlQConst(
                 node_target=node_target,
@@ -2078,7 +2088,7 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_U:
+        if av_mode == LocalQCtrlMode.Q_U:
             cosphi_a = gen.cosn
             q_max_ue = abs(gen.Qfu_min)  # absolute value
             q_max_oe = abs(gen.Qfu_max)  # absolute value
@@ -2100,14 +2110,14 @@ class PowerfactoryExporter:
             q_controller.control_strategy
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_P:
+        if av_mode == LocalQCtrlMode.Q_P:
             if gen.pQPcurve is None:
                 return None
 
             q_controller = ControlQP(node_target=node_target, q_p_characteristic_name=gen.pQPcurve.loc_name)
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.COSPHI_P:
+        if av_mode == LocalQCtrlMode.COSPHI_P:
             cosphi_ue = gen.pf_under
             cosphi_oe = gen.pf_over
             p_threshold_ue = gen.p_under * -1  # P-threshold for cosphi_ue
@@ -2121,19 +2131,19 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.U_CONST:
+        if av_mode == LocalQCtrlMode.U_CONST:
             u_set = gen.usetp
             q_controller = ControlUConst(node_target=node_target, u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.U_Q_DROOP:
+        if av_mode == LocalQCtrlMode.U_Q_DROOP:
             logger.warning(
                 "Generator {gen_name}: Voltage control with Q-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
             )
             return None
 
-        if gen.av_mode == LocalQCtrlMode.U_I_DROOP:
+        if av_mode == LocalQCtrlMode.U_I_DROOP:
             logger.warning(
                 "Generator {gen_name}: Voltage control with I-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
@@ -2164,18 +2174,8 @@ class PowerfactoryExporter:
 
         ctrl_mode = controller.i_ctrl
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
-            u_meas_ref_dict = {
-                CtrlVoltageRef.POS_SEQ: ControlledVoltageRef.POS_SEQ,
-                CtrlVoltageRef.AVG: ControlledVoltageRef.AVG,
-                CtrlVoltageRef.A: ControlledVoltageRef.A,
-                CtrlVoltageRef.B: ControlledVoltageRef.B,
-                CtrlVoltageRef.C: ControlledVoltageRef.C,
-                CtrlVoltageRef.AB: ControlledVoltageRef.AB,
-                CtrlVoltageRef.BC: ControlledVoltageRef.BC,
-                CtrlVoltageRef.CA: ControlledVoltageRef.CA,
-            }
             u_set = controller.usetp
-            u_meas_ref = u_meas_ref_dict[controller.i_phase]
+            u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
             q_controller: ControlType = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,

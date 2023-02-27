@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 import enum
-from collections.abc import Sequence
+from collections.abc import Sequence  # noqa: TCH003
 
 import pydantic
 
@@ -15,60 +15,53 @@ from powerfactory_tools.schema.topology.active_power import ActivePower  # noqa:
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower  # noqa: TCH001
 
 
-class CosphiDir(enum.Enum):
-    UE = enum.auto()
-    OE = enum.auto()
-
-
 class LoadType(enum.Enum):
-    CONSUMER = enum.auto()
-    PRODUCER = enum.auto()
+    CONSUMER = "CONSUMER"
+    PRODUCER = "PRODUCER"
+    STORAGE = "STORAGE"
 
 
-class ProducerSystemType(enum.Enum):
-    COAL = enum.auto()
-    OIL = enum.auto()
-    GAS = enum.auto()
-    DIESEL = enum.auto()
-    NUCLEAR = enum.auto()
-    HYDRO = enum.auto()
-    PUMP_STORAGE = enum.auto()
-    WIND = enum.auto()
-    BIOGAS = enum.auto()
-    SOLAR = enum.auto()
-    PV = enum.auto()
-    RENEWABLE_ENERGY = enum.auto()
-    FUELCELL = enum.auto()
-    PEAT = enum.auto()
-    STAT_GEN = enum.auto()
-    HVDC = enum.auto()
-    REACTIVE_POWER_COMPENSATOR = enum.auto()
-    BATTERY_STORAGE = enum.auto()
-    EXTERNAL_GRID_EQUIVALENT = enum.auto()
-    OTHER = enum.auto()
+class SystemType(enum.Enum):
+    COAL = "COAL"
+    OIL = "OIL"
+    GAS = "GAS"
+    DIESEL = "DIESEL"
+    NUCLEAR = "NUCLEAR"
+    HYDRO = "HYDRO"
+    PUMP_STORAGE = "PUMP_STORAGE"
+    WIND = "WIND"
+    BIOGAS = "BIOGAS"
+    SOLAR = "SOLAR"
+    PV = "PV"
+    RENEWABLE_ENERGY = "RENEWABLE_ENERGY"
+    FUELCELL = "FUELCELL"
+    PEAT = "PEAT"
+    STAT_GEN = "STAT_GEN"
+    HVDC = "HVDC"
+    REACTIVE_POWER_COMPENSATOR = "REACTIVE_POWER_COMPENSATOR"
+    BATTERY_STORAGE = "BATTERY_STORAGE"
+    EXTERNAL_GRID_EQUIVALENT = "EXTERNAL_GRID_EQUIVALENT"
+    OTHER = "OTHER"
+    NIGHT_STORAGE = "NIGHT_STORAGE"
+    FIXED_CONSUMPTION = "FIXED_CONSUMPTION"
+    VARIABLE_CONSUMPTION = "VARIABLE_CONSUMPTION"
 
 
 class PhaseConnectionType(enum.Enum):
-    THREE_PH_D = enum.auto()
-    THREE_PH_PH_E = enum.auto()
-    THREE_PH_YN = enum.auto()
-    TWO_PH_PH_E = enum.auto()
-    TWO_PH_YN = enum.auto()
-    ONE_PH_PH_PH = enum.auto()
-    ONE_PH_PH_E = enum.auto()
-    ONE_PH_PH_N = enum.auto()
+    THREE_PH_D = "THREE_PH_D"
+    THREE_PH_PH_E = "THREE_PH_PH_E"
+    THREE_PH_YN = "THREE_PH_YN"
+    TWO_PH_PH_E = "TWO_PH_PH_E"
+    TWO_PH_YN = "TWO_PH_YN"
+    ONE_PH_PH_PH = "ONE_PH_PH_PH"
+    ONE_PH_PH_E = "ONE_PH_PH_E"
+    ONE_PH_PH_N = "ONE_PH_PH_N"
 
 
 class Phase(enum.Enum):
-    A = enum.auto()
-    B = enum.auto()
-    C = enum.auto()
-
-
-class ConsumerSystemType(enum.Enum):
-    FIXED = "CONSUMER_FIXED"
-    NIGHT_STORAGE = "NIGHT_STORAGE"
-    VARIABLE = "CONSUMER_VARIABLE"
+    A = "A"
+    B = "B"
+    C = "C"
 
 
 THRESHOLD = 0.51  # acceptable rounding error (0.5 W) + epsilon for calculation accuracy (0.01 W)
@@ -116,7 +109,7 @@ class Load(Base):  # including assets of type load and generator
     reactive_power: ReactivePower
     type: LoadType  # noqa: A003
     connected_phases: Sequence[Phase]
-    system_type: ConsumerSystemType | ProducerSystemType
+    system_type: SystemType
     phase_connection_type: PhaseConnectionType
     voltage_system_type: VoltageSystemType
     description: str | None = None

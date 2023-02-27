@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class LocalQCtrlMode:
+class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     COSPHI_CONST = "constc"
     Q_CONST = "constq"
@@ -25,33 +25,33 @@ class LocalQCtrlMode:
     U_I_DROOP = "idroop"
 
 
-class CtrlMode:
+class CtrlMode(enum.IntEnum):
     U = 0
     Q = 1
     COSPHI = 2
     TANPHI = 3
 
 
-class CosphiChar:
+class CosphiChar(enum.IntEnum):
     CONST = 0
     P = 1
     U = 2
 
 
-class QChar:
+class QChar(enum.IntEnum):
     CONST = 0
     U = 1
     P = 2
 
 
-class IOpt:
+class IOpt(enum.IntEnum):
     S_COSPHI = 0
     P_COSPHI = 1
     U_I_COSPHI = 2
     E_COSPHI = 3
 
 
-class CtrlVoltageRef:
+class CtrlVoltageRef(enum.IntEnum):
     POS_SEQ = 0  # positive sequence value of voltage
     AVG = 1  # average value of voltage
     A = 2
@@ -283,6 +283,12 @@ class Phase(enum.Enum):
     C = "L3"
 
 
+class TerminalVoltageSystemType(enum.IntEnum):
+    DC = 0
+    AC = 1
+    ACBI = 2
+
+
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
@@ -399,7 +405,7 @@ class PowerFactoryTypes:
         gline0: float  # conductance (µS/km) zero sequence components
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
-        systp: bool  # 0:AC; 1:DC
+        systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
     class Transformer2WType(DataObject, Protocol):
@@ -466,6 +472,7 @@ class PowerFactoryTypes:
         outserv: bool
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
+        systype: TerminalVoltageSystemType
 
     class StationCubicle(DataObject, Protocol):
         cterm: PowerFactoryTypes.Terminal
@@ -498,7 +505,7 @@ class PowerFactoryTypes:
 
     class StationController(ControllerBase, Protocol):
         i_ctrl: CtrlMode
-        qu_char: PowReactChar
+        qu_char: QChar
         qsetp: float
         iQorient: QOrient  # noqa: N815
         refbar: PowerFactoryTypes.Terminal
@@ -521,7 +528,7 @@ class PowerFactoryTypes:
         pf_over: float
         p_under: float
         p_over: float
-        i_phase: PowerFactoryTypes.CtrlVoltageRef
+        i_phase: CtrlVoltageRef
 
     class CompoundModel(DataObject, Protocol):
         ...

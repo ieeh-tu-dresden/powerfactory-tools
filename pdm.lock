@@ -85,7 +85,7 @@ dependencies = [
 
 [[package]]
 name = "commitizen"
-version = "2.42.0"
+version = "2.42.1"
 requires_python = ">=3.6.2,<4.0.0"
 summary = "Python commitizen client tool"
 dependencies = [
@@ -270,11 +270,11 @@ dependencies = [
 
 [[package]]
 name = "mypy"
-version = "1.2.0+dev.54635dec2379e2ac8b65b6ef07778015c69cfb6a"
+version = "1.2.0+dev.800e8ffdf17de9fc641fefff46389a940f147eef"
 requires_python = ">=3.7"
 git = "https://github.com/python/mypy.git"
 ref = "master"
-revision = "54635dec2379e2ac8b65b6ef07778015c69cfb6a"
+revision = "800e8ffdf17de9fc641fefff46389a940f147eef"
 summary = "Optional static typing for Python"
 dependencies = [
     "mypy-extensions>=1.0.0",
@@ -659,9 +659,9 @@ content_hash = "sha256:5c942afe0e84a22ce64565fce59fc9452b0a4da32525868d6846b520d
     {url = "https://files.pythonhosted.org/packages/60/5b/0e55c73beb88043811601050c87e871bd1f6cab78c869dc077fa5d0a5b5b/comm-0.1.2.tar.gz", hash = "sha256:3e2f5826578e683999b93716285b3b1f344f157bf75fa9ce0a797564e742f062"},
     {url = "https://files.pythonhosted.org/packages/fc/04/e740a61ec9df8975bcb32e6698663bc9efa945ac6b2a585728deed6dcced/comm-0.1.2-py3-none-any.whl", hash = "sha256:9f3abf3515112fa7c55a42a6a5ab358735c9dccc8b5910a9d8e3ef5998130666"},
 ]
-"commitizen 2.42.0" = [
-    {url = "https://files.pythonhosted.org/packages/24/d9/48c618e32bcb672b19b22f77c13e6c796fb43ee5931e003b27333c786793/commitizen-2.42.0.tar.gz", hash = "sha256:c4c944408f3d55ca22b1c136e22217c167123c54f46730eb27a1c6503d705c69"},
-    {url = "https://files.pythonhosted.org/packages/a1/6c/4d782d0947dd2b9413f1bd5d33431ec5bbd5f48411333ca7feaaa8b84521/commitizen-2.42.0-py3-none-any.whl", hash = "sha256:3be082c1eecbf1a1fb4c390fbbd3fd26be39e0f105f30c9079fc0e789386d08d"},
+"commitizen 2.42.1" = [
+    {url = "https://files.pythonhosted.org/packages/1d/bf/8c90125fe1610f5530b55372b834562d67535f14db6637e1643714944233/commitizen-2.42.1.tar.gz", hash = "sha256:eac18c7c65587061aac6829534907aeb208405b8230bfd35ec08503c228a7f17"},
+    {url = "https://files.pythonhosted.org/packages/38/bc/9a2a8f5ef11ed1f68fc2e25e4acc1f2b40c11db1f674e8b1227da00664cc/commitizen-2.42.1-py3-none-any.whl", hash = "sha256:fad7d37cfae361a859b713d4ac591859d5ca03137dd52de4e1bd208f7f45d5dc"},
 ]
 "coverage 7.1.0" = [
     {url = "https://files.pythonhosted.org/packages/0e/4a/2c9a63f52f819aaad02e99d1bc818e6bb21856a285b7a3d559eff2a3840e/coverage-7.1.0-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:7ee5c9bb51695f80878faaa5598040dd6c9e172ddcf490382e8aedb8ec3fec8d"},
