@@ -1429,7 +1429,6 @@ class PowerfactoryExporter:
                 q_0=round(ext_grid.qgini * Exponents.POWER, DecimalDigits.POWER),
             )
 
-        ext_grid_ssc = ExternalGridSSC(name=name)
         logger.debug("Created steadystate for external grid {ext_grid_ssc}.", ext_grid_ssc=ext_grid_ssc)
         return ext_grid_ssc
 
