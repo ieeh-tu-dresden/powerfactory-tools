@@ -19,7 +19,7 @@ from loguru import logger
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import LoadPower
-from powerfactory_tools.interface import PowerfactoryInterface
+from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosphiChar
 from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
@@ -107,7 +107,7 @@ class LoadMV:
 
 
 @dataclasses.dataclass
-class PowerfactoryData:
+class PowerFactoryData:
     name: str
     date: datetime.date
     project: str
@@ -126,7 +126,7 @@ class PowerfactoryData:
     fuses: Sequence[PFTypes.Fuse]
 
 
-class PowerfactoryExporterProcess(multiprocessing.Process):
+class PowerFactoryExporterProcess(multiprocessing.Process):
     def __init__(
         self,
         *,
@@ -165,7 +165,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             self.steadystate_case_name = grid_name
 
     def run(self) -> None:
-        pfe = PowerfactoryExporter(
+        pfe = PowerFactoryExporter(
             project_name=self.project_name,
             grid_name=self.grid_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
@@ -177,7 +177,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
 
 
 @dataclasses.dataclass
-class PowerfactoryExporter:
+class PowerFactoryExporter:
     project_name: str
     grid_name: str
     powerfactory_user_profile: str = ""
@@ -186,7 +186,7 @@ class PowerfactoryExporter:
     python_version: str = PYTHON_VERSION
 
     def __post_init__(self) -> None:
-        self.pfi = PowerfactoryInterface(
+        self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
@@ -194,7 +194,7 @@ class PowerfactoryExporter:
             python_version=self.python_version,
         )
 
-    def __enter__(self) -> PowerfactoryExporter:
+    def __enter__(self) -> PowerFactoryExporter:
         return self
 
     def __exit__(
@@ -377,7 +377,7 @@ class PowerfactoryExporter:
             msg = f"Scenario {scen} does not exist."
             raise RuntimeError(msg)
 
-    def compile_powerfactory_data(self) -> PowerfactoryData:
+    def compile_powerfactory_data(self) -> PowerFactoryData:
         if self.grid_name == "*":
             name = self.project_name
         else:
@@ -392,7 +392,7 @@ class PowerfactoryExporter:
         project = self.pfi.project.loc_name
         date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
 
-        return PowerfactoryData(
+        return PowerFactoryData(
             name=name,
             date=date,
             project=project,
@@ -412,14 +412,14 @@ class PowerfactoryExporter:
         )
 
     @staticmethod
-    def create_meta_data(data: PowerfactoryData) -> Meta:
+    def create_meta_data(data: PowerFactoryData) -> Meta:
         grid_name = data.name.replace(" ", "-")
         project = data.project.replace(" ", "-")
         date = data.date
 
         return Meta(name=grid_name, date=date, project=project)
 
-    def create_topology(self, meta: Meta, data: PowerfactoryData) -> Topology:
+    def create_topology(self, meta: Meta, data: PowerFactoryData) -> Topology:
         external_grids = self.create_external_grids(
             ext_grids=data.external_grids,
             grid_name=data.name,
@@ -1201,7 +1201,7 @@ class PowerfactoryExporter:
         logger.debug("Created producer {producer}.", producer=producer)
         return producer
 
-    def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
+    def create_topology_case(self, meta: Meta, data: PowerFactoryData) -> TopologyCase:
         switch_states = self.create_switch_states(data.switches)
         coupler_states = self.create_coupler_states(data.couplers)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
@@ -1337,7 +1337,7 @@ class PowerfactoryExporter:
 
         return None
 
-    def create_steadystate_case(self, meta: Meta, data: PowerfactoryData) -> SteadystateCase:
+    def create_steadystate_case(self, meta: Meta, data: PowerFactoryData) -> SteadystateCase:
         loads = self.create_loads_ssc(
             consumers=data.loads,
             consumers_lv=data.loads_lv,
@@ -2378,7 +2378,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
 ) -> None:
-    """Export powerfactory data to json files using PowerfactoryExporter running in process.
+    """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
     A grid given in DIgSILENT PowerFactory is exported to three json files with given schema.
     The whole grid data is separated into topology (raw assets), topology_case (binary switching info and out of service
@@ -2400,7 +2400,7 @@ def export_powerfactory_data(  # noqa: PLR0913
             None
     """
 
-    process = PowerfactoryExporterProcess(
+    process = PowerFactoryExporterProcess(
         project_name=project_name,
         export_path=export_path,
         grid_name=grid_name,

@@ -3,7 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
     given-names:
-title: "Powerfactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory"
+title: "PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory"
 doi: 10.5281/zenodo.7074968
 date-released: 2022
 repository-code: "https://github.com/ieeh-tu-dresden/powerfactory-tools"

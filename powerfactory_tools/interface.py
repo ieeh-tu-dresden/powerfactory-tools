@@ -65,7 +65,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 
 
 @pydantic.dataclasses.dataclass
-class PowerfactoryInterface:
+class PowerFactoryInterface:
     project_name: str
     powerfactory_user_profile: str | None = None
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
@@ -98,7 +98,7 @@ class PowerfactoryInterface:
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         module_path = (
-            self.powerfactory_path / ("Powerfactory " + self.powerfactory_version) / "Python" / self.python_version
+            self.powerfactory_path / ("PowerFactory " + self.powerfactory_version) / "Python" / self.python_version
         )
         spec = importlib.util.spec_from_file_location(
             "powerfactory",
