@@ -985,7 +985,15 @@ class PowerfactoryExporter:
 
         bus = load.bus1
         if bus is None:
-            logger.debug("Load {load_name} not connected to any bus. Skipping.", load_name=load.loc_name)
+            logger.warning("Load {load_name} not connected to any bus. Skipping.", load_name=load.loc_name)
+            return None
+
+        phase_id = bus.cPhInfo
+        if phase_id == "SPN":
+            logger.warning(
+                "Load {load_name} is a 1-phase load which is currently not supported. Skipping.",
+                load_name=load.loc_name,
+            )
             return None
 
         terminal = bus.cterm

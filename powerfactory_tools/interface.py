@@ -5,13 +5,14 @@
 
 from __future__ import annotations
 
-import dataclasses as dcs
 import importlib.util
 import itertools
 import pathlib
 import typing
+from collections.abc import Sequence  # noqa: TCH003 # bug
 from typing import TYPE_CHECKING
 
+import pydantic
 from loguru import logger
 
 from powerfactory_tools.constants import BaseUnits
@@ -22,7 +23,6 @@ from powerfactory_tools.schema.base import Base
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from collections.abc import Sequence
     from typing import Any
     from typing import TypeVar
 
@@ -64,7 +64,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 )
 
 
-@dcs.dataclass
+@pydantic.dataclasses.dataclass
 class PowerfactoryInterface:
     project_name: str
     powerfactory_user_profile: str | None = None
