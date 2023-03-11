@@ -104,14 +104,13 @@ class PowerfactoryInterface:
             "powerfactory",
             module_path / "powerfactory.pyd",
         )
-        if spec is not None:
-            pfm = importlib.util.module_from_spec(spec)
-            if spec.loader is not None:
-                spec.loader.exec_module(pfm)
-                return typing.cast("PFTypes.PowerFactoryModule", pfm)
+        if (spec is None) or (spec.loader is None):
+            msg = "Could not load PowerFactory Module."
+            raise RuntimeError(msg)
 
-        msg = "Could not load PowerFactory Module."
-        raise RuntimeError(msg)
+        pfm = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(pfm)
+        return typing.cast("PFTypes.PowerFactoryModule", pfm)
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         settings_dir = self.element_of(element=self.project, pattern="*.SetFold", recursive=False)
@@ -121,11 +120,10 @@ class PowerfactoryInterface:
 
         return typing.cast("PFTypes.DataDir", settings_dir)
 
-    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
+    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir | None:
         unit_settings_dir = self.element_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
         if unit_settings_dir is None:
-            msg = "Could not access unit settings."
-            raise RuntimeError(msg)
+            return None
 
         return typing.cast("PFTypes.DataDir", unit_settings_dir)
 
@@ -497,9 +495,17 @@ class PowerfactoryInterface:
         name: str,
         uc: UnitConversionSetting,
     ) -> PFTypes.UnitConversionSetting | None:
-        data = uc.dict()
-        element = self.create_object(name=name, class_name="SetVariable", location=self.unit_settings_dir, data=data)
-        return typing.cast("PFTypes.UnitConversionSetting", element) if element is not None else None
+        if self.unit_settings_dir is not None:
+            data = uc.dict()
+            element = self.create_object(
+                name=name,
+                class_name="SetVariable",
+                location=self.unit_settings_dir,
+                data=data,
+            )
+            return typing.cast("PFTypes.UnitConversionSetting", element) if element is not None else None
+
+        return None
 
     def delete_unit_conversion_settings(self) -> None:
         ucs = self.unit_conversion_settings()
@@ -507,8 +513,11 @@ class PowerfactoryInterface:
             self.delete_object(uc)
 
     def unit_conversion_settings(self) -> Sequence[PFTypes.UnitConversionSetting]:
-        elements = self.elements_of(element=self.unit_settings_dir, pattern="*.SetVariable")
-        return [typing.cast("PFTypes.UnitConversionSetting", element) for element in elements]
+        if self.unit_settings_dir is not None:
+            elements = self.elements_of(element=self.unit_settings_dir, pattern="*.SetVariable")
+            return [typing.cast("PFTypes.UnitConversionSetting", element) for element in elements]
+
+        return []
 
     def create_object(
         self,

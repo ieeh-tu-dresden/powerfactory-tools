@@ -87,6 +87,7 @@ if TYPE_CHECKING:
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 POWERFACTORY_VERSION = "2022 SP2"
+PYTHON_VERSION = "3.10"
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
@@ -135,6 +136,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
         powerfactory_version: str = POWERFACTORY_VERSION,
+        python_version: str = PYTHON_VERSION,
         topology_name: str | None = None,
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
@@ -146,6 +148,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         self.powerfactory_user_profile = powerfactory_user_profile
         self.powerfactory_path = powerfactory_path
         self.powerfactory_version = powerfactory_version
+        self.python_version = python_version
         if topology_name is not None:
             self.topology_name = topology_name
         else:
@@ -168,6 +171,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
+            python_version=self.python_version,
         )
         pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
@@ -179,6 +183,7 @@ class PowerfactoryExporter:
     powerfactory_user_profile: str = ""
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = POWERFACTORY_VERSION
+    python_version: str = PYTHON_VERSION
 
     def __post_init__(self) -> None:
         self.pfi = PowerfactoryInterface(
@@ -186,6 +191,7 @@ class PowerfactoryExporter:
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
+            python_version=self.python_version,
         )
 
     def __enter__(self) -> PowerfactoryExporter:
@@ -1034,7 +1040,7 @@ class PowerfactoryExporter:
                     "Please check load model setting of {load_name} for RMS simulation.",
                     load_name=load.loc_name,
                 )
-                logger.info(  # noqa: PLE1206
+                logger.info(
                     "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
@@ -1720,49 +1726,12 @@ class PowerfactoryExporter:
         return [self.calc_load_lv_power_sym(sl) for sl in subloads]
 
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
-        load_type = load.iopt_inp
         scaling = load.scale0
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if not load.i_sym:
-            power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
+            power_fixed = self.calc_load_lv_power_fixed_sym(load=load, scaling=scaling)
         else:
-            if load_type == IOpt.S_COSPHI:
-                power_fixed = LoadPower.from_sc_asym(
-                    pow_app_a=load.slinir,
-                    pow_app_b=load.slinis,
-                    pow_app_c=load.slinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            elif load_type == IOpt.P_COSPHI:
-                power_fixed = LoadPower.from_pc_asym(
-                    pow_act_a=load.plinir,
-                    pow_act_b=load.plinis,
-                    pow_act_c=load.plinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            elif load_type == IOpt.U_I_COSPHI:
-                power_fixed = LoadPower.from_ic_asym(
-                    voltage=load.ulini,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            else:
-                msg = "unreachable"
-                raise RuntimeError(msg)
+            power_fixed = self.calc_load_lv_power_fixed_asym(load=load, scaling=scaling)
 
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -1829,6 +1798,51 @@ class PowerfactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
+
+        msg = "unreachable"
+        raise RuntimeError(msg)
+
+    def calc_load_lv_power_fixed_asym(
+        self,
+        load: PFTypes.LoadLV,
+        scaling: float,
+    ) -> LoadPower:
+        load_type = load.iopt_inp
+        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        if load_type == IOpt.S_COSPHI:
+            return LoadPower.from_sc_asym(
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
+        if load_type == IOpt.P_COSPHI:
+            return LoadPower.from_pc_asym(
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
+        if load_type == IOpt.U_I_COSPHI:
+            return LoadPower.from_ic_asym(
+                voltage=load.ulini,
+                current_a=load.ilinir,
+                current_b=load.ilinis,
+                current_c=load.ilinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
                 cosphi_dir=cosphi_dir,
                 scaling=scaling,
             )
