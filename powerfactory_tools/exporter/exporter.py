@@ -975,7 +975,7 @@ class PowerfactoryExporter:
         rated_power = power.as_rated_power()
         logger.debug(
             "{load_name}: there is no real rated power, it is calculated based on actual power.",
-            load_name=load.loc_name,
+            load_name=l_name,
         )
 
         load_model_p = self.load_model_of(load, specifier="p")
