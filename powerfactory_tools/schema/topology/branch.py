@@ -26,7 +26,7 @@ class Branch(Base):
     g1: float  # positive sequence values of PI-representation
     b1: float  # positive sequence values of PI-representation
     type: BranchType  # noqa: A003
-    voltage_system_type: VoltageSystemType | None = None
+    voltage_system_type: VoltageSystemType
     r0: float | None = None  # zero sequence values of PI-representation
     x0: float | None = None  # zero sequence values of PI-representation
     g0: float | None = None  # zero sequence values of PI-representation

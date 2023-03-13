@@ -10,30 +10,30 @@ import enum
 import pydantic
 
 from powerfactory_tools.schema.base import Base
-from powerfactory_tools.schema.topology.load import CosphiDir  # noqa: TCH001
+from powerfactory_tools.schema.base import CosphiDir
 
 
 class ControlStrategy(enum.Enum):
-    U_CONST = enum.auto()
-    COSPHI_CONST = enum.auto()
-    Q_CONST = enum.auto()
-    Q_U = enum.auto()
-    Q_P = enum.auto()
-    COSPHI_P = enum.auto()
-    COSPHI_U = enum.auto()
-    TANPHI_CONST = enum.auto()
-    ND = enum.auto()
+    U_CONST = "U_CONST"
+    COSPHI_CONST = "COSPHI_CONST"
+    Q_CONST = "Q_CONST"
+    Q_U = "Q_U"
+    Q_P = "Q_P"
+    COSPHI_P = "COSPHI_P"
+    COSPHI_U = "COSPHI_U"
+    TANPHI_CONST = "TANPHI_CONST"
+    ND = "ND"
 
 
 class ControlledVoltageRef(enum.Enum):
-    POS_SEQ = enum.auto()
-    AVG = enum.auto()
-    A = enum.auto()
-    B = enum.auto()
-    C = enum.auto()
-    AB = enum.auto()
-    BC = enum.auto()
-    CA = enum.auto()
+    POS_SEQ = "POS_SEQ"
+    AVG = "AVG"
+    A = "A"
+    B = "B"
+    C = "C"
+    AB = "AB"
+    BC = "BC"
+    CA = "CA"
 
 
 class ControlType(Base):
@@ -57,7 +57,7 @@ class ControlUConst(ControlType):
 
 class ControlTanphiConst(ControlType):
     # cos(phi) control mode
-    cosphi_dir: CosphiDir  # CosphiDir
+    cosphi_dir: CosphiDir
     cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
 
     control_strategy = ControlStrategy.TANPHI_CONST
@@ -65,7 +65,7 @@ class ControlTanphiConst(ControlType):
 
 class ControlCosphiConst(ControlType):
     # cos(phi) control mode
-    cosphi_dir: CosphiDir  # CosphiDir
+    cosphi_dir: CosphiDir
     cosphi: float = pydantic.Field(ge=0, le=1)  # cos(phi) for calculation of Q in relation to P.
 
     control_strategy = ControlStrategy.COSPHI_CONST

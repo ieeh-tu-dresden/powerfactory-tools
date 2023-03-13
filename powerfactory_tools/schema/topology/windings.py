@@ -4,7 +4,17 @@
 
 from __future__ import annotations
 
+import enum
+
 from powerfactory_tools.schema.base import Base
+
+
+class VectorGroup(enum.Enum):
+    Y = "Y"
+    YN = "YN"
+    Z = "Z"
+    ZN = "ZN"
+    D = "D"
 
 
 class Winding(Base):
@@ -17,4 +27,4 @@ class Winding(Base):
     r0: float | None = None  # zero sequence values of transformer T-representation
     x0: float | None = None
     phase_angle_clock: int | None = None
-    vector_group: str | None = None
+    vector_group: VectorGroup | None = None

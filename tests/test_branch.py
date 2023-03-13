@@ -2,6 +2,7 @@
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
 # :license: BSD 3-Clause
 
+from powerfactory_tools.schema.base import VoltageSystemType
 from powerfactory_tools.schema.topology.branch import Branch
 from powerfactory_tools.schema.topology.branch import BranchType
 
@@ -19,4 +20,5 @@ class TestBranch:
             x1=1,
             r1=1,
             type=BranchType.LINE,
+            voltage_system_type=VoltageSystemType.AC,
         )

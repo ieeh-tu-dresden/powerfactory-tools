@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import enum
 from typing import TYPE_CHECKING
 from typing import Literal
 from typing import Protocol
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
-class LocalQCtrlMode:
+class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     COSPHI_CONST = "constc"
     Q_CONST = "constq"
@@ -24,33 +25,33 @@ class LocalQCtrlMode:
     U_I_DROOP = "idroop"
 
 
-class CtrlMode:
+class CtrlMode(enum.IntEnum):
     U = 0
     Q = 1
     COSPHI = 2
     TANPHI = 3
 
 
-class CosphiChar:
+class CosphiChar(enum.IntEnum):
     CONST = 0
     P = 1
     U = 2
 
 
-class QChar:
+class QChar(enum.IntEnum):
     CONST = 0
     U = 1
     P = 2
 
 
-class IOpt:
+class IOpt(enum.IntEnum):
     S_COSPHI = 0
     P_COSPHI = 1
     U_I_COSPHI = 2
     E_COSPHI = 3
 
 
-class CtrlVoltageRef:
+class CtrlVoltageRef(enum.IntEnum):
     POS_SEQ = 0  # positive sequence value of voltage
     AVG = 1  # average value of voltage
     A = 2
@@ -61,117 +62,234 @@ class CtrlVoltageRef:
     CA = 7
 
 
-class PowerFactoryTypes:
-    ModeInpLoad = Literal["DEF", "PQ", "PC", "IC", "SC", "QC", "IP", "SP", "SQ"]
-    ModeInpGen = Literal["DEF", "PQ", "PC", "SC", "QC", "SP", "SQ"]
-    ModeInpMV = Literal["PC", "SC", "EC"]
-    BusType = Literal["SL", "PV", "PQ"]
-    NodeType = Literal[0, 1, 2]  # 0:bus bar; 1:junction node; 2:internal node
-    CtrlMode = Literal[0, 1, 2, 3]  # cfg. class CtrlMode
-    IOpt = Literal[0, 1, 2, 3]  # cfg. class IOpt
-    CosphiChar = Literal[0, 1, 2]  # cfg. class CosphiChar
-    PowReactChar = Literal[0, 1, 2]  # cfg. class PowReactChar
-    PFRecap = Literal[0, 1]  # 0:ind. ; 1:kap.
-    QOrient = Literal[0, 1]  # 0:+Q; 1:-Q
-    PhTechLoad = Literal[0, 2, 3, 4, 5, 7, 8, 9]  # Phase Connection Type cfg. schema.load
-    PhTechGen = Literal[0, 1, 2, 3, 4]  # Phase Connection Type cfg. schema.load
-    QCtrlTypes = Literal[
-        "constv",
-        "vdroop",
-        "idroop",
-        "constq",
-        "qpchar",
-        "qvchar",
-        "constc",
-        "cpchar",
-    ]  # cfg. class LocalQCtrlMode
-    CtrlVoltageRef = Literal[0, 1, 2, 3, 4, 5, 6, 7]  # cfg. class CtrlVoltageRef
-    TrfVector = Literal["Y", "YN", "Z", "ZN", "D"]
-    TrfVectorGroup = Literal[
-        "Dd0",
-        "Yy0",
-        "YNy0",
-        "Yyn0",
-        "YNyn0",
-        "Dz0",
-        "Dzn0",
-        "Zd0",
-        "ZNd0",
-        "Dy5",
-        "Dyn5",
-        "Yd5",
-        "YNd5",
-        "Yz5",
-        "YNz5",
-        "Yzn5",
-        "YNzn5",
-        "Dd6",
-        "Yy6",
-        "YNy6",
-        "Yyn6",
-        "YNyn6",
-        "Dz6",
-        "Dzn6",
-        "Zd6",
-        "ZNd6",
-        "Dy11",
-        "Dyn11",
-        "Yd11",
-        "YNd11",
-        "Yz11",
-        "YNz11",
-        "Yzn11",
-        "YNzn11",
-    ]
-    TrfPhaseTechnology = Literal[1, 2, 3]  # Single core for each Phase or three phases combined
-    TrfTapSide = Literal[0, 1, 2, 3]  # Transformer side of tap changer
-    GenSystemType = Literal[
-        "coal",
-        "oil",
-        "gas",
-        "dies",  # diesel generation
-        "nuc",  # nuclear generation
-        "hydr",  # hydro generation
-        "pump",  # pump storage
-        "wgen",  # wind generation
-        "bgas",  # bio gas
-        "sol",  # solar generation
-        "othg",  # other
-        "pv",  # pv cell generation
-        "reng",  # renewable energies
-        "fc",  # fuel cell
-        "peat",  # biomass/peat
-        "stg",  # static generator
-        "hvdc",  # hvdc station
-        "rpc",  # reactive power compensation
-        "stor",  # storage
-        "net",  # external grid
-    ]
-    MetricPrefix = Literal["a", "f", "p", "n", "u", "m", "", "k", "M", "G", "T", "P", "E"]
-    Currency = Literal[
-        "USD",
-        "EUR",
-        "JPY",
-        "GBP",
-        "AUD",
-        "CAD",
-        "CHF",
-        "CNY",
-        "SEK",
-        "MXN",
-        "NZD",
-        "SGD",
-        "HKD",
-        "NOK",
-        "KRW",
-        "TRY",
-        "INR",
-        "RUB",
-        "BRL",
-        "ZAR",
-        "CLP",
-    ]
+class GeneratorPhaseConnectionType(enum.IntEnum):
+    THREE_PH_D = 0
+    THREE_PH_PH_E = 1
+    ONE_PH_PH_E = 2
+    ONE_PH_PH_N = 3
+    ONE_PH_PH_PH = 4
 
+
+class LoadPhaseConnectionType(enum.IntEnum):
+    THREE_PH_D = 0
+    THREE_PH_PH_E = 2
+    THREE_PH_YN = 3
+    TWO_PH_PH_E = 4
+    TWO_PH_YN = 5
+    ONE_PH_PH_PH = 7
+    ONE_PH_PH_N = 8
+    ONE_PH_PH_E = 9
+
+
+class PFRecap(enum.IntEnum):
+    OE = 0
+    UE = 1
+
+
+class QOrient(enum.IntEnum):
+    Q_POS = 0
+    Q_NEG = 1
+
+
+class NodeType(enum.IntEnum):
+    BUS_BAR = 0
+    JUNCTION_NODE = 1
+    INTERNAL_NODE = 2
+
+
+class QCtrlTypes(enum.Enum):
+    U_CONST = "constv"
+    VDROOP = "vdroop"
+    IDROOP = "idroop"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
+    COSPHI_CONST = "constc"
+    COSPHI_P = "cpchar"
+
+
+class ModeInpLoad(enum.Enum):
+    DEF = "DEF"
+    PQ = "PQ"
+    PC = "PC"
+    IC = "IC"
+    SC = "SC"
+    QC = "QC"
+    IP = "IP"
+    SP = "SP"
+    SQ = "SQ"
+
+
+class ModeInpGen(enum.Enum):
+    DEF = "DEF"
+    PQ = "PQ"
+    PC = "PC"
+    SC = "SC"
+    QC = "QC"
+    SP = "SP"
+    SQ = "SQ"
+
+
+class ModeInpMV(enum.Enum):
+    PC = "PC"
+    SC = "SC"
+    EC = "EC"
+
+
+class BusType(enum.Enum):
+    SL = "SL"
+    PV = "PV"
+    PQ = "PQ"
+
+
+class Vector(enum.Enum):
+    Y = "Y"
+    YN = "YN"
+    Z = "Z"
+    ZN = "ZN"
+    D = "D"
+
+
+class GeneratorSystemType(enum.Enum):
+    COAL = "coal"
+    OIL = "oil"
+    GAS = "gas"
+    DIESEL = "dies"
+    NUCLEAR = "nuc"
+    HYDRO = "hydr"
+    PUMP_STORAGE = "pump"
+    WIND = "wgen"
+    BIOGAS = "bgas"
+    SOLAR = "sol"
+    PV = "pv"
+    RENEWABLE_ENERGY = "reng"
+    FUELCELL = "fc"
+    PEAT = "peat"
+    STAT_GEN = "stg"
+    HVDC = "hvdc"
+    REACTIVE_POWER_COMPENSATOR = "rpc"
+    BATTERY_STORAGE = "stor"
+    EXTERNAL_GRID_EQUIVALENT = "net"
+    OTHER = "othg"
+
+
+class VectorGroup(enum.Enum):
+    Dd0 = "Dd0"
+    Yy0 = "Yy0"
+    YNy0 = "Ny0"
+    Yyn0 = "Yyn0"
+    YNyn0 = "Nyn0"
+    Dz0 = "Dz0"
+    Dzn0 = "Dzn0"
+    Zd0 = "Zd0"
+    ZNd0 = "Nd0"
+    Dy5 = "Dy5"
+    Dyn5 = "Dyn5"
+    Yd5 = "Yd5"
+    YNd5 = "Nd5"
+    Yz5 = "Yz5"
+    YNz5 = "Nz5"
+    Yzn5 = "Yzn5"
+    YNzn5 = "Nzn5"
+    Dd6 = "Dd6"
+    Yy6 = "Yy6"
+    YNy6 = "Ny6"
+    Yyn6 = "Yyn6"
+    YNyn6 = "Nyn6"
+    Dz6 = "Dz6"
+    Dzn6 = "Dzn6"
+    Zd6 = "Zd6"
+    ZNd6 = "Nd6"
+    Dy11 = "Dy11"
+    Dyn11 = "Dyn11"
+    Yd11 = "Yd11"
+    YNd11 = "Nd11"
+    Yz11 = "Yz11"
+    YNz11 = "Nz11"
+    Yzn11 = "Yzn11"
+    YNzn11 = "Nzn11"
+
+
+class TrfPhaseTechnology(enum.IntEnum):
+    SINGLE_PH_E = 1
+    SINGLE_PH = 2
+    THREE_PH = 3
+
+
+class TrfTapSide(enum.IntEnum):
+    HV = 0
+    LV = 1
+
+
+class MetricPrefix(enum.Enum):
+    a = "a"
+    f = "f"
+    p = "p"
+    n = "n"
+    u = "u"
+    m = "m"
+    EMPTY = ""
+    k = "k"
+    M = "M"
+    G = "G"
+    T = "T"
+    P = "P"
+    E = "E"
+
+
+class Currency(enum.Enum):
+    USD = "USD"
+    EUR = "EUR"
+    JPY = "JPY"
+    GBP = "GBP"
+    AUD = "AUD"
+    CAD = "CAD"
+    CHF = "CHF"
+    CNY = "CNY"
+    SEK = "SEK"
+    MXN = "MXN"
+    NZD = "NZD"
+    SGD = "SGD"
+    HKD = "HKD"
+    NOK = "NOK"
+    KRW = "KRW"
+    TRY = "TRY"
+    INR = "INR"
+    RUB = "RUB"
+    BRL = "BRL"
+    ZAR = "ZAR"
+    CLP = "CLP"
+
+
+class ISym(enum.IntEnum):
+    SYM = 0
+    ASYM = 1
+
+
+class VoltageSystemType(enum.IntEnum):
+    AC = 0
+    DC = 1
+
+
+class UnitSystem(enum.IntEnum):
+    METRIC = 0
+    ENG_TRANSMISSION = 1
+    ENG_INDUSTRY = 2
+
+
+class Phase(enum.Enum):
+    A = "L1"
+    B = "L2"
+    C = "L3"
+
+
+class TerminalVoltageSystemType(enum.IntEnum):
+    DC = 0
+    AC = 1
+    ACBI = 2
+
+
+class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
         fold_id: PowerFactoryTypes.DataObject | None
@@ -234,19 +352,19 @@ class PowerFactoryTypes:
 
     class ProjectSettings(DataObject, Protocol):
         extDataDir: PowerFactoryTypes.DataDir  # noqa: N815
-        ilenunit: Literal[0, 1, 2]
-        clenexp: PowerFactoryTypes.MetricPrefix  # Lengths
-        cspqexp: PowerFactoryTypes.MetricPrefix  # Loads etc.
-        cspqexpgen: PowerFactoryTypes.MetricPrefix  # Generators etc.
-        currency: PowerFactoryTypes.Currency
+        ilenunit: UnitSystem
+        clenexp: MetricPrefix  # Lengths
+        cspqexp: MetricPrefix  # Loads etc.
+        cspqexpgen: MetricPrefix  # Generators etc.
+        currency: Currency
 
     class UnitConversionSetting(DataObject, Protocol):
         filtclass: Sequence[str]
         filtvar: str
         digunit: str
-        cdigexp: PowerFactoryTypes.MetricPrefix
+        cdigexp: MetricPrefix
         userunit: str
-        cuserexp: PowerFactoryTypes.MetricPrefix
+        cuserexp: MetricPrefix
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
 
@@ -258,8 +376,8 @@ class PowerFactoryTypes:
 
     class LoadType(DataObject, Protocol):
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
-        systp: bool  # 0:AC; 1:DC
-        phtech: PowerFactoryTypes.PhTechLoad  # phase connection: [0, 2, 3, 4, 5, 7, 8, 9] cfg. schema.load.PhaseConnectionType
+        systp: VoltageSystemType
+        phtech: LoadPhaseConnectionType
 
         aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
@@ -287,11 +405,11 @@ class PowerFactoryTypes:
         gline0: float  # conductance (µS/km) zero sequence components
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
-        systp: bool  # 0:AC; 1:DC
+        systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
     class Transformer2WType(DataObject, Protocol):
-        vecgrp: PowerFactoryTypes.TrfVectorGroup
+        vecgrp: VectorGroup
         dutap: float
         phitr: float
         ntpmn: int
@@ -310,11 +428,11 @@ class PowerFactoryTypes:
         r0pu: float
         x1pu: float
         x0pu: float
-        tr2cn_l: PowerFactoryTypes.TrfVector
-        tr2cn_h: PowerFactoryTypes.TrfVector
+        tr2cn_l: Vector
+        tr2cn_h: Vector
         nt2ag: float
-        nt2ph: PowerFactoryTypes.TrfPhaseTechnology
-        tap_side: PowerFactoryTypes.TrfTapSide
+        nt2ph: TrfPhaseTechnology
+        tap_side: TrfTapSide
         itapch: int
         itapch2: int
 
@@ -331,7 +449,7 @@ class PowerFactoryTypes:
         bus2: PowerFactoryTypes.StationCubicle | None
         typ_id: PowerFactoryTypes.SwitchType | None
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
-        isclosed: bool  # 0:open; 1:closed
+        isclosed: bool
         desc: Sequence[str]
 
     class Grid(DataObject, Protocol):
@@ -350,14 +468,17 @@ class PowerFactoryTypes:
         cDisplayName: str  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: PowerFactoryTypes.NodeType  # noqa: N815  # 0:bus bar; 1:junction node; 2:internal node
+        iUsage: NodeType  # noqa: N815
         outserv: bool
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
+        systype: TerminalVoltageSystemType
 
     class StationCubicle(DataObject, Protocol):
         cterm: PowerFactoryTypes.Terminal
         obj_id: PowerFactoryTypes.Line | PowerFactoryTypes.Element | None
+        nphase: int
+        cPhInfo: str  # noqa: N815
 
     class Transformer2W(LineBase, Protocol):
         buslv: PowerFactoryTypes.StationCubicle | None
@@ -383,10 +504,10 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: PowerFactoryTypes.CtrlMode  # 0:Voltage Control; 1:Reactive Power Control; 2:Cosphi Control; 3:Tanphi Control
-        qu_char: PowerFactoryTypes.PowReactChar  # 0:const. Q; 1:Q(U); 2: Q(P)
+        i_ctrl: CtrlMode
+        qu_char: QChar
         qsetp: float
-        iQorient: PowerFactoryTypes.QOrient  # noqa: N815  # 0:+Q; 1:-Q
+        iQorient: QOrient  # noqa: N815
         refbar: PowerFactoryTypes.Terminal
         Srated: float
         ddroop: float
@@ -394,9 +515,9 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: PowerFactoryTypes.CosphiChar  # 0:const. Cosphi; 1:Cosphi(P); 2:Cosphi(U)
+        cosphi_char: CosphiChar
         pfsetp: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap: PFRecap
         tansetp: float
         usetp: float
         pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
@@ -407,14 +528,14 @@ class PowerFactoryTypes:
         pf_over: float
         p_under: float
         p_over: float
-        i_phase: PowerFactoryTypes.CtrlVoltageRef
+        i_phase: CtrlVoltageRef
 
     class CompoundModel(DataObject, Protocol):
         ...
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap: PFRecap
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -425,7 +546,7 @@ class PowerFactoryTypes:
         pgini: float
         qgini: float
         cosgini: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap: PFRecap
         Kpf: float
         ddroop: float
         Qfu_min: float
@@ -433,14 +554,13 @@ class PowerFactoryTypes:
         udeadblow: float
         udeadbup: float
         outserv: bool
-        av_mode: PowerFactoryTypes.QCtrlTypes
-        mode_inp: PowerFactoryTypes.ModeInpGen
-        phtech: PowerFactoryTypes.PhTechGen
+        av_mode: QCtrlTypes
+        mode_inp: ModeInpGen
         sgini_a: float
         pgini_a: float
         qgini_a: float
         cosgini_a: float
-        pf_recap_a: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap_a: PFRecap
         scale0_a: float
         c_pstac: PowerFactoryTypes.StationController | None
         c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
@@ -455,12 +575,14 @@ class PowerFactoryTypes:
         inputmod: Literal[0, 1]
 
     class Generator(GeneratorBase, Protocol):
-        cCategory: PowerFactoryTypes.GenSystemType  # noqa: N815
+        aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
+        phtech: GeneratorPhaseConnectionType
 
     class PVSystem(GeneratorBase, Protocol):
         uk: float
         Pcu: float
+        phtech: GeneratorPhaseConnectionType
 
     class LoadBase(Element, Protocol):
         slini: float
@@ -487,22 +609,12 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.LoadType | None
 
     class Load(LoadBase, Protocol):
-        mode_inp: PowerFactoryTypes.ModeInpLoad
-        """DEF: Default;
-        PQ: P, Q
-        PC: P, cosphi
-        IC: I, cosphi
-        SC: S, cosphi
-        QC: Q, cosphi
-        IP: I, P
-        SP: S, P
-        SQ: S, Q"""
-
-        i_sym: bool  # 0:symmetrical; 1:asymmetrical
+        mode_inp: ModeInpLoad
+        i_sym: ISym
         u0: float
 
     class LoadLVP(DataObject, Protocol):
-        iopt_inp: PowerFactoryTypes.IOpt  # 0:S,cosphi; 1:P,cosphi,2:U,I,cosphi; 3:E,cosphi
+        iopt_inp: IOpt
         elini: float
         cplinia: float
         slini: float
@@ -514,15 +626,16 @@ class PowerFactoryTypes:
         pnight: float
         cSav: float  # noqa: N815
         ccosphi: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap: PFRecap
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
-        i_sym: bool  # 0:symmetrical; 1:asymmetrical
+        i_sym: ISym
         lodparts: Sequence[PowerFactoryTypes.LoadLVP]
+        phtech: LoadPhaseConnectionType
 
     class LoadMV(LoadBase, Protocol):
-        mode_inp: PowerFactoryTypes.ModeInpMV
-        ci_sym: bool  # 0:symmetrical; 1:asymmetrical
+        mode_inp: ModeInpMV
+        ci_sym: ISym
         elini: float
         cplinia: float
         sgini: float
@@ -538,8 +651,8 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
-        pf_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
-        pfg_recap: PowerFactoryTypes.PFRecap  # 0:inductive; 1:capacitive
+        pf_recap: PFRecap
+        pfg_recap: PFRecap
 
     class Switch(DataObject, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle
@@ -559,7 +672,7 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.LineType | None
 
     class ExternalGrid(DataObject, Protocol):
-        bustp: PowerFactoryTypes.BusType
+        bustp: BusType
         bus1: PowerFactoryTypes.StationCubicle | None
         desc: Sequence[str]
         usetp: float  # in p.u.
