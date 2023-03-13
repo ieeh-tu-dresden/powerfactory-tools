@@ -95,7 +95,7 @@ class PowerfactoryInterface:
         self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
-        logger.debug("Loading PowerFactory Pyton module...")
+        logger.debug("Loading PowerFactory Python module...")
         module_path = (
             self.powerfactory_path / ("Powerfactory " + self.powerfactory_version) / "Python" / self.python_version
         )
