@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from enum import Enum
+import enum
 
 import pydantic  # noqa: TCH002
 
@@ -13,16 +13,53 @@ from powerfactory_tools.schema.base import Base
 from powerfactory_tools.schema.topology.windings import Winding  # noqa: TCH001
 
 
-class TapSide(Enum):
-    HV = "HV"  # high voltage side of transformer
-    MV = "MV"  # medium voltage side of transformer (only if 3 winding)
-    LV = "LV"  # low voltage side of transformer
+class TapSide(enum.Enum):
+    HV = "HV"
+    MV = "MV"
+    LV = "LV"
 
 
-class TransformerPhaseTechnologyType(Enum):
-    SINGLE_PH_E = "1PH-E"  # Single Phase Transformer, earthed
-    SINGLE_PH = "1PH"  # Single Phase Transformer
-    THREE_PH = "3PH"  # Three Phase Transformer
+class TransformerPhaseTechnologyType(enum.Enum):
+    SINGLE_PH_E = "SINGLE_PH_E"
+    SINGLE_PH = "SINGLE_PH"
+    THREE_PH = "THREE_PH"
+
+
+class VectorGroup(enum.Enum):
+    Dd0 = "Dd0"
+    Yy0 = "Yy0"
+    YNy0 = "YNy0"
+    Yyn0 = "Yyn0"
+    YNyn0 = "YNyn0"
+    Dz0 = "Dz0"
+    Dzn0 = "Dzn0"
+    Zd0 = "Zd0"
+    ZNd0 = "ZNd0"
+    Dy5 = "Dy5"
+    Dyn5 = "Dyn5"
+    Yd5 = "Yd5"
+    YNd5 = "YNd5"
+    Yz5 = "Yz5"
+    YNz5 = "YNz5"
+    Yzn5 = "Yzn5"
+    YNzn5 = "YNzn5"
+    Dd6 = "Dd6"
+    Yy6 = "Yy6"
+    YNy6 = "YNy6"
+    Yyn6 = "Yyn6"
+    YNyn6 = "YNyn6"
+    Dz6 = "Dz6"
+    Dzn6 = "Dzn6"
+    Zd6 = "Zd6"
+    ZNd6 = "ZNd6"
+    Dy11 = "Dy11"
+    Dyn11 = "Dyn11"
+    Yd11 = "Yd11"
+    YNd11 = "YNd11"
+    Yz11 = "Yz11"
+    YNz11 = "YNz11"
+    Yzn11 = "Yzn11"
+    YNzn11 = "YNzn11"
 
 
 class Transformer(Base):
@@ -30,7 +67,7 @@ class Transformer(Base):
     node_2: str
     name: str
     number: int  # number of parallel units
-    vector_group: str  # specifier for connection of wiring e.g. DYn5
+    vector_group: VectorGroup  # specifier for connection of wiring e.g. DYn5
     i_0: float  # no-load current in %
     p_fe: float  # no-load losses (Iron losses)
     windings: pydantic.conlist(Winding, unique_items=True)  # type: ignore[valid-type]  # winding object for each voltage level

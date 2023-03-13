@@ -5,23 +5,29 @@
 from __future__ import annotations
 
 import datetime  # noqa: TCH003 # bug
+import enum
 import pathlib
 import uuid
-from enum import Enum
 
 import pydantic
 
 VERSION = "1.1.0"
 
 
-class VoltageSystemType(Enum):
+class VoltageSystemType(enum.Enum):
     AC = "AC"
     DC = "DC"
+
+
+class CosphiDir(enum.Enum):
+    UE = "UE"
+    OE = "OE"
 
 
 class Base(pydantic.BaseModel):
     class Config:
         frozen = True
+        use_enum_values = True
 
     @classmethod
     def from_file(cls, file_path: str | pathlib.Path) -> Base:

@@ -5,12 +5,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import itertools
 import math
 import multiprocessing
 import pathlib
-from dataclasses import dataclass
+import textwrap
 from typing import TYPE_CHECKING
 
 from loguru import logger
@@ -18,13 +19,22 @@ from loguru import logger
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import LoadPower
-from powerfactory_tools.interface import PowerfactoryInterface
+from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosphiChar
 from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
+from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
+from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
+from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import QChar
+from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
+from powerfactory_tools.powerfactory_types import Vector
+from powerfactory_tools.powerfactory_types import VectorGroup
+from powerfactory_tools.powerfactory_types import Phase as PFPhase
+from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
+from powerfactory_tools.schema.base import CosphiDir
 from powerfactory_tools.schema.base import Meta
 from powerfactory_tools.schema.base import VoltageSystemType
 from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
@@ -38,7 +48,6 @@ from powerfactory_tools.schema.steadystate_case.controller import ControlQP
 from powerfactory_tools.schema.steadystate_case.controller import ControlQU
 from powerfactory_tools.schema.steadystate_case.controller import ControlTanphiConst
 from powerfactory_tools.schema.steadystate_case.controller import ControlUConst
-from powerfactory_tools.schema.steadystate_case.controller import CosphiDir
 from powerfactory_tools.schema.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from powerfactory_tools.schema.steadystate_case.load import Load as LoadSSC
 from powerfactory_tools.schema.steadystate_case.transformer import Transformer as TransformerSSC
@@ -47,12 +56,11 @@ from powerfactory_tools.schema.topology.branch import Branch
 from powerfactory_tools.schema.topology.branch import BranchType
 from powerfactory_tools.schema.topology.external_grid import ExternalGrid
 from powerfactory_tools.schema.topology.external_grid import GridType
-from powerfactory_tools.schema.topology.load import ConsumerPhaseConnectionType
-from powerfactory_tools.schema.topology.load import ConsumerSystemType
 from powerfactory_tools.schema.topology.load import Load
 from powerfactory_tools.schema.topology.load import LoadType
-from powerfactory_tools.schema.topology.load import ProducerPhaseConnectionType
-from powerfactory_tools.schema.topology.load import ProducerSystemType
+from powerfactory_tools.schema.topology.load import Phase
+from powerfactory_tools.schema.topology.load import PhaseConnectionType
+from powerfactory_tools.schema.topology.load import SystemType
 from powerfactory_tools.schema.topology.load_model import LoadModel
 from powerfactory_tools.schema.topology.node import Node
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower
@@ -60,6 +68,8 @@ from powerfactory_tools.schema.topology.topology import Topology
 from powerfactory_tools.schema.topology.transformer import TapSide
 from powerfactory_tools.schema.topology.transformer import Transformer
 from powerfactory_tools.schema.topology.transformer import TransformerPhaseTechnologyType
+from powerfactory_tools.schema.topology.transformer import VectorGroup as TVectorGroup
+from powerfactory_tools.schema.topology.windings import VectorGroup as WVectorGroup
 from powerfactory_tools.schema.topology.windings import Winding
 from powerfactory_tools.schema.topology_case.case import Case as TopologyCase
 from powerfactory_tools.schema.topology_case.element_state import ElementState
@@ -83,21 +93,21 @@ FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 
 
-@dataclass
+@dataclasses.dataclass
 class LoadLV:
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
 
 
-@dataclass
+@dataclasses.dataclass
 class LoadMV:
     consumer: LoadPower
     producer: LoadPower
 
 
-@dataclass
-class PowerfactoryData:
+@dataclasses.dataclass
+class PowerFactoryData:
     name: str
     date: datetime.date
     project: str
@@ -116,7 +126,7 @@ class PowerfactoryData:
     fuses: Sequence[PFTypes.Fuse]
 
 
-class PowerfactoryExporterProcess(multiprocessing.Process):
+class PowerFactoryExporterProcess(multiprocessing.Process):
     def __init__(
         self,
         *,
@@ -155,7 +165,7 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
             self.steadystate_case_name = grid_name
 
     def run(self) -> None:
-        pfe = PowerfactoryExporter(
+        pfe = PowerFactoryExporter(
             project_name=self.project_name,
             grid_name=self.grid_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
@@ -166,8 +176,8 @@ class PowerfactoryExporterProcess(multiprocessing.Process):
         pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
-@dataclass
-class PowerfactoryExporter:
+@dataclasses.dataclass
+class PowerFactoryExporter:
     project_name: str
     grid_name: str
     powerfactory_user_profile: str = ""
@@ -176,7 +186,7 @@ class PowerfactoryExporter:
     python_version: str = PYTHON_VERSION
 
     def __post_init__(self) -> None:
-        self.pfi = PowerfactoryInterface(
+        self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
@@ -184,7 +194,7 @@ class PowerfactoryExporter:
             python_version=self.python_version,
         )
 
-    def __enter__(self) -> PowerfactoryExporter:
+    def __enter__(self) -> PowerFactoryExporter:
         return self
 
     def __exit__(
@@ -367,7 +377,7 @@ class PowerfactoryExporter:
             msg = f"Scenario {scen} does not exist."
             raise RuntimeError(msg)
 
-    def compile_powerfactory_data(self) -> PowerfactoryData:
+    def compile_powerfactory_data(self) -> PowerFactoryData:
         if self.grid_name == "*":
             name = self.project_name
         else:
@@ -382,7 +392,7 @@ class PowerfactoryExporter:
         project = self.pfi.project.loc_name
         date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
 
-        return PowerfactoryData(
+        return PowerFactoryData(
             name=name,
             date=date,
             project=project,
@@ -402,14 +412,14 @@ class PowerfactoryExporter:
         )
 
     @staticmethod
-    def create_meta_data(data: PowerfactoryData) -> Meta:
+    def create_meta_data(data: PowerFactoryData) -> Meta:
         grid_name = data.name.replace(" ", "-")
         project = data.project.replace(" ", "-")
         date = data.date
 
         return Meta(name=grid_name, date=date, project=project)
 
-    def create_topology(self, meta: Meta, data: PowerfactoryData) -> Topology:
+    def create_topology(self, meta: Meta, data: PowerFactoryData) -> Topology:
         external_grids = self.create_external_grids(
             ext_grids=data.external_grids,
             grid_name=data.name,
@@ -519,6 +529,10 @@ class PowerfactoryExporter:
         t1 = line.bus1.cterm
         t2 = line.bus2.cterm
 
+        if t1.systype != t2.systype:
+            logger.warning("Line {line_name} connected to DC and AC bus. Skipping.", line_name=name)
+            return None
+
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
 
@@ -548,8 +562,7 @@ class PowerfactoryExporter:
         b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
         f_nom = l_type.frnom  # usually 50 Hertz
-
-        u_system_type = VoltageSystemType.DC if l_type.systp else VoltageSystemType.AC  # AC or DC
+        u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
         branch = Branch(
             name=name,
@@ -591,6 +604,13 @@ class PowerfactoryExporter:
             logger.warning("Coupler {coupler} not connected to buses on both sides. Skipping.", coupler=coupler)
             return None
 
+        t1 = coupler.bus1.cterm
+        t2 = coupler.bus2.cterm
+
+        if t1.systype != t2.systype:
+            logger.warning("Coupler {coupler} connected to DC and AC bus. Skipping.", coupler=coupler)
+            return None
+
         if coupler.typ_id is not None:
             r1 = coupler.typ_id.R_on
             x1 = coupler.typ_id.X_on
@@ -602,9 +622,6 @@ class PowerfactoryExporter:
 
         b1 = 0
         g1 = 0
-
-        t1 = coupler.bus1.cterm
-        t2 = coupler.bus2.cterm
 
         u_nom_1 = t1.uknom
         u_nom_2 = t2.uknom
@@ -623,6 +640,8 @@ class PowerfactoryExporter:
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
 
+        u_system_type = VoltageSystemType[TerminalVoltageSystemType(t1.systype).name]
+
         branch = Branch(
             name=name,
             node_1=t1_name,
@@ -635,6 +654,7 @@ class PowerfactoryExporter:
             description=description,
             u_n=u_nom,
             type=BranchType.COUPLER,
+            voltage_system_type=u_system_type,
         )
         logger.debug("Created coupler {branch}.", branch=branch)
         return branch
@@ -692,7 +712,7 @@ class PowerfactoryExporter:
 
         if t_type is not None:
             t_number = transformer_2w.ntnum
-            vector_group = t_type.vecgrp
+            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
 
             ph_technology = self.transformer_phase_technology(t_type)
 
@@ -733,9 +753,9 @@ class PowerfactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_h = t_type.tr2cn_h  # Wiring HV
-            vector_l = t_type.tr2cn_l  # Wiring LV
             vector_phase_angle_clock = t_type.nt2ag
+            vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
+            vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
 
             wh = Winding(
                 node=t_high_name,
@@ -746,7 +766,7 @@ class PowerfactoryExporter:
                 r0=r_0,
                 x1=x_1,
                 x0=x_0,
-                vector_group=vector_h,
+                vector_group=vector_group_h,
                 phase_angle_clock=0,
             )
 
@@ -759,7 +779,7 @@ class PowerfactoryExporter:
                 r0=float(0),
                 x1=float(0),
                 x0=float(0),
-                vector_group=vector_l,
+                vector_group=vector_group_l,
                 phase_angle_clock=int(vector_phase_angle_clock),
             )
 
@@ -840,8 +860,19 @@ class PowerfactoryExporter:
 
     def create_consumer_normal(self, load: PFTypes.Load, grid_name: str) -> Load | None:
         power = self.calc_normal_load_power(load)
+        phase_connection_type = (
+            LoadPhaseConnectionType(load.typ_id.phtech)
+            if load.typ_id is not None
+            else LoadPhaseConnectionType.THREE_PH_D
+        )
         if power is not None:
-            return self.create_consumer(load, power, grid_name)
+            return self.create_consumer(
+                load,
+                power,
+                grid_name,
+                system_type=SystemType.FIXED_CONSUMPTION,
+                phase_connection_type=phase_connection_type,
+            )
 
         return None
 
@@ -867,13 +898,15 @@ class PowerfactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[Load]:
+        phase_connection_type = LoadPhaseConnectionType(load.phtech)
         consumer_fixed = (
             self.create_consumer(
                 load,
                 power.fixed,
                 grid_name,
-                system_type=ConsumerSystemType.FIXED,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.FIXED.value,
+                system_type=SystemType.FIXED_CONSUMPTION,
+                phase_connection_type=phase_connection_type,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -883,8 +916,9 @@ class PowerfactoryExporter:
                 load,
                 power.night,
                 grid_name,
-                system_type=ConsumerSystemType.NIGHT_STORAGE,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                system_type=SystemType.NIGHT_STORAGE,
+                phase_connection_type=phase_connection_type,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -894,8 +928,9 @@ class PowerfactoryExporter:
                 load,
                 power.flexible,
                 grid_name,
-                system_type=ConsumerSystemType.VARIABLE,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.VARIABLE.value,
+                system_type=SystemType.VARIABLE_CONSUMPTION,
+                phase_connection_type=phase_connection_type,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -909,18 +944,26 @@ class PowerfactoryExporter:
 
     def create_load_mv(self, load: PFTypes.LoadMV, grid_name: str) -> Sequence[Load | None]:
         power = self.calc_load_mv_power(load)
+        phase_connection_type = (
+            LoadPhaseConnectionType(load.typ_id.phtech)
+            if load.typ_id is not None
+            else LoadPhaseConnectionType.THREE_PH_D
+        )
         consumer = self.create_consumer(
             load=load,
             power=power.consumer,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
+            system_type=SystemType.FIXED_CONSUMPTION,
             name_suffix="_CONSUMER",
         )
-
         producer = self.create_producer(
             generator=load,
             power=power.producer,
             gen_name=load.loc_name,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
+            system_type=SystemType.OTHER,
             name_suffix="_PRODUCER",
         )
 
@@ -931,7 +974,8 @@ class PowerfactoryExporter:
         load: PFTypes.LoadBase,
         power: LoadPower,
         grid_name: str,
-        system_type: ConsumerSystemType | None = None,
+        system_type: SystemType,
+        phase_connection_type: LoadPhaseConnectionType,
         name_suffix: str = "",
     ) -> Load | None:
         export, description = self.get_description(load)
@@ -941,7 +985,15 @@ class PowerfactoryExporter:
 
         bus = load.bus1
         if bus is None:
-            logger.debug("Load {load_name} not connected to any bus. Skipping.", load_name=load.loc_name)
+            logger.warning("Load {load_name} not connected to any bus. Skipping.", load_name=load.loc_name)
+            return None
+
+        phase_id = bus.cPhInfo
+        if phase_id == "SPN":
+            logger.warning(
+                "Load {load_name} is a 1-phase load which is currently not supported. Skipping.",
+                load_name=load.loc_name,
+            )
             return None
 
         terminal = bus.cterm
@@ -962,7 +1014,13 @@ class PowerfactoryExporter:
         load_model_q = self.load_model_of(load, specifier="q")
         reactive_power = ReactivePower(load_model=load_model_q)
 
-        u_system_type, ph_con = self.consumer_technology_of(load)
+        phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
+        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+        voltage_system_type = (
+            VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
+            if load.typ_id is not None
+            else VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
+        )
 
         consumer = Load(
             name=l_name,
@@ -973,9 +1031,10 @@ class PowerfactoryExporter:
             active_power=active_power,
             reactive_power=reactive_power,
             type=LoadType.CONSUMER,
+            connected_phases=connected_phases,
             system_type=system_type,
-            voltage_system_type=u_system_type,
-            phase_connection_type=ph_con,
+            phase_connection_type=phase_connection_type_,
+            voltage_system_type=voltage_system_type,
         )
         logger.debug("Created consumer {consumer}.", consumer=consumer)
         return consumer
@@ -1020,39 +1079,6 @@ class PowerfactoryExporter:
 
         return LoadModel()  # default: 100% power-const. load
 
-    @staticmethod
-    def consumer_technology_of(
-        load: PFTypes.LoadBase,
-    ) -> tuple[VoltageSystemType | None, ConsumerPhaseConnectionType | None]:
-        phase_con_dict = {
-            0: ConsumerPhaseConnectionType.THREE_PH_D,
-            2: ConsumerPhaseConnectionType.THREE_PH_PH_E,
-            3: ConsumerPhaseConnectionType.THREE_PH_YN,
-            4: ConsumerPhaseConnectionType.TWO_PH_PH_E,
-            5: ConsumerPhaseConnectionType.TWO_PH_YN,
-            7: ConsumerPhaseConnectionType.ONE_PH_PH_PH,
-            8: ConsumerPhaseConnectionType.ONE_PH_PH_E,
-            9: ConsumerPhaseConnectionType.ONE_PH_PH_N,
-        }
-        load_type = load.typ_id
-        if load_type is not None:
-            system_type = VoltageSystemType.DC if load_type.systp else VoltageSystemType.AC  # AC or DC
-            phase_con = None
-            try:
-                phase_con = phase_con_dict[load_type.phtech]
-            except KeyError:
-                logger.warning(
-                    "Wrong phase connection identifier {load_phtech!r} for consumer {consumer_name}. Skipping.",
-                    load_phtech=load_type.phtech,
-                    consumer_name=load.loc_name,
-                )
-
-            return system_type, phase_con
-
-        logger.debug("No load model defined for load {load_name}. Skipping.", load_name=load.loc_name)
-
-        return None, None
-
     def create_producers_normal(
         self,
         generators: Sequence[PFTypes.Generator],
@@ -1066,60 +1092,20 @@ class PowerfactoryExporter:
         generator: PFTypes.Generator,
         grid_name: str,
     ) -> Load | None:
-        producer_system_type = self.producer_system_type_of(generator)
-        producer_phase_connection_type = self.producer_technology_of(generator)
-        external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
+        system_type = SystemType[GeneratorSystemType(generator.aCategory).name]
+        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        external_controller_name = self.get_external_controller_name(generator)
         return self.create_producer(
             generator=generator,
             power=power,
             gen_name=gen_name,
             grid_name=grid_name,
-            producer_system_type=producer_system_type,
-            producer_phase_connection_type=producer_phase_connection_type,
+            phase_connection_type=phase_connection_type,
+            system_type=system_type,
             external_controller_name=external_controller_name,
         )
-
-    @staticmethod
-    def producer_system_type_of(load: PFTypes.Generator) -> ProducerSystemType | None:
-        # dict of plant categories, consisting of english and german key words
-        system_type_dict = {
-            **dict.fromkeys(["Coal", "Kohle"], ProducerSystemType.COAL),
-            **dict.fromkeys(["Oil", "Öl"], ProducerSystemType.OIL),
-            **dict.fromkeys(["Diesel", "Diesel"], ProducerSystemType.DIESEL),
-            **dict.fromkeys(["Nuclear", "Nuklear"], ProducerSystemType.NUCLEAR),
-            **dict.fromkeys(["Hydro", "Wasser"], ProducerSystemType.HYDRO),
-            **dict.fromkeys(["Pump storage", "Pumpspeicher"], ProducerSystemType.PUMP_STORAGE),
-            **dict.fromkeys(["Wind", "Wind"], ProducerSystemType.WIND),
-            **dict.fromkeys(["Biogas", "Biogas"], ProducerSystemType.BIOGAS),
-            **dict.fromkeys(["Solar", "Solar"], ProducerSystemType.SOLAR),
-            **dict.fromkeys(["Others", "Sonstige"], ProducerSystemType.OTHERS),
-            **dict.fromkeys(["Photovoltaic", "Fotovoltaik"], ProducerSystemType.PV),
-            **dict.fromkeys(["Renewable Generation", "Erneuerbare Erzeugung"], ProducerSystemType.RENEWABLE_ENERGY),
-            **dict.fromkeys(["Fuel Cell", "Brennstoffzelle"], ProducerSystemType.FUELCELL),
-            **dict.fromkeys(["Peat", "Torf"], ProducerSystemType.PEAT),
-            **dict.fromkeys(["Other Static Generator", "Statischer Generator"], ProducerSystemType.STAT_GEN),
-            **dict.fromkeys(["HVDC Terminal", "HGÜ-Anschluss"], ProducerSystemType.HVDC),
-            **dict.fromkeys(
-                ["Reactive Power Compensation", "Blindleistungskompensation"],
-                ProducerSystemType.REACTIVE_POWER_COMPENSATOR,
-            ),
-            **dict.fromkeys(["Storage", "Batterie"], ProducerSystemType.BATTERY_STORAGE),
-            **dict.fromkeys(["External Grids", "Externe Netze"], ProducerSystemType.EXTERNAL_GRID_EQUIVALENT),
-        }
-
-        try:
-            system_type = system_type_dict[load.cCategory]
-        except KeyError:
-            system_type = None
-            logger.warning(
-                "Wrong system type identifier {load_category!r} for producer {consumer_name}. Skipping.",
-                load_category=load.cCategory,
-                consumer_name=load.loc_name,
-            )
-
-        return system_type
 
     def create_producers_pv(
         self,
@@ -1134,41 +1120,18 @@ class PowerfactoryExporter:
         generator: PFTypes.PVSystem,
         grid_name: str,
     ) -> Load | None:
-        producer_system_type = ProducerSystemType.PV
-        producer_phase_connection_type = self.producer_technology_of(generator)
-        external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
+        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        system_type = SystemType.PV
         return self.create_producer(
             generator=generator,
             power=power,
             gen_name=gen_name,
             grid_name=grid_name,
-            producer_system_type=producer_system_type,
-            producer_phase_connection_type=producer_phase_connection_type,
-            external_controller_name=external_controller_name,
+            phase_connection_type=phase_connection_type,
+            system_type=system_type,
         )
-
-    @staticmethod
-    def producer_technology_of(load: PFTypes.GeneratorBase) -> ProducerPhaseConnectionType | None:
-        phase_con_dict = {
-            0: ProducerPhaseConnectionType.THREE_PH,
-            1: ProducerPhaseConnectionType.THREE_PH_E,
-            2: ProducerPhaseConnectionType.ONE_PH_PH_E,
-            3: ProducerPhaseConnectionType.ONE_PH_PH_N,
-            4: ProducerPhaseConnectionType.ONE_PH_PH_PH,
-        }
-        phase_con = None
-        try:
-            phase_con = phase_con_dict[load.phtech]
-        except KeyError:
-            logger.warning(
-                "Wrong phase connection identifier {load_phtech!r} for producer {producer_name}. Skipping.",
-                load_phtech=load.phtech,
-                producer_name=load.loc_name,
-            )
-
-        return phase_con
 
     def get_external_controller_name(self, gen: PFTypes.Generator | PFTypes.PVSystem) -> str | None:
         controller = gen.c_pstac
@@ -1190,8 +1153,8 @@ class PowerfactoryExporter:
         gen_name: str,
         power: LoadPower,
         grid_name: str,
-        producer_system_type: ProducerSystemType | None = None,
-        producer_phase_connection_type: ProducerPhaseConnectionType | None = None,
+        system_type: SystemType,
+        phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
         external_controller_name: str | None = None,
         name_suffix: str = "",
     ) -> Load | None:
@@ -1218,6 +1181,9 @@ class PowerfactoryExporter:
         rated_power = power.as_rated_power()
         reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
+        phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
+        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+
         producer = Load(
             name=gen_name,
             node=t_name,
@@ -1227,13 +1193,15 @@ class PowerfactoryExporter:
             active_power=ActivePower(),
             reactive_power=reactive_power,
             type=LoadType.PRODUCER,
-            system_type=producer_system_type,
-            phase_connection_type=producer_phase_connection_type,
+            connected_phases=connected_phases,
+            system_type=system_type,
+            phase_connection_type=phase_connection_type_,
+            voltage_system_type=VoltageSystemType.AC,
         )
         logger.debug("Created producer {producer}.", producer=producer)
         return producer
 
-    def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
+    def create_topology_case(self, meta: Meta, data: PowerFactoryData) -> TopologyCase:
         switch_states = self.create_switch_states(data.switches)
         coupler_states = self.create_coupler_states(data.couplers)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
@@ -1369,7 +1337,7 @@ class PowerfactoryExporter:
 
         return None
 
-    def create_steadystate_case(self, meta: Meta, data: PowerfactoryData) -> SteadystateCase:
+    def create_steadystate_case(self, meta: Meta, data: PowerFactoryData) -> SteadystateCase:
         loads = self.create_loads_ssc(
             consumers=data.loads,
             consumers_lv=data.loads_lv,
@@ -1474,12 +1442,13 @@ class PowerfactoryExporter:
                 p_0=round(ext_grid.pgini * Exponents.POWER, DecimalDigits.POWER),
                 q_0=round(ext_grid.qgini * Exponents.POWER, DecimalDigits.POWER),
             )
+        else:
+            ext_grid_ssc = ExternalGridSSC(name=name)
 
-        ext_grid_ssc = ExternalGridSSC(name=name)
         logger.debug("Created steadystate for external grid {ext_grid_ssc}.", ext_grid_ssc=ext_grid_ssc)
         return ext_grid_ssc
 
-    def create_loads_ssc(  # noqa: PLR0913 # fix
+    def create_loads_ssc(  # noqa: PLR0913
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -1517,9 +1486,8 @@ class PowerfactoryExporter:
     def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:
         power = self.calc_normal_load_power_sym(load) if not load.i_sym else self.calc_normal_load_power_asym(load)
 
-        if power is not None:  # noqa: SIM102
-            if not power.is_empty:
-                return power
+        if power:
+            return power
 
         logger.warning("Power is not set for load {load_name}. Skipping.", load_name=load.loc_name)
         return None
@@ -1733,7 +1701,7 @@ class PowerfactoryExporter:
                 load,
                 power.fixed,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.FIXED.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1743,7 +1711,7 @@ class PowerfactoryExporter:
                 load,
                 power.night,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.NIGHT_STORAGE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1753,7 +1721,7 @@ class PowerfactoryExporter:
                 load,
                 power.flexible,
                 grid_name,
-                name_suffix=sfx_pre.format(index) + "_" + ConsumerSystemType.VARIABLE.value,
+                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -2123,7 +2091,9 @@ class PowerfactoryExporter:
         else:
             return None
 
-        if gen.av_mode == LocalQCtrlMode.COSPHI_CONST:
+        av_mode = LocalQCtrlMode(gen.av_mode)
+
+        if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
             cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             q_controller: ControlType = ControlCosphiConst(
@@ -2133,7 +2103,7 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_CONST:
+        if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             q_controller = ControlQConst(
                 node_target=node_target,
@@ -2141,7 +2111,7 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_U:
+        if av_mode == LocalQCtrlMode.Q_U:
             cosphi_a = gen.cosn
             q_max_ue = abs(gen.Qfu_min)  # absolute value
             q_max_oe = abs(gen.Qfu_max)  # absolute value
@@ -2163,14 +2133,14 @@ class PowerfactoryExporter:
             q_controller.control_strategy
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.Q_P:
+        if av_mode == LocalQCtrlMode.Q_P:
             if gen.pQPcurve is None:
                 return None
 
             q_controller = ControlQP(node_target=node_target, q_p_characteristic_name=gen.pQPcurve.loc_name)
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.COSPHI_P:
+        if av_mode == LocalQCtrlMode.COSPHI_P:
             cosphi_ue = gen.pf_under
             cosphi_oe = gen.pf_over
             p_threshold_ue = gen.p_under * -1  # P-threshold for cosphi_ue
@@ -2184,19 +2154,19 @@ class PowerfactoryExporter:
             )
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.U_CONST:
+        if av_mode == LocalQCtrlMode.U_CONST:
             u_set = gen.usetp
             q_controller = ControlUConst(node_target=node_target, u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
             return Controller(control_type=q_controller)
 
-        if gen.av_mode == LocalQCtrlMode.U_Q_DROOP:
+        if av_mode == LocalQCtrlMode.U_Q_DROOP:
             logger.warning(
                 "Generator {gen_name}: Voltage control with Q-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
             )
             return None
 
-        if gen.av_mode == LocalQCtrlMode.U_I_DROOP:
+        if av_mode == LocalQCtrlMode.U_I_DROOP:
             logger.warning(
                 "Generator {gen_name}: Voltage control with I-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
@@ -2227,18 +2197,8 @@ class PowerfactoryExporter:
 
         ctrl_mode = controller.i_ctrl
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
-            u_meas_ref_dict = {
-                CtrlVoltageRef.POS_SEQ: ControlledVoltageRef.POS_SEQ,
-                CtrlVoltageRef.AVG: ControlledVoltageRef.AVG,
-                CtrlVoltageRef.A: ControlledVoltageRef.A,
-                CtrlVoltageRef.B: ControlledVoltageRef.B,
-                CtrlVoltageRef.C: ControlledVoltageRef.C,
-                CtrlVoltageRef.AB: ControlledVoltageRef.AB,
-                CtrlVoltageRef.BC: ControlledVoltageRef.BC,
-                CtrlVoltageRef.CA: ControlledVoltageRef.CA,
-            }
             u_set = controller.usetp
-            u_meas_ref = u_meas_ref_dict[controller.i_phase]
+            u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
             q_controller: ControlType = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
@@ -2407,18 +2367,19 @@ class PowerfactoryExporter:
         raise RuntimeError(msg)
 
 
-def export_powerfactory_data(  # noqa: PLR0913 # fix
+def export_powerfactory_data(  # noqa: PLR0913
     export_path: pathlib.Path,
     project_name: str,
     grid_name: str,
     powerfactory_user_profile: str = "",
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
     powerfactory_version: str = POWERFACTORY_VERSION,
+    python_version: str = PYTHON_VERSION,
     topology_name: str | None = None,
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
 ) -> None:
-    """Export powerfactory data to json files using PowerfactoryExporter running in process.
+    """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
     A grid given in DIgSILENT PowerFactory is exported to three json files with given schema.
     The whole grid data is separated into topology (raw assets), topology_case (binary switching info and out of service
@@ -2440,13 +2401,14 @@ def export_powerfactory_data(  # noqa: PLR0913 # fix
             None
     """
 
-    process = PowerfactoryExporterProcess(
+    process = PowerFactoryExporterProcess(
         project_name=project_name,
         export_path=export_path,
         grid_name=grid_name,
         powerfactory_user_profile=powerfactory_user_profile,
         powerfactory_path=powerfactory_path,
         powerfactory_version=powerfactory_version,
+        python_version=python_version,
         topology_name=topology_name,
         topology_case_name=topology_case_name,
         steadystate_case_name=steadystate_case_name,

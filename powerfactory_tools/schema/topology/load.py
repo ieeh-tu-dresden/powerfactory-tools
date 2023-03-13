@@ -4,7 +4,8 @@
 
 from __future__ import annotations
 
-from enum import Enum
+import enum
+from collections.abc import Sequence  # noqa: TCH003
 
 import pydantic
 
@@ -14,65 +15,53 @@ from powerfactory_tools.schema.topology.active_power import ActivePower  # noqa:
 from powerfactory_tools.schema.topology.reactive_power import ReactivePower  # noqa: TCH001
 
 
-class CosphiDir(Enum):
-    UE = "UE"  # under excited operation
-    OE = "OE"  # over excited operation
-
-
-class LoadType(Enum):
+class LoadType(enum.Enum):
     CONSUMER = "CONSUMER"
     PRODUCER = "PRODUCER"
+    STORAGE = "STORAGE"
 
 
-class ProducerSystemType(Enum):
-    COAL = "COAL"  # coal
-    OIL = "OIL"  # oil
-    GAS = "GAS"  # gas
-    DIESEL = "DIESEL"  # dies
-    NUCLEAR = "NUCLEAR"  # nuc
-    HYDRO = "HYDRO"  # hydr
-    PUMP_STORAGE = "PUMP_STORAGE"  # pump
-    WIND = "WIND"  # wgen
-    BIOGAS = "BIOGAS"  # bgas
-    SOLAR = "SOLAR"  # sol
-    PV = "PV"  # pv
-    RENEWABLE_ENERGY = "RENEWABLE_ENERGY"  # reng
-    FUELCELL = "FUELCELL"  # fc
-    PEAT = "PEAT"  # peat
-    STAT_GEN = "STAT_GEN"  # stg
-    HVDC = "HVDC"  # hvdc
-    REACTIVE_POWER_COMPENSATOR = "REACTIVE_POWER_COMPENSATOR"  # rpc
-    BATTERY_STORAGE = "BATTERY_STORAGE"  # stor
-    EXTERNAL_GRID_EQUIVALENT = "EXTERNAL_GRID_EQUIVALENT"  # net
-    OTHERS = "OTHERS"  # othg
-
-
-class ConsumerPhaseConnectionType(Enum):
-    THREE_PH_D = "3PH_D"  # 0
-    THREE_PH_PH_E = "3PH_PH-E"  # 2
-    THREE_PH_YN = "3PH_YN"  # 3
-    TWO_PH_PH_E = "2PH_PH-E"  # 4
-    TWO_PH_YN = "2PH_YN"  # 5
-    ONE_PH_PH_PH = "1PH_PH-PH"  # 7
-    ONE_PH_PH_E = "1PH_PH-E"  # 8
-    ONE_PH_PH_N = "1PH_PH-N"  # 9
-
-
-class ProducerPhaseConnectionType(Enum):
-    THREE_PH = "3PH"  # 0
-    THREE_PH_E = "3PH-E"  # 1
-    ONE_PH_PH_E = "1PH_PH-E"  # 2
-    ONE_PH_PH_N = "1PH_PH-N"  # 3
-    ONE_PH_PH_PH = "1PH_PH-PH"  # 4
-
-
-PhaseConnectionType = ConsumerPhaseConnectionType | ProducerPhaseConnectionType
-
-
-class ConsumerSystemType(Enum):
-    FIXED = "FIXED"
+class SystemType(enum.Enum):
+    COAL = "COAL"
+    OIL = "OIL"
+    GAS = "GAS"
+    DIESEL = "DIESEL"
+    NUCLEAR = "NUCLEAR"
+    HYDRO = "HYDRO"
+    PUMP_STORAGE = "PUMP_STORAGE"
+    WIND = "WIND"
+    BIOGAS = "BIOGAS"
+    SOLAR = "SOLAR"
+    PV = "PV"
+    RENEWABLE_ENERGY = "RENEWABLE_ENERGY"
+    FUELCELL = "FUELCELL"
+    PEAT = "PEAT"
+    STAT_GEN = "STAT_GEN"
+    HVDC = "HVDC"
+    REACTIVE_POWER_COMPENSATOR = "REACTIVE_POWER_COMPENSATOR"
+    BATTERY_STORAGE = "BATTERY_STORAGE"
+    EXTERNAL_GRID_EQUIVALENT = "EXTERNAL_GRID_EQUIVALENT"
+    OTHER = "OTHER"
     NIGHT_STORAGE = "NIGHT_STORAGE"
-    VARIABLE = "VARIABLE"
+    FIXED_CONSUMPTION = "FIXED_CONSUMPTION"
+    VARIABLE_CONSUMPTION = "VARIABLE_CONSUMPTION"
+
+
+class PhaseConnectionType(enum.Enum):
+    THREE_PH_D = "THREE_PH_D"
+    THREE_PH_PH_E = "THREE_PH_PH_E"
+    THREE_PH_YN = "THREE_PH_YN"
+    TWO_PH_PH_E = "TWO_PH_PH_E"
+    TWO_PH_YN = "TWO_PH_YN"
+    ONE_PH_PH_PH = "ONE_PH_PH_PH"
+    ONE_PH_PH_E = "ONE_PH_PH_E"
+    ONE_PH_PH_N = "ONE_PH_PH_N"
+
+
+class Phase(enum.Enum):
+    A = "A"
+    B = "B"
+    C = "C"
 
 
 THRESHOLD = 0.51  # acceptable rounding error (0.5 W) + epsilon for calculation accuracy (0.01 W)
@@ -114,12 +103,13 @@ class RatedPower(Base):
 class Load(Base):  # including assets of type load and generator
     name: str
     node: str
-    description: str | None = None
     u_n: float  # nominal voltage of the connected node
     rated_power: RatedPower
     active_power: ActivePower
     reactive_power: ReactivePower
     type: LoadType  # noqa: A003
-    system_type: ConsumerSystemType | ProducerSystemType | None = None
-    phase_connection_type: PhaseConnectionType | None = None
-    voltage_system_type: VoltageSystemType | None = None
+    connected_phases: Sequence[Phase]
+    system_type: SystemType
+    phase_connection_type: PhaseConnectionType
+    voltage_system_type: VoltageSystemType
+    description: str | None = None

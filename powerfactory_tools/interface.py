@@ -5,22 +5,25 @@
 
 from __future__ import annotations
 
-import dataclasses as dcs
 import importlib.util
 import itertools
 import pathlib
 import typing
+from collections.abc import Sequence  # noqa: TCH003 # bug
 from typing import TYPE_CHECKING
 
+import pydantic
 from loguru import logger
 
 from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.powerfactory_types import Currency
+from powerfactory_tools.powerfactory_types import MetricPrefix
+from powerfactory_tools.powerfactory_types import UnitSystem
+from powerfactory_tools.schema.base import Base
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
-    from collections.abc import Sequence
     from typing import Any
-    from typing import Literal
     from typing import TypeVar
 
     from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
@@ -33,29 +36,36 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-@dcs.dataclass
-class UnitConversionSetting:
+class UnitConversionSetting(Base):
     filtclass: Sequence[str]
     filtvar: str
     digunit: str
-    cdigexp: PFTypes.MetricPrefix
+    cdigexp: MetricPrefix
     userunit: str
-    cuserexp: PFTypes.MetricPrefix
+    cuserexp: MetricPrefix
     ufacA: float  # noqa: N815
     ufacB: float  # noqa: N815
 
 
-@dcs.dataclass
-class ProjectUnitSetting:
-    ilenunit: Literal[0, 1, 2]
-    clenexp: PFTypes.MetricPrefix  # Lengths
-    cspqexp: PFTypes.MetricPrefix  # Loads etc.
-    cspqexpgen: PFTypes.MetricPrefix  # Generators etc.
-    currency: PFTypes.Currency
+class ProjectUnitSetting(Base):
+    ilenunit: UnitSystem
+    clenexp: MetricPrefix  # Lengths
+    cspqexp: MetricPrefix  # Loads etc.
+    cspqexpgen: MetricPrefix  # Generators etc.
+    currency: Currency
 
 
-@dcs.dataclass
-class PowerfactoryInterface:
+DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
+    ilenunit=UnitSystem.METRIC,
+    clenexp=BaseUnits.LENGTH,
+    cspqexp=BaseUnits.POWER,
+    cspqexpgen=BaseUnits.POWER,
+    currency=BaseUnits.CURRENCY,
+)
+
+
+@pydantic.dataclasses.dataclass
+class PowerFactoryInterface:
     project_name: str
     powerfactory_user_profile: str | None = None
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
@@ -88,7 +98,7 @@ class PowerfactoryInterface:
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         module_path = (
-            self.powerfactory_path / ("Powerfactory " + self.powerfactory_version) / "Python" / self.python_version
+            self.powerfactory_path / ("PowerFactory " + self.powerfactory_version) / "Python" / self.python_version
         )
         spec = importlib.util.spec_from_file_location(
             "powerfactory",
@@ -195,11 +205,11 @@ class PowerfactoryInterface:
     def set_default_unit_conversion(self) -> None:
         self.save_unit_conversion_settings_to_temp()
         project_settings = self.load_project_settings_dir_from_pf()
-        project_settings.ilenunit = 0
-        project_settings.clenexp = BaseUnits.LENGTH
-        project_settings.cspqexp = BaseUnits.POWER
-        project_settings.cspqexpgen = BaseUnits.POWER
-        project_settings.currency = BaseUnits.CURRENCY
+        project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
+        project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
+        project_settings.cspqexp = DEFAULT_PROJECT_UNIT_SETTING.cspqexp
+        project_settings.cspqexpgen = DEFAULT_PROJECT_UNIT_SETTING.cspqexpgen
+        project_settings.currency = DEFAULT_PROJECT_UNIT_SETTING.currency
         for cls, data in BaseUnits.UNITCONVERSIONS.items():
             for unit, base_exp, exp in data:
                 name = f"{cls}-{unit}"
@@ -220,11 +230,11 @@ class PowerfactoryInterface:
     def save_unit_conversion_settings_to_temp(self) -> None:
         project_settings = self.load_project_settings_dir_from_pf()
         self.project_unit_setting = ProjectUnitSetting(
-            ilenunit=project_settings.ilenunit,
-            clenexp=project_settings.clenexp,
-            cspqexp=project_settings.cspqexp,
-            cspqexpgen=project_settings.cspqexpgen,
-            currency=project_settings.currency,
+            ilenunit=UnitSystem(project_settings.ilenunit),
+            clenexp=MetricPrefix(project_settings.clenexp),
+            cspqexp=MetricPrefix(project_settings.cspqexp),
+            cspqexpgen=MetricPrefix(project_settings.cspqexpgen),
+            currency=Currency(project_settings.currency),
         )
         unit_conversion_settings = self.unit_conversion_settings()
         self.unit_conv_settings: dict[str, UnitConversionSetting] = {}
@@ -486,7 +496,7 @@ class PowerfactoryInterface:
         uc: UnitConversionSetting,
     ) -> PFTypes.UnitConversionSetting | None:
         if self.unit_settings_dir is not None:
-            data = dcs.asdict(uc)
+            data = uc.dict()
             element = self.create_object(
                 name=name,
                 class_name="SetVariable",

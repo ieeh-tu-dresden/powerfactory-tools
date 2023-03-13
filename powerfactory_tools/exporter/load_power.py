@@ -13,9 +13,9 @@ from loguru import logger
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
+from powerfactory_tools.schema.base import CosphiDir
 from powerfactory_tools.schema.steadystate_case.active_power import ActivePower
 from powerfactory_tools.schema.steadystate_case.reactive_power import ReactivePower
-from powerfactory_tools.schema.topology.load import CosphiDir
 from powerfactory_tools.schema.topology.load import RatedPower
 
 if TYPE_CHECKING:
