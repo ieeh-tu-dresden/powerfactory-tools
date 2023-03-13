@@ -107,7 +107,7 @@ class PowerfactoryInterface:
             pfm = importlib.util.module_from_spec(spec)
             if spec.loader is not None:
                 spec.loader.exec_module(pfm)
-                logger.debug("Loading PowerFactory Pyton module... Done.")
+                logger.debug("Loading PowerFactory Python module... Done.")
                 return typing.cast("PFTypes.PowerFactoryModule", pfm)
 
         msg = "Could not load PowerFactory Module."
