@@ -209,6 +209,7 @@ class PowerfactoryExporter:
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data
         """
 
+        logger.debug("Exporting {project_name}...", project_name=self.project_name)
         data = self.compile_powerfactory_data()
         meta = self.create_meta_data(data=data)
 
@@ -255,6 +256,7 @@ class PowerfactoryExporter:
             verify_steadystate_case {bool} -- if True, associated topology is created to be checked against
         """
 
+        logger.debug("Exporting scenario {scenario_name}...", scenario_name=scenario_name)
         if scenario_name is not None:
             self.switch_scenario(scenario_name)
 
@@ -281,6 +283,7 @@ class PowerfactoryExporter:
         )
 
     def export_topology(self, topology: Topology, topology_name: str | None, export_path: pathlib.Path) -> None:
+        logger.debug("Exporting topology {topology_name}...", topology_name=topology_name)
         self.export_data(
             data=topology,
             data_name=topology_name,
@@ -294,6 +297,7 @@ class PowerfactoryExporter:
         topology_case_name: str | None,
         export_path: pathlib.Path,
     ) -> None:
+        logger.debug("Exporting topology case {topology_case_name}...", topology_case_name=topology_case_name)
         self.export_data(
             data=topology_case,
             data_name=topology_case_name,
@@ -307,6 +311,10 @@ class PowerfactoryExporter:
         steadystate_case_name: str | None,
         export_path: pathlib.Path,
     ) -> None:
+        logger.debug(
+            "Exporting steadystate case {steadystate_case_name}...",
+            steadystate_case_name=steadystate_case_name,
+        )
         self.export_data(
             data=steadystate_case,
             data_name=steadystate_case_name,
@@ -362,6 +370,7 @@ class PowerfactoryExporter:
             raise RuntimeError(msg)
 
     def compile_powerfactory_data(self) -> PowerfactoryData:
+        logger.debug("Compiling data from PowerFactory...")
         if self.grid_name == "*":
             name = self.project_name
         else:
@@ -397,6 +406,7 @@ class PowerfactoryExporter:
 
     @staticmethod
     def create_meta_data(data: PowerfactoryData) -> Meta:
+        logger.debug("Creating meta data...")
         grid_name = data.name.replace(" ", "-")
         project = data.project.replace(" ", "-")
         date = data.date
@@ -404,6 +414,7 @@ class PowerfactoryExporter:
         return Meta(name=grid_name, date=date, project=project)
 
     def create_topology(self, meta: Meta, data: PowerfactoryData) -> Topology:
+        logger.debug("Creating topology...")
         external_grids = self.create_external_grids(
             ext_grids=data.external_grids,
             grid_name=data.name,
@@ -437,6 +448,7 @@ class PowerfactoryExporter:
         ext_grids: Sequence[PFTypes.ExternalGrid],
         grid_name: str,
     ) -> Sequence[ExternalGrid]:
+        logger.info("Creating external grids...")
         external_grids = [self.create_external_grid(ext_grid, grid_name) for ext_grid in ext_grids]
         return self.pfi.filter_none(external_grids)
 
@@ -446,6 +458,7 @@ class PowerfactoryExporter:
         grid_name: str,
     ) -> ExternalGrid | None:
         name = self.pfi.create_name(ext_grid, grid_name)
+        logger.debug("Creating external_grid {ext_grid_name}...", ext_grid_name=name)
         export, description = self.get_description(ext_grid)
         if not export:
             logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
@@ -457,7 +470,7 @@ class PowerfactoryExporter:
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name)
 
-        external_grid = ExternalGrid(
+        return ExternalGrid(
             name=name,
             description=description,
             node=node_name,
@@ -465,16 +478,16 @@ class PowerfactoryExporter:
             short_circuit_power_max=ext_grid.snss,
             short_circuit_power_min=ext_grid.snssmin,
         )
-        logger.debug("Created external grid {external_grid}.", external_grid=external_grid)
-        return external_grid
 
     def create_nodes(self, terminals: Sequence[PFTypes.Terminal], grid_name: str) -> Sequence[Node]:
+        logger.info("Creating nodes...")
         nodes = [self.create_node(terminal, grid_name) for terminal in terminals]
         return self.pfi.filter_none(nodes)
 
     def create_node(self, terminal: PFTypes.Terminal, grid_name: str) -> Node | None:
         export, description = self.get_description(terminal)
         name = self.pfi.create_name(terminal, grid_name)
+        logger.debug("Creating node {node_name}...", node_name=name)
         if not export:
             logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
@@ -484,9 +497,7 @@ class PowerfactoryExporter:
         if self.pfi.is_within_substation(terminal):
             description = "substation internal" if description == "" else "substation internal; " + description
 
-        node = Node(name=name, u_n=u_n, description=description)
-        logger.debug("Created node {node}.", node=node)
-        return node
+        return Node(name=name, u_n=u_n, description=description)
 
     def create_branches(
         self,
@@ -494,6 +505,7 @@ class PowerfactoryExporter:
         couplers: Sequence[PFTypes.Coupler],
         grid_name: str,
     ) -> Sequence[Branch]:
+        logger.info("Creating branches...")
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
 
@@ -501,6 +513,7 @@ class PowerfactoryExporter:
 
     def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(line, grid_name)
+        logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
         if not export:
             logger.warning("Line {line_name} not set for export. Skipping.", line_name=name)
@@ -545,7 +558,7 @@ class PowerfactoryExporter:
 
         u_system_type = VoltageSystemType.DC if l_type.systp else VoltageSystemType.AC  # AC or DC
 
-        branch = Branch(
+        return Branch(
             name=name,
             node_1=t1_name,
             node_2=t2_name,
@@ -564,8 +577,6 @@ class PowerfactoryExporter:
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
         )
-        logger.debug("Created line {branch}.", branch=branch)
-        return branch
 
     @staticmethod
     def determine_line_voltage(u_nom_1: float, u_nom_2: float, l_type: PFTypes.LineType) -> float:
@@ -576,6 +587,7 @@ class PowerfactoryExporter:
 
     def create_coupler(self, coupler: PFTypes.Coupler, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(coupler, grid_name)
+        logger.debug("Creating coupler {coupler_name}...", coupler_name=name)
         export, description = self.get_description(coupler)
         if not export:
             logger.warning("Coupler {coupler_name} not set for export. Skipping.", coupler_name=name)
@@ -617,7 +629,7 @@ class PowerfactoryExporter:
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
 
-        branch = Branch(
+        return Branch(
             name=name,
             node_1=t1_name,
             node_2=t2_name,
@@ -630,8 +642,6 @@ class PowerfactoryExporter:
             u_n=u_nom,
             type=BranchType.COUPLER,
         )
-        logger.debug("Created coupler {branch}.", branch=branch)
-        return branch
 
     def get_coupler_description(
         self,
@@ -652,6 +662,7 @@ class PowerfactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
+        logger.info("Creating transformers...")
         return self.create_transformers_2w(pf_transformers_2w, grid_name)
 
     def create_transformers_2w(
@@ -659,19 +670,24 @@ class PowerfactoryExporter:
         transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
+        logger.info("Creating 2-winding transformers...")
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
     def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
         name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
+        logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
         if not export:
-            logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
+            logger.warning(
+                "2-winding transformer {transformer_name} not set for export. Skipping.",
+                transformer_name=name,
+            )
             return None
 
         if transformer_2w.buslv is None or transformer_2w.bushv is None:
             logger.warning(
-                "Transformer {transformer_name} not connected to buses on both sides. Skipping.",
+                "2-winding transformer {transformer_name} not connected to buses on both sides. Skipping.",
                 transformer_name=name,
             )
             return None
@@ -700,7 +716,7 @@ class PowerfactoryExporter:
 
             if bool(t_type.itapch2) is True:
                 logger.warning(
-                    "Transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
+                    "2-winding transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
                     transformer_name=name,
                 )
                 return None
@@ -776,7 +792,7 @@ class PowerfactoryExporter:
                 windings=[wh, wl],
             )
 
-        logger.warning("Type not set for transformer {transformer_name}. Skipping.", transformer_name=name)
+        logger.warning("Type not set for 2-winding transformer {transformer_name}. Skipping.", transformer_name=name)
         return None
 
     @staticmethod
@@ -821,6 +837,7 @@ class PowerfactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[Load]:
+        logger.info("Creating loads...")
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
         load_mvs = self.create_loads_mv(consumers_mv, grid_name)
@@ -829,6 +846,7 @@ class PowerfactoryExporter:
         return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
 
     def create_consumers_normal(self, loads: Sequence[PFTypes.Load], grid_name: str) -> Sequence[Load]:
+        logger.info("Creating normal consumers...")
         consumers = [self.create_consumer_normal(load=load, grid_name=grid_name) for load in loads]
         return self.pfi.filter_none(consumers)
 
@@ -840,10 +858,12 @@ class PowerfactoryExporter:
         return None
 
     def create_consumers_lv(self, loads: Sequence[PFTypes.LoadLV], grid_name: str) -> Sequence[Load]:
+        logger.info("Creating low voltage consumers...")
         consumers_lv_parts = [self.create_consumers_lv_parts(load, grid_name) for load in loads]
         return self.pfi.list_from_sequences(*consumers_lv_parts)
 
     def create_consumers_lv_parts(self, load: PFTypes.LoadLV, grid_name: str) -> Sequence[Load]:
+        logger.debug("Creating subconsumers for low voltage consumer {name}...", name=load.loc_name)
         powers = self.calc_load_lv_powers(load)
         sfx_pre = "" if len(powers) == 1 else "_({})"
 
@@ -861,6 +881,11 @@ class PowerfactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[Load]:
+        logger.debug(
+            "Creating partial consumers for subconsumer {index} of low voltage consumer {name}...",
+            index=index,
+            name=load.loc_name,
+        )
         consumer_fixed = (
             self.create_consumer(
                 load,
@@ -897,12 +922,14 @@ class PowerfactoryExporter:
         return self.pfi.filter_none([consumer_fixed, consumer_night, consumer_flex])
 
     def create_loads_mv(self, loads: Sequence[PFTypes.LoadMV], grid_name: str) -> Sequence[Load]:
+        logger.info("Creating medium voltage loads...")
         loads_mv_ = [self.create_load_mv(load=load, grid_name=grid_name) for load in loads]
         loads_mv = self.pfi.list_from_sequences(*loads_mv_)
         return self.pfi.filter_none(loads_mv)
 
     def create_load_mv(self, load: PFTypes.LoadMV, grid_name: str) -> Sequence[Load | None]:
         power = self.calc_load_mv_power(load)
+        logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
         consumer = self.create_consumer(
             load=load,
             power=power.consumer,
@@ -928,25 +955,26 @@ class PowerfactoryExporter:
         system_type: ConsumerSystemType | None = None,
         name_suffix: str = "",
     ) -> Load | None:
+        l_name = self.pfi.create_name(load, grid_name) + name_suffix
+        logger.debug("Creating consumer {load_name}...", load_name=l_name)
         export, description = self.get_description(load)
         if not export:
-            logger.warning("Load {load_name} not set for export. Skipping.", load_name=load.loc_name)
+            logger.warning("Consumer {load_name} not set for export. Skipping.", load_name=l_name)
             return None
 
         bus = load.bus1
         if bus is None:
-            logger.debug("Load {load_name} not connected to any bus. Skipping.", load_name=load.loc_name)
+            logger.debug("Consumer {load_name} not connected to any bus. Skipping.", load_name=l_name)
             return None
 
         terminal = bus.cterm
-        l_name = self.pfi.create_name(load, grid_name) + name_suffix
         t_name = self.pfi.create_name(terminal, grid_name)
 
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         rated_power = power.as_rated_power()
         logger.debug(
-            "{load_name}: there is no real rated, but 's' is calculated on basis of actual power.",
+            "{load_name}: there is no real rated power, it is calculated based on actual power.",
             load_name=load.loc_name,
         )
 
@@ -958,7 +986,7 @@ class PowerfactoryExporter:
 
         u_system_type, ph_con = self.consumer_technology_of(load)
 
-        consumer = Load(
+        return Load(
             name=l_name,
             node=t_name,
             description=description,
@@ -971,8 +999,6 @@ class PowerfactoryExporter:
             voltage_system_type=u_system_type,
             phase_connection_type=ph_con,
         )
-        logger.debug("Created consumer {consumer}.", consumer=consumer)
-        return consumer
 
     @staticmethod
     def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:
@@ -983,7 +1009,7 @@ class PowerfactoryExporter:
                     "Please check load model setting of {load_name} for RMS simulation.",
                     load_name=load.loc_name,
                 )
-                logger.info(  # noqa: PLE1206
+                logger.info(
                     "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
@@ -1052,6 +1078,7 @@ class PowerfactoryExporter:
         generators: Sequence[PFTypes.Generator],
         grid_name: str,
     ) -> Sequence[Load]:
+        logger.info("Creating normal producers...")
         producers = [self.create_producer_normal(generator=generator, grid_name=grid_name) for generator in generators]
         return self.pfi.filter_none(producers)
 
@@ -1060,11 +1087,11 @@ class PowerfactoryExporter:
         generator: PFTypes.Generator,
         grid_name: str,
     ) -> Load | None:
+        gen_name = self.pfi.create_generator_name(generator)
         producer_system_type = self.producer_system_type_of(generator)
         producer_phase_connection_type = self.producer_technology_of(generator)
         external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
-        gen_name = self.pfi.create_generator_name(generator)
         return self.create_producer(
             generator=generator,
             power=power,
@@ -1120,6 +1147,7 @@ class PowerfactoryExporter:
         generators: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[Load]:
+        logger.info("Creating PV producers...")
         producers = [self.create_producer_pv(generator=generator, grid_name=grid_name) for generator in generators]
         return self.pfi.filter_none(producers)
 
@@ -1128,11 +1156,11 @@ class PowerfactoryExporter:
         generator: PFTypes.PVSystem,
         grid_name: str,
     ) -> Load | None:
+        gen_name = self.pfi.create_generator_name(generator)
         producer_system_type = ProducerSystemType.PV
         producer_phase_connection_type = self.producer_technology_of(generator)
         external_controller_name = self.get_external_controller_name(generator)
         power = self.calc_normal_gen_power(generator)
-        gen_name = self.pfi.create_generator_name(generator)
         return self.create_producer(
             generator=generator,
             power=power,
@@ -1190,7 +1218,7 @@ class PowerfactoryExporter:
         name_suffix: str = "",
     ) -> Load | None:
         gen_name = self.pfi.create_name(generator, grid_name, element_name=gen_name) + name_suffix
-
+        logger.debug("Creating producer {gen_name}...", gen_name=gen_name)
         export, description = self.get_description(generator)
         if not export:
             logger.warning(
@@ -1212,7 +1240,7 @@ class PowerfactoryExporter:
         rated_power = power.as_rated_power()
         reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
-        producer = Load(
+        return Load(
             name=gen_name,
             node=t_name,
             description=description,
@@ -1224,10 +1252,9 @@ class PowerfactoryExporter:
             system_type=producer_system_type,
             phase_connection_type=producer_phase_connection_type,
         )
-        logger.debug("Created producer {producer}.", producer=producer)
-        return producer
 
     def create_topology_case(self, meta: Meta, data: PowerfactoryData) -> TopologyCase:
+        logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(data.switches)
         coupler_states = self.create_coupler_states(data.couplers)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
@@ -1277,6 +1304,7 @@ class PowerfactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
+        logger.info("Creating switch states...")
         states = [self.create_switch_state(switch=switch) for switch in switches]
         return self.pfi.filter_none(states)
 
@@ -1288,6 +1316,11 @@ class PowerfactoryExporter:
                 terminal = cub.cterm
                 node_name = self.pfi.create_name(terminal, self.grid_name)
                 element_name = self.pfi.create_name(element, self.grid_name)
+                logger.debug(
+                    "Creating switch state {node_name}-{element_name}...",
+                    node_name=node_name,
+                    element_name=element_name,
+                )
                 return ElementState(name=element_name, open_switches=(node_name,))
 
         return None
@@ -1303,12 +1336,17 @@ class PowerfactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
+        logger.info("Creating coupler states...")
         states = [self.create_coupler_state(coupler=coupler) for coupler in couplers]
         return self.pfi.filter_none(states)
 
     def create_coupler_state(self, coupler: PFTypes.Coupler) -> ElementState | None:
         if not coupler.isclosed:
             element_name = self.pfi.create_name(coupler, self.grid_name)
+            logger.debug(
+                "Creating switch state {element_name}...",
+                element_name=element_name,
+            )
             return ElementState(name=element_name, disabled=True)
 
         return None
@@ -1325,12 +1363,17 @@ class PowerfactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
+        logger.info("Creating node power on states...")
         states = [self.create_node_power_on_state(terminal=terminal) for terminal in terminals]
         return self.pfi.filter_none(states)
 
     def create_node_power_on_state(self, terminal: PFTypes.Terminal) -> ElementState | None:
         if terminal.outserv:
             node_name = self.pfi.create_name(terminal, self.grid_name)
+            logger.debug(
+                "Creating node power on state {node_name}...",
+                node_name=node_name,
+            )
             return ElementState(name=node_name, disabled=True)
 
         return None
@@ -1349,7 +1392,7 @@ class PowerfactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-
+        logger.info("Creating element power on states...")
         states = [self.create_element_power_on_state(element=element) for element in elements]
         return self.pfi.filter_none(states)
 
@@ -1359,11 +1402,16 @@ class PowerfactoryExporter:
     ) -> ElementState | None:
         if element.outserv:
             element_name = self.pfi.create_name(element, self.grid_name)
+            logger.debug(
+                "Creating element power on state {element_name}...",
+                element_name=element_name,
+            )
             return ElementState(name=element_name, disabled=True)
 
         return None
 
     def create_steadystate_case(self, meta: Meta, data: PowerfactoryData) -> SteadystateCase:
+        logger.info("Creating steadystate case...")
         loads = self.create_loads_ssc(
             consumers=data.loads,
             consumers_lv=data.loads_lv,
@@ -1393,6 +1441,7 @@ class PowerfactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
+        logger.info("Creating transformers steadystate case...")
         transformers_2w_sscs = self.create_transformers_2w_ssc(pf_transformers_2w, grid_name)
         return self.pfi.list_from_sequences(transformers_2w_sscs)
 
@@ -1401,6 +1450,7 @@ class PowerfactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
+        logger.info("Creating 2-winding transformers steadystate cases...")
         transformers_2w_sscs = [
             self.create_transformer_2w_ssc(pf_transformer_2w=pf_transformer_2w, grid_name=grid_name)
             for pf_transformer_2w in pf_transformers_2w
@@ -1413,6 +1463,7 @@ class PowerfactoryExporter:
         grid_name: str,
     ) -> TransformerSSC | None:
         name = self.pfi.create_name(pf_transformer_2w, grid_name)
+        logger.debug("Creating 2-winding transformer {transformer_name} steadystate case...", transformer_name=name)
         export, _ = self.get_description(pf_transformer_2w)
         if not export:
             logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
@@ -1422,15 +1473,14 @@ class PowerfactoryExporter:
         t_type = pf_transformer_2w.typ_id
         tap_pos = None if t_type is None else pf_transformer_2w.nntap
 
-        transformer_ssc = TransformerSSC(name=name, tap_pos=tap_pos)
-        logger.debug("Created steadystate for transformer_2w {transformer_ssc}.", transformer_ssc=transformer_ssc)
-        return transformer_ssc
+        return TransformerSSC(name=name, tap_pos=tap_pos)
 
     def create_external_grid_ssc(
         self,
         ext_grids: Sequence[PFTypes.ExternalGrid],
         grid_name: str,
     ) -> Sequence[ExternalGridSSC]:
+        logger.info("Creating external grids steadystate case...")
         ext_grid_sscs = [self.create_external_grid_ssc_state(grid, grid_name) for grid in ext_grids]
         return self.pfi.filter_none(ext_grid_sscs)
 
@@ -1440,6 +1490,7 @@ class PowerfactoryExporter:
         grid_name: str,
     ) -> ExternalGridSSC | None:
         name = self.pfi.create_name(ext_grid, grid_name)
+        logger.debug("Creating external grid {ext_grid_name} steadystate case...", ext_grid_name=name)
         export, _ = self.get_description(ext_grid)
         if not export:
             logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
@@ -1451,27 +1502,27 @@ class PowerfactoryExporter:
 
         g_type = GridType(ext_grid.bustp)
         if g_type == GridType.SL:
-            ext_grid_ssc = ExternalGridSSC(
+            return ExternalGridSSC(
                 name=name,
                 u_0=round(ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 phi_0=ext_grid.phiini,
             )
-        elif g_type == GridType.PV:
-            ext_grid_ssc = ExternalGridSSC(
+
+        if g_type == GridType.PV:
+            return ExternalGridSSC(
                 name=name,
                 u_0=round(ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 p_0=round(ext_grid.pgini * Exponents.POWER, DecimalDigits.POWER),
             )
-        elif g_type == GridType.PQ:
-            ext_grid_ssc = ExternalGridSSC(
+
+        if g_type == GridType.PQ:
+            return ExternalGridSSC(
                 name=name,
                 p_0=round(ext_grid.pgini * Exponents.POWER, DecimalDigits.POWER),
                 q_0=round(ext_grid.qgini * Exponents.POWER, DecimalDigits.POWER),
             )
 
-        ext_grid_ssc = ExternalGridSSC(name=name)
-        logger.debug("Created steadystate for external grid {ext_grid_ssc}.", ext_grid_ssc=ext_grid_ssc)
-        return ext_grid_ssc
+        return ExternalGridSSC(name=name)
 
     def create_loads_ssc(  # noqa: PLR0913 # fix
         self,
@@ -1482,6 +1533,7 @@ class PowerfactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
+        logger.info("Creating loads steadystate case...")
         normal_consumers = self.create_consumers_ssc_normal(loads=consumers, grid_name=grid_name)
         lv_consumers = self.create_consumers_ssc_lv(loads=consumers_lv, grid_name=grid_name)
         mv_consumers = self.create_loads_ssc_mv(loads=consumers_mv, grid_name=grid_name)
@@ -1494,6 +1546,7 @@ class PowerfactoryExporter:
         loads: Sequence[PFTypes.Load],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
+        logger.info("Creating normal consumers steadystate case...")
         consumers_ssc = [self.create_consumer_ssc_normal(load, grid_name) for load in loads]
         return self.pfi.filter_none(consumers_ssc)
 
@@ -1509,6 +1562,7 @@ class PowerfactoryExporter:
         return None
 
     def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:
+        logger.debug("Calculating power for normal load {load_name}...", load_name=load.loc_name)
         power = self.calc_normal_load_power_sym(load) if not load.i_sym else self.calc_normal_load_power_asym(load)
 
         if power is not None:  # noqa: SIM102
@@ -1701,6 +1755,7 @@ class PowerfactoryExporter:
         raise RuntimeError(msg)
 
     def create_consumers_ssc_lv(self, loads: Sequence[PFTypes.LoadLV], grid_name: str) -> Sequence[LoadSSC]:
+        logger.info("Creating low voltage consumers steadystate case...")
         consumers_ssc_lv_parts = [self.create_consumers_ssc_lv_parts(load, grid_name) for load in loads]
         return list(itertools.chain.from_iterable(consumers_ssc_lv_parts))
 
@@ -1762,49 +1817,49 @@ class PowerfactoryExporter:
         return [self.calc_load_lv_power_sym(sl) for sl in subloads]
 
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
+        logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         load_type = load.iopt_inp
         scaling = load.scale0
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling)
+        elif load_type == IOpt.S_COSPHI:
+            power_fixed = LoadPower.from_sc_asym(
+                pow_app_a=load.slinir,
+                pow_app_b=load.slinis,
+                pow_app_c=load.slinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
+        elif load_type == IOpt.P_COSPHI:
+            power_fixed = LoadPower.from_pc_asym(
+                pow_act_a=load.plinir,
+                pow_act_b=load.plinis,
+                pow_act_c=load.plinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
+        elif load_type == IOpt.U_I_COSPHI:
+            power_fixed = LoadPower.from_ic_asym(
+                voltage=load.ulini,
+                current_a=load.ilinir,
+                current_b=load.ilinis,
+                current_c=load.ilinit,
+                cosphi_a=load.coslinir,
+                cosphi_b=load.coslinis,
+                cosphi_c=load.coslinit,
+                cosphi_dir=cosphi_dir,
+                scaling=scaling,
+            )
         else:
-            if load_type == IOpt.S_COSPHI:
-                power_fixed = LoadPower.from_sc_asym(
-                    pow_app_a=load.slinir,
-                    pow_app_b=load.slinis,
-                    pow_app_c=load.slinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            elif load_type == IOpt.P_COSPHI:
-                power_fixed = LoadPower.from_pc_asym(
-                    pow_act_a=load.plinir,
-                    pow_act_b=load.plinis,
-                    pow_act_c=load.plinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            elif load_type == IOpt.U_I_COSPHI:
-                power_fixed = LoadPower.from_ic_asym(
-                    voltage=load.ulini,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
-                    scaling=scaling,
-                )
-            else:
-                msg = "unreachable"
-                raise RuntimeError(msg)
+            msg = "unreachable"
+            raise RuntimeError(msg)
 
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -1883,6 +1938,7 @@ class PowerfactoryExporter:
         loads: Sequence[PFTypes.LoadMV],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
+        logger.info("Creating medium voltage loads steadystate case...")
         loads_ssc_mv_ = [self.create_load_ssc_mv(load=load, grid_name=grid_name) for load in loads]
         loads_ssc_mv = self.pfi.list_from_sequences(*loads_ssc_mv_)
         return self.pfi.filter_none(loads_ssc_mv)
@@ -1898,6 +1954,7 @@ class PowerfactoryExporter:
         return [consumer_ssc, producer_ssc]
 
     def calc_load_mv_power(self, load: PFTypes.LoadMV) -> LoadMV:
+        logger.debug("Calculating power for medium voltage load {load_name}...", load_name=load.loc_name)
         if not load.ci_sym:
             return self.calc_load_mv_power_sym(load)
 
@@ -2025,6 +2082,7 @@ class PowerfactoryExporter:
         name_suffix: str = "",
     ) -> LoadSSC | None:
         name = self.pfi.create_name(load, grid_name) + name_suffix
+        logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=name)
         export, _ = self.get_description(load)
         if not export:
             logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
@@ -2033,19 +2091,18 @@ class PowerfactoryExporter:
         active_power = power.as_active_power_ssc()
         reactive_power = power.as_reactive_power_ssc()
 
-        load_ssc = LoadSSC(
+        return LoadSSC(
             name=name,
             active_power=active_power,
             reactive_power=reactive_power,
         )
-        logger.debug("Created steadystate for consumer {load_ssc}.", load_ssc=load_ssc)
-        return load_ssc
 
     def create_producers_ssc(
         self,
         loads: Sequence[PFTypes.GeneratorBase],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
+        logger.info("Creating producers steadystate case...")
         producers_ssc = [self.create_producer_ssc(generator=load, grid_name=grid_name) for load in loads]
         return self.pfi.filter_none(producers_ssc)
 
@@ -2055,7 +2112,7 @@ class PowerfactoryExporter:
         grid_name: str,
     ) -> LoadSSC | None:
         gen_name = self.pfi.create_generator_name(generator)
-
+        logger.debug("Creating producer {producer_name} steadystate case...", producer_name=gen_name)
         export, _ = self.get_description(generator)
         if not export:
             logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
@@ -2091,19 +2148,18 @@ class PowerfactoryExporter:
 
         reactive_power = power.as_reactive_power_ssc(controller=controller)
 
-        producer_ssc = LoadSSC(
+        return LoadSSC(
             name=gen_name,
             active_power=active_power,
             reactive_power=reactive_power,
         )
-        logger.debug("Created steadystate for producer {producer_ssc}.", producer_ssc=producer_ssc)
-        return producer_ssc
 
     def create_q_controller_builtin(  # noqa: PLR0911
         self,
         gen: PFTypes.GeneratorBase,
         u_n: float,
     ) -> Controller | None:
+        logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
         if gen.bus1 is not None:
             node_target = self.pfi.create_name(gen.bus1.cterm, self.grid_name)
         else:
@@ -2200,6 +2256,11 @@ class PowerfactoryExporter:
         grid_name: str,
     ) -> Controller | None:
         controller_name = self.pfi.create_generator_name(gen, generator_name=controller.loc_name)
+        logger.debug(
+            "Creating producer {gen_name} external Q controller {controller_name}...",
+            gen_name=gen.loc_name,
+            controller_name=controller_name,
+        )
 
         # Controlled node
         node_target_cub = controller.p_cub
