@@ -2,18 +2,18 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_8/IS1.2",
+      "name": "Node_8/ISField_2.3",
       "open_switches": []
     },
     {
       "disabled": true,
-      "name": "Node_8/ISField_2.3",
+      "name": "Node_8/IS1.2",
       "open_switches": []
     }
   ],
   "meta": {
-    "date": "2023-02-27",
-    "id": "fec799df-81ce-4ead-b76a-667e951d5973",
+    "date": "2023-03-14",
+    "id": "297a35b1-a9a3-4846-aa29-b77810c36d10",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
     "version": "1.1.0"

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import itertools
 import pathlib
@@ -73,11 +74,18 @@ class PowerFactoryInterface:
     python_version: str = PYTHON_VERSION
 
     def __post_init__(self) -> None:
-        pf = self.load_powerfactory_module_from_path()
-        self.app = self.connect_to_app(pf)
-        self.project = self.connect_to_project(self.project_name)
-        self.load_project_folders_from_pf_db()
-        self.set_default_unit_conversion()
+        try:
+            logger.info("Starting PowerFactory Interface...")
+            pf = self.load_powerfactory_module_from_path()
+            self.app = self.connect_to_app(pf)
+            self.project = self.connect_to_project(self.project_name)
+            self.load_project_folders_from_pf_db()
+            self.stash_unit_conversion_settings()
+            self.set_default_unit_conversion()
+            logger.info("Starting PowerFactory Interface... Done.")
+        except RuntimeError:
+            logger.exception("Could not start PowerFactory Interface. Shutting down...")
+            self.close()
 
     def load_project_folders_from_pf_db(self) -> None:
         self.grid_model = self.app.GetProjectFolder("netmod")
@@ -97,6 +105,7 @@ class PowerFactoryInterface:
         self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
+        logger.debug("Loading PowerFactory Python module...")
         module_path = (
             self.powerfactory_path / ("PowerFactory " + self.powerfactory_version) / "Python" / self.python_version
         )
@@ -113,24 +122,33 @@ class PowerFactoryInterface:
         return typing.cast("PFTypes.PowerFactoryModule", pfm)
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
+        logger.debug("Loading settings from PowerFactory...")
         settings_dir = self.element_of(element=self.project, pattern="*.SetFold", recursive=False)
         if settings_dir is None:
             msg = "Could not access settings."
             raise RuntimeError(msg)
 
+        logger.debug("Loading settings from PowerFactory... Done.")
         return typing.cast("PFTypes.DataDir", settings_dir)
 
     def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir | None:
+        logger.debug("Loading unit settings from PowerFactory...")
         unit_settings_dir = self.element_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
         if unit_settings_dir is None:
             return None
 
+        logger.debug("Loading unit settings from PowerFactory... Done.")
         return typing.cast("PFTypes.DataDir", unit_settings_dir)
 
     def close(self) -> None:
-        self.reset_unit_conversion_settings()
-        self.app.PostCommand("exit")
-        del self.app
+        logger.info("Closing PowerFactory Interface...")
+        with contextlib.suppress(AttributeError):
+            self.pop_unit_conversion_settings_stash()
+
+        with contextlib.suppress(AttributeError):
+            self.app.PostCommand("exit")
+
+        logger.info("Closing PowerFactory Interface... Done.")
 
     def connect_to_app(self, pf: PFTypes.PowerFactoryModule) -> PFTypes.Application:
         """Connect to PowerFactory Application.
@@ -142,6 +160,7 @@ class PowerFactoryInterface:
             PFTypes.Application -- the application handle (root)
         """
 
+        logger.debug("Connecting to PowerFactory application...")
         try:
             return pf.GetApplicationExt(self.powerfactory_user_profile)
         except pf.ExitError as element:
@@ -158,6 +177,7 @@ class PowerFactoryInterface:
             PFTypes.Project -- the project handle
         """
 
+        logger.debug("Activating project {project_name} application...", project_name=project_name)
         self.activate_project(project_name)
 
         project = self.app.GetActiveProject()
@@ -165,9 +185,11 @@ class PowerFactoryInterface:
             msg = "Could not access project."
             raise RuntimeError(msg)
 
+        logger.debug("Activating project {project_name} application... Done.", project_name=project_name)
         return project
 
     def activate_grid(self, grid: PFTypes.Grid) -> None:
+        logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
         if grid.Activate():
             msg = "Could not activate grid."
             raise RuntimeError(msg)
@@ -177,33 +199,38 @@ class PowerFactoryInterface:
             self.deactivate_grid(grid)
 
     def deactivate_grid(self, grid: PFTypes.Grid) -> None:
+        logger.debug("Deactivating grid {grid_name} application...", grid_name=grid.loc_name)
         if grid.Deactivate():
             msg = "Could not deactivate grid."
             raise RuntimeError(msg)
 
     def activate_scenario(self, scen: PFTypes.Scenario) -> None:
+        logger.debug("Activating scenario {scenario_name} application...", scenario_name=scen.loc_name)
         active_scen = self.app.GetActiveScenario()
         if active_scen != scen and scen.Activate():
             msg = "Could not activate scenario."
             raise RuntimeError(msg)
 
     def deactivate_scenario(self, scen: PFTypes.Scenario) -> None:
+        logger.debug("Deactivating scenario {scenario_name} application...", scenario_name=scen.loc_name)
         if scen.Deactivate():
             msg = "Could not deactivate scenario."
             raise RuntimeError(msg)
 
     def activate_study_case(self, stc: PFTypes.StudyCase) -> None:
+        logger.debug("Activating study_case {study_case_name} application...", study_case_name=stc.loc_name)
         if stc.Activate():
             msg = "Could not activate case study."
             raise RuntimeError(msg)
 
     def deactivate_study_case(self, stc: PFTypes.StudyCase) -> None:
+        logger.debug("Deactivating study_case {study_case_name} application...", study_case_name=stc.loc_name)
         if stc.Deactivate():
             msg = "Could not deactivate case study."
             raise RuntimeError(msg)
 
     def set_default_unit_conversion(self) -> None:
-        self.save_unit_conversion_settings_to_temp()
+        logger.debug("Applying exporter default unit conversion settings...")
         project_settings = self.load_project_settings_dir_from_pf()
         project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
         project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
@@ -226,8 +253,10 @@ class PowerFactoryInterface:
                 self.create_unit_conversion_setting(name, uc)
 
         self.reset_project()
+        logger.debug("Applying exporter default unit conversion settings... Done.")
 
-    def save_unit_conversion_settings_to_temp(self) -> None:
+    def stash_unit_conversion_settings(self) -> None:
+        logger.debug("Stashing PowerFactory default unit conversion settings...")
         project_settings = self.load_project_settings_dir_from_pf()
         self.project_unit_setting = ProjectUnitSetting(
             ilenunit=UnitSystem(project_settings.ilenunit),
@@ -252,8 +281,10 @@ class PowerFactoryInterface:
             self.unit_conv_settings[uc.loc_name] = ucs
 
         self.delete_unit_conversion_settings()
+        logger.debug("Stashing PowerFactory default unit conversion settings... Done.")
 
-    def reset_unit_conversion_settings(self) -> None:
+    def pop_unit_conversion_settings_stash(self) -> None:
+        logger.debug("Applying PowerFactory default unit conversion settings...")
         project_settings = self.load_project_settings_dir_from_pf()
         project_settings.ilenunit = self.project_unit_setting.ilenunit
         project_settings.clenexp = self.project_unit_setting.clenexp
@@ -265,25 +296,32 @@ class PowerFactoryInterface:
             self.create_unit_conversion_setting(name, uc)
 
         self.reset_project()
+        logger.debug("Applying PowerFactory default unit conversion settings... Done.")
 
     def load_project_settings_dir_from_pf(self) -> PFTypes.ProjectSettings:
+        logger.debug("Loading project settings dir...")
         project_settings = self.project.pPrjSettings
         if project_settings is None:
             msg = "Could not access project settings."
             raise RuntimeError(msg)
 
+        logger.debug("Loading project settings dir... Done.")
         return project_settings
 
     def reset_project(self) -> None:
+        logger.debug("Resetting current project...")
         self.deactivate_project()
         self.activate_project(self.project_name)
+        logger.debug("Resetting current project... Done.")
 
     def activate_project(self, name: str) -> None:
+        logger.debug("Activating project {name}...", name=name)
         if self.app.ActivateProject(name + ".IntPrj"):
             msg = "Could not activate project."
             raise RuntimeError(msg)
 
     def deactivate_project(self) -> None:
+        logger.debug("Deactivating current project {name}...")
         if self.project.Deactivate():
             msg = "Could not deactivate project."
             raise RuntimeError(msg)
