@@ -1,3 +1,16 @@
+## 1.4.0 (2023-03-14)
+
+### Feat
+
+- improve error handling and logging (contributors: @sasanjac)
+- add phase connection and system types (contributors: @sasanjac, @SebastianDD)
+- export all Q-control types (contributors: @sasanjac, @SebastianDD)
+- change data model loads rated power values cos phi to array (contributors: @sasanjac, @SebastianDD)
+
+### Fix
+
+- unit settings dir doesn't exist in default PF project (contributors: @sasanjac)
+
 ## 1.3.1 (2023-01-16)
 
 ### Fix

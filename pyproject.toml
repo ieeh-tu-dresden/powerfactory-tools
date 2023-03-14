@@ -11,7 +11,7 @@
   name = "ieeh-powerfactory-tools"
   readme = "README.md"
   requires-python = ">=3.10,<3.11"
-  version = "1.3.1"
+  version = "1.4.0"
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
@@ -78,7 +78,7 @@
 [tool.commitizen]
   name          = "cz_conventional_commits"
   tag_format    = "$version"
-  version       = "1.3.1"
+  version       = "1.4.0"
   version_files = [".zenodo.json:version", "pyproject.toml:version"]
 
 [tool.mypy]

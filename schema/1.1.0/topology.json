@@ -7,6 +7,7 @@
     },
     "branches": {
       "title": "Branches",
+      "uniqueItems": true,
       "type": "array",
       "items": {
         "$ref": "#/definitions/Branch"
@@ -14,6 +15,7 @@
     },
     "nodes": {
       "title": "Nodes",
+      "uniqueItems": true,
       "type": "array",
       "items": {
         "$ref": "#/definitions/Node"
@@ -21,6 +23,7 @@
     },
     "loads": {
       "title": "Loads",
+      "uniqueItems": true,
       "type": "array",
       "items": {
         "$ref": "#/definitions/Load"
@@ -28,6 +31,7 @@
     },
     "transformers": {
       "title": "Transformers",
+      "uniqueItems": true,
       "type": "array",
       "items": {
         "$ref": "#/definitions/Transformer"
@@ -35,6 +39,7 @@
     },
     "external_grids": {
       "title": "External Grids",
+      "uniqueItems": true,
       "type": "array",
       "items": {
         "$ref": "#/definitions/ExternalGrid"
@@ -184,7 +189,8 @@
         "x1",
         "g1",
         "b1",
-        "type"
+        "type",
+        "voltage_system_type"
       ]
     },
     "Node": {
@@ -213,44 +219,60 @@
       "title": "RatedPower",
       "type": "object",
       "properties": {
-        "s": {
-          "title": "S",
+        "value": {
+          "title": "Value",
+          "minimum": 0,
           "type": "number"
         },
-        "s_r": {
-          "title": "S R",
+        "value_a": {
+          "title": "Value A",
+          "minimum": 0,
           "type": "number"
         },
-        "s_s": {
-          "title": "S S",
+        "value_b": {
+          "title": "Value B",
+          "minimum": 0,
           "type": "number"
         },
-        "s_t": {
-          "title": "S T",
+        "value_c": {
+          "title": "Value C",
+          "minimum": 0,
           "type": "number"
         },
         "cosphi": {
           "title": "Cosphi",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
           "type": "number"
         },
-        "cosphi_r": {
-          "title": "Cosphi R",
+        "cosphi_a": {
+          "title": "Cosphi A",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
           "type": "number"
         },
-        "cosphi_s": {
-          "title": "Cosphi S",
+        "cosphi_b": {
+          "title": "Cosphi B",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
           "type": "number"
         },
-        "cosphi_t": {
-          "title": "Cosphi T",
+        "cosphi_c": {
+          "title": "Cosphi C",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
           "type": "number"
         }
       },
       "required": [
-        "s",
-        "s_r",
-        "s_s",
-        "s_t"
+        "value",
+        "value_a",
+        "value_b",
+        "value_c"
       ]
     },
     "LoadModel": {
@@ -334,20 +356,21 @@
       "description": "An enumeration.",
       "enum": [
         "CONSUMER",
-        "PRODUCER"
+        "PRODUCER",
+        "STORAGE"
       ]
     },
-    "ConsumerSystemType": {
-      "title": "ConsumerSystemType",
+    "Phase": {
+      "title": "Phase",
       "description": "An enumeration.",
       "enum": [
-        "FIXED",
-        "NIGHT_STORAGE",
-        "VARIABLE"
+        "A",
+        "B",
+        "C"
       ]
     },
-    "ProducerSystemType": {
-      "title": "ProducerSystemType",
+    "SystemType": {
+      "title": "SystemType",
       "description": "An enumeration.",
       "enum": [
         "COAL",
@@ -369,32 +392,24 @@
         "REACTIVE_POWER_COMPENSATOR",
         "BATTERY_STORAGE",
         "EXTERNAL_GRID_EQUIVALENT",
-        "OTHERS"
+        "OTHER",
+        "NIGHT_STORAGE",
+        "FIXED_CONSUMPTION",
+        "VARIABLE_CONSUMPTION"
       ]
     },
-    "ConsumerPhaseConnectionType": {
-      "title": "ConsumerPhaseConnectionType",
+    "PhaseConnectionType": {
+      "title": "PhaseConnectionType",
       "description": "An enumeration.",
       "enum": [
-        "3PH_D",
-        "3PH_PH-E",
-        "3PH_YN",
-        "2PH_PH-E",
-        "2PH_YN",
-        "1PH_PH-PH",
-        "1PH_PH-E",
-        "1PH_PH-N"
-      ]
-    },
-    "ProducerPhaseConnectionType": {
-      "title": "ProducerPhaseConnectionType",
-      "description": "An enumeration.",
-      "enum": [
-        "3PH",
-        "3PH-E",
-        "1PH_PH-E",
-        "1PH_PH-N",
-        "1PH_PH-PH"
+        "THREE_PH_D",
+        "THREE_PH_PH_E",
+        "THREE_PH_YN",
+        "TWO_PH_PH_E",
+        "TWO_PH_YN",
+        "ONE_PH_PH_PH",
+        "ONE_PH_PH_E",
+        "ONE_PH_PH_N"
       ]
     },
     "Load": {
@@ -407,10 +422,6 @@
         },
         "node": {
           "title": "Node",
-          "type": "string"
-        },
-        "description": {
-          "title": "Description",
           "type": "string"
         },
         "u_n": {
@@ -429,30 +440,24 @@
         "type": {
           "$ref": "#/definitions/LoadType"
         },
+        "connected_phases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Phase"
+          }
+        },
         "system_type": {
-          "title": "System Type",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ConsumerSystemType"
-            },
-            {
-              "$ref": "#/definitions/ProducerSystemType"
-            }
-          ]
+          "$ref": "#/definitions/SystemType"
         },
         "phase_connection_type": {
-          "title": "Phase Connection Type",
-          "anyOf": [
-            {
-              "$ref": "#/definitions/ConsumerPhaseConnectionType"
-            },
-            {
-              "$ref": "#/definitions/ProducerPhaseConnectionType"
-            }
-          ]
+          "$ref": "#/definitions/PhaseConnectionType"
         },
         "voltage_system_type": {
           "$ref": "#/definitions/VoltageSystemType"
+        },
+        "description": {
+          "title": "Description",
+          "type": "string"
         }
       },
       "required": [
@@ -462,7 +467,62 @@
         "rated_power",
         "active_power",
         "reactive_power",
-        "type"
+        "type",
+        "connected_phases",
+        "system_type",
+        "phase_connection_type",
+        "voltage_system_type"
+      ]
+    },
+    "powerfactory_tools__schema__topology__transformer__VectorGroup": {
+      "title": "VectorGroup",
+      "description": "An enumeration.",
+      "enum": [
+        "Dd0",
+        "Yy0",
+        "YNy0",
+        "Yyn0",
+        "YNyn0",
+        "Dz0",
+        "Dzn0",
+        "Zd0",
+        "ZNd0",
+        "Dy5",
+        "Dyn5",
+        "Yd5",
+        "YNd5",
+        "Yz5",
+        "YNz5",
+        "Yzn5",
+        "YNzn5",
+        "Dd6",
+        "Yy6",
+        "YNy6",
+        "Yyn6",
+        "YNyn6",
+        "Dz6",
+        "Dzn6",
+        "Zd6",
+        "ZNd6",
+        "Dy11",
+        "Dyn11",
+        "Yd11",
+        "YNd11",
+        "Yz11",
+        "YNz11",
+        "Yzn11",
+        "YNzn11"
+      ]
+    },
+    "powerfactory_tools__schema__topology__windings__VectorGroup": {
+      "title": "VectorGroup",
+      "description": "An enumeration.",
+      "enum": [
+        "Y",
+        "YN",
+        "Z",
+        "ZN",
+        "D"
       ]
     },
     "Winding": {
@@ -506,8 +566,7 @@
           "type": "integer"
         },
         "vector_group": {
-          "title": "Vector Group",
-          "type": "string"
+          "$ref": "#/definitions/powerfactory_tools__schema__topology__windings__VectorGroup"
         }
       },
       "required": [
@@ -523,9 +582,9 @@
       "title": "TransformerPhaseTechnologyType",
       "description": "An enumeration.",
       "enum": [
-        "1PH-E",
-        "1PH",
-        "3PH"
+        "SINGLE_PH_E",
+        "SINGLE_PH",
+        "THREE_PH"
       ]
     },
     "TapSide": {
@@ -558,8 +617,7 @@
           "type": "integer"
         },
         "vector_group": {
-          "title": "Vector Group",
-          "type": "string"
+          "$ref": "#/definitions/powerfactory_tools__schema__topology__transformer__VectorGroup"
         },
         "i_0": {
           "title": "I 0",
@@ -571,6 +629,7 @@
         },
         "windings": {
           "title": "Windings",
+          "uniqueItems": true,
           "type": "array",
           "items": {
             "$ref": "#/definitions/Winding"
