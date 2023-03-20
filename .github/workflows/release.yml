@@ -64,34 +64,6 @@ jobs:
           prerelease: true
           enable-pep582: true
 
-      - name: Installing dependencies
-        run: pdm install
-
-      - name: Generate schema JSON files
-        run: pdm run python -c '$COMMAND'
-        env:
-          COMMAND: |
-            from powerfactory_tools.schema.base import VERSION
-            from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
-            from powerfactory_tools.schema.topology.topology import Topology
-            from powerfactory_tools.schema.topology_case.case import Case as TopologyCase
-            from pathlib import Path
-            f_top = Path(f"./schema/{VERSION}/topology.json")
-            f_top.parent.mkdir(exist_ok=True, parents=True)
-            with open(f_top, "w") as f:
-                f.write(Topology.schema_json(indent=2))
-            f_topc = Path(f"./schema/{VERSION}/topology_case.json")
-            f_topc.parent.mkdir(exist_ok=True, parents=True)
-            with open(f_topc, "w") as f:
-                f.write(TopologyCase.schema_json(indent=2))
-            f_ssc = Path(f"./schema/{VERSION}/steady_state_case.json")
-            f_ssc.parent.mkdir(exist_ok=True, parents=True)
-            with open(f_ssc, "w") as f:
-                f.write(SteadystateCase.schema_json(indent=2))
-
-      - name: Stage schema JSON files
-        run: git add ./schema
-
       - name: Get current date
         id: get_date
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT

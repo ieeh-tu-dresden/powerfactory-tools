@@ -5,16 +5,56 @@
 
 from __future__ import annotations
 
-import dataclasses
 import datetime
 import itertools
 import math
 import multiprocessing
 import pathlib
 import textwrap
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
+import pydantic
 from loguru import logger
+from psdm.base import CosphiDir
+from psdm.base import Meta
+from psdm.base import VoltageSystemType
+from psdm.steadystate_case.case import Case as SteadystateCase
+from psdm.steadystate_case.controller import ControlCosphiConst
+from psdm.steadystate_case.controller import ControlCosphiP
+from psdm.steadystate_case.controller import ControlCosphiU
+from psdm.steadystate_case.controller import ControlledVoltageRef
+from psdm.steadystate_case.controller import Controller
+from psdm.steadystate_case.controller import ControlQConst
+from psdm.steadystate_case.controller import ControlQP
+from psdm.steadystate_case.controller import ControlQU
+from psdm.steadystate_case.controller import ControlTanphiConst
+from psdm.steadystate_case.controller import ControlUConst
+from psdm.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
+from psdm.steadystate_case.load import Load as LoadSSC
+from psdm.steadystate_case.transformer import Transformer as TransformerSSC
+from psdm.topology.active_power import ActivePower
+from psdm.topology.branch import Branch
+from psdm.topology.branch import BranchType
+from psdm.topology.external_grid import ExternalGrid
+from psdm.topology.external_grid import GridType
+from psdm.topology.load import Load
+from psdm.topology.load import LoadType
+from psdm.topology.load import Phase
+from psdm.topology.load import PhaseConnectionType
+from psdm.topology.load import SystemType
+from psdm.topology.load_model import LoadModel
+from psdm.topology.node import Node
+from psdm.topology.reactive_power import ReactivePower
+from psdm.topology.topology import Topology
+from psdm.topology.transformer import TapSide
+from psdm.topology.transformer import Transformer
+from psdm.topology.transformer import TransformerPhaseTechnologyType
+from psdm.topology.transformer import VectorGroup as TVectorGroup
+from psdm.topology.windings import VectorGroup as WVectorGroup
+from psdm.topology.windings import Winding
+from psdm.topology_case.case import Case as TopologyCase
+from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
@@ -29,58 +69,18 @@ from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
+from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
-from powerfactory_tools.schema.base import CosphiDir
-from powerfactory_tools.schema.base import Meta
-from powerfactory_tools.schema.base import VoltageSystemType
-from powerfactory_tools.schema.steadystate_case.case import Case as SteadystateCase
-from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiConst
-from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiP
-from powerfactory_tools.schema.steadystate_case.controller import ControlCosphiU
-from powerfactory_tools.schema.steadystate_case.controller import ControlledVoltageRef
-from powerfactory_tools.schema.steadystate_case.controller import Controller
-from powerfactory_tools.schema.steadystate_case.controller import ControlQConst
-from powerfactory_tools.schema.steadystate_case.controller import ControlQP
-from powerfactory_tools.schema.steadystate_case.controller import ControlQU
-from powerfactory_tools.schema.steadystate_case.controller import ControlTanphiConst
-from powerfactory_tools.schema.steadystate_case.controller import ControlUConst
-from powerfactory_tools.schema.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
-from powerfactory_tools.schema.steadystate_case.load import Load as LoadSSC
-from powerfactory_tools.schema.steadystate_case.transformer import Transformer as TransformerSSC
-from powerfactory_tools.schema.topology.active_power import ActivePower
-from powerfactory_tools.schema.topology.branch import Branch
-from powerfactory_tools.schema.topology.branch import BranchType
-from powerfactory_tools.schema.topology.external_grid import ExternalGrid
-from powerfactory_tools.schema.topology.external_grid import GridType
-from powerfactory_tools.schema.topology.load import Load
-from powerfactory_tools.schema.topology.load import LoadType
-from powerfactory_tools.schema.topology.load import Phase
-from powerfactory_tools.schema.topology.load import PhaseConnectionType
-from powerfactory_tools.schema.topology.load import SystemType
-from powerfactory_tools.schema.topology.load_model import LoadModel
-from powerfactory_tools.schema.topology.node import Node
-from powerfactory_tools.schema.topology.reactive_power import ReactivePower
-from powerfactory_tools.schema.topology.topology import Topology
-from powerfactory_tools.schema.topology.transformer import TapSide
-from powerfactory_tools.schema.topology.transformer import Transformer
-from powerfactory_tools.schema.topology.transformer import TransformerPhaseTechnologyType
-from powerfactory_tools.schema.topology.transformer import VectorGroup as TVectorGroup
-from powerfactory_tools.schema.topology.windings import VectorGroup as WVectorGroup
-from powerfactory_tools.schema.topology.windings import Winding
-from powerfactory_tools.schema.topology_case.case import Case as TopologyCase
-from powerfactory_tools.schema.topology_case.element_state import ElementState
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from types import TracebackType
     from typing import Literal
 
-    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
-    from powerfactory_tools.schema.steadystate_case.controller import ControlType
+    from psdm.steadystate_case.controller import ControlType
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
@@ -93,20 +93,20 @@ FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 
 
-@dataclasses.dataclass
+@pydantic.dataclasses.dataclass
 class LoadLV:
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
 
 
-@dataclasses.dataclass
+@pydantic.dataclasses.dataclass
 class LoadMV:
     consumer: LoadPower
     producer: LoadPower
 
 
-@dataclasses.dataclass
+@pydantic.dataclasses.dataclass
 class PowerFactoryData:
     name: str
     date: datetime.date
@@ -176,7 +176,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         pfe.export(self.export_path, self.topology_name, self.topology_case_name, self.steadystate_case_name)
 
 
-@dataclasses.dataclass
+@pydantic.dataclasses.dataclass
 class PowerFactoryExporter:
     project_name: str
     grid_name: str
@@ -511,7 +511,7 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            description = "substation internal" if description else "substation internal; " + description
+            description = "substation internal" if not description else "substation internal; " + description
 
         return Node(name=name, u_n=u_n, description=description)
 
@@ -676,7 +676,7 @@ class PowerFactoryExporter:
         description: str,
     ) -> str:
         if self.pfi.is_within_substation(terminal1) and self.pfi.is_within_substation(terminal2):
-            if description:
+            if not description:
                 return "substation internal"
 
             return "substation internal; " + description

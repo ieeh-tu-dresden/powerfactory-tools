@@ -20,13 +20,7 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
 The following functionalities are provided:
 
-* export of calculation relevant grid data from a PowerFactory project into three common readable JSON files utilizing predefined [schemas](./powerfactory_tools/schema):
-  * grid topology:
-    * base topology containing all elements of the exported grid
-  * topology case;
-    * information about disabled elements to represent a specific operational case based on the base topology
-  * steadystate case
-    * information about power draw/infeed for a specific operational case
+* export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
 * [intended in future release] import from external grid data into the PowerFactory environment
 * [intended in future release] basic control of PowerFactory
 

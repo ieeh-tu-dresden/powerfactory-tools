@@ -6,11 +6,12 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import importlib.util
 import itertools
 import pathlib
 import typing
-from collections.abc import Sequence  # noqa: TCH003 # bug
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import pydantic
@@ -20,7 +21,6 @@ from powerfactory_tools.constants import BaseUnits
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import UnitSystem
-from powerfactory_tools.schema.base import Base
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
@@ -37,7 +37,8 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-class UnitConversionSetting(Base):
+@pydantic.dataclasses.dataclass
+class UnitConversionSetting:
     filtclass: Sequence[str]
     filtvar: str
     digunit: str
@@ -48,7 +49,8 @@ class UnitConversionSetting(Base):
     ufacB: float  # noqa: N815
 
 
-class ProjectUnitSetting(Base):
+@pydantic.dataclasses.dataclass
+class ProjectUnitSetting:
     ilenunit: UnitSystem
     clenexp: MetricPrefix  # Lengths
     cspqexp: MetricPrefix  # Loads etc.
@@ -534,7 +536,7 @@ class PowerFactoryInterface:
         uc: UnitConversionSetting,
     ) -> PFTypes.UnitConversionSetting | None:
         if self.unit_settings_dir is not None:
-            data = uc.dict()
+            data = dataclasses.asdict(uc)
             element = self.create_object(
                 name=name,
                 class_name="SetVariable",
