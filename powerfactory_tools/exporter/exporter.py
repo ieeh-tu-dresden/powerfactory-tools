@@ -511,7 +511,7 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            description = "substation internal" if description == "" else "substation internal; " + description
+            description = "substation internal" if description else "substation internal; " + description
 
         return Node(name=name, u_n=u_n, description=description)
 
@@ -676,7 +676,7 @@ class PowerFactoryExporter:
         description: str,
     ) -> str:
         if self.pfi.is_within_substation(terminal1) and self.pfi.is_within_substation(terminal2):
-            if description == "":
+            if description:
                 return "substation internal"
 
             return "substation internal; " + description
