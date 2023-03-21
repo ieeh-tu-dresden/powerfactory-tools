@@ -28,11 +28,11 @@ from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
+from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
-from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 from powerfactory_tools.schema.base import CosphiDir
 from powerfactory_tools.schema.base import Meta
@@ -2094,15 +2094,16 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> LoadSSC | None:
         gen_name = self.pfi.create_generator_name(generator)
-        logger.debug("Creating producer {producer_name} steadystate case...", producer_name=gen_name)
+        producer_name = self.pfi.create_name(generator, grid_name, element_name=gen_name)
+        logger.debug("Creating producer {producer_name} steadystate case...", producer_name=producer_name)
         export, _ = self.get_description(generator)
         if not export:
-            logger.warning("Generator {gen_name} not set for export. Skipping.", gen_name=gen_name)
+            logger.warning("Generator {producer_name} not set for export. Skipping.", producer_name=producer_name)
             return None
 
         bus = generator.bus1
         if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
+            logger.warning("Generator {producer_name} not connected to any bus. Skipping.", producer_name=producer_name)
             return None
 
         terminal = bus.cterm
@@ -2131,7 +2132,7 @@ class PowerFactoryExporter:
         reactive_power = power.as_reactive_power_ssc(controller=controller)
 
         return LoadSSC(
-            name=gen_name,
+            name=producer_name,
             active_power=active_power,
             reactive_power=reactive_power,
         )
