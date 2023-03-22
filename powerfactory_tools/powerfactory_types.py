@@ -281,6 +281,7 @@ class Phase(enum.Enum):
     A = "L1"
     B = "L2"
     C = "L3"
+    N = "N"
 
 
 class TerminalVoltageSystemType(enum.IntEnum):
