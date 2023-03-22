@@ -1,3 +1,10 @@
+## 1.4.1 (2023-03-22)
+
+### Fix
+
+- add neutral to phase information (contributors: @sasanjac)
+- create proper producer name in steadystate case (contributors: @sasanjac)
+
 ## 1.4.0 (2023-03-14)
 
 ### Feat
