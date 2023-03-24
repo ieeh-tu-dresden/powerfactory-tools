@@ -62,6 +62,7 @@ class Phase(enum.Enum):
     A = "A"
     B = "B"
     C = "C"
+    N = "N"
 
 
 THRESHOLD = 0.51  # acceptable rounding error (0.5 W) + epsilon for calculation accuracy (0.01 W)
