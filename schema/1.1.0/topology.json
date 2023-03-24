@@ -366,7 +366,8 @@
       "enum": [
         "A",
         "B",
-        "C"
+        "C",
+        "N"
       ]
     },
     "SystemType": {

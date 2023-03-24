@@ -1,3 +1,9 @@
+## 1.4.2 (2023-03-24)
+
+### Fix
+
+- add neutral to schema phase information (contributors: @sasanjac)
+
 ## 1.4.1 (2023-03-22)
 
 ### Fix
