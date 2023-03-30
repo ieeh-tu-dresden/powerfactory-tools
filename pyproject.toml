@@ -79,7 +79,7 @@
   name          = "cz_conventional_commits"
   tag_format    = "$version"
   version       = "1.4.2"
-  version_files = [".zenodo.json:version", "pyproject.toml:version"]
+  version_files = [".CITATION.cff:cff-version", ".zenodo.json:version", "pyproject.toml:version"]
 
 [tool.mypy]
   follow_imports         = "normal"
