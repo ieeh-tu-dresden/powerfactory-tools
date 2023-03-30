@@ -11,17 +11,18 @@ from typing import TYPE_CHECKING
 
 from loguru import logger
 
+from psdm.base import CosphiDir
+from psdm.steadystate_case.active_power import ActivePower
+from psdm.steadystate_case.reactive_power import ReactivePower
+from psdm.topology.load import RatedPower
+
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.schema.base import CosphiDir
-from powerfactory_tools.schema.steadystate_case.active_power import ActivePower
-from powerfactory_tools.schema.steadystate_case.reactive_power import ReactivePower
-from powerfactory_tools.schema.topology.load import RatedPower
 
 if TYPE_CHECKING:
     from typing import TypedDict
 
-    from powerfactory_tools.schema.steadystate_case.controller import Controller
+    from psdm.steadystate_case.controller import Controller
 
     class PowerDict(TypedDict):
         power_apparent: float

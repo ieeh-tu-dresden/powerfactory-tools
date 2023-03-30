@@ -17,8 +17,8 @@ from typing import TYPE_CHECKING
 import pydantic
 from loguru import logger
 from psdm.base import CosphiDir
-from psdm.base import Meta
 from psdm.base import VoltageSystemType
+from psdm.meta import Meta
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlCosphiConst
 from psdm.steadystate_case.controller import ControlCosphiP
