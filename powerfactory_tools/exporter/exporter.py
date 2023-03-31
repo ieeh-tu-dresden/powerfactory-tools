@@ -5,13 +5,13 @@
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import itertools
 import math
 import multiprocessing
 import pathlib
 import textwrap
-from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import pydantic
@@ -77,6 +77,7 @@ from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from types import TracebackType
     from typing import Literal
 
@@ -106,7 +107,7 @@ class LoadMV:
     producer: LoadPower
 
 
-@pydantic.dataclasses.dataclass
+@dataclasses.dataclass
 class PowerFactoryData:
     name: str
     date: datetime.date
