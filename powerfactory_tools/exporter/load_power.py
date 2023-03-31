@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from loguru import logger
-
 from psdm.base import CosphiDir
 from psdm.steadystate_case.active_power import ActivePower
 from psdm.steadystate_case.reactive_power import ReactivePower
