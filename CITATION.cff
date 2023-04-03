@@ -1,4 +1,4 @@
-cff-version: 1.2.0
+cff-version: 1.4.2
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
@@ -8,8 +8,9 @@ doi: 10.5281/zenodo.7074968
 date-released: 2022
 repository-code: "https://github.com/ieeh-tu-dresden/powerfactory-tools"
 keywords:
+  - "Toolbox"
   - "PowerFactory"
-  - "grid model"
-  - "json"
-  - "toolbox"
+  - "Power System Data Model"
+  - "Python"
+  - "Grid Model"
 license: BSD 3-Clause
