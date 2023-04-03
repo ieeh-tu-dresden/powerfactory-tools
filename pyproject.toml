@@ -5,7 +5,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = ["loguru", "pydantic"]
+  dependencies = ["ieeh-power-system-data-model==1.2.0", "loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
@@ -58,6 +58,9 @@
   ]
   line-length = 120
   select = ["ALL"]
+
+  [tool.ruff.flake8-type-checking]
+    runtime-evaluated-decorators = ["pydantic.dataclasses.dataclass"]
 
   [tool.ruff.isort]
     force-single-line = true
