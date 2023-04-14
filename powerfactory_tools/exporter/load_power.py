@@ -9,6 +9,7 @@ import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import numpy as np
 from loguru import logger
 from psdm.base import CosphiDir
 from psdm.steadystate_case.active_power import ActivePower
@@ -163,7 +164,7 @@ class LoadPower:
         scaling: float,
     ) -> PowerDict:
         pow_app = abs(voltage * current * scaling) * Exponents.POWER / math.sqrt(3)
-        pow_act = pow_app * cosphi
+        pow_act = pow_app * cosphi * np.sign(scaling)
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
         return {
@@ -183,7 +184,7 @@ class LoadPower:
         scaling: float,
     ) -> PowerDict:
         pow_app = abs(pow_app * scaling) * Exponents.POWER
-        pow_act = pow_app * cosphi
+        pow_act = pow_app * cosphi * np.sign(scaling)
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
         return {
@@ -215,7 +216,7 @@ class LoadPower:
                 "cosphi_dir": cosphi_dir,
             }
 
-        pow_act = pow_app * cosphi
+        pow_act = pow_app * cosphi * np.sign(scaling)
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
@@ -284,7 +285,7 @@ class LoadPower:
     ) -> PowerDict:
         pow_app = abs(pow_app * scaling) * Exponents.POWER
         pow_react = pow_react * scaling * Exponents.POWER
-        pow_act = math.sqrt(pow_app**2 - pow_react**2)
+        pow_act = math.sqrt(pow_app**2 - pow_react**2) * np.sign(scaling)
         try:
             cosphi = abs(pow_act / pow_app)
         except ZeroDivisionError:

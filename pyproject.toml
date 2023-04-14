@@ -5,7 +5,12 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = ["ieeh-power-system-data-model==1.2.0", "loguru", "pydantic"]
+  dependencies = [
+      "ieeh-power-system-data-model==1.2.0",
+      "loguru",
+      "pydantic",
+      "numpy>=1.24.2",
+  ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
