@@ -290,6 +290,18 @@ class TerminalVoltageSystemType(enum.IntEnum):
     ACBI = 2
 
 
+class HarmonicSourceSystemType(enum.IntEnum):
+    SYMMETIRC = 0
+    UNSYMMETRIC = 1
+    IEC_61000 = 2
+
+
+class HarmonicLoadModelType(enum.IntEnum):
+    IMPEDANCE_TYPE_1 = 0
+    CURRENT_SOURCE = 1
+    IMPEDANCE_TYPE_2 = 2
+
+
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
@@ -394,6 +406,11 @@ class PowerFactoryTypes:
         kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
         kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
 
+        i_crsc: HarmonicLoadModelType
+        i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
+        Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
+        pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
+
     class LineType(DataObject, Protocol):
         uline: float  # rated voltage (kV)
         sline: float  # rated current (kA) when installed in soil
@@ -445,6 +462,9 @@ class PowerFactoryTypes:
         R_on: float
         X_on: float
 
+    class HarmonicSourceType(DataObject, Protocol):
+        i_usym: HarmonicSourceSystemType
+
     class Coupler(DataObject, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
         bus2: PowerFactoryTypes.StationCubicle | None
@@ -467,10 +487,12 @@ class PowerFactoryTypes:
 
     class Terminal(DataObject, Protocol):
         cDisplayName: str  # noqa: N815
+        ciEnergized: bool  # noqa: N815
         desc: Sequence[str]
         uknom: float
         iUsage: NodeType  # noqa: N815
         outserv: bool
+        cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
         systype: TerminalVoltageSystemType
@@ -684,6 +706,75 @@ class PowerFactoryTypes:
         snssmin: float  # in MVA
         outserv: bool
 
+    class SourceBase(DataObject, Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        outserv: bool
+        nphase: int
+        desc: Sequence[str]
+        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
+
+    class AcCurrentSource(SourceBase, Protocol):
+        Ir: float
+        isetp: float
+        cosini: float
+        i_cap: PFRecap
+        G1: float
+        B1: float
+        isetp2: float
+        phisetp2: float
+        G2: float
+        B2: float
+        isetp0: float
+        phisetp0: float
+        G0: float
+        B0: float
+        phmc: PowerFactoryTypes.HarmonicSourceType | None
+
+    class Result(DataObject, Protocol):
+        desc: Sequence[str]
+        calTp: int  # noqa: N815
+
+        def AddVariable(self) -> int:  # noqa: N802
+            ...
+
+        def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
+            ...
+
+        def FindColumn(  # noqa: N802
+            self,
+            obj: PowerFactoryTypes.DataObject,
+            varName: str,  # noqa: N803
+            startCol: int,  # noqa: N803
+        ) -> int:
+            ...
+
+        def GetNumberOfColumns(self) -> None:  # noqa: N802
+            ...
+
+        def GetNumberOfRows(self) -> None:  # noqa: N802
+            ...
+
+        def GetValue(  # noqa: N802  # Returns a value from a result object for row iX of curve col.
+            self,
+            iX: int,  # noqa: N803
+            col: int,
+        ) -> int:
+            ...
+
+        def Load(self) -> None:  # noqa: N802
+            ...
+
+        def Release(self) -> None:  # noqa: N802
+            ...
+
+    class CommandFrequencySweep(DataObject, Protocol):
+        iopt_net: int  # network modeling; 0 - sym. positive sequence; 1 - unsym. 3-Phase(abc)
+        ildfinit: bool  # load flow initialisation
+        fstart: float
+        fstep: float
+        fstop: float
+        i_adapt: bool  # automatic step size adaption
+
     class Script(Protocol):
         def SetExternalObject(self, name: str, value: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
             ...
@@ -701,10 +792,34 @@ class PowerFactoryTypes:
         def GetActiveScenario(self) -> PowerFactoryTypes.Scenario | None:  # noqa: N802
             ...
 
+        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+            ...
+
         def GetProjectFolder(self, name: str) -> PowerFactoryTypes.DataObject:  # noqa: N802
             ...
 
+        def GetFromStudyCase(self, className: str) -> PowerFactoryTypes.DataObject:  # noqa: N802, N803
+            ...
+
         def PostCommand(self, command: Literal["exit"]) -> None:  # noqa: N802
+            ...
+
+        def ExecuteCmd(self, command: str) -> None:  # noqa: N802
+            ...
+
+        def EchoOff(self) -> None:  # noqa: N802
+            ...
+
+        def EchoOn(self) -> None:  # noqa: N802
+            ...
+
+        def GetCalcRelevantObjects(  # noqa: N802
+            self,
+            nameFilter: str,  # noqa: N803
+            includeOutOfService: int,  # noqa: N803
+            topoElementsOnly: int,  # noqa: N803
+            bAcSchemes: int,  # noqa: N803
+        ) -> set:
             ...
 
     class PowerFactoryModule(Protocol):

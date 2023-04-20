@@ -183,7 +183,10 @@ class PowerFactoryInterface:
             PFTypes.Project -- the project handle
         """
 
-        logger.debug("Activating project {project_name} application...", project_name=project_name)
+        logger.debug(
+            "Activating project {project_name} application...",
+            project_name=project_name,
+        )
         self.activate_project(project_name)
 
         project = self.app.GetActiveProject()
@@ -191,8 +194,30 @@ class PowerFactoryInterface:
             msg = "Could not access project."
             raise RuntimeError(msg)
 
-        logger.debug("Activating project {project_name} application... Done.", project_name=project_name)
+        logger.debug(
+            "Activating project {project_name} application... Done.",
+            project_name=project_name,
+        )
         return project
+
+    def set_result_variables(
+        self,
+        result_name: str,
+        elements: Sequence[PFTypes.DataObject],
+        variables: Sequence[str],
+    ) -> None:
+        logger.debug("Set Variables for result object {result_name} ...", result_name=result_name)
+        sc = self.app.GetActiveStudyCase()
+        result = self.result(name=result_name, study_case_name=sc.loc_name)
+        # result = self.app.GetFromStudyCase(result_name + ".ElmRes") # TODO
+        # typing.cast("PFTypes.Result", result) if result is not None else None
+        if result:
+            for elm in elements:
+                for variable in variables:
+                    result.AddVariable(elm, variable)
+        else:
+            msg = f"Could not add variables to result object {result_name}.ElmRes as it does not exists."
+            raise RuntimeError(msg)
 
     def activate_grid(self, grid: PFTypes.Grid) -> None:
         logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
@@ -211,26 +236,38 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def activate_scenario(self, scen: PFTypes.Scenario) -> None:
-        logger.debug("Activating scenario {scenario_name} application...", scenario_name=scen.loc_name)
+        logger.debug(
+            "Activating scenario {scenario_name} application...",
+            scenario_name=scen.loc_name,
+        )
         active_scen = self.app.GetActiveScenario()
         if active_scen != scen and scen.Activate():
             msg = "Could not activate scenario."
             raise RuntimeError(msg)
 
     def deactivate_scenario(self, scen: PFTypes.Scenario) -> None:
-        logger.debug("Deactivating scenario {scenario_name} application...", scenario_name=scen.loc_name)
+        logger.debug(
+            "Deactivating scenario {scenario_name} application...",
+            scenario_name=scen.loc_name,
+        )
         if scen.Deactivate():
             msg = "Could not deactivate scenario."
             raise RuntimeError(msg)
 
     def activate_study_case(self, stc: PFTypes.StudyCase) -> None:
-        logger.debug("Activating study_case {study_case_name} application...", study_case_name=stc.loc_name)
+        logger.debug(
+            "Activating study_case {study_case_name} application...",
+            study_case_name=stc.loc_name,
+        )
         if stc.Activate():
             msg = "Could not activate case study."
             raise RuntimeError(msg)
 
     def deactivate_study_case(self, stc: PFTypes.StudyCase) -> None:
-        logger.debug("Deactivating study_case {study_case_name} application...", study_case_name=stc.loc_name)
+        logger.debug(
+            "Deactivating study_case {study_case_name} application...",
+            study_case_name=stc.loc_name,
+        )
         if stc.Deactivate():
             msg = "Could not deactivate case study."
             raise RuntimeError(msg)
@@ -336,6 +373,14 @@ class PowerFactoryInterface:
         elements = self.elements_of(element=load, pattern="*.ElmLodlvp")
         return [typing.cast("PFTypes.LoadLVP", element) for element in elements]
 
+    def result(self, name: str = "*", study_case_name: str = "*") -> PFTypes.Result | None:
+        element = self.study_case_element(class_name="ElmRes", name=name, study_case_name=study_case_name)
+        return typing.cast("PFTypes.Result", element) if element is not None else None
+
+    def results(self, name: str = "*", study_case_name: str = "*") -> Sequence[PFTypes.Result]:
+        elements = self.study_case_elements(class_name="ElmRes", name=name, study_case_name=study_case_name)
+        return [typing.cast("PFTypes.Result", element) for element in elements]
+
     def study_case(self, name: str = "*") -> PFTypes.StudyCase | None:
         element = self.element_of(element=self.study_case_dir, pattern=name)
         return typing.cast("PFTypes.StudyCase", element) if element is not None else None
@@ -361,10 +406,12 @@ class PowerFactoryInterface:
         return [typing.cast("PFTypes.LineType", element) for element in elements]
 
     def load_type(self, name: str = "*") -> PFTypes.DataObject | None:
-        return self.grid_model_element("TypLod", name)
+        element = self.grid_model_element("TypLod", name)
+        return typing.cast("PFTypes.LoadType", element) if element is not None else None
 
     def load_types(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
-        return self.grid_model_elements("TypLod", name)
+        elements = self.grid_model_elements("TypLod", name)
+        return [typing.cast("PFTypes.LoadType", element) for element in elements]
 
     def transformer_2w_type(self, name: str = "*") -> PFTypes.Transformer2WType | None:
         element = self.grid_model_element("TypTr2", name)
@@ -373,6 +420,14 @@ class PowerFactoryInterface:
     def transformer_2w_types(self, name: str = "*") -> Sequence[PFTypes.Transformer2WType]:
         elements = self.grid_model_elements("TypTr2", name)
         return [typing.cast("PFTypes.Transformer2WType", element) for element in elements]
+
+    def harmonic_source_type(self, name: str = "*") -> PFTypes.HarmonicSourceType | None:
+        element = self.grid_model_element("TypHmccur", name)
+        return typing.cast("PFTypes.HarmonicSourceType", element) if element is not None else None
+
+    def harmonic_source_types(self, name: str = "*") -> Sequence[PFTypes.HarmonicSourceType]:
+        elements = self.grid_model_elements("TypHmccur", name)
+        return [typing.cast("PFTypes.HarmonicSourceType", element) for element in elements]
 
     def area(self, name: str = "*") -> PFTypes.DataObject | None:
         return self.grid_model_element("ElmArea", name)
@@ -506,6 +561,22 @@ class PowerFactoryInterface:
         elements = self.grid_elements("ElmPvsys", name, grid)
         return [typing.cast("PFTypes.PVSystem", element) for element in elements]
 
+    def ac_current_source(self, name: str = "*", grid: str = "*") -> PFTypes.AcCurrentSource | None:
+        element = self.grid_element("ElmIac", name, grid)
+        return typing.cast("PFTypes.AcCurrentSource", element) if element is not None else None
+
+    def ac_current_sources(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.AcCurrentSource]:
+        elements = self.grid_elements("ElmIac", name, grid)
+        return [typing.cast("PFTypes.AcCurrentSource", element) for element in elements]
+
+    def grid(self, name: str = "*") -> PFTypes.Grid | None:
+        element = self.grid_model_element("ElmNet", name)
+        return typing.cast("PFTypes.Grid", element) if element is not None else None
+
+    def grids(self, name: str = "*") -> Sequence[PFTypes.Grid]:
+        elements = self.grid_model_elements("ElmNet", name)
+        return [typing.cast("PFTypes.Grid", element) for element in elements]
+
     def grid_element(self, class_name: str, name: str = "*", grid: str = "*") -> PFTypes.DataObject | None:
         elements = self.grid_elements(class_name=class_name, name=name, grid=grid)
         if len(elements) == 0:
@@ -520,19 +591,29 @@ class PowerFactoryInterface:
         rv = [self.elements_of(element=g, pattern=name + "." + class_name) for g in self.grids(grid)]
         return self.list_from_sequences(*rv)
 
-    def grid(self, name: str = "*") -> PFTypes.Grid | None:
-        element = self.grid_model_element("ElmNet", name)
-        return typing.cast("PFTypes.Grid", element) if element is not None else None
-
-    def grids(self, name: str = "*") -> Sequence[PFTypes.Grid]:
-        elements = self.grid_model_elements("ElmNet", name)
-        return [typing.cast("PFTypes.Grid", element) for element in elements]
-
     def grid_model_element(self, class_name: str, name: str = "*") -> PFTypes.DataObject | None:
         return self.element_of(element=self.grid_model, pattern=name + "." + class_name)
 
     def grid_model_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.elements_of(element=self.grid_model, pattern=name + "." + class_name)
+
+    def study_case_element(
+        self, class_name: str, name: str = "*", study_case_name: str = "*"
+    ) -> PFTypes.DataObject | None:
+        elements = self.study_case_elements(class_name=class_name, name=name, study_case_name=study_case_name)
+        if len(elements) == 0:
+            return None
+
+        if len(elements) > 1:
+            logger.warning("Found more then one element, returning only the first one.")
+
+        return elements[0]
+
+    def study_case_elements(
+        self, class_name: str, name: str = "*", study_case_name: str = "*"
+    ) -> Sequence[PFTypes.DataObject]:
+        rv = [self.elements_of(element=sc, pattern=name + "." + class_name) for sc in self.study_cases(study_case_name)]
+        return self.list_from_sequences(*rv)
 
     def create_unit_conversion_setting(
         self,
