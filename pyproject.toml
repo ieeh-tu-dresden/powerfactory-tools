@@ -9,7 +9,6 @@
       "ieeh-power-system-data-model==1.2.0",
       "loguru",
       "pydantic",
-      "numpy>=1.24.2",
   ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
