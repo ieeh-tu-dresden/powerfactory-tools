@@ -202,22 +202,15 @@ class PowerFactoryInterface:
 
     def set_result_variables(
         self,
-        result_name: str,
+        *,
+        result: PFTypes.Result,
         elements: Sequence[PFTypes.DataObject],
         variables: Sequence[str],
     ) -> None:
-        logger.debug("Set Variables for result object {result_name} ...", result_name=result_name)
-        sc = self.app.GetActiveStudyCase()
-        result = self.result(name=result_name, study_case_name=sc.loc_name)
-        # result = self.app.GetFromStudyCase(result_name + ".ElmRes") # TODO
-        # typing.cast("PFTypes.Result", result) if result is not None else None
-        if result:
-            for elm in elements:
-                for variable in variables:
-                    result.AddVariable(elm, variable)
-        else:
-            msg = f"Could not add variables to result object {result_name}.ElmRes as it does not exists."
-            raise RuntimeError(msg)
+        logger.debug("Set Variables for result object {result_name} ...", result_name=result.loc_name)
+        for elm in elements:
+            for variable in variables:
+                result.AddVariable(elm, variable)
 
     def activate_grid(self, grid: PFTypes.Grid) -> None:
         logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
@@ -382,11 +375,11 @@ class PowerFactoryInterface:
         return [typing.cast("PFTypes.Result", element) for element in elements]
 
     def study_case(self, name: str = "*") -> PFTypes.StudyCase | None:
-        element = self.element_of(element=self.study_case_dir, pattern=name)
+        element = self.element_of(element=self.study_case_dir, pattern=name + ".IntCase")
         return typing.cast("PFTypes.StudyCase", element) if element is not None else None
 
     def study_cases(self, name: str = "*") -> Sequence[PFTypes.StudyCase]:
-        elements = self.elements_of(element=self.study_case_dir, pattern=name)
+        elements = self.elements_of(element=self.study_case_dir, pattern=name + ".IntCase")
         return [typing.cast("PFTypes.StudyCase", element) for element in elements]
 
     def scenario(self, name: str = "*") -> PFTypes.Scenario | None:
@@ -398,35 +391,35 @@ class PowerFactoryInterface:
         return [typing.cast("PFTypes.Scenario", element) for element in elements]
 
     def line_type(self, name: str = "*") -> PFTypes.LineType | None:
-        element = self.grid_model_element("TypLne", name)
+        element = self.equipment_type_element("TypLne", name)
         return typing.cast("PFTypes.LineType", element) if element is not None else None
 
     def line_types(self, name: str = "*") -> Sequence[PFTypes.LineType]:
-        elements = self.grid_model_elements("TypLne", name)
+        elements = self.equipment_type_elements("TypLne", name)
         return [typing.cast("PFTypes.LineType", element) for element in elements]
 
     def load_type(self, name: str = "*") -> PFTypes.DataObject | None:
-        element = self.grid_model_element("TypLod", name)
+        element = self.equipment_type_element("TypLod", name)
         return typing.cast("PFTypes.LoadType", element) if element is not None else None
 
     def load_types(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
-        elements = self.grid_model_elements("TypLod", name)
+        elements = self.equipment_type_elements("TypLod", name)
         return [typing.cast("PFTypes.LoadType", element) for element in elements]
 
     def transformer_2w_type(self, name: str = "*") -> PFTypes.Transformer2WType | None:
-        element = self.grid_model_element("TypTr2", name)
+        element = self.equipment_type_element("TypTr2", name)
         return typing.cast("PFTypes.Transformer2WType", element) if element is not None else None
 
     def transformer_2w_types(self, name: str = "*") -> Sequence[PFTypes.Transformer2WType]:
-        elements = self.grid_model_elements("TypTr2", name)
+        elements = self.equipment_type_elements("TypTr2", name)
         return [typing.cast("PFTypes.Transformer2WType", element) for element in elements]
 
     def harmonic_source_type(self, name: str = "*") -> PFTypes.HarmonicSourceType | None:
-        element = self.grid_model_element("TypHmccur", name)
+        element = self.equipment_type_element("TypHmccur", name)
         return typing.cast("PFTypes.HarmonicSourceType", element) if element is not None else None
 
     def harmonic_source_types(self, name: str = "*") -> Sequence[PFTypes.HarmonicSourceType]:
-        elements = self.grid_model_elements("TypHmccur", name)
+        elements = self.equipment_type_elements("TypHmccur", name)
         return [typing.cast("PFTypes.HarmonicSourceType", element) for element in elements]
 
     def area(self, name: str = "*") -> PFTypes.DataObject | None:
@@ -597,8 +590,17 @@ class PowerFactoryInterface:
     def grid_model_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.elements_of(element=self.grid_model, pattern=name + "." + class_name)
 
+    def equipment_type_element(self, class_name: str, name: str = "*") -> PFTypes.DataObject | None:
+        return self.element_of(element=self.types_dir, pattern=name + "." + class_name)
+
+    def equipment_type_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
+        return self.elements_of(element=self.types_dir, pattern=name + "." + class_name)
+
     def study_case_element(
-        self, class_name: str, name: str = "*", study_case_name: str = "*"
+        self,
+        class_name: str,
+        name: str = "*",
+        study_case_name: str = "*",
     ) -> PFTypes.DataObject | None:
         elements = self.study_case_elements(class_name=class_name, name=name, study_case_name=study_case_name)
         if len(elements) == 0:
@@ -610,10 +612,38 @@ class PowerFactoryInterface:
         return elements[0]
 
     def study_case_elements(
-        self, class_name: str, name: str = "*", study_case_name: str = "*"
+        self,
+        class_name: str,
+        name: str = "*",
+        study_case_name: str = "*",
     ) -> Sequence[PFTypes.DataObject]:
         rv = [self.elements_of(element=sc, pattern=name + "." + class_name) for sc in self.study_cases(study_case_name)]
         return self.list_from_sequences(*rv)
+
+    def element_of(
+        self,
+        *,
+        element: PFTypes.DataObject,
+        pattern: str = "*",
+        recursive: bool = True,
+    ) -> PFTypes.DataObject | None:
+        elements = self.elements_of(element=element, pattern=pattern, recursive=recursive)
+        if len(elements) == 0:
+            return None
+
+        if len(elements) > 1:
+            logger.warning("Found more then one element, returning only the first one.")
+
+        return elements[0]
+
+    def elements_of(
+        self,
+        *,
+        element: PFTypes.DataObject,
+        pattern: str = "*",
+        recursive: bool = True,
+    ) -> Sequence[PFTypes.DataObject]:
+        return element.GetContents(pattern, recursive)
 
     def create_unit_conversion_setting(
         self,
@@ -644,12 +674,34 @@ class PowerFactoryInterface:
 
         return []
 
+    def create_result(
+        self,
+        *,
+        name: str,
+        location: PFTypes.StudyCase,
+        data: dict = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Result | None:
+        logger.debug("Create result object {name} ...", name=name)
+        if data is None:
+            data = {}
+        element = self.create_object(
+            name=name,
+            class_name="ElmRes",
+            location=location,
+            data=data,
+            force=force,
+            update=update,
+        )
+        return typing.cast("PFTypes.Result", element) if element is not None else None
+
     def create_object(
         self,
         *,
         name: str,
         class_name: str,
-        location: PFTypes.DataDir,
+        location: PFTypes.DataDir | PFTypes.StudyCase,
         data: dict[str, Any],
         force: bool = False,
         update: bool = True,
@@ -670,31 +722,6 @@ class PowerFactoryInterface:
             return self.update_object(element, data)
 
         return element
-
-    def element_of(
-        self,
-        *,
-        element: PFTypes.DataObject,
-        pattern: str = "*",
-        recursive: bool = True,
-    ) -> PFTypes.DataObject | None:
-        elements = self.elements_of(element=element, pattern=pattern, recursive=recursive)
-        if len(elements) == 0:
-            return None
-
-        if len(elements) > 1:
-            logger.warning("Found more then one element, returning only the first one.")
-
-        return elements[0]
-
-    def elements_of(
-        self,
-        *,
-        element: PFTypes.DataObject,
-        pattern: str = "*",
-        recursive: bool = True,
-    ) -> Sequence[PFTypes.DataObject]:
-        return element.GetContents(pattern, recursive)
 
     @staticmethod
     def update_object(element: PFTypes.DataObject, data: dict[str, Any]) -> PFTypes.DataObject:

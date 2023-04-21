@@ -302,6 +302,62 @@ class HarmonicLoadModelType(enum.IntEnum):
     IMPEDANCE_TYPE_2 = 2
 
 
+class NetworkCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+
+
+class NetworkExtendedCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+    DC = 2
+
+
+class TemperatureDependencyType(enum.IntEnum):
+    DEFAULT_20_DEGREE = 0
+    MAX_OPERATION_TEMP = 1
+    OPERATION_TEMP = 2
+    USER_TEMP = 3
+
+
+class CalculationType(enum.IntEnum):  # only excerpt
+    ALL_CALCULATIONS = 0
+    RELIABILITY_MONTE_CARLO = 1
+    RELIABILITY_ENUMERATION = 2
+    MODAL_ANALYSIS = 5  # Eigenvalues
+    HARMONICS = 6
+    MONITORING = 7
+    TRIGGERED = 8
+    FREQUENCY_SWEEP = 9
+    VOLTAGE_SAGS = 10
+    SHORT_CIRCUIT_SWEEP = 11
+    ONLINE_PFM = 12
+    CONTINGENCY_ANALYSIS = 13
+    OPF_BEFORE_OPTIMISATION = 14
+    OPF_AFTER_OPTIMISATION = 15
+    SHORT_CIRCUIT = 16
+    FFT_CALCULATION = 17
+    SHORT_CIRCUIT_EMT = 18
+    FLICKER = 19
+    QUASI_DYNAMIC_SIMULATION = 29
+    PROTECTION = 30
+    SENSITIVITY_FACTORS = 31
+
+
+class CalculationCommand(enum.Enum):  # only excerpt
+    LOAD_FLOW = "ComLdf"
+    CONTINGENCY_ANALYSIS = "ComContingency"
+    FLICKER = "ComFlickermeter"
+    SHORT_CIRCUIT_SWEEP = "ComShctrace"
+    SHORT_CIRCUIT = "ComShc"
+    TIME_DOMAIN_SIMULATION = "ComSim"
+    TIME_DOMAIN_SIMULATION_START = "ComInc"
+    MODAL_ANALYSIS = "ComMod"
+    SENSITIVITY_ANALYSIS = "ComVstab"
+    HARMONICS = "ComHldf"
+    FREQUENCY_SWEEP = "ComFsweep"
+
+
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
@@ -732,7 +788,7 @@ class PowerFactoryTypes:
 
     class Result(DataObject, Protocol):
         desc: Sequence[str]
-        calTp: int  # noqa: N815
+        calTp: CalculationType  # noqa: N815
 
         def AddVariable(self) -> int:  # noqa: N802
             ...
@@ -767,8 +823,48 @@ class PowerFactoryTypes:
         def Release(self) -> None:  # noqa: N802
             ...
 
-    class CommandFrequencySweep(DataObject, Protocol):
-        iopt_net: int  # network modeling; 0 - sym. positive sequence; 1 - unsym. 3-Phase(abc)
+    class CommandBase(DataObject, Protocol):
+        def Execute(self) -> int:  # noqa: N802
+            ...
+
+    class CommandLoadFlow(CommandBase, Protocol):
+        iopt_net: NetworkExtendedCalcType
+        iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
+        iopt_plim: bool  # apply active power limits
+        iopt_at: bool  # automatic step control of transformers
+        iopt_asht: bool  # automatic step control of compensators/filters
+        iopt_lim: bool  # apply reactive power limits
+        iopt_tem: TemperatureDependencyType
+        temperature: float
+        iopt_pq: bool  # apply voltage dependecy of loads
+        iopt_fls: bool  # load scaling at defined feeders
+
+        i_power: int  # load flow method; 0 - NewtonRaphson (current eq.); 1 - Newton Raphson (power eq.)[default]
+
+        scLoadFac: float  # noqa: N815  # load scaling factor in percentage
+        scGenFac: float  # noqa: N815  # generator scaling factor in percentage
+        scMotFac: float  # noqa: N815  # motor scaling factor in percentage
+        zoneScale: int  # noqa: N815  # zone scaling; 0 - apply for all loads; 1 - apply only for scalable loads
+
+    class CommandHarmonicCalculation(CommandBase, Protocol):
+        iopt_sweep: int
+        iopt_allfrq: int
+        iopt_flicker: bool
+        iopt_SkV: bool  # noqa: N815
+        iopt_pseq: bool
+        iopt_net: NetworkCalcType
+        frnom: float
+        fshow: float
+        ifshow: float
+        p_resvar: PowerFactoryTypes.Result
+
+        errmax: float
+        errinc: float
+        ninc: float
+        iopt_thd: int
+
+    class CommandFrequencySweep(CommandBase, Protocol):
+        iopt_net: NetworkCalcType
         ildfinit: bool  # load flow initialisation
         fstart: float
         fstep: float
