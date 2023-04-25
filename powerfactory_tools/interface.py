@@ -678,7 +678,7 @@ class PowerFactoryInterface:
         self,
         *,
         name: str,
-        location: PFTypes.StudyCase,
+        study_case: PFTypes.StudyCase,
         data: dict = None,
         force: bool = False,
         update: bool = True,
@@ -689,7 +689,7 @@ class PowerFactoryInterface:
         element = self.create_object(
             name=name,
             class_name="ElmRes",
-            location=location,
+            location=study_case,
             data=data,
             force=force,
             update=update,
