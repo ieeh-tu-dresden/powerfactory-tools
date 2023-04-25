@@ -166,8 +166,6 @@ class PowerFactoryController:
         for load in loads:
             load.plini = 2  # active power in MW
 
-        result_data = {}
-
         ## init load flow - sym or unsym
         # Typing is not necessary, but recommended so that the IDE code can give some code completion proposals
         ldf = typing.cast(
@@ -178,6 +176,10 @@ class PowerFactoryController:
         error: int = ldf.Execute()
         if error != 0:
             logger.error("Load flow execution failed.")
+
+        result: PFTypes.Result = self.pfi.result(name="Load Flow")  # noqa: F841
+        # do further user specific work and fill result_data dictonairy based on PF result
+        result_data = {}
 
         ## store results
         self.export_data(
