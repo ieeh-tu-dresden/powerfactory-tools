@@ -75,8 +75,10 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 class PowerFactoryInterface:
     project_name: str
     powerfactory_user_profile: str | None = None
+    powerfactory_user_password: str | None = None
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = POWERFACTORY_VERSION
+    powerfactory_ini_name: str | None = None
     python_version: str = PYTHON_VERSION
 
     def __post_init__(self) -> None:
@@ -167,8 +169,21 @@ class PowerFactoryInterface:
         """
 
         logger.debug("Connecting to PowerFactory application...")
+        if self.powerfactory_ini_name is None:
+            command_line_arg = None
+        else:
+            ini_path = (
+                self.powerfactory_path
+                / ("PowerFactory " + self.powerfactory_version)
+                / (self.powerfactory_ini_name + ".ini")
+            )
+            command_line_arg = '/ini "' + str(ini_path) + '"'
         try:
-            return pf.GetApplicationExt(self.powerfactory_user_profile)
+            return pf.GetApplicationExt(
+                self.powerfactory_user_profile,
+                self.powerfactory_user_password,
+                command_line_arg,
+            )
         except pf.ExitError as element:
             msg = "Could not start application."
             raise RuntimeError(msg) from element
