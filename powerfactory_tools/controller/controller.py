@@ -12,7 +12,6 @@ import typing
 
 import pydantic
 from data_io import to_json
-from helper.pofahelper import HarmonicCalculation
 from loguru import logger
 
 from powerfactory_tools.interface import PowerFactoryInterface
@@ -318,7 +317,7 @@ def apply_control_1(  # noqa: PLR0913
 if __name__ == "__main__":
     import pathlib
 
-    PROJECT_NAME = "pf_project_dir\project_name"  # may be also full path "dir_name\project_name"
+    PROJECT_NAME = "pf_project_dir\project_name"  # may be also full path "dir_name\project_name"  # noqa: W605
     GRID_NAME = "grid_name"
     EXPORT_PATH = pathlib.Path("export")
     PF_USER_PROFILE = ""  # specification may be necessary
