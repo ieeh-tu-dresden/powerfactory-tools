@@ -71,9 +71,11 @@ from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
-from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
+from powerfactory_tools.powerfactory_types import TrfNeutralConnectionType
+from powerfactory_tools.powerfactory_types import TrfNeutralPointState
 from powerfactory_tools.powerfactory_types import TrfPhaseTechnology
+from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
@@ -530,7 +532,7 @@ class PowerFactoryExporter:
 
         return self.pfi.list_from_sequences(self.pfi.filter_none(blines), self.pfi.filter_none(bcouplers))
 
-    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
+    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:  # noqa: PLR0915
         name = self.pfi.create_name(line, grid_name)
         logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
@@ -731,7 +733,11 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
+    def create_transformer_2w(  # noqa: PLR0915
+        self,
+        transformer_2w: PFTypes.Transformer2W,
+        grid_name: str,
+    ) -> Transformer | None:
         name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
         logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
@@ -804,7 +810,25 @@ class PowerFactoryExporter:
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
 
-            # Neutral phase connection
+            # Neutral point phase connection
+            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+                transformer_2w,
+                vector_group,
+            )
+
+            # Neutral point earthing
+            if "N" in vector_group_h and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
+                re_h = transformer_2w.re0tr_h
+                xe_h = transformer_2w.xe0tr_h
+            else:
+                re_h = None
+                xe_h = None
+            if "N" in vector_group_l and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
+                re_l = transformer_2w.re0tr_l
+                xe_l = transformer_2w.xe0tr_l
+            else:
+                re_l = None
+                xe_l = None
 
             wh = Winding(
                 node=t_high_name,
@@ -815,8 +839,11 @@ class PowerFactoryExporter:
                 r0=r_0,
                 x1=x_1,
                 x0=x_0,
+                re_h=re_h,
+                xe_h=xe_h,
                 vector_group=vector_group_h,
                 phase_angle_clock=0,
+                neutral_connected=neutral_connected_h,
             )
 
             wl = Winding(
@@ -828,8 +855,11 @@ class PowerFactoryExporter:
                 r0=float(0),
                 x1=float(0),
                 x0=float(0),
+                re_l=re_l,
+                xe_l=xe_l,
                 vector_group=vector_group_l,
                 phase_angle_clock=int(vector_phase_angle_clock),
+                neutral_connected=neutral_connected_l,
             )
 
             return Transformer(
@@ -853,6 +883,19 @@ class PowerFactoryExporter:
 
         logger.warning("Type not set for 2-winding transformer {transformer_name}. Skipping.", transformer_name=name)
         return None
+
+    @staticmethod
+    def transformer_neutral_connection_hvlv(t: PFTypes.Transformer2W, vector_group: VectorGroup) -> tuple[bool, bool]:
+        if "n" in vector_group.name.lower():
+            if t.cneutcon == TrfNeutralConnectionType.ABC_N:
+                return True, True
+            if t.cneutcon == TrfNeutralConnectionType.HV:
+                return True, False
+            if t.cneutcon == TrfNeutralConnectionType.LV:
+                return False, True
+            if t.cneutcon == TrfNeutralConnectionType.HV_LV:
+                return True, True
+        return False, False  # corresponds to TrfNeutralConnectionType.NO
 
     @staticmethod
     def get_description(

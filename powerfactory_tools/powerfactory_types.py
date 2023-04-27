@@ -465,15 +465,6 @@ class PowerFactoryTypes:
         itapch2: int
 
         nt2ph: TrfPhaseTechnology
-        cneutcon: TrfNeutralConnectionType
-        cgnd_h: TrfNeutralPointState
-        cgnd_l: TrfNeutralPointState
-        cpeter_h: bool
-        cpeter_l: bool
-        re0tr_h: float
-        re0tr_l: float
-        xe0tr_h: float
-        xe0tr_l: float
 
     class Transformer3WType(DataObject, Protocol):
         ...
@@ -525,6 +516,16 @@ class PowerFactoryTypes:
         ntnum: int
         typ_id: PowerFactoryTypes.Transformer2WType | None
         nntap: int
+
+        cneutcon: TrfNeutralConnectionType
+        cgnd_h: TrfNeutralPointState
+        cgnd_l: TrfNeutralPointState
+        cpeter_h: bool
+        cpeter_l: bool
+        re0tr_h: float
+        re0tr_l: float
+        xe0tr_h: float
+        xe0tr_l: float
 
     class Transformer3W(LineBase, Protocol):
         buslv: PowerFactoryTypes.StationCubicle | None
