@@ -71,7 +71,9 @@ from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
+from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
+from powerfactory_tools.powerfactory_types import TrfPhaseTechnology
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
@@ -757,9 +759,8 @@ class PowerFactoryExporter:
 
         if t_type is not None:
             t_number = transformer_2w.ntnum
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
 
-            ph_technology = self.transformer_phase_technology(t_type)
+            ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
             # Transformer Tap Changer
             tap_u_abs = t_type.dutap
@@ -767,7 +768,7 @@ class PowerFactoryExporter:
             tap_min = t_type.ntpmn
             tap_max = t_type.ntpmx
             tap_neutral = t_type.nntap0
-            tap_side = self.transformer_tap_side(t_type)
+            tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
 
             if bool(t_type.itapch2) is True:
                 logger.warning(
@@ -798,9 +799,12 @@ class PowerFactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_phase_angle_clock = t_type.nt2ag
+            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
+            vector_phase_angle_clock = t_type.nt2ag
+
+            # Neutral phase connection
 
             wh = Winding(
                 node=t_high_name,
@@ -862,26 +866,6 @@ class PowerFactoryExporter:
             return True, desc[0]
 
         return True, ""
-
-    @staticmethod
-    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
-        tech_mapping = {
-            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
-            2: TransformerPhaseTechnologyType.SINGLE_PH,
-            3: TransformerPhaseTechnologyType.THREE_PH,
-        }
-        return tech_mapping[t_type.nt2ph]
-
-    @staticmethod
-    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
-        side_mapping_2w = {
-            0: TapSide.HV,
-            1: TapSide.LV,
-        }
-        if t_type.itapch:
-            return side_mapping_2w.get(t_type.tap_side)
-
-        return None
 
     def create_loads(  # noqa: PLR0913 # fix
         self,
