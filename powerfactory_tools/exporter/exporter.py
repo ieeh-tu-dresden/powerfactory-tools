@@ -12,7 +12,7 @@ import math
 import multiprocessing
 import pathlib
 import textwrap
-from typing import TYPE_CHECKING
+import typing
 
 import pydantic
 from loguru import logger
@@ -76,7 +76,7 @@ from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
     from typing import Literal
@@ -575,6 +575,26 @@ class PowerFactoryExporter:
         g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
         b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
+        if l_type.nneutral:
+            l_type = typing.cast("PFTypes.LineNType", l_type)
+            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            gn = l_type.gnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            gpn = l_type.gpnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        else:
+            rn = None
+            xn = None
+            rpn = None
+            xpn = None
+            gn = None
+            bn = None
+            gpn = None
+            bpn = None
+
         f_nom = l_type.frnom  # usually 50 Hertz
         u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
@@ -590,6 +610,14 @@ class PowerFactoryExporter:
             b1=b1,
             g0=g0,
             b0=b0,
+            rn=rn,
+            xn=xn,
+            rpn=rpn,
+            xpn=xpn,
+            gn=gn,
+            bn=bn,
+            gpn=gpn,
+            bpn=bpn,
             i_r=i_r,
             description=description,
             u_n=u_nom,
