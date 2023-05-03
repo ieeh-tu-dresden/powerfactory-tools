@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import dataclasses
 import datetime
 import itertools
 import math
@@ -59,6 +58,7 @@ from psdm.topology_case.element_state import ElementState
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import LoadPower
+from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosphiChar
 from powerfactory_tools.powerfactory_types import CtrlMode
@@ -105,26 +105,6 @@ class LoadLV:
 class LoadMV:
     consumer: LoadPower
     producer: LoadPower
-
-
-@dataclasses.dataclass
-class PowerFactoryData:
-    name: str
-    date: datetime.date
-    project: str
-    external_grids: Sequence[PFTypes.ExternalGrid]
-    terminals: Sequence[PFTypes.Terminal]
-    lines: Sequence[PFTypes.Line]
-    transformers_2w: Sequence[PFTypes.Transformer2W]
-    transformers_3w: Sequence[PFTypes.Transformer3W]
-    loads: Sequence[PFTypes.Load]
-    loads_lv: Sequence[PFTypes.LoadLV]
-    loads_mv: Sequence[PFTypes.LoadMV]
-    generators: Sequence[PFTypes.Generator]
-    pv_systems: Sequence[PFTypes.PVSystem]
-    couplers: Sequence[PFTypes.Coupler]
-    switches: Sequence[PFTypes.Switch]
-    fuses: Sequence[PFTypes.Fuse]
 
 
 class PowerFactoryExporterProcess(multiprocessing.Process):
@@ -275,9 +255,9 @@ class PowerFactoryExporter:
 
         logger.debug("Exporting scenario {scenario_name}...", scenario_name=scenario_name)
         if scenario_name is not None:
-            self.switch_scenario(scenario_name)
+            self.pfi.switch_scenario(scenario_name)
 
-        data = self.compile_powerfactory_data()
+        data = self.pfi.compile_powerfactory_data()
         meta = self.create_meta_data(data=data)
 
         topology_case = self.create_topology_case(meta=meta, data=data)
@@ -369,57 +349,6 @@ class PowerFactoryExporter:
             raise FileNotFoundError(msg) from e
 
         data.to_json(file_path)
-
-    def switch_study_case(self, sc: str) -> None:
-        study_case = self.pfi.study_case(name=sc)
-        if study_case is not None:
-            self.pfi.activate_study_case(study_case)
-        else:
-            msg = f"Study case {sc} does not exist."
-            raise RuntimeError(msg)
-
-    def switch_scenario(self, scen: str) -> None:
-        scenario = self.pfi.scenario(name=scen)
-        if scenario is not None:
-            self.pfi.activate_scenario(scenario)
-        else:
-            msg = f"Scenario {scen} does not exist."
-            raise RuntimeError(msg)
-
-    def compile_powerfactory_data(self) -> PowerFactoryData:
-        logger.debug("Compiling data from PowerFactory...")
-        if self.grid_name == "*":
-            name = self.project_name
-        else:
-            grids = self.pfi.grids()
-            try:
-                grid = [e for e in grids if e.loc_name == self.grid_name][0]
-                name = grid.loc_name
-            except IndexError as e:
-                msg = f"Grid {self.grid_name} does not exist."
-                raise RuntimeError(msg) from e
-
-        project = self.pfi.project.loc_name
-        date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
-
-        return PowerFactoryData(
-            name=name,
-            date=date,
-            project=project,
-            external_grids=self.pfi.external_grids(grid=self.grid_name),
-            terminals=self.pfi.terminals(grid=self.grid_name),
-            lines=self.pfi.lines(grid=self.grid_name),
-            transformers_2w=self.pfi.transformers_2w(grid=self.grid_name),
-            transformers_3w=self.pfi.transformers_3w(grid=self.grid_name),
-            loads=self.pfi.loads(grid=self.grid_name),
-            loads_lv=self.pfi.loads_lv(grid=self.grid_name),
-            loads_mv=self.pfi.loads_mv(grid=self.grid_name),
-            generators=self.pfi.generators(grid=self.grid_name),
-            pv_systems=self.pfi.pv_systems(grid=self.grid_name),
-            couplers=self.pfi.couplers(grid=self.grid_name),
-            switches=self.pfi.switches(grid=self.grid_name),
-            fuses=self.pfi.fuses(grid=self.grid_name),
-        )
 
     @staticmethod
     def create_meta_data(data: PowerFactoryData) -> Meta:
