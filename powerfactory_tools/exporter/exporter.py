@@ -207,7 +207,7 @@ class PowerFactoryExporter:
         """
 
         logger.debug("Exporting {project_name}...", project_name=self.project_name)
-        data = self.compile_powerfactory_data()
+        data = self.pfi.compile_powerfactory_data(self.grid_name)
         meta = self.create_meta_data(data=data)
 
         topology = self.create_topology(meta=meta, data=data)
@@ -257,7 +257,7 @@ class PowerFactoryExporter:
         if scenario_name is not None:
             self.pfi.switch_scenario(scenario_name)
 
-        data = self.pfi.compile_powerfactory_data()
+        data = self.pfi.compile_powerfactory_data(self.grid_name)
         meta = self.create_meta_data(data=data)
 
         topology_case = self.create_topology_case(meta=meta, data=data)

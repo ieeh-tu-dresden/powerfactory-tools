@@ -790,7 +790,12 @@ class PowerFactoryTypes:
         desc: Sequence[str]
         calTp: CalculationType  # noqa: N815
 
-        def AddVariable(self) -> int:  # noqa: N802
+        def AddVariable(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.DataObject,
+            varname: str,
+            /,
+        ) -> int:
             ...
 
         def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
@@ -801,6 +806,7 @@ class PowerFactoryTypes:
             obj: PowerFactoryTypes.DataObject,
             varName: str,  # noqa: N803
             startCol: int,  # noqa: N803
+            /,
         ) -> int:
             ...
 
@@ -814,6 +820,7 @@ class PowerFactoryTypes:
             self,
             iX: int,  # noqa: N803
             col: int,
+            /,
         ) -> int:
             ...
 
@@ -872,7 +879,12 @@ class PowerFactoryTypes:
         i_adapt: bool  # automatic step size adaption
 
     class Script(Protocol):
-        def SetExternalObject(self, name: str, value: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
+        def SetExternalObject(  # noqa: N802
+            self,
+            name: str,
+            value: PowerFactoryTypes.DataObject,
+            /,
+        ) -> int:
             ...
 
         def Execute(self) -> int:  # noqa: N802
@@ -891,16 +903,32 @@ class PowerFactoryTypes:
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
             ...
 
-        def GetProjectFolder(self, name: str) -> PowerFactoryTypes.DataObject:  # noqa: N802
+        def GetProjectFolder(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> PowerFactoryTypes.DataObject:
             ...
 
-        def GetFromStudyCase(self, className: str) -> PowerFactoryTypes.DataObject:  # noqa: N802, N803
+        def GetFromStudyCase(  # noqa: N802
+            self,
+            className: str,  # noqa: N803
+            /,
+        ) -> PowerFactoryTypes.DataObject:
             ...
 
-        def PostCommand(self, command: Literal["exit"]) -> None:  # noqa: N802
+        def PostCommand(  # noqa: N802
+            self,
+            command: Literal["exit"],
+            /,
+        ) -> None:
             ...
 
-        def ExecuteCmd(self, command: str) -> None:  # noqa: N802
+        def ExecuteCmd(  # noqa: N802
+            self,
+            command: str,
+            /,
+        ) -> None:
             ...
 
         def EchoOff(self) -> None:  # noqa: N802
@@ -915,6 +943,7 @@ class PowerFactoryTypes:
             includeOutOfService: int,  # noqa: N803
             topoElementsOnly: int,  # noqa: N803
             bAcSchemes: int,  # noqa: N803
+            /,
         ) -> set:
             ...
 
@@ -926,5 +955,6 @@ class PowerFactoryTypes:
             username: str | None = None,
             password: str | None = None,
             commandLineArguments: str | None = None,  # noqa: N803
+            /,
         ) -> PowerFactoryTypes.Application:
             ...

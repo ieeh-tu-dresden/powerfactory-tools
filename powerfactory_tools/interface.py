@@ -70,7 +70,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 )
 
 
-@pydantic.dataclasses
+@dataclasses.dataclass
 class PowerFactoryData:
     name: str
     date: datetime.date
@@ -88,6 +88,7 @@ class PowerFactoryData:
     couplers: Sequence[PFTypes.Coupler]
     switches: Sequence[PFTypes.Switch]
     fuses: Sequence[PFTypes.Fuse]
+    ac_current_sources: Sequence[PFTypes.AcCurrentSource]
 
 
 @pydantic.dataclasses.dataclass
@@ -246,55 +247,55 @@ class PowerFactoryInterface:
         return project
 
     def switch_study_case(self, sc: str) -> None:
-        study_case = self.pfi.study_case(name=sc)
+        study_case = self.study_case(name=sc)
         if study_case is not None:
-            self.pfi.activate_study_case(study_case)
+            self.activate_study_case(study_case)
         else:
             msg = f"Study case {sc} does not exist."
             raise RuntimeError(msg)
 
     def switch_scenario(self, scen: str) -> None:
-        scenario = self.pfi.scenario(name=scen)
+        scenario = self.scenario(name=scen)
         if scenario is not None:
-            self.pfi.activate_scenario(scenario)
+            self.activate_scenario(scenario)
         else:
             msg = f"Scenario {scen} does not exist."
             raise RuntimeError(msg)
 
-    def compile_powerfactory_data(self) -> PowerFactoryData:
+    def compile_powerfactory_data(self, grid_name: str) -> PowerFactoryData:
         logger.debug("Compiling data from PowerFactory...")
-        if self.grid_name == "*":
+        if grid_name == "*":
             name = self.project_name
         else:
-            grids = self.pfi.grids()
+            grids = self.grids()
             try:
-                grid = [e for e in grids if e.loc_name == self.grid_name][0]
+                grid = [e for e in grids if e.loc_name == grid_name][0]
                 name = grid.loc_name
             except IndexError as e:
-                msg = f"Grid {self.grid_name} does not exist."
+                msg = f"Grid {grid_name} does not exist."
                 raise RuntimeError(msg) from e
 
-        project = self.pfi.project.loc_name
+        project_name = self.project.loc_name
         date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
 
         return PowerFactoryData(
             name=name,
             date=date,
-            project=project,
-            external_grids=self.pfi.external_grids(grid=self.grid_name),
-            terminals=self.pfi.terminals(grid=self.grid_name),
-            lines=self.pfi.lines(grid=self.grid_name),
-            transformers_2w=self.pfi.transformers_2w(grid=self.grid_name),
-            transformers_3w=self.pfi.transformers_3w(grid=self.grid_name),
-            loads=self.pfi.loads(grid=self.grid_name),
-            loads_lv=self.pfi.loads_lv(grid=self.grid_name),
-            loads_mv=self.pfi.loads_mv(grid=self.grid_name),
-            generators=self.pfi.generators(grid=self.grid_name),
-            pv_systems=self.pfi.pv_systems(grid=self.grid_name),
-            couplers=self.pfi.couplers(grid=self.grid_name),
-            switches=self.pfi.switches(grid=self.grid_name),
-            fuses=self.pfi.fuses(grid=self.grid_name),
-            ac_current_sources=self.pfi.ac_current_sources(grid=self.grid_name),
+            project=project_name,
+            external_grids=self.external_grids(grid=grid_name),
+            terminals=self.terminals(grid=grid_name),
+            lines=self.lines(grid=grid_name),
+            transformers_2w=self.transformers_2w(grid=grid_name),
+            transformers_3w=self.transformers_3w(grid=grid_name),
+            loads=self.loads(grid=grid_name),
+            loads_lv=self.loads_lv(grid=grid_name),
+            loads_mv=self.loads_mv(grid=grid_name),
+            generators=self.generators(grid=grid_name),
+            pv_systems=self.pv_systems(grid=grid_name),
+            couplers=self.couplers(grid=grid_name),
+            switches=self.switches(grid=grid_name),
+            fuses=self.fuses(grid=grid_name),
+            ac_current_sources=self.ac_current_sources(grid=grid_name),
         )
 
     def set_result_variables(
@@ -776,7 +777,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         study_case: PFTypes.StudyCase,
-        data: dict = None,
+        data: dict | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
