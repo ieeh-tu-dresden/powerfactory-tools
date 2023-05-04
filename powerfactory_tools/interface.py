@@ -85,30 +85,34 @@ class PowerFactoryInterface:
             pf = self.load_powerfactory_module_from_path()
             self.app = self.connect_to_app(pf)
             self.project = self.connect_to_project(self.project_name)
-            self.load_project_folders_from_pf_db()
+            self.load_project_setting_folders_from_pf_db()
             self.stash_unit_conversion_settings()
             self.set_default_unit_conversion()
+            self.load_project_folders_from_pf_db()
             logger.info("Starting PowerFactory Interface... Done.")
         except RuntimeError:
             logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
 
+    def load_project_setting_folders_from_pf_db(self) -> None:
+        self.project_settings = self.load_project_settings_dir_from_pf()
+        self.settings_dir = self.load_settings_dir_from_pf()
+        self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
+
     def load_project_folders_from_pf_db(self) -> None:
+        self.load_project_setting_folders_from_pf_db()
+
         self.grid_model = self.app.GetProjectFolder("netmod")
         self.types_dir = self.app.GetProjectFolder("equip")
         self.op_dir = self.app.GetProjectFolder("oplib")
         self.chars_dir = self.app.GetProjectFolder("chars")
 
-        project_settings_dir = self.load_project_settings_dir_from_pf()
-
-        self.ext_data_dir = project_settings_dir.extDataDir
-
         self.grid_data = self.app.GetProjectFolder("netdat")
         self.study_case_dir = self.app.GetProjectFolder("study")
         self.scenario_dir = self.app.GetProjectFolder("scen")
         self.grid_graphs_dir = self.app.GetProjectFolder("dia")
-        self.settings_dir = self.load_settings_dir_from_pf()
-        self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
+
+        self.ext_data_dir = self.project_settings.extDataDir
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         logger.debug("Loading PowerFactory Python module...")
@@ -237,12 +241,11 @@ class PowerFactoryInterface:
 
     def set_default_unit_conversion(self) -> None:
         logger.debug("Applying exporter default unit conversion settings...")
-        project_settings = self.load_project_settings_dir_from_pf()
-        project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
-        project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
-        project_settings.cspqexp = DEFAULT_PROJECT_UNIT_SETTING.cspqexp
-        project_settings.cspqexpgen = DEFAULT_PROJECT_UNIT_SETTING.cspqexpgen
-        project_settings.currency = DEFAULT_PROJECT_UNIT_SETTING.currency
+        self.project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
+        self.project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
+        self.project_settings.cspqexp = DEFAULT_PROJECT_UNIT_SETTING.cspqexp
+        self.project_settings.cspqexpgen = DEFAULT_PROJECT_UNIT_SETTING.cspqexpgen
+        self.project_settings.currency = DEFAULT_PROJECT_UNIT_SETTING.currency
         for cls, data in BaseUnits.UNITCONVERSIONS.items():
             for unit, base_exp, exp in data:
                 name = f"{cls}-{unit}"
@@ -263,13 +266,12 @@ class PowerFactoryInterface:
 
     def stash_unit_conversion_settings(self) -> None:
         logger.debug("Stashing PowerFactory default unit conversion settings...")
-        project_settings = self.load_project_settings_dir_from_pf()
         self.project_unit_setting = ProjectUnitSetting(
-            ilenunit=UnitSystem(project_settings.ilenunit),
-            clenexp=MetricPrefix(project_settings.clenexp),
-            cspqexp=MetricPrefix(project_settings.cspqexp),
-            cspqexpgen=MetricPrefix(project_settings.cspqexpgen),
-            currency=Currency(project_settings.currency),
+            ilenunit=UnitSystem(self.project_settings.ilenunit),
+            clenexp=MetricPrefix(self.project_settings.clenexp),
+            cspqexp=MetricPrefix(self.project_settings.cspqexp),
+            cspqexpgen=MetricPrefix(self.project_settings.cspqexpgen),
+            currency=Currency(self.project_settings.currency),
         )
         unit_conversion_settings = self.unit_conversion_settings()
         self.unit_conv_settings: dict[str, UnitConversionSetting] = {}
@@ -291,12 +293,11 @@ class PowerFactoryInterface:
 
     def pop_unit_conversion_settings_stash(self) -> None:
         logger.debug("Applying PowerFactory default unit conversion settings...")
-        project_settings = self.load_project_settings_dir_from_pf()
-        project_settings.ilenunit = self.project_unit_setting.ilenunit
-        project_settings.clenexp = self.project_unit_setting.clenexp
-        project_settings.cspqexp = self.project_unit_setting.cspqexp
-        project_settings.cspqexpgen = self.project_unit_setting.cspqexpgen
-        project_settings.currency = self.project_unit_setting.currency
+        self.project_settings.ilenunit = self.project_unit_setting.ilenunit
+        self.project_settings.clenexp = self.project_unit_setting.clenexp
+        self.project_settings.cspqexp = self.project_unit_setting.cspqexp
+        self.project_settings.cspqexpgen = self.project_unit_setting.cspqexpgen
+        self.project_settings.currency = self.project_unit_setting.currency
         self.delete_unit_conversion_settings()
         for name, uc in self.unit_conv_settings.items():
             self.create_unit_conversion_setting(name, uc)
