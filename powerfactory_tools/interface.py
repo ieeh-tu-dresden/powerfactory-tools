@@ -166,7 +166,8 @@ class PowerFactoryInterface:
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         logger.debug("Loading settings from PowerFactory...")
-        settings_dir = self.element_of(element=self.project, pattern="*.SetFold", recursive=False)
+        _settings_dirs = self.elements_of(element=self.project, pattern="*.SetFold", recursive=False)
+        settings_dir = self.first_of(elements=_settings_dirs)
         if settings_dir is None:
             msg = "Could not access settings."
             raise RuntimeError(msg)
@@ -176,7 +177,8 @@ class PowerFactoryInterface:
 
     def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir | None:
         logger.debug("Loading unit settings from PowerFactory...")
-        unit_settings_dir = self.element_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
+        _unit_settings_dirs = self.elements_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
+        unit_settings_dir = self.first_of(elements=_unit_settings_dirs)
         if unit_settings_dir is None:
             return None
 
@@ -466,231 +468,191 @@ class PowerFactoryInterface:
         return [t.cast("PFTypes.LoadLVP", element) for element in elements]
 
     def result(self, name: str = "*", study_case_name: str = "*") -> PFTypes.Result | None:
-        element = self.study_case_element(class_name="ElmRes", name=name, study_case_name=study_case_name)
-        return t.cast("PFTypes.Result", element) if element is not None else None
+        return self.first_of(elements=self.results(name=name, study_case_name=study_case_name))
 
     def results(self, name: str = "*", study_case_name: str = "*") -> Sequence[PFTypes.Result]:
         elements = self.study_case_elements(class_name="ElmRes", name=name, study_case_name=study_case_name)
         return [t.cast("PFTypes.Result", element) for element in elements]
 
     def study_case(self, name: str = "*") -> PFTypes.StudyCase | None:
-        element = self.element_of(element=self.study_case_dir, pattern=name + ".IntCase")
-        return t.cast("PFTypes.StudyCase", element) if element is not None else None
+        return self.first_of(elements=self.study_cases(name=name))
 
     def study_cases(self, name: str = "*") -> Sequence[PFTypes.StudyCase]:
         elements = self.elements_of(element=self.study_case_dir, pattern=name + ".IntCase")
         return [t.cast("PFTypes.StudyCase", element) for element in elements]
 
     def scenario(self, name: str = "*") -> PFTypes.Scenario | None:
-        element = self.element_of(element=self.scenario_dir, pattern=name)
-        return t.cast("PFTypes.Scenario", element) if element is not None else None
+        return self.first_of(elements=self.scenarios(name=name))
 
     def scenarios(self, name: str = "*") -> Sequence[PFTypes.Scenario]:
         elements = self.elements_of(element=self.scenario_dir, pattern=name)
         return [t.cast("PFTypes.Scenario", element) for element in elements]
 
     def line_type(self, name: str = "*") -> PFTypes.LineType | None:
-        element = self.equipment_type_element("TypLne", name)
-        return t.cast("PFTypes.LineType", element) if element is not None else None
+        return self.first_of(elements=self.line_types(name=name))
 
     def line_types(self, name: str = "*") -> Sequence[PFTypes.LineType]:
         elements = self.equipment_type_elements("TypLne", name)
         return [t.cast("PFTypes.LineType", element) for element in elements]
 
     def load_type(self, name: str = "*") -> PFTypes.DataObject | None:
-        element = self.equipment_type_element("TypLod", name)
-        return t.cast("PFTypes.LoadType", element) if element is not None else None
+        return self.first_of(elements=self.load_types(name=name))
 
     def load_types(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
         elements = self.equipment_type_elements("TypLod", name)
         return [t.cast("PFTypes.LoadType", element) for element in elements]
 
     def transformer_2w_type(self, name: str = "*") -> PFTypes.Transformer2WType | None:
-        element = self.equipment_type_element("TypTr2", name)
-        return t.cast("PFTypes.Transformer2WType", element) if element is not None else None
+        return self.first_of(elements=self.transformer_2w_types(name=name))
 
     def transformer_2w_types(self, name: str = "*") -> Sequence[PFTypes.Transformer2WType]:
         elements = self.equipment_type_elements("TypTr2", name)
         return [t.cast("PFTypes.Transformer2WType", element) for element in elements]
 
     def harmonic_source_type(self, name: str = "*") -> PFTypes.HarmonicSourceType | None:
-        element = self.equipment_type_element("TypHmccur", name)
-        return t.cast("PFTypes.HarmonicSourceType", element) if element is not None else None
+        return self.first_of(elements=self.harmonic_source_types(name=name))
 
     def harmonic_source_types(self, name: str = "*") -> Sequence[PFTypes.HarmonicSourceType]:
         elements = self.equipment_type_elements("TypHmccur", name)
         return [t.cast("PFTypes.HarmonicSourceType", element) for element in elements]
 
     def area(self, name: str = "*") -> PFTypes.DataObject | None:
-        return self.grid_model_element("ElmArea", name)
+        return self.first_of(elements=self.areas(name=name))
 
     def areas(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.grid_model_elements("ElmArea", name)
 
     def zone(self, name: str = "*") -> PFTypes.DataObject | None:
-        return self.grid_model_element("ElmZone", name)
+        return self.first_of(elements=self.zones(name=name))
 
     def zones(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.grid_model_elements("ElmZone", name)
 
     def grid_diagram(self, grid: str = "*") -> PFTypes.GridDiagram | None:
-        element = self.grid_element("IntGrfnet", grid=grid)
-        return t.cast("PFTypes.GridDiagram", element) if element is not None else None
+        return self.first_of(elements=self.grid_diagrams(grid=grid))
 
     def grid_diagrams(self, grid: str = "*") -> Sequence[PFTypes.GridDiagram]:
         elements = self.grid_elements("IntGrfnet", grid=grid)
         return [t.cast("PFTypes.GridDiagram", element) for element in elements]
 
     def external_grid(self, name: str = "*", grid: str = "*") -> PFTypes.ExternalGrid | None:
-        element = self.grid_element("ElmXNet", name, grid)
-        return t.cast("PFTypes.ExternalGrid", element) if element is not None else None
+        return self.first_of(elements=self.external_grids(name=name, grid=grid))
 
     def external_grids(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.ExternalGrid]:
         elements = self.grid_elements("ElmXNet", name, grid)
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
 
     def terminal(self, name: str = "*", grid: str = "*") -> PFTypes.Terminal | None:
-        element = self.grid_element("ElmTerm", name, grid)
-        return t.cast("PFTypes.Terminal", element) if element is not None else None
+        return self.first_of(elements=self.terminals(name=name, grid=grid))
 
     def terminals(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Terminal]:
         elements = self.grid_elements("ElmTerm", name, grid)
         return [t.cast("PFTypes.Terminal", element) for element in elements]
 
     def cubicle(self, name: str = "*", grid: str = "*") -> PFTypes.StationCubicle | None:
-        element = self.grid_elements("StaCubic", name, grid)
-        return t.cast("PFTypes.StationCubicle", element) if element is not None else None
+        return self.first_of(elements=self.cubicles(name=name, grid=grid))
 
     def cubicles(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements("StaCubic", name, grid)
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
 
     def coupler(self, name: str = "*", grid: str = "*") -> PFTypes.Coupler | None:
-        element = self.grid_element("ElmCoup", name, grid)
-        return t.cast("PFTypes.Coupler", element) if element is not None else None
+        return self.first_of(elements=self.couplers(name=name, grid=grid))
 
     def couplers(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Coupler]:
         elements = self.grid_elements("ElmCoup", name, grid)
         return [t.cast("PFTypes.Coupler", element) for element in elements]
 
     def switch(self, name: str = "*", grid: str = "*") -> PFTypes.Switch | None:
-        element = self.grid_element("StaSwitch", name, grid)
-        return t.cast("PFTypes.Switch", element) if element is not None else None
+        return self.first_of(elements=self.switches(name=name, grid=grid))
 
     def switches(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Switch]:
         elements = self.grid_elements("StaSwitch", name, grid)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
     def fuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
-        element = self.grid_element("RelFuse", name, grid)
-        return t.cast("PFTypes.Fuse", element) if element is not None else None
+        return self.first_of(elements=self.fuses(name=name, grid=grid))
 
     def fuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Fuse]:
         elements = self.grid_elements("RelFuse", name, grid)
         return [t.cast("PFTypes.Fuse", element) for element in elements]
 
     def line(self, name: str = "*", grid: str = "*") -> PFTypes.Line | None:
-        element = self.grid_element("ElmLne", name, grid)
-        return t.cast("PFTypes.Line", element) if element is not None else None
+        return self.first_of(elements=self.lines(name=name, grid=grid))
 
     def lines(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Line]:
         elements = self.grid_elements("ElmLne", name, grid)
         return [t.cast("PFTypes.Line", element) for element in elements]
 
     def transformer_2w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer2W | None:
-        element = self.grid_element("ElmTr2", name, grid)
-        return t.cast("PFTypes.Transformer2W", element) if element is not None else None
+        return self.first_of(elements=self.transformers_2w(name=name, grid=grid))
 
     def transformers_2w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer2W]:
         elements = self.grid_elements("ElmTr2", name, grid)
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
 
     def transformer_3w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer3W | None:
-        element = self.grid_element("ElmTr3", name, grid)
-        return t.cast("PFTypes.Transformer3W", element) if element is not None else None
+        return self.first_of(elements=self.transformers_3w(name=name, grid=grid))
 
     def transformers_3w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer3W]:
         elements = self.grid_elements("ElmTr3", name, grid)
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
 
     def load(self, name: str = "*", grid: str = "*") -> PFTypes.Load | None:
-        element = self.grid_element("ElmLod", name, grid)
-        return t.cast("PFTypes.Load", element) if element is not None else None
+        return self.first_of(elements=self.loads(name=name, grid=grid))
 
     def loads(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Load]:
         elements = self.grid_elements("ElmLod", name, grid)
         return [t.cast("PFTypes.Load", element) for element in elements]
 
     def load_lv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadLV | None:
-        element = self.grid_element("ElmLodLv", name, grid)
-        return t.cast("PFTypes.LoadLV", element) if element is not None else None
+        return self.first_of(elements=self.loads_lv(name=name, grid=grid))
 
     def loads_lv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadLV]:
         elements = self.grid_elements("ElmLodLv", name, grid)
         return [t.cast("PFTypes.LoadLV", element) for element in elements]
 
     def load_mv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadMV | None:
-        element = self.grid_element("ElmLodMv", name, grid)
-        return t.cast("PFTypes.LoadMV", element) if element is not None else None
+        return self.first_of(elements=self.loads_mv(name=name, grid=grid))
 
     def loads_mv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadMV]:
         elements = self.grid_elements("ElmLodMv", name, grid)
         return [t.cast("PFTypes.LoadMV", element) for element in elements]
 
     def generator(self, name: str = "*", grid: str = "*") -> PFTypes.Generator | None:
-        element = self.grid_element("ElmGenstat", name, grid)
-        return t.cast("PFTypes.Generator", element) if element is not None else None
+        return self.first_of(elements=self.generators(name=name, grid=grid))
 
     def generators(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Generator]:
         elements = self.grid_elements("ElmGenstat", name, grid)
         return [t.cast("PFTypes.Generator", element) for element in elements]
 
     def pv_system(self, name: str = "*", grid: str = "*") -> PFTypes.PVSystem | None:
-        element = self.grid_element("ElmPvsys", name, grid)
-        return t.cast("PFTypes.PVSystem", element) if element is not None else None
+        return self.first_of(elements=self.pv_systems(name=name, grid=grid))
 
     def pv_systems(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements("ElmPvsys", name, grid)
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
 
     def ac_current_source(self, name: str = "*", grid: str = "*") -> PFTypes.AcCurrentSource | None:
-        element = self.grid_element("ElmIac", name, grid)
-        return t.cast("PFTypes.AcCurrentSource", element) if element is not None else None
+        return self.first_of(elements=self.ac_current_sources(name=name, grid=grid))
 
     def ac_current_sources(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.AcCurrentSource]:
         elements = self.grid_elements("ElmIac", name, grid)
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
 
     def grid(self, name: str = "*") -> PFTypes.Grid | None:
-        element = self.grid_model_element("ElmNet", name)
-        return t.cast("PFTypes.Grid", element) if element is not None else None
+        return self.first_of(elements=self.grids(name=name))
 
     def grids(self, name: str = "*") -> Sequence[PFTypes.Grid]:
         elements = self.grid_model_elements("ElmNet", name)
         return [t.cast("PFTypes.Grid", element) for element in elements]
 
-    def grid_element(self, class_name: str, name: str = "*", grid: str = "*") -> PFTypes.DataObject | None:
-        elements = self.grid_elements(class_name=class_name, name=name, grid=grid)
-        if len(elements) == 0:
-            return None
-
-        if len(elements) > 1:
-            logger.warning("Found more then one element, returning only the first one.")
-
-        return elements[0]
-
     def grid_elements(self, class_name: str, name: str = "*", grid: str = "*") -> Sequence[PFTypes.DataObject]:
         rv = [self.elements_of(element=g, pattern=name + "." + class_name) for g in self.grids(grid)]
         return self.list_from_sequences(*rv)
 
-    def grid_model_element(self, class_name: str, name: str = "*") -> PFTypes.DataObject | None:
-        return self.element_of(element=self.grid_model, pattern=name + "." + class_name)
-
     def grid_model_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.elements_of(element=self.grid_model, pattern=name + "." + class_name)
-
-    def equipment_type_element(self, class_name: str, name: str = "*") -> PFTypes.DataObject | None:
-        return self.element_of(element=self.types_dir, pattern=name + "." + class_name)
 
     def equipment_type_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
         return self.elements_of(element=self.types_dir, pattern=name + "." + class_name)
@@ -719,14 +681,7 @@ class PowerFactoryInterface:
         rv = [self.elements_of(element=sc, pattern=name + "." + class_name) for sc in self.study_cases(study_case_name)]
         return self.list_from_sequences(*rv)
 
-    def element_of(
-        self,
-        *,
-        element: PFTypes.DataObject,
-        pattern: str = "*",
-        recursive: bool = True,
-    ) -> PFTypes.DataObject | None:
-        elements = self.elements_of(element=element, pattern=pattern, recursive=recursive)
+    def first_of(self, *, elements: Sequence[T]) -> T | None:
         if len(elements) == 0:
             return None
 
@@ -805,7 +760,8 @@ class PowerFactoryInterface:
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
-        element = self.element_of(element=location, pattern=f"{name}.{class_name}")
+        _elements = self.elements_of(element=location, pattern=f"{name}.{class_name}")
+        element = self.first_of(elements=_elements)
         if element is not None and force is False:
             if update is False:
                 logger.warning(
