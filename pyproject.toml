@@ -1,11 +1,12 @@
 [project]
+
   authors = [
     { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
 
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = ["ieeh-power-system-data-model==1.2.0", "loguru", "pydantic"]
+  dependencies = ["ieeh-power-system-data-model==1.3.0", "loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
@@ -83,8 +84,8 @@
   tag_format = "$version"
   version = "1.4.2"
   version_files = [
-    ".CITATION.cff:cff-version",
     ".zenodo.json:version",
+    "CITATION.cff:cff-version",
     "pyproject.toml:version",
   ]
 

@@ -11,7 +11,7 @@ import math
 import multiprocessing
 import pathlib
 import textwrap
-from typing import TYPE_CHECKING
+import typing
 
 import pydantic
 from loguru import logger
@@ -72,11 +72,15 @@ from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
+from powerfactory_tools.powerfactory_types import TrfNeutralConnectionType
+from powerfactory_tools.powerfactory_types import TrfNeutralPointState
+from powerfactory_tools.powerfactory_types import TrfPhaseTechnology
+from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
     from typing import Literal
@@ -457,7 +461,7 @@ class PowerFactoryExporter:
 
         return self.pfi.list_from_sequences(self.pfi.filter_none(blines), self.pfi.filter_none(bcouplers))
 
-    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
+    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:  # noqa: PLR0915
         name = self.pfi.create_name(line, grid_name)
         logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
@@ -504,6 +508,26 @@ class PowerFactoryExporter:
         g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
         b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
+        if l_type.nneutral:
+            l_type = typing.cast("PFTypes.LineNType", l_type)
+            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            gn = l_type.gnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            gpn = l_type.gpnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        else:
+            rn = None
+            xn = None
+            rpn = None
+            xpn = None
+            gn = None
+            bn = None
+            gpn = None
+            bpn = None
+
         f_nom = l_type.frnom  # usually 50 Hertz
         u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
@@ -519,6 +543,14 @@ class PowerFactoryExporter:
             b1=b1,
             g0=g0,
             b0=b0,
+            rn=rn,
+            xn=xn,
+            rpn=rpn,
+            xpn=xpn,
+            gn=gn,
+            bn=bn,
+            gpn=gpn,
+            bpn=bpn,
             i_r=i_r,
             description=description,
             u_n=u_nom,
@@ -630,7 +662,11 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
+    def create_transformer_2w(  # noqa: PLR0915
+        self,
+        transformer_2w: PFTypes.Transformer2W,
+        grid_name: str,
+    ) -> Transformer | None:
         name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
         logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
@@ -658,9 +694,8 @@ class PowerFactoryExporter:
 
         if t_type is not None:
             t_number = transformer_2w.ntnum
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
 
-            ph_technology = self.transformer_phase_technology(t_type)
+            ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
             # Transformer Tap Changer
             tap_u_abs = t_type.dutap
@@ -668,7 +703,7 @@ class PowerFactoryExporter:
             tap_min = t_type.ntpmn
             tap_max = t_type.ntpmx
             tap_neutral = t_type.nntap0
-            tap_side = self.transformer_tap_side(t_type)
+            tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
 
             if bool(t_type.itapch2) is True:
                 logger.warning(
@@ -699,9 +734,30 @@ class PowerFactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_phase_angle_clock = t_type.nt2ag
+            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
+            vector_phase_angle_clock = t_type.nt2ag
+
+            # Neutral point phase connection
+            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+                transformer_2w,
+                vector_group,
+            )
+
+            # Neutral point earthing
+            if "N" in vector_group_h and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
+                re_h = transformer_2w.re0tr_h
+                xe_h = transformer_2w.xe0tr_h
+            else:
+                re_h = None
+                xe_h = None
+            if "N" in vector_group_l and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
+                re_l = transformer_2w.re0tr_l
+                xe_l = transformer_2w.xe0tr_l
+            else:
+                re_l = None
+                xe_l = None
 
             wh = Winding(
                 node=t_high_name,
@@ -712,8 +768,11 @@ class PowerFactoryExporter:
                 r0=r_0,
                 x1=x_1,
                 x0=x_0,
+                re_h=re_h,
+                xe_h=xe_h,
                 vector_group=vector_group_h,
                 phase_angle_clock=0,
+                neutral_connected=neutral_connected_h,
             )
 
             wl = Winding(
@@ -725,8 +784,11 @@ class PowerFactoryExporter:
                 r0=float(0),
                 x1=float(0),
                 x0=float(0),
+                re_l=re_l,
+                xe_l=xe_l,
                 vector_group=vector_group_l,
                 phase_angle_clock=int(vector_phase_angle_clock),
+                neutral_connected=neutral_connected_l,
             )
 
             return Transformer(
@@ -752,6 +814,19 @@ class PowerFactoryExporter:
         return None
 
     @staticmethod
+    def transformer_neutral_connection_hvlv(t: PFTypes.Transformer2W, vector_group: VectorGroup) -> tuple[bool, bool]:
+        if "n" in vector_group.name.lower():
+            if t.cneutcon == TrfNeutralConnectionType.ABC_N:
+                return True, True
+            if t.cneutcon == TrfNeutralConnectionType.HV:
+                return True, False
+            if t.cneutcon == TrfNeutralConnectionType.LV:
+                return False, True
+            if t.cneutcon == TrfNeutralConnectionType.HV_LV:
+                return True, True
+        return False, False  # corresponds to TrfNeutralConnectionType.NO
+
+    @staticmethod
     def get_description(
         element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
     ) -> tuple[bool, str]:
@@ -763,26 +838,6 @@ class PowerFactoryExporter:
             return True, desc[0]
 
         return True, ""
-
-    @staticmethod
-    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
-        tech_mapping = {
-            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
-            2: TransformerPhaseTechnologyType.SINGLE_PH,
-            3: TransformerPhaseTechnologyType.THREE_PH,
-        }
-        return tech_mapping[t_type.nt2ph]
-
-    @staticmethod
-    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
-        side_mapping_2w = {
-            0: TapSide.HV,
-            1: TapSide.LV,
-        }
-        if t_type.itapch:
-            return side_mapping_2w.get(t_type.tap_side)
-
-        return None
 
     def create_loads(  # noqa: PLR0913 # fix
         self,
@@ -2074,7 +2129,7 @@ class PowerFactoryExporter:
     ) -> Controller | None:
         logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
         if gen.bus1 is not None:
-            node_target = self.pfi.create_name(gen.bus1.cterm, self.grid_name)
+            node_target_name = self.pfi.create_name(gen.bus1.cterm, self.grid_name)
         else:
             return None
 
@@ -2084,19 +2139,17 @@ class PowerFactoryExporter:
             cosphi = gen.cosgini
             cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
             q_controller: ControlType = ControlCosphiConst(
-                node_target=node_target,
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
-            return Controller(control_type=q_controller)
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             q_controller = ControlQConst(
-                node_target=node_target,
                 q_set=round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
-            return Controller(control_type=q_controller)
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.Q_U:
             cosphi_a = gen.cosn
@@ -2108,7 +2161,6 @@ class PowerFactoryExporter:
             m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a * Exponents.VOLTAGE  # (% von Pr) / kV
             m_tg_2018 = self.transform_qu_slope(slope=m_tg_2015, given_format="2015", target_format="2018", u_n=u_n)
             q_controller = ControlQU(
-                node_target=node_target,
                 m_tg_2015=round(m_tg_2015, DecimalDigits.PU),
                 m_tg_2018=round(m_tg_2018, DecimalDigits.PU),
                 u_q0=round(u_q0 * u_n, DecimalDigits.VOLTAGE),
@@ -2117,14 +2169,14 @@ class PowerFactoryExporter:
                 q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
-            return Controller(control_type=q_controller)
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.Q_P:
             if gen.pQPcurve is None:
                 return None
 
-            q_controller = ControlQP(node_target=node_target, q_p_characteristic_name=gen.pQPcurve.loc_name)
-            return Controller(control_type=q_controller)
+            q_controller = ControlQP(q_p_characteristic_name=gen.pQPcurve.loc_name)
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
             cosphi_ue = gen.pf_under
@@ -2132,18 +2184,17 @@ class PowerFactoryExporter:
             p_threshold_ue = gen.p_under * -1  # P-threshold for cosphi_ue
             p_threshold_oe = gen.p_over * -1  # P-threshold for cosphi_oe
             q_controller = ControlCosphiP(
-                node_target=node_target,
                 cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                 cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                 p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
-            return Controller(control_type=q_controller)
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.U_CONST:
             u_set = gen.usetp
-            q_controller = ControlUConst(node_target=node_target, u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
-            return Controller(control_type=q_controller)
+            q_controller = ControlUConst(u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
+            return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
             logger.warning(
@@ -2193,19 +2244,23 @@ class PowerFactoryExporter:
             q_controller: ControlType = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
-                node_target=node_target_name,
             )
-            return Controller(control_type=q_controller, external_controller_name=controller_name)
+            return Controller(
+                node_target=node_target_name,
+                control_type=q_controller,
+                external_controller_name=controller_name,
+            )
 
         if ctrl_mode == CtrlMode.Q:  # reactive power control mode
             if controller.qu_char == QChar.CONST:  # const. Q
                 q_dir = -1 if controller.iQorient else 1
                 q_set = controller.qsetp * q_dir * -1  # has to be negative as power is now counted demand based
-                q_controller = ControlQConst(
-                    q_set=round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                q_controller = ControlQConst(q_set=round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER))
+                return Controller(
                     node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
 
             if controller.qu_char == QChar.U:  # Q(U)
                 s_r = gen.sgn
@@ -2252,9 +2307,12 @@ class PowerFactoryExporter:
                     u_deadband_low=round(u_deadband_low * u_n, DecimalDigits.VOLTAGE),
                     q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    node_target=node_target_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
+                return Controller(
+                    node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
+                )
 
             if controller.qu_char == QChar.P:  # Q(P)
                 q_p_char_name = controller.pQPcurve.loc_name
@@ -2265,9 +2323,12 @@ class PowerFactoryExporter:
                     q_p_characteristic_name=q_p_char_name,
                     q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    node_target=node_target_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
+                return Controller(
+                    node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
+                )
 
             msg = "unreachable"
             raise RuntimeError(msg)
@@ -2282,9 +2343,12 @@ class PowerFactoryExporter:
                 q_controller = ControlCosphiConst(
                     cosphi=round(cosphi, DecimalDigits.COSPHI),
                     cosphi_dir=cosphi_dir,
-                    node_target=node_target_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
+                return Controller(
+                    node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
+                )
 
             if controller.cosphi_char == CosphiChar.P:  # cosphi(P)
                 cosphi_ue = controller.pf_under
@@ -2296,9 +2360,12 @@ class PowerFactoryExporter:
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                     p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    node_target=node_target_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
+                return Controller(
+                    node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
+                )
 
             if controller.cosphi_char == CosphiChar.U:  # cosphi(U)
                 cosphi_ue = controller.pf_under
@@ -2310,9 +2377,12 @@ class PowerFactoryExporter:
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                     u_threshold_ue=round(u_threshold_ue * u_n, DecimalDigits.VOLTAGE),
                     u_threshold_oe=round(u_threshold_oe * u_n, DecimalDigits.VOLTAGE),
-                    node_target=node_target_name,
                 )
-                return Controller(control_type=q_controller, external_controller_name=controller_name)
+                return Controller(
+                    node_target=node_target_name,
+                    control_type=q_controller,
+                    external_controller_name=controller_name,
+                )
 
             msg = "unreachable"
             raise RuntimeError(msg)
@@ -2323,9 +2393,12 @@ class PowerFactoryExporter:
             q_controller = ControlTanphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
-                node_target=node_target_name,
             )
-            return Controller(control_type=q_controller, external_controller_name=controller_name)
+            return Controller(
+                node_target=node_target_name,
+                control_type=q_controller,
+                external_controller_name=controller_name,
+            )
 
         msg = "unreachable"
         raise RuntimeError(msg)
