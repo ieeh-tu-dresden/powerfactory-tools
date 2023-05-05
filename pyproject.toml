@@ -5,11 +5,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
-  dependencies = [
-      "ieeh-power-system-data-model==1.2.0",
-      "loguru",
-      "pydantic",
-  ]
+  dependencies = ["ieeh-power-system-data-model==1.3.0", "loguru", "pydantic"]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
@@ -83,10 +79,14 @@
   line_length = 120
 
 [tool.commitizen]
-  name          = "cz_conventional_commits"
-  tag_format    = "$version"
-  version       = "1.4.2"
-  version_files = [".CITATION.cff:cff-version", ".zenodo.json:version", "pyproject.toml:version"]
+  name = "cz_conventional_commits"
+  tag_format = "$version"
+  version = "1.4.2"
+  version_files = [
+    ".CITATION.cff:cff-version",
+    ".zenodo.json:version",
+    "pyproject.toml:version",
+  ]
 
 [tool.mypy]
   follow_imports         = "normal"
