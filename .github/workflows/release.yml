@@ -63,6 +63,8 @@ jobs:
           architecture: x64
           prerelease: true
           enable-pep582: true
+        env:
+          PDM_DEPS: "urllib3<2"
 
       - name: Get current date
         id: get_date
