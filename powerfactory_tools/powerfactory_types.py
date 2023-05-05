@@ -223,6 +223,19 @@ class TrfTapSide(enum.IntEnum):
     LV = 1
 
 
+class TrfNeutralConnectionType(enum.IntEnum):
+    NO = 0
+    ABC_N = 1
+    HV = 2  # separat at HV side
+    LV = 3  # separat at LV side
+    HV_LV = 4  # separat at HV and LV side
+
+
+class TrfNeutralPointState(enum.IntEnum):
+    EARTHED = 0
+    ISOLATED = 1
+
+
 class MetricPrefix(enum.Enum):
     a = "a"
     f = "f"
@@ -408,36 +421,52 @@ class PowerFactoryTypes:
         gline0: float  # conductance (µS/km) zero sequence components
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
+
+        nneutral: bool  # no. of neutral conductors
+
         systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
+    class LineNType(LineType, Protocol):
+        rnline: float  # resistance (Ohm/km) natural neutral components
+        rpnline: float  # resistance (Ohm/km) natural neutral-line couple components
+        xnline: float  # reactance (Ohm/km) natural neutral components
+        xpnline: float  # reactance (Ohm/km) natural neutral-line couple components
+        gnline: float  # conductance (µS/km) natural neutral components
+        gpnline: float  # conductance (µS/km) natural neutral-line couple components
+        bnline: float  # susceptance (µS/km) natural neutral components
+        bpnline: float  # susceptance (µS/km) natural neutral-line couple components
+
     class Transformer2WType(DataObject, Protocol):
-        vecgrp: VectorGroup
-        dutap: float
-        phitr: float
-        ntpmn: int
-        ntpmx: int
-        nntap0: int
-        utrn_l: float
-        utrn_h: float
-        pfe: float
-        curmg: float
-        pcutr: float
-        strn: float
-        uktr: float
-        zx0hl_n: float
-        rtox0_n: float
+        utrn_l: float  # reference voltage LV side
+        utrn_h: float  # reference voltage HV side
+        pfe: float  # Iron losses
+        curmg: float  # no-load current
+        pcutr: float  # Cupper losses
+        strn: float  # rated power
+        uktr: float  # short-circuit voltage in percentage
         r1pu: float
         r0pu: float
         x1pu: float
         x0pu: float
-        tr2cn_l: Vector
-        tr2cn_h: Vector
+        zx0hl_n: float
+        rtox0_n: float
+
+        vecgrp: VectorGroup
+        tr2cn_l: Vector  # vector at LV side
+        tr2cn_h: Vector  # vector at HV side
         nt2ag: float
-        nt2ph: TrfPhaseTechnology
+
         tap_side: TrfTapSide
+        ntpmn: int
+        ntpmx: int
+        nntap0: int
+        dutap: float
+        phitr: float
         itapch: int
         itapch2: int
+
+        nt2ph: TrfPhaseTechnology
 
     class Transformer3WType(DataObject, Protocol):
         ...
@@ -489,6 +518,16 @@ class PowerFactoryTypes:
         ntnum: int
         typ_id: PowerFactoryTypes.Transformer2WType | None
         nntap: int
+
+        cneutcon: TrfNeutralConnectionType
+        cgnd_h: TrfNeutralPointState
+        cgnd_l: TrfNeutralPointState
+        cpeter_h: bool
+        cpeter_l: bool
+        re0tr_h: float
+        re0tr_l: float
+        xe0tr_h: float
+        xe0tr_l: float
 
     class Transformer3W(LineBase, Protocol):
         buslv: PowerFactoryTypes.StationCubicle | None

@@ -12,7 +12,7 @@ import math
 import multiprocessing
 import pathlib
 import textwrap
-from typing import TYPE_CHECKING
+import typing
 
 import pydantic
 from loguru import logger
@@ -72,11 +72,15 @@ from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
+from powerfactory_tools.powerfactory_types import TrfNeutralConnectionType
+from powerfactory_tools.powerfactory_types import TrfNeutralPointState
+from powerfactory_tools.powerfactory_types import TrfPhaseTechnology
+from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
     from typing import Literal
@@ -528,7 +532,7 @@ class PowerFactoryExporter:
 
         return self.pfi.list_from_sequences(self.pfi.filter_none(blines), self.pfi.filter_none(bcouplers))
 
-    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
+    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:  # noqa: PLR0915
         name = self.pfi.create_name(line, grid_name)
         logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
@@ -575,6 +579,26 @@ class PowerFactoryExporter:
         g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
         b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
 
+        if l_type.nneutral:
+            l_type = typing.cast("PFTypes.LineNType", l_type)
+            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            gn = l_type.gnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            gpn = l_type.gpnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        else:
+            rn = None
+            xn = None
+            rpn = None
+            xpn = None
+            gn = None
+            bn = None
+            gpn = None
+            bpn = None
+
         f_nom = l_type.frnom  # usually 50 Hertz
         u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
@@ -590,6 +614,14 @@ class PowerFactoryExporter:
             b1=b1,
             g0=g0,
             b0=b0,
+            rn=rn,
+            xn=xn,
+            rpn=rpn,
+            xpn=xpn,
+            gn=gn,
+            bn=bn,
+            gpn=gpn,
+            bpn=bpn,
             i_r=i_r,
             description=description,
             u_n=u_nom,
@@ -701,7 +733,11 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(self, transformer_2w: PFTypes.Transformer2W, grid_name: str) -> Transformer | None:
+    def create_transformer_2w(  # noqa: PLR0915
+        self,
+        transformer_2w: PFTypes.Transformer2W,
+        grid_name: str,
+    ) -> Transformer | None:
         name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
         logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
@@ -729,9 +765,8 @@ class PowerFactoryExporter:
 
         if t_type is not None:
             t_number = transformer_2w.ntnum
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
 
-            ph_technology = self.transformer_phase_technology(t_type)
+            ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
             # Transformer Tap Changer
             tap_u_abs = t_type.dutap
@@ -739,7 +774,7 @@ class PowerFactoryExporter:
             tap_min = t_type.ntpmn
             tap_max = t_type.ntpmx
             tap_neutral = t_type.nntap0
-            tap_side = self.transformer_tap_side(t_type)
+            tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
 
             if bool(t_type.itapch2) is True:
                 logger.warning(
@@ -770,9 +805,30 @@ class PowerFactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_phase_angle_clock = t_type.nt2ag
+            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
+            vector_phase_angle_clock = t_type.nt2ag
+
+            # Neutral point phase connection
+            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+                transformer_2w,
+                vector_group,
+            )
+
+            # Neutral point earthing
+            if "N" in vector_group_h and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
+                re_h = transformer_2w.re0tr_h
+                xe_h = transformer_2w.xe0tr_h
+            else:
+                re_h = None
+                xe_h = None
+            if "N" in vector_group_l and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
+                re_l = transformer_2w.re0tr_l
+                xe_l = transformer_2w.xe0tr_l
+            else:
+                re_l = None
+                xe_l = None
 
             wh = Winding(
                 node=t_high_name,
@@ -783,8 +839,11 @@ class PowerFactoryExporter:
                 r0=r_0,
                 x1=x_1,
                 x0=x_0,
+                re_h=re_h,
+                xe_h=xe_h,
                 vector_group=vector_group_h,
                 phase_angle_clock=0,
+                neutral_connected=neutral_connected_h,
             )
 
             wl = Winding(
@@ -796,8 +855,11 @@ class PowerFactoryExporter:
                 r0=float(0),
                 x1=float(0),
                 x0=float(0),
+                re_l=re_l,
+                xe_l=xe_l,
                 vector_group=vector_group_l,
                 phase_angle_clock=int(vector_phase_angle_clock),
+                neutral_connected=neutral_connected_l,
             )
 
             return Transformer(
@@ -823,6 +885,19 @@ class PowerFactoryExporter:
         return None
 
     @staticmethod
+    def transformer_neutral_connection_hvlv(t: PFTypes.Transformer2W, vector_group: VectorGroup) -> tuple[bool, bool]:
+        if "n" in vector_group.name.lower():
+            if t.cneutcon == TrfNeutralConnectionType.ABC_N:
+                return True, True
+            if t.cneutcon == TrfNeutralConnectionType.HV:
+                return True, False
+            if t.cneutcon == TrfNeutralConnectionType.LV:
+                return False, True
+            if t.cneutcon == TrfNeutralConnectionType.HV_LV:
+                return True, True
+        return False, False  # corresponds to TrfNeutralConnectionType.NO
+
+    @staticmethod
     def get_description(
         element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
     ) -> tuple[bool, str]:
@@ -834,26 +909,6 @@ class PowerFactoryExporter:
             return True, desc[0]
 
         return True, ""
-
-    @staticmethod
-    def transformer_phase_technology(t_type: PFTypes.Transformer2WType) -> TransformerPhaseTechnologyType | None:
-        tech_mapping = {
-            1: TransformerPhaseTechnologyType.SINGLE_PH_E,
-            2: TransformerPhaseTechnologyType.SINGLE_PH,
-            3: TransformerPhaseTechnologyType.THREE_PH,
-        }
-        return tech_mapping[t_type.nt2ph]
-
-    @staticmethod
-    def transformer_tap_side(t_type: PFTypes.Transformer2WType) -> TapSide | None:
-        side_mapping_2w = {
-            0: TapSide.HV,
-            1: TapSide.LV,
-        }
-        if t_type.itapch:
-            return side_mapping_2w.get(t_type.tap_side)
-
-        return None
 
     def create_loads(  # noqa: PLR0913 # fix
         self,
