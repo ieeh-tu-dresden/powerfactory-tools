@@ -305,6 +305,74 @@ class TerminalVoltageSystemType(enum.IntEnum):
     ACBI = 2
 
 
+class HarmonicSourceSystemType(enum.IntEnum):
+    SYMMETIRC = 0
+    UNSYMMETRIC = 1
+    IEC_61000 = 2
+
+
+class HarmonicLoadModelType(enum.IntEnum):
+    IMPEDANCE_TYPE_1 = 0
+    CURRENT_SOURCE = 1
+    IMPEDANCE_TYPE_2 = 2
+
+
+class NetworkCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+
+
+class NetworkExtendedCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+    DC = 2
+
+
+class TemperatureDependencyType(enum.IntEnum):
+    DEFAULT_20_DEGREE = 0
+    MAX_OPERATION_TEMP = 1
+    OPERATION_TEMP = 2
+    USER_TEMP = 3
+
+
+class CalculationType(enum.IntEnum):  # only excerpt
+    ALL_CALCULATIONS = 0
+    RELIABILITY_MONTE_CARLO = 1
+    RELIABILITY_ENUMERATION = 2
+    MODAL_ANALYSIS = 5  # Eigenvalues
+    HARMONICS = 6
+    MONITORING = 7
+    TRIGGERED = 8
+    FREQUENCY_SWEEP = 9
+    VOLTAGE_SAGS = 10
+    SHORT_CIRCUIT_SWEEP = 11
+    ONLINE_PFM = 12
+    CONTINGENCY_ANALYSIS = 13
+    OPF_BEFORE_OPTIMISATION = 14
+    OPF_AFTER_OPTIMISATION = 15
+    SHORT_CIRCUIT = 16
+    FFT_CALCULATION = 17
+    SHORT_CIRCUIT_EMT = 18
+    FLICKER = 19
+    QUASI_DYNAMIC_SIMULATION = 29
+    PROTECTION = 30
+    SENSITIVITY_FACTORS = 31
+
+
+class CalculationCommand(enum.Enum):  # only excerpt
+    LOAD_FLOW = "ComLdf"
+    CONTINGENCY_ANALYSIS = "ComContingency"
+    FLICKER = "ComFlickermeter"
+    SHORT_CIRCUIT_SWEEP = "ComShctrace"
+    SHORT_CIRCUIT = "ComShc"
+    TIME_DOMAIN_SIMULATION = "ComSim"
+    TIME_DOMAIN_SIMULATION_START = "ComInc"
+    MODAL_ANALYSIS = "ComMod"
+    SENSITIVITY_ANALYSIS = "ComVstab"
+    HARMONICS = "ComHldf"
+    FREQUENCY_SWEEP = "ComFsweep"
+
+
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
@@ -409,6 +477,11 @@ class PowerFactoryTypes:
         kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
         kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
 
+        i_crsc: HarmonicLoadModelType
+        i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
+        Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
+        pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
+
     class LineType(DataObject, Protocol):
         uline: float  # rated voltage (kV)
         sline: float  # rated current (kA) when installed in soil
@@ -476,6 +549,9 @@ class PowerFactoryTypes:
         R_on: float
         X_on: float
 
+    class HarmonicSourceType(DataObject, Protocol):
+        i_usym: HarmonicSourceSystemType
+
     class Coupler(DataObject, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
         bus2: PowerFactoryTypes.StationCubicle | None
@@ -498,10 +574,12 @@ class PowerFactoryTypes:
 
     class Terminal(DataObject, Protocol):
         cDisplayName: str  # noqa: N815
+        ciEnergized: bool  # noqa: N815
         desc: Sequence[str]
         uknom: float
         iUsage: NodeType  # noqa: N815
         outserv: bool
+        cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
         systype: TerminalVoltageSystemType
@@ -725,8 +803,129 @@ class PowerFactoryTypes:
         snssmin: float  # in MVA
         outserv: bool
 
+    class SourceBase(DataObject, Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        outserv: bool
+        nphase: int
+        desc: Sequence[str]
+        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
+
+    class AcCurrentSource(SourceBase, Protocol):
+        Ir: float
+        isetp: float
+        cosini: float
+        i_cap: PFRecap
+        G1: float
+        B1: float
+        isetp2: float
+        phisetp2: float
+        G2: float
+        B2: float
+        isetp0: float
+        phisetp0: float
+        G0: float
+        B0: float
+        phmc: PowerFactoryTypes.HarmonicSourceType | None
+
+    class Result(DataObject, Protocol):
+        desc: Sequence[str]
+        calTp: CalculationType  # noqa: N815
+
+        def AddVariable(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.DataObject,
+            varname: str,
+            /,
+        ) -> int:
+            ...
+
+        def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
+            ...
+
+        def FindColumn(  # noqa: N802
+            self,
+            obj: PowerFactoryTypes.DataObject,
+            varName: str,  # noqa: N803
+            startCol: int,  # noqa: N803
+            /,
+        ) -> int:
+            ...
+
+        def GetNumberOfColumns(self) -> None:  # noqa: N802
+            ...
+
+        def GetNumberOfRows(self) -> None:  # noqa: N802
+            ...
+
+        def GetValue(  # noqa: N802  # Returns a value from a result object for row iX of curve col.
+            self,
+            iX: int,  # noqa: N803
+            col: int,
+            /,
+        ) -> int:
+            ...
+
+        def Load(self) -> None:  # noqa: N802
+            ...
+
+        def Release(self) -> None:  # noqa: N802
+            ...
+
+    class CommandBase(DataObject, Protocol):
+        def Execute(self) -> int:  # noqa: N802
+            ...
+
+    class CommandLoadFlow(CommandBase, Protocol):
+        iopt_net: NetworkExtendedCalcType
+        iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
+        iopt_plim: bool  # apply active power limits
+        iopt_at: bool  # automatic step control of transformers
+        iopt_asht: bool  # automatic step control of compensators/filters
+        iopt_lim: bool  # apply reactive power limits
+        iopt_tem: TemperatureDependencyType
+        temperature: float
+        iopt_pq: bool  # apply voltage dependecy of loads
+        iopt_fls: bool  # load scaling at defined feeders
+
+        i_power: int  # load flow method; 0 - NewtonRaphson (current eq.); 1 - Newton Raphson (power eq.)[default]
+
+        scLoadFac: float  # noqa: N815  # load scaling factor in percentage
+        scGenFac: float  # noqa: N815  # generator scaling factor in percentage
+        scMotFac: float  # noqa: N815  # motor scaling factor in percentage
+        zoneScale: int  # noqa: N815  # zone scaling; 0 - apply for all loads; 1 - apply only for scalable loads
+
+    class CommandHarmonicCalculation(CommandBase, Protocol):
+        iopt_sweep: int
+        iopt_allfrq: int
+        iopt_flicker: bool
+        iopt_SkV: bool  # noqa: N815
+        iopt_pseq: bool
+        iopt_net: NetworkCalcType
+        frnom: float
+        fshow: float
+        ifshow: float
+        p_resvar: PowerFactoryTypes.Result
+
+        errmax: float
+        errinc: float
+        ninc: float
+        iopt_thd: int
+
+    class CommandFrequencySweep(CommandBase, Protocol):
+        iopt_net: NetworkCalcType
+        ildfinit: bool  # load flow initialisation
+        fstart: float
+        fstep: float
+        fstop: float
+        i_adapt: bool  # automatic step size adaption
+
     class Script(Protocol):
-        def SetExternalObject(self, name: str, value: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
+        def SetExternalObject(  # noqa: N802
+            self,
+            name: str,
+            value: PowerFactoryTypes.DataObject,
+            /,
+        ) -> int:
             ...
 
         def Execute(self) -> int:  # noqa: N802
@@ -742,10 +941,51 @@ class PowerFactoryTypes:
         def GetActiveScenario(self) -> PowerFactoryTypes.Scenario | None:  # noqa: N802
             ...
 
-        def GetProjectFolder(self, name: str) -> PowerFactoryTypes.DataObject:  # noqa: N802
+        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
             ...
 
-        def PostCommand(self, command: Literal["exit"]) -> None:  # noqa: N802
+        def GetProjectFolder(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> PowerFactoryTypes.DataObject:
+            ...
+
+        def GetFromStudyCase(  # noqa: N802
+            self,
+            className: str,  # noqa: N803
+            /,
+        ) -> PowerFactoryTypes.DataObject:
+            ...
+
+        def PostCommand(  # noqa: N802
+            self,
+            command: Literal["exit"],
+            /,
+        ) -> None:
+            ...
+
+        def ExecuteCmd(  # noqa: N802
+            self,
+            command: str,
+            /,
+        ) -> None:
+            ...
+
+        def EchoOff(self) -> None:  # noqa: N802
+            ...
+
+        def EchoOn(self) -> None:  # noqa: N802
+            ...
+
+        def GetCalcRelevantObjects(  # noqa: N802
+            self,
+            nameFilter: str,  # noqa: N803
+            includeOutOfService: int,  # noqa: N803
+            topoElementsOnly: int,  # noqa: N803
+            bAcSchemes: int,  # noqa: N803
+            /,
+        ) -> set:
             ...
 
     class PowerFactoryModule(Protocol):
@@ -756,5 +996,6 @@ class PowerFactoryTypes:
             username: str | None = None,
             password: str | None = None,
             commandLineArguments: str | None = None,  # noqa: N803
+            /,
         ) -> PowerFactoryTypes.Application:
             ...
