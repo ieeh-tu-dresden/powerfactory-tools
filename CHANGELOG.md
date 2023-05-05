@@ -1,3 +1,22 @@
+## 1.5.0 (2023-05-05)
+
+### Feat
+
+- add Harmonic Source Type and controller commands (contributors: @SebastianDD, @sasanjac)
+- add neutral conductor information to exporter (contributors: @SebastianDD)
+- separate schema from powerfactory-tools (contributors: @sasanjac, @SebastianDD)
+
+### Fix
+
+- unit settings dir doesn't exist in default PF project (contributors: @SebastianDD)
+- add missing transformer vector groups (contributors: @SebastianDD)
+- adapt load controller to schema fix (contributors: @SebastianDD)
+- wrong sign for MV_Load Producer (contributors: @SebastianDD  @sasanjac )
+- VectorGroup misspelling (#116)
+- VectorGroup misspelling (contributors: @SebastianDD, @sasanjac  )
+Fixes #115
+- update citation file automatically (contributors: @SebastianDD)
+
 ## 1.4.2 (2023-03-24)
 
 ### Fix
