@@ -2,10 +2,10 @@
 
 Examples for application of powerfactory exporter and controller.
 
-## Example for Usage of Exporter
+## Example for the Usage of the Exporter
 
-The jupyter notebook `powerfactory_export.ipynb` is provided to get in touch with the usage of the powerfactory exporter.
-This example is based on a 8-bus high voltage grid given in [grids][link_to_example_grids].
+The jupyter notebook [powerfactory_export.ipynb](powerfactory_export.ipynb) is provided to get in touch with the usage of the powerfactory exporter.
+This example is based on an 8-bus high voltage grid given in [grids][link_to_example_grids].
 
 The exporter provides functions to export
 
@@ -18,7 +18,20 @@ Based on the class arguments of PowerFactoryExporter a DIgSILENT PowerFactory gr
 
 **Please note** that default values for the installation directory and version number of PowerFactory are used in [interface.py][link_to_interface] which can be adapted by the user using the according parameters.
 
-### The 8-bus high voltage grid 'HV_8_Bus'
+## Example for the Usage of the Control Functionalities
+
+The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
+This example is based on an 8-bus high voltage grid given in [grids][link_to_example_grids].
+
+The example includes:
+
++ Collection of all terminals with nominal voltage of 110 kV
++ Change of the active power of nodes selected by name
++ Execution of an unsymmetric load flow
++ Crawl of the related result object
++ Export of user defined data to json
+
+## The 8-bus high voltage grid 'HV_8_Bus'
 
 This example grid contains:
 
