@@ -7,30 +7,8 @@
     },
     {
       "disabled": true,
-      "name": "Line_34",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Load_1",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
       "name": "Transformer_2w_110/20",
       "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_8/IS1.2",
-      "open_switches": []
-    },
-    {
-      "disabled": false,
-      "name": "Line_23",
-      "open_switches": [
-        "Node_3"
-      ]
     },
     {
       "disabled": false,
@@ -42,15 +20,37 @@
     },
     {
       "disabled": true,
+      "name": "Line_34",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Load_1",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_8/IS1.2",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
       "name": "Node_7_LV",
       "open_switches": []
+    },
+    {
+      "disabled": false,
+      "name": "Line_23",
+      "open_switches": [
+        "Node_3"
+      ]
     }
   ],
   "meta": {
-    "date": "2023-03-14",
-    "id": "fea192cc-bf02-4be0-ac31-526db9f2954b",
+    "date": "2023-05-09",
+    "id": "7d76b285-2353-4287-b963-af90d22fcfe5",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
-    "version": "1.1.0"
+    "version": "1.3.0"
   }
 }

@@ -90,6 +90,24 @@
     },
     {
       "active_power": {
+        "is_symmetrical": false,
+        "value": 8441.0,
+        "value_a": 2078.46,
+        "value_b": 3510.29,
+        "value_c": 2852.11
+      },
+      "name": "LV_Load_7a_FIXED_CONSUMPTION",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": false,
+        "value": 3098.0,
+        "value_a": 1006.64,
+        "value_b": 1153.78,
+        "value_c": 937.44
+      }
+    },
+    {
+      "active_power": {
         "is_symmetrical": true,
         "value": 10000.0,
         "value_a": 3333.33,
@@ -144,24 +162,6 @@
     },
     {
       "active_power": {
-        "is_symmetrical": false,
-        "value": 8441.0,
-        "value_a": 2078.46,
-        "value_b": 3510.29,
-        "value_c": 2852.11
-      },
-      "name": "LV_Load_7a_FIXED_CONSUMPTION",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": false,
-        "value": 3098.0,
-        "value_a": 1006.64,
-        "value_b": 1153.78,
-        "value_c": 937.44
-      }
-    },
-    {
-      "active_power": {
         "is_symmetrical": true,
         "value": 9500000.0,
         "value_a": 3166666.63,
@@ -181,10 +181,10 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 180000.0,
-        "value_a": 60000.0,
-        "value_b": 60000.0,
-        "value_c": 60000.0
+        "value": -180000.0,
+        "value_a": -60000.0,
+        "value_b": -60000.0,
+        "value_c": -60000.0
       },
       "name": "MV_Load_6_PRODUCER",
       "reactive_power": {
@@ -209,10 +209,10 @@
         "controller": {
           "control_type": {
             "control_strategy": "Q_CONST",
-            "node_target": "Node_4",
             "q_set": -300000.0
           },
-          "external_controller_name": null
+          "external_controller_name": null,
+          "node_target": "Node_4"
         },
         "is_symmetrical": true,
         "value": -300000.0,
@@ -235,10 +235,10 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cosphi": 0.7,
-            "cosphi_dir": "UE",
-            "node_target": "Node_4"
+            "cosphi_dir": "UE"
           },
-          "external_controller_name": null
+          "external_controller_name": null,
+          "node_target": "Node_4"
         },
         "is_symmetrical": true,
         "value": 510102.0,
@@ -262,14 +262,14 @@
             "control_strategy": "Q_U",
             "m_tg_2015": 8.4175,
             "m_tg_2018": 9.2593,
-            "node_target": "Node_WTG",
             "q_max_oe": 4800000.0,
             "q_max_ue": 4800000.0,
             "u_deadband_low": 1100.0,
             "u_deadband_up": 1100.0,
             "u_q0": 110000.0
           },
-          "external_controller_name": null
+          "external_controller_name": null,
+          "node_target": "Node_WTG"
         },
         "is_symmetrical": true,
         "value": -0.0,
@@ -293,11 +293,11 @@
             "control_strategy": "COSPHI_P",
             "cosphi_oe": 0.96,
             "cosphi_ue": 0.95,
-            "node_target": "Node_4",
             "p_threshold_oe": -300000.0,
             "p_threshold_ue": -800000.0
           },
-          "external_controller_name": "Anlagenregelung_cosphi(P)"
+          "external_controller_name": "Anlagenregelung_cosphi(P)",
+          "node_target": "Node_4"
         },
         "is_symmetrical": true,
         "value": -128292.0,
@@ -319,10 +319,10 @@
         "controller": {
           "control_type": {
             "control_strategy": "Q_CONST",
-            "node_target": "Node_4",
             "q_set": -7749140.0
           },
-          "external_controller_name": null
+          "external_controller_name": null,
+          "node_target": "Node_4"
         },
         "is_symmetrical": true,
         "value": -7749140.0,
@@ -333,11 +333,11 @@
     }
   ],
   "meta": {
-    "date": "2023-03-14",
-    "id": "fea192cc-bf02-4be0-ac31-526db9f2954b",
+    "date": "2023-05-09",
+    "id": "7d76b285-2353-4287-b963-af90d22fcfe5",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
-    "version": "1.1.0"
+    "version": "1.3.0"
   },
   "transformers": [
     {

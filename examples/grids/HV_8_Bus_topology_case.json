@@ -12,10 +12,10 @@
     }
   ],
   "meta": {
-    "date": "2023-03-14",
-    "id": "297a35b1-a9a3-4846-aa29-b77810c36d10",
+    "date": "2023-05-09",
+    "id": "19d77ed1-85b3-437e-9d18-385d2c1e96ab",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
-    "version": "1.1.0"
+    "version": "1.3.0"
   }
 }

@@ -746,13 +746,13 @@ class PowerFactoryExporter:
             )
 
             # Neutral point earthing
-            if "N" in vector_group_h and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
+            if "N" in vector_group_h.value and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
                 re_h = transformer_2w.re0tr_h
                 xe_h = transformer_2w.xe0tr_h
             else:
                 re_h = None
                 xe_h = None
-            if "N" in vector_group_l and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
+            if "N" in vector_group_l.value and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
                 re_l = transformer_2w.re0tr_l
                 xe_l = transformer_2w.xe0tr_l
             else:
