@@ -1,3 +1,9 @@
+## 1.5.1 (2023-05-10)
+
+### Fix
+
+- transformer export (contributors: @SebastianDD)
+
 ## 1.5.0 (2023-05-05)
 
 ### Feat
