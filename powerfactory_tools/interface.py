@@ -175,12 +175,12 @@ class PowerFactoryInterface:
         logger.debug("Loading settings from PowerFactory... Done.")
         return t.cast("PFTypes.DataDir", settings_dir)
 
-    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir | None:
+    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
         logger.debug("Loading unit settings from PowerFactory...")
         _unit_settings_dirs = self.elements_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
         unit_settings_dir = self.first_of(elements=_unit_settings_dirs)
         if unit_settings_dir is None:
-            return None
+            unit_settings_dir = self.create_object(name="Units", class_name="IntUnit", location=self.settings_dir)
 
         logger.debug("Loading unit settings from PowerFactory... Done.")
         return t.cast("PFTypes.DataDir", unit_settings_dir)
@@ -733,13 +733,11 @@ class PowerFactoryInterface:
         *,
         name: str,
         study_case: PFTypes.StudyCase,
-        data: dict | None = None,
+        data: dict[str, t.Any] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
         logger.debug("Create result object {name} ...", name=name)
-        if data is None:
-            data = {}
         element = self.create_object(
             name=name,
             class_name="ElmRes",
@@ -756,7 +754,7 @@ class PowerFactoryInterface:
         name: str,
         class_name: str,
         location: PFTypes.DataDir | PFTypes.StudyCase,
-        data: dict[str, t.Any],
+        data: dict[str, t.Any] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
@@ -773,7 +771,7 @@ class PowerFactoryInterface:
             element = location.CreateObject(class_name, name)
             update = True
 
-        if element is not None and update is True:
+        if element is not None and data is not None and update is True:
             return self.update_object(element, data)
 
         return element
