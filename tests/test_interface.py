@@ -1,6 +1,6 @@
 import logging
 
-from powerfactory_tools.interface import PowerFactoryInterface
+from powerfactory_tools import PowerFactoryInterface
 
 
 class TestInterface:
