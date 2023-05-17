@@ -851,6 +851,7 @@ class LoadPower:
             value_a=round(self.pow_app_a, DecimalDigits.POWER + 2),
             value_b=round(self.pow_app_b, DecimalDigits.POWER + 2),
             value_c=round(self.pow_app_c, DecimalDigits.POWER + 2),
+            is_symmetrical=self.is_symmetrical,
             cosphi_a=round(self.cosphi_a, DecimalDigits.COSPHI),
             cosphi_b=round(self.cosphi_b, DecimalDigits.COSPHI),
             cosphi_c=round(self.cosphi_c, DecimalDigits.COSPHI),
