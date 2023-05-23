@@ -112,7 +112,7 @@ class LoadMV:
 
 
 class PowerFactoryExporterProcess(multiprocessing.Process):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         export_path: pathlib.Path,
@@ -234,7 +234,7 @@ class PowerFactoryExporter:
             export_path=export_path,
         )
 
-    def export_scenario(
+    def export_scenario(  # noqa: PLR0913
         self,
         *,
         export_path: pathlib.Path,

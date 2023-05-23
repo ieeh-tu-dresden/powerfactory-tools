@@ -351,7 +351,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ic_sym(
+    def from_ic_sym(  # noqa: PLR0913
         cls,
         *,
         voltage: float,
@@ -435,7 +435,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ip_sym(
+    def from_ip_sym(  # noqa: PLR0913
         cls,
         *,
         voltage: float,
@@ -519,7 +519,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_pq_asym(
+    def from_pq_asym(  # noqa: PLR0913
         cls,
         *,
         pow_act_a: float,
@@ -555,7 +555,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_pc_asym(
+    def from_pc_asym(  # noqa: PLR0913
         cls,
         *,
         pow_act_a: float,
@@ -587,7 +587,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ic_asym(
+    def from_ic_asym(  # noqa: PLR0913
         cls,
         *,
         voltage: float,
@@ -638,7 +638,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sc_asym(
+    def from_sc_asym(  # noqa: PLR0913
         cls,
         *,
         pow_app_a: float,
@@ -670,7 +670,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_qc_asym(
+    def from_qc_asym(  # noqa: PLR0913
         cls,
         *,
         pow_react_a: float,
@@ -706,7 +706,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_ip_asym(
+    def from_ip_asym(  # noqa: PLR0913
         cls,
         *,
         voltage: float,
@@ -757,7 +757,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sp_asym(
+    def from_sp_asym(  # noqa: PLR0913
         cls,
         *,
         pow_app_a: float,
@@ -789,7 +789,7 @@ class LoadPower:
         )
 
     @classmethod
-    def from_sq_asym(
+    def from_sq_asym(  # noqa: PLR0913
         cls,
         *,
         pow_app_a: float,
