@@ -5,6 +5,7 @@
 import json
 import pathlib
 
+import pytest
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.topology.topology import Topology
 from psdm.topology_case.case import Case as TopologyCase
@@ -12,52 +13,26 @@ from psdm.topology_case.case import Case as TopologyCase
 GRID_PATH_PREFIX = "examples/grids/HV_8_Bus_"
 
 
-def sorting(item):
-    if isinstance(item, dict):
-        return sorted((key, sorting(values)) for key, values in item.items())
+@pytest.mark.parametrize(
+    (
+        "schema_class",
+        "json_file_name",
+    ),
+    [
+        (Topology, "topology.json"),
+        (TopologyCase, "topology_case.json"),
+        (SteadystateCase, "steadystate_case.json"),
+    ],
+)
+def test_schema_import(schema_class, json_file_name) -> None:
+    json_file_path = pathlib.Path(GRID_PATH_PREFIX + json_file_name)
 
-    if isinstance(item, list):
-        return sorted(sorting(x) for x in item)
+    data = schema_class.from_file(json_file_path)
+    json_str1 = data.json(sort_keys=True)
 
-    return item
+    with json_file_path.open(encoding="utf-8") as file_handle:
+        data = json.load(file_handle)
 
+    json_str2 = json.dumps(data, sort_keys=True)
 
-class TestSchema:
-    def test_topology_schema_import(self) -> None:
-        json_file_path = pathlib.Path(GRID_PATH_PREFIX + "topology.json")
-
-        ssc = Topology.from_file(json_file_path)
-        json_str1 = ssc.json(sort_keys=True)
-
-        with json_file_path.open(encoding="utf-8") as file_handle:
-            data = json.load(file_handle)
-
-        json_str2 = json.dumps(data, sort_keys=True)
-
-        assert json_str1 == json_str2
-
-    def test_topologycase_schema_import(self):
-        json_file_path = pathlib.Path(GRID_PATH_PREFIX + "topology_case.json")
-
-        ssc = TopologyCase.from_file(json_file_path)
-        js = ssc.json(sort_keys=True)
-
-        with json_file_path.open(encoding="utf-8") as file_handle:
-            data = json.load(file_handle)
-
-        js2 = json.dumps(data, sort_keys=True)
-
-        assert sorting(js) == sorting(js2)
-
-    def test_steadystatecase_schema_import(self):
-        json_file_path = pathlib.Path(GRID_PATH_PREFIX + "steadystate_case.json")
-
-        ssc = SteadystateCase.from_file(json_file_path)
-        js = ssc.json(sort_keys=True)
-
-        with json_file_path.open(encoding="utf-8") as file_handle:
-            data = json.load(file_handle)
-
-        js2 = json.dumps(data, sort_keys=True)
-
-        assert sorting(js) == sorting(js2)
+    assert json_str1 == json_str2
