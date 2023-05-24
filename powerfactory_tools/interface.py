@@ -728,7 +728,7 @@ class PowerFactoryInterface:
 
         return []
 
-    def create_result(
+    def create_result(  # noqa: PLR0913
         self,
         *,
         name: str,
@@ -748,7 +748,7 @@ class PowerFactoryInterface:
         )
         return t.cast("PFTypes.Result", element) if element is not None else None
 
-    def create_object(
+    def create_object(  # noqa: PLR0913
         self,
         *,
         name: str,
