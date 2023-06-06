@@ -514,9 +514,9 @@ class PowerFactoryExporter:
             xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
             rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
             xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
-            gn = l_type.gnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            gn = 0  # as attribute 'gnline' does not exist in PF model type
             bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
-            gpn = l_type.gpnline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+            gpn = 0  # as attribute 'gpnline' does not exist in PF model type
             bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
         else:
             rn = None
