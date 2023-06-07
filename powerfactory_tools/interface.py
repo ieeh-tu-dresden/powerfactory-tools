@@ -18,8 +18,10 @@ import pydantic
 from loguru import logger
 
 from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import MetricPrefix
+from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
 from powerfactory_tools.powerfactory_types import UnitSystem
 
 if t.TYPE_CHECKING:
@@ -481,7 +483,10 @@ class PowerFactoryInterface:
         elements = self.elements_of(element=self.study_case_dir, pattern=name + ".IntCase")
         return [t.cast("PFTypes.StudyCase", element) for element in elements]
 
-    def scenario(self, name: str = "*") -> PFTypes.Scenario | None:
+    def scenario(self, name: str = "*", *, only_active: bool = False) -> PFTypes.Scenario | None:
+        if only_active:
+            return self.app.GetActiveScenario()
+
         return self.first_of(elements=self.scenarios(name=name))
 
     def scenarios(self, name: str = "*") -> Sequence[PFTypes.Scenario]:
@@ -545,8 +550,8 @@ class PowerFactoryInterface:
     def terminal(self, name: str = "*", grid: str = "*") -> PFTypes.Terminal | None:
         return self.first_of(elements=self.terminals(name=name, grid=grid))
 
-    def terminals(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Terminal]:
-        elements = self.grid_elements("ElmTerm", name, grid)
+    def terminals(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Terminal]:
+        elements = self.grid_elements("ElmTerm", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Terminal", element) for element in elements]
 
     def cubicle(self, name: str = "*", grid: str = "*") -> PFTypes.StationCubicle | None:
@@ -647,7 +652,17 @@ class PowerFactoryInterface:
         elements = self.grid_model_elements("ElmNet", name)
         return [t.cast("PFTypes.Grid", element) for element in elements]
 
-    def grid_elements(self, class_name: str, name: str = "*", grid: str = "*") -> Sequence[PFTypes.DataObject]:
+    def grid_elements(
+        self,
+        class_name: str,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.DataObject]:
+        if calc_relevant:
+            return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
+
         rv = [self.elements_of(element=g, pattern=name + "." + class_name) for g in self.grids(grid)]
         return self.list_from_sequences(*rv)
 
@@ -775,6 +790,30 @@ class PowerFactoryInterface:
             return self.update_object(element, data)
 
         return element
+
+    def calc_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
+        return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
+
+    def ldf_command(self) -> PFTypes.CommandLoadFlow:
+        cmd = self.calc_command(CalculationCommand.LOAD_FLOW)
+        return t.cast("PFTypes.CommandLoadFlow", cmd)
+
+    def run_ldf(self, *, ac: bool = True, symmetrical: bool = True) -> PFTypes.Result | None:
+        ldf_cmd = self.ldf_command()
+        if ac:
+            if symmetrical:
+                ldf_cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            else:
+                ldf_cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value
+        else:
+            ldf_cmd.iopt_net = NetworkExtendedCalcType.DC.value
+
+        error = ldf_cmd.Execute()
+        if error != 0:
+            msg = "Load flow execution failed."
+            raise ValueError(msg)
+
+        return self.result(name="All*")
 
     @staticmethod
     def update_object(element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
