@@ -103,6 +103,7 @@ class LoadLV:
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
+    flexible_avg: LoadPower
 
 
 @pydantic.dataclasses.dataclass
@@ -1758,7 +1759,7 @@ class PowerFactoryExporter:
         consumer_flexible_ssc = (
             self.create_consumer_ssc(
                 load,
-                power.flexible,
+                power.flexible_avg,
                 grid_name,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
@@ -1789,12 +1790,18 @@ class PowerFactoryExporter:
             scaling=1,
         )
         power_flexible = LoadPower.from_sc_sym(
+            pow_app=load.cMax,
+            cosphi=load.ccosphi,
+            cosphi_dir=cosphi_dir,
+            scaling=1,
+        )
+        power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
             cosphi_dir=cosphi_dir,
             scaling=1,
         )
-        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
+        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg)
 
     def calc_load_lv_power_sym(self, load: PFTypes.LoadLVP) -> LoadLV:
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
@@ -1805,12 +1812,18 @@ class PowerFactoryExporter:
         )
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         power_flexible = LoadPower.from_sc_sym(
+            pow_app=load.cMax,
+            cosphi=load.ccosphi,
+            cosphi_dir=cosphi_dir,
+            scaling=1,
+        )
+        power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
             cosphi_dir=cosphi_dir,
             scaling=1,
         )
-        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible)
+        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg)
 
     def calc_load_lv_power_fixed_sym(
         self,
