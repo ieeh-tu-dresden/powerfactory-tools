@@ -543,8 +543,14 @@ class PowerFactoryInterface:
     def external_grid(self, name: str = "*", grid: str = "*") -> PFTypes.ExternalGrid | None:
         return self.first_of(elements=self.external_grids(name=name, grid=grid))
 
-    def external_grids(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.ExternalGrid]:
-        elements = self.grid_elements("ElmXNet", name, grid)
+    def external_grids(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.ExternalGrid]:
+        elements = self.grid_elements("ElmXNet", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
 
     def terminal(self, name: str = "*", grid: str = "*") -> PFTypes.Terminal | None:
@@ -557,99 +563,135 @@ class PowerFactoryInterface:
     def cubicle(self, name: str = "*", grid: str = "*") -> PFTypes.StationCubicle | None:
         return self.first_of(elements=self.cubicles(name=name, grid=grid))
 
-    def cubicles(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.StationCubicle]:
-        elements = self.grid_elements("StaCubic", name, grid)
+    def cubicles(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.StationCubicle]:
+        elements = self.grid_elements("StaCubic", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
 
     def coupler(self, name: str = "*", grid: str = "*") -> PFTypes.Coupler | None:
         return self.first_of(elements=self.couplers(name=name, grid=grid))
 
-    def couplers(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Coupler]:
-        elements = self.grid_elements("ElmCoup", name, grid)
+    def couplers(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Coupler]:
+        elements = self.grid_elements("ElmCoup", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Coupler", element) for element in elements]
 
     def switch(self, name: str = "*", grid: str = "*") -> PFTypes.Switch | None:
         return self.first_of(elements=self.switches(name=name, grid=grid))
 
-    def switches(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Switch]:
-        elements = self.grid_elements("StaSwitch", name, grid)
+    def switches(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Switch]:
+        elements = self.grid_elements("StaSwitch", name, grid, calc_releveant=calc_relevant)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
     def fuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
         return self.first_of(elements=self.fuses(name=name, grid=grid))
 
-    def fuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Fuse]:
-        elements = self.grid_elements("RelFuse", name, grid)
+    def fuses(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Fuse]:
+        elements = self.grid_elements("RelFuse", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Fuse", element) for element in elements]
 
     def line(self, name: str = "*", grid: str = "*") -> PFTypes.Line | None:
         return self.first_of(elements=self.lines(name=name, grid=grid))
 
-    def lines(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Line]:
-        elements = self.grid_elements("ElmLne", name, grid)
+    def lines(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Line]:
+        elements = self.grid_elements("ElmLne", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Line", element) for element in elements]
 
     def transformer_2w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer2W | None:
         return self.first_of(elements=self.transformers_2w(name=name, grid=grid))
 
-    def transformers_2w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer2W]:
-        elements = self.grid_elements("ElmTr2", name, grid)
+    def transformers_2w(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.Transformer2W]:
+        elements = self.grid_elements("ElmTr2", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
 
     def transformer_3w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer3W | None:
         return self.first_of(elements=self.transformers_3w(name=name, grid=grid))
 
-    def transformers_3w(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Transformer3W]:
-        elements = self.grid_elements("ElmTr3", name, grid)
+    def transformers_3w(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.Transformer3W]:
+        elements = self.grid_elements("ElmTr3", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
 
     def load(self, name: str = "*", grid: str = "*") -> PFTypes.Load | None:
         return self.first_of(elements=self.loads(name=name, grid=grid))
 
-    def loads(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Load]:
-        elements = self.grid_elements("ElmLod", name, grid)
+    def loads(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Load]:
+        elements = self.grid_elements("ElmLod", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Load", element) for element in elements]
 
     def load_lv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadLV | None:
         return self.first_of(elements=self.loads_lv(name=name, grid=grid))
 
-    def loads_lv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadLV]:
-        elements = self.grid_elements("ElmLodLv", name, grid)
+    def loads_lv(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.LoadLV]:
+        elements = self.grid_elements("ElmLodLv", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.LoadLV", element) for element in elements]
 
     def load_mv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadMV | None:
         return self.first_of(elements=self.loads_mv(name=name, grid=grid))
 
-    def loads_mv(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.LoadMV]:
-        elements = self.grid_elements("ElmLodMv", name, grid)
+    def loads_mv(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.LoadMV]:
+        elements = self.grid_elements("ElmLodMv", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.LoadMV", element) for element in elements]
 
     def generator(self, name: str = "*", grid: str = "*") -> PFTypes.Generator | None:
         return self.first_of(elements=self.generators(name=name, grid=grid))
 
-    def generators(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Generator]:
-        elements = self.grid_elements("ElmGenstat", name, grid)
+    def generators(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.Generator]:
+        elements = self.grid_elements("ElmGenstat", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Generator", element) for element in elements]
 
     def pv_system(self, name: str = "*", grid: str = "*") -> PFTypes.PVSystem | None:
         return self.first_of(elements=self.pv_systems(name=name, grid=grid))
 
-    def pv_systems(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.PVSystem]:
-        elements = self.grid_elements("ElmPvsys", name, grid)
+    def pv_systems(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.PVSystem]:
+        elements = self.grid_elements("ElmPvsys", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
 
     def ac_current_source(self, name: str = "*", grid: str = "*") -> PFTypes.AcCurrentSource | None:
         return self.first_of(elements=self.ac_current_sources(name=name, grid=grid))
 
-    def ac_current_sources(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.AcCurrentSource]:
-        elements = self.grid_elements("ElmIac", name, grid)
+    def ac_current_sources(
+        self,
+        name: str = "*",
+        grid: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.AcCurrentSource]:
+        elements = self.grid_elements("ElmIac", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
 
     def grid(self, name: str = "*") -> PFTypes.Grid | None:
         return self.first_of(elements=self.grids(name=name))
 
-    def grids(self, name: str = "*") -> Sequence[PFTypes.Grid]:
-        elements = self.grid_model_elements("ElmNet", name)
+    def grids(self, name: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Grid]:
+        elements = self.grid_model_elements("ElmNet", name, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Grid", element) for element in elements]
 
     def grid_elements(
@@ -666,7 +708,16 @@ class PowerFactoryInterface:
         rv = [self.elements_of(element=g, pattern=name + "." + class_name) for g in self.grids(grid)]
         return self.list_from_sequences(*rv)
 
-    def grid_model_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
+    def grid_model_elements(
+        self,
+        class_name: str,
+        name: str = "*",
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.DataObject]:
+        if calc_relevant:
+            return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
+
         return self.elements_of(element=self.grid_model, pattern=name + "." + class_name)
 
     def equipment_type_elements(self, class_name: str, name: str = "*") -> Sequence[PFTypes.DataObject]:
@@ -773,6 +824,19 @@ class PowerFactoryInterface:
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
+        """Create a new object resp. element.
+
+        Keyword Arguments:
+            name {str} -- the name for the new object
+            class_name {str} -- the name of the object class in PowerFactory
+            location {PFTypes.DataDir | PFTypes.StudyCase} -- the location the new object to be stored
+            data {dict[str, any]} -- optional dictionary with object attributes
+            force {bool} -- flag if creation should be forced if object already exists (old object will be replaced)
+            update {bool} -- flag if attributes of already existing object should be updated
+
+        Returns:
+            PFTypes.DataObject -- the created object itself
+        """
         _elements = self.elements_of(element=location, pattern=f"{name}.{class_name}")
         element = self.first_of(elements=_elements)
         if element is not None and force is False:
@@ -799,6 +863,15 @@ class PowerFactoryInterface:
         return t.cast("PFTypes.CommandLoadFlow", cmd)
 
     def run_ldf(self, *, ac: bool = True, symmetrical: bool = True) -> PFTypes.Result | None:
+        """Run load flow calculation.
+
+        Keyword Arguments:
+            ac {bool} -- the voltage system used for load flow calculation
+            symmetrical {bool} -- posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical)
+
+        Returns:
+            PFTypes.Result | None -- the result object of ldf
+        """
         ldf_cmd = self.ldf_command()
         if ac:
             if symmetrical:
