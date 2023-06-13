@@ -584,7 +584,7 @@ class PowerFactoryInterface:
         return self.first_of(elements=self.switches(name=name, grid=grid))
 
     def switches(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Switch]:
-        elements = self.grid_elements("StaSwitch", name, grid, calc_releveant=calc_relevant)
+        elements = self.grid_elements("StaSwitch", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
     def fuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
