@@ -5,12 +5,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import typing as t
 
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import MetricPrefix
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from collections.abc import Sequence
 
     UnitConversion = tuple[str, MetricPrefix, MetricPrefix]
@@ -38,7 +38,7 @@ class BaseUnits:
     LENGTH: MetricPrefix = MetricPrefix.k
     POWER: MetricPrefix = MetricPrefix.M
     CURRENCY: Currency = Currency.EUR
-    UNITCONVERSIONS: dict[str, Sequence[UnitConversion]] = {
+    UNITCONVERSIONS: t.ClassVar[dict[str, Sequence[UnitConversion]]] = {
         "ElmLodlv": [
             ("A", MetricPrefix.EMPTY, MetricPrefix.k),
             ("W", MetricPrefix.k, MetricPrefix.M),
