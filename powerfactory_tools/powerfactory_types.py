@@ -778,9 +778,6 @@ class PowerFactoryTypes:
         fold_id: PowerFactoryTypes.StationCubicle
         isclosed: bool  # 0:open; 1:closed
 
-    class Fuse(DataObject, Protocol):
-        ...
-
     class Line(LineBase, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
         bus2: PowerFactoryTypes.StationCubicle | None
@@ -790,6 +787,23 @@ class PowerFactoryTypes:
         inAir: bool  # noqa: N815 # 0:soil; 1:air
         Inom_a: float  # nominal current (actual)
         typ_id: PowerFactoryTypes.LineType | None
+
+    class FuseType(DataObject, Protocol):
+        ...
+
+    class Fuse(DataObject, Protocol):
+        desc: Sequence[str]
+        typ_id: PowerFactoryTypes.FuseType | None
+        on_off: bool
+        outserv: bool
+
+    class BFuse(Fuse, Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        bus2: PowerFactoryTypes.StationCubicle | None
+
+    class EFuse(Fuse, Protocol):
+        cn_bus: PowerFactoryTypes.Terminal
+        cbranch: PowerFactoryTypes.LineBase | PowerFactoryTypes.Element
 
     class ExternalGrid(DataObject, Protocol):
         bustp: BusType

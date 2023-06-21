@@ -164,6 +164,9 @@ summary = "Get the currently executing AST node of a frame, and other informatio
 name = "ieeh-power-system-data-model"
 version = "1.3.1"
 requires_python = ">=3.10,<3.11"
+git = "https://github.com/ieeh-tu-dresden/power-system-data-model.git"
+ref = "sasanjac/26-feat-add-support-for-fuse-types"
+revision = "b91a1440dffefa9c56fdd1198c2013a58d027ee4"
 summary = "A data model for describing power systems"
 dependencies = [
     "loguru",
@@ -295,11 +298,11 @@ dependencies = [
 
 [[package]]
 name = "mypy"
-version = "1.4.0+dev.1ee465c9bd06170ea1a82765ec744e64cbd2a4be"
+version = "1.5.0+dev.1e5caa0dc349750c3eb6c5f448c7aab524e3ec38"
 requires_python = ">=3.7"
 git = "https://github.com/python/mypy.git"
 ref = "master"
-revision = "1ee465c9bd06170ea1a82765ec744e64cbd2a4be"
+revision = "1e5caa0dc349750c3eb6c5f448c7aab524e3ec38"
 summary = "Optional static typing for Python"
 dependencies = [
     "mypy-extensions>=1.0.0",
@@ -565,7 +568,7 @@ summary = "Backport of pathlib-compatible object wrapper for zip files"
 lock_version = "4.2"
 cross_platform = true
 groups = ["default", "deployment", "formatting", "linter", "prototype", "test", "typing"]
-content_hash = "sha256:c70631762c0f64c94480696180b18a535bf3a43297b299444c708c72d5248a51"
+content_hash = "sha256:bc0bf67b4d947fc38374410d876df788875bc7d2676cd5d417ccaaf4bd057149"
 
 [metadata.files]
 "appnope 0.1.3" = [
@@ -862,10 +865,6 @@ content_hash = "sha256:c70631762c0f64c94480696180b18a535bf3a43297b299444c708c72d
 "executing 1.2.0" = [
     {url = "https://files.pythonhosted.org/packages/28/3c/bc3819dd8b1a1588c9215a87271b6178cc5498acaa83885211f5d4d9e693/executing-1.2.0-py2.py3-none-any.whl", hash = "sha256:0314a69e37426e3608aada02473b4161d4caf5a4b244d1d0c48072b8fee7bacc"},
     {url = "https://files.pythonhosted.org/packages/8f/ac/89ff37d8594b0eef176b7cec742ac868fef853b8e18df0309e3def9f480b/executing-1.2.0.tar.gz", hash = "sha256:19da64c18d2d851112f09c287f8d3dbbdf725ab0e569077efb6cdcbd3497c107"},
-]
-"ieeh-power-system-data-model 1.3.1" = [
-    {url = "https://files.pythonhosted.org/packages/12/33/c3f7dca206c9737512b73e600d02cbe95c148a7d35543611523c905a23cd/ieeh-power-system-data-model-1.3.1.tar.gz", hash = "sha256:c5d397adf4ba06fadab20aea7b67a8b7c6bce6ab45c70ecd6ec0b24c25626a9c"},
-    {url = "https://files.pythonhosted.org/packages/e9/7f/e4218703230e6621c7849bb19915fdd37d1d24a5c96eafe1e573c541302a/ieeh_power_system_data_model-1.3.1-py3-none-any.whl", hash = "sha256:2462971c542659459a2491c942c038e9c2db0f346a909273482f0a9fbd79966b"},
 ]
 "importlib-metadata 6.6.0" = [
     {url = "https://files.pythonhosted.org/packages/0b/1f/9de392c2b939384e08812ef93adf37684ec170b5b6e7ea302d9f163c2ea0/importlib_metadata-6.6.0.tar.gz", hash = "sha256:92501cdf9cc66ebd3e612f1b4f0c0765dfa42f0fa38ffb319b6bd84dd675d705"},
