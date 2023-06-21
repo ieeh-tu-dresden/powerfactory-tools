@@ -802,6 +802,7 @@ class PowerFactoryTypes:
         bus2: PowerFactoryTypes.StationCubicle | None
 
     class EFuse(Fuse, Protocol):
+        fold_id: PowerFactoryTypes.StationCubicle
         cn_bus: PowerFactoryTypes.Terminal
         cbranch: PowerFactoryTypes.LineBase | PowerFactoryTypes.Element
 

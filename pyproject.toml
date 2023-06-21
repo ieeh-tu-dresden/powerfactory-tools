@@ -37,7 +37,7 @@
       linter     = ["ruff"]
       prototype  = ["ipykernel"]
       test       = ["pytest", "pytest-cov", "pytest-xdist"]
-      typing     = ["mypy @ git+https://github.com/python/mypy.git@master"]
+      typing     = ["mypy"]
 
 [tool.ruff]
   ignore = [

@@ -87,7 +87,8 @@ class PowerFactoryData:
     pv_systems: Sequence[PFTypes.PVSystem]
     couplers: Sequence[PFTypes.Coupler]
     switches: Sequence[PFTypes.Switch]
-    fuses: Sequence[PFTypes.BFuse]
+    bfuses: Sequence[PFTypes.BFuse]
+    efuses: Sequence[PFTypes.EFuse]
     ac_current_sources: Sequence[PFTypes.AcCurrentSource]
 
 
@@ -571,23 +572,23 @@ class PowerFactoryInterface:
         elements = self.grid_elements("StaSwitch", name, grid)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
-    def bfuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
-        return self.first_of(elements=self.fuses(name=name, grid=grid))
+    def bfuse(self, name: str = "*", grid: str = "*") -> PFTypes.BFuse | None:
+        return self.first_of(elements=self.bfuses(name=name, grid=grid))
 
-    def bfuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Fuse]:
+    def bfuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.BFuse]:
         elements = self.grid_elements("RelFuse", name, grid)
-        elements = [t.cast("PFTypes.Fuse", element) for element in elements]
-        elements = [e for e in elements if self.is_bfuse(e)]
-        return [t.cast("PFTypes.BFuse", element) for element in elements]
+        fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
+        bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
+        return [t.cast("PFTypes.BFuse", fuse) for fuse in bfuses]
 
-    def efuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
-        return self.first_of(elements=self.fuses(name=name, grid=grid))
+    def efuse(self, name: str = "*", grid: str = "*") -> PFTypes.EFuse | None:
+        return self.first_of(elements=self.efuses(name=name, grid=grid))
 
-    def efuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.Fuse]:
+    def efuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.EFuse]:
         elements = self.grid_elements("RelFuse", name, grid)
-        elements = [t.cast("PFTypes.Fuse", element) for element in elements]
-        elements = [e for e in elements if self.is_efuse(e)]
-        return [t.cast("PFTypes.EFuse", element) for element in elements]
+        fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
+        efuses = [fuse for fuse in fuses if self.is_efuse(fuse)]
+        return [t.cast("PFTypes.EFuse", fuse) for fuse in efuses]
 
     def line(self, name: str = "*", grid: str = "*") -> PFTypes.Line | None:
         return self.first_of(elements=self.lines(name=name, grid=grid))

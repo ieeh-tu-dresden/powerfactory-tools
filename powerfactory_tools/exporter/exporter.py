@@ -620,7 +620,7 @@ class PowerFactoryExporter:
             )
             return None
 
-        description = self.get_coupler_description(terminal1=t1, terminal2=t2, description=description)
+        description = self.get_element_description(terminal1=t1, terminal2=t2, description=description)
 
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
@@ -680,7 +680,7 @@ class PowerFactoryExporter:
             )
             return None
 
-        description = self.get_fuse_description(terminal1=t1, terminal2=t2, description=description)
+        description = self.get_element_description(terminal1=t1, terminal2=t2, description=description)
 
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
@@ -702,7 +702,7 @@ class PowerFactoryExporter:
             voltage_system_type=voltage_system_type,
         )
 
-    def get_coupler_description(
+    def get_element_description(
         self,
         terminal1: PFTypes.Terminal,
         terminal2: PFTypes.Terminal,
@@ -899,7 +899,12 @@ class PowerFactoryExporter:
 
     @staticmethod
     def get_description(
-        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
+        element: PFTypes.Terminal
+        | PFTypes.LineBase
+        | PFTypes.Element
+        | PFTypes.Coupler
+        | PFTypes.ExternalGrid
+        | PFTypes.Fuse,
     ) -> tuple[bool, str]:
         desc = element.desc
         if desc:
@@ -1285,10 +1290,10 @@ class PowerFactoryExporter:
 
     def create_topology_case(self, meta: Meta, data: PowerFactoryData) -> TopologyCase:
         logger.debug("Creating topology case...")
-        switch_states = self.create_switch_states(data.switches)
-        coupler_states = self.create_coupler_states(data.couplers)
-        bfuse_states = self.create_bfuse_states(data.bfuses)
-        efuse_states = self.create_efuse_states(data.efuses)
+        switch_states = self.create_switch_states(data.switches, grid_name=data.name)
+        coupler_states = self.create_coupler_states(data.couplers, grid_name=data.name)
+        bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.name)
+        efuse_states = self.create_efuse_states(data.efuses, grid_name=data.name)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
             data.loads,
             data.loads_lv,
@@ -1297,10 +1302,10 @@ class PowerFactoryExporter:
             data.pv_systems,
             data.external_grids,
         )
-        node_power_on_states = self.create_node_power_on_states(data.terminals)
-        line_power_on_states = self.create_element_power_on_states(data.lines)
-        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
-        element_power_on_states = self.create_element_power_on_states(elements)
+        node_power_on_states = self.create_node_power_on_states(data.terminals, grid_name=data.name)
+        line_power_on_states = self.create_element_power_on_states(data.lines, grid_name=data.name)
+        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w, grid_name=data.name)
+        element_power_on_states = self.create_element_power_on_states(elements, grid_name=data.name)
         power_on_states = self.pfi.list_from_sequences(
             switch_states,
             coupler_states,
@@ -2257,7 +2262,7 @@ class PowerFactoryExporter:
         # Q-Controller
         external_controller = generator.c_pstac
         if external_controller is None:
-            controller = self.create_q_controller_builtin(gen=generator, u_n=u_n)
+            controller = self.create_q_controller_builtin(gen=generator, u_n=u_n, grid_name=grid_name)
         else:
             controller = self.create_q_controller_external(
                 gen=generator,
