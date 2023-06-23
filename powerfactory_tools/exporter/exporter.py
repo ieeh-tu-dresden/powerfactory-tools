@@ -1790,7 +1790,7 @@ class PowerFactoryExporter:
             scaling=1,
         )
         power_flexible = LoadPower.from_sc_sym(
-            pow_app=load.cMax,
+            pow_app=load.cSmax,
             cosphi=load.ccosphi,
             cosphi_dir=cosphi_dir,
             scaling=1,
@@ -1812,7 +1812,7 @@ class PowerFactoryExporter:
         )
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         power_flexible = LoadPower.from_sc_sym(
-            pow_app=load.cMax,
+            pow_app=load.cSmax,
             cosphi=load.ccosphi,
             cosphi_dir=cosphi_dir,
             scaling=1,
