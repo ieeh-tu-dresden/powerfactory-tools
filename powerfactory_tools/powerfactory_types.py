@@ -876,7 +876,7 @@ class PowerFactoryTypes:
             ...
 
     class CommandLoadFlow(CommandBase, Protocol):
-        iopt_net: NetworkExtendedCalcType
+        iopt_net: Literal[0, 1, 2]
         iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
         iopt_plim: bool  # apply active power limits
         iopt_at: bool  # automatic step control of transformers
@@ -982,10 +982,10 @@ class PowerFactoryTypes:
             self,
             nameFilter: str,  # noqa: N803
             includeOutOfService: int,  # noqa: N803
-            topoElementsOnly: int,  # noqa: N803
-            bAcSchemes: int,  # noqa: N803
+            topoElementsOnly: int = 0,  # noqa: N803
+            bAcSchemes: int = 0,  # noqa: N803
             /,
-        ) -> set:
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
 
     class PowerFactoryModule(Protocol):
