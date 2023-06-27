@@ -853,6 +853,7 @@ class PowerFactoryInterface:
         if element is not None and data is not None and update is True:
             return self.update_object(element, data)
 
+        self.load_project_folders_from_pf_db()
         return element
 
     def calc_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
@@ -888,12 +889,12 @@ class PowerFactoryInterface:
 
         return self.result(name="All*")
 
-    @staticmethod
-    def update_object(element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
+    def update_object(self, element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
         for key, value in data.items():
             if getattr(element, key, None) is not None:
                 setattr(element, key, value)
 
+        self.load_project_folders_from_pf_db()
         return element
 
     @staticmethod
