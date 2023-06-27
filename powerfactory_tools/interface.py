@@ -889,7 +889,7 @@ class PowerFactoryInterface:
 
     @staticmethod
     def is_efuse(fuse: PFTypes.Fuse) -> bool:
-        return hasattr(fuse, "cn_bus")
+        return not hasattr(fuse, "bus1")
 
     @staticmethod
     def is_bfuse(fuse: PFTypes.Fuse) -> bool:
