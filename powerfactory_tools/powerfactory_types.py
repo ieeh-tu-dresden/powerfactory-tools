@@ -745,6 +745,7 @@ class PowerFactoryTypes:
         ulini: float
         pnight: float
         cSav: float  # noqa: N815
+        cSmax: float  # noqa: N815
         ccosphi: float
         pf_recap: PFRecap
 
