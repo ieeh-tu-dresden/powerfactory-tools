@@ -37,6 +37,7 @@ from psdm.topology.branch import Branch
 from psdm.topology.branch import BranchType
 from psdm.topology.external_grid import ExternalGrid
 from psdm.topology.external_grid import GridType
+from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
 from psdm.topology.load import Phase
@@ -57,6 +58,8 @@ from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
+from powerfactory_tools.exporter.load_power import GENERATOR_PHASE_MAPPING
+from powerfactory_tools.exporter.load_power import LOAD_PHASE_MAPPING
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
@@ -1029,7 +1032,7 @@ class PowerFactoryExporter:
         reactive_power = ReactivePower(load_model=load_model_q)
 
         phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
-        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+        connected_phases = self.get_connected_phases_load(load=load, bus=bus)
         voltage_system_type = (
             VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
             if load.typ_id is not None
@@ -1196,7 +1199,7 @@ class PowerFactoryExporter:
         reactive_power = ReactivePower(external_controller_name=external_controller_name)
 
         phase_connection_type_ = PhaseConnectionType[phase_connection_type.name]
-        connected_phases = [Phase[PFPhase(phase).name] for phase in textwrap.wrap(bus.cPhInfo, 2)]
+        connected_phases = self.get_connected_phases_generator(generator=generator, bus=bus)
 
         return Load(
             name=gen_name,
@@ -2411,6 +2414,108 @@ class PowerFactoryExporter:
                 node_target=node_target_name,
                 control_type=q_controller,
                 external_controller_name=controller_name,
+            )
+
+        msg = "unreachable"
+        raise RuntimeError(msg)
+
+    def get_connected_phases_generator(
+        self,
+        generator: PFTypes.GeneratorBase | PFTypes.LoadMV,
+        bus: PFTypes.StationCubicle,
+    ) -> ConnectedPhases:
+        if generator.phtech == GeneratorPhaseConnectionType.THREE_PH_D:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    phases_b=[Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
+                    phases_c=[Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
+                ),
+            )
+        if generator.phtech == GeneratorPhaseConnectionType.THREE_PH_PH_E:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
+                    phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
+                    phases_c=[Phase[PFPhase(phases[2]).name], Phase.N],
+                ),
+            )
+        if (
+            generator.phtech == GeneratorPhaseConnectionType.ONE_PH_PH_E
+            or generator.phtech == GeneratorPhaseConnectionType.ONE_PH_PH_N
+        ):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
+                    phases_b=[],
+                    phases_c=[],
+                ),
+            )
+        if generator.phtech == GeneratorPhaseConnectionType.ONE_PH_PH_PH:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    phases_b=[],
+                    phases_c=[],
+                ),
+            )
+
+        msg = "unreachable"
+        raise RuntimeError(msg)
+
+    def get_connected_phases_load(
+        self,
+        load: PFTypes.LoadBase,
+        bus: PFTypes.StationCubicle,
+    ) -> ConnectedPhases:
+        if load.phtech == LoadPhaseConnectionType.THREE_PH_D:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    phases_b=[Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
+                    phases_c=[Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
+                ),
+            )
+        if load.phtech == LoadPhaseConnectionType.THREE_PH_PH_E or load.phtech == LoadPhaseConnectionType.THREE_PH_YN:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
+                    phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
+                    phases_c=[Phase[PFPhase(phases[2]).name], Phase.N],
+                ),
+            )
+        if load.phtech == LoadPhaseConnectionType.TWO_PH_PH_E or load.phtech == LoadPhaseConnectionType.TWO_PH_YN:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
+                    phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
+                    phases_c=[],
+                ),
+            )
+        if load.phtech == LoadPhaseConnectionType.ONE_PH_PH_E or load.phtech == LoadPhaseConnectionType.ONE_PH_PH_N:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
+                    phases_b=[],
+                    phases_c=[],
+                ),
+            )
+        if load.phtech == LoadPhaseConnectionType.ONE_PH_PH_PH:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return (
+                ConnectedPhases(
+                    phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    phases_b=[],
+                    phases_c=[],
+                ),
             )
 
         msg = "unreachable"

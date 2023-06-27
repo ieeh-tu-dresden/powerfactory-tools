@@ -690,6 +690,7 @@ class PowerFactoryTypes:
         p_under: float
         p_over: float
         usetp: float
+        phtech: GeneratorPhaseConnectionType
 
     class QPCharacteristic(DataObject, Protocol):
         inputmod: Literal[0, 1]
@@ -697,7 +698,6 @@ class PowerFactoryTypes:
     class Generator(GeneratorBase, Protocol):
         aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
-        phtech: GeneratorPhaseConnectionType
 
     class PVSystem(GeneratorBase, Protocol):
         uk: float
@@ -727,6 +727,7 @@ class PowerFactoryTypes:
         coslinit: float
         outserv: bool
         typ_id: PowerFactoryTypes.LoadType | None
+        phtech: LoadPhaseConnectionType
 
     class Load(LoadBase, Protocol):
         mode_inp: ModeInpLoad

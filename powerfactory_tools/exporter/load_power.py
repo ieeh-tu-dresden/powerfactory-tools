@@ -13,10 +13,14 @@ from loguru import logger
 from psdm.base import CosphiDir
 from psdm.steadystate_case.active_power import ActivePower
 from psdm.steadystate_case.reactive_power import ReactivePower
+from psdm.topology.load import ConnectedPhases
+from psdm.topology.load import Phase
 from psdm.topology.load import RatedPower
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
+from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
+from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 
 if TYPE_CHECKING:
     from typing import TypedDict
@@ -32,6 +36,78 @@ if TYPE_CHECKING:
 
 
 COSPHI_DEFAULT = 1
+
+
+LOAD_PHASE_MAPPING = {
+    LoadPhaseConnectionType.THREE_PH_D: ConnectedPhases(
+        phases_a=[Phase.A, Phase.B],
+        phases_b=[Phase.B, Phase.C],
+        phases_c=[Phase.C, Phase.A],
+    ),
+    LoadPhaseConnectionType.THREE_PH_PH_E: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[Phase.B, Phase.N],
+        phases_c=[Phase.C, Phase.N],
+    ),
+    LoadPhaseConnectionType.THREE_PH_YN: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[Phase.B, Phase.N],
+        phases_c=[Phase.C, Phase.N],
+    ),
+    LoadPhaseConnectionType.TWO_PH_PH_E: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[Phase.B, Phase.N],
+        phases_c=[],
+    ),
+    LoadPhaseConnectionType.TWO_PH_YN: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[Phase.B, Phase.N],
+        phases_c=[],
+    ),
+    LoadPhaseConnectionType.ONE_PH_PH_PH: ConnectedPhases(
+        phases_a=[Phase.A, Phase.B],
+        phases_b=[],
+        phases_c=[],
+    ),
+    LoadPhaseConnectionType.ONE_PH_PH_N: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[],
+        phases_c=[],
+    ),
+    LoadPhaseConnectionType.ONE_PH_PH_E: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[],
+        phases_c=[],
+    ),
+}
+
+GENERATOR_PHASE_MAPPING = {
+    GeneratorPhaseConnectionType.THREE_PH_D: ConnectedPhases(
+        phases_a=[Phase.A, Phase.B],
+        phases_b=[Phase.B, Phase.C],
+        phases_c=[Phase.C, Phase.A],
+    ),
+    GeneratorPhaseConnectionType.THREE_PH_PH_E: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[Phase.B, Phase.N],
+        phases_c=[Phase.C, Phase.N],
+    ),
+    GeneratorPhaseConnectionType.ONE_PH_PH_PH: ConnectedPhases(
+        phases_a=[Phase.A, Phase.B],
+        phases_b=[],
+        phases_c=[],
+    ),
+    GeneratorPhaseConnectionType.ONE_PH_PH_N: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[],
+        phases_c=[],
+    ),
+    GeneratorPhaseConnectionType.ONE_PH_PH_E: ConnectedPhases(
+        phases_a=[Phase.A, Phase.N],
+        phases_b=[],
+        phases_c=[],
+    ),
+}
 
 
 @dataclass
