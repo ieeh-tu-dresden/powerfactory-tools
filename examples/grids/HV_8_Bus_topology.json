@@ -579,6 +579,354 @@
       "x1": 0.0,
       "xn": null,
       "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS1.2",
+      "node_1": "Schaltanlage/BB",
+      "node_2": "Schaltanlage/T1.2",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/CB1",
+      "node_1": "Schaltanlage/T1.2",
+      "node_2": "Schaltanlage/T1.1",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS1.1",
+      "node_1": "Schaltanlage/T1.1",
+      "node_2": "Schaltanlage/1",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS2.1",
+      "node_1": "Schaltanlage/T2.1",
+      "node_2": "Schaltanlage/2",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS2.2",
+      "node_1": "Schaltanlage/BB",
+      "node_2": "Schaltanlage/T2.2",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/CB2",
+      "node_1": "Schaltanlage/T2.2",
+      "node_2": "Schaltanlage/T2.1",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS3.1",
+      "node_1": "Schaltanlage/T3.1",
+      "node_2": "Schaltanlage/3",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/CB3",
+      "node_1": "Schaltanlage/T3.2",
+      "node_2": "Schaltanlage/T3.1",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS3.2",
+      "node_1": "Schaltanlage/BB",
+      "node_2": "Schaltanlage/T3.2",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS4.2",
+      "node_1": "Schaltanlage/BB",
+      "node_2": "Schaltanlage/T4.2",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/CB4",
+      "node_1": "Schaltanlage/T4.2",
+      "node_2": "Schaltanlage/T4.1",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": Infinity,
+      "length": null,
+      "name": "Schaltanlage/IS4.1",
+      "node_1": "Schaltanlage/T4.1",
+      "node_2": "Schaltanlage/4",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": 110000.0,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
     }
   ],
   "external_grids": [
@@ -607,30 +955,40 @@
           "c_i": 0.0,
           "c_p": 0.0,
           "c_z": 1.0,
-          "exp_i": 1,
+          "exp_i": 0,
           "exp_p": 0,
           "exp_z": 2,
-          "name": "Load_const_impedance"
+          "name": "Load_general"
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
-      "name": "Load_8",
-      "node": "Node_8/Field_2",
+      "name": "Load_1",
+      "node": "Node_1",
       "phase_connection_type": "THREE_PH_D",
       "rated_power": {
-        "cosphi": 0.894427,
-        "cosphi_a": 0.894427,
-        "cosphi_b": 0.894427,
-        "cosphi_c": 0.894427,
-        "value": 22360680.0,
-        "value_a": 7453559.92,
-        "value_b": 7453559.92,
-        "value_c": 7453559.92
+        "cosphi": 0.990309,
+        "cosphi_a": 0.990309,
+        "cosphi_b": 0.990309,
+        "cosphi_c": 0.990309,
+        "power_type": "AC_APPARENT",
+        "value": 10097857.0,
+        "value_a": 3365952.27,
+        "value_b": 3365952.27,
+        "value_c": 3365952.27
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -638,10 +996,10 @@
           "c_i": 0.0,
           "c_p": 0.0,
           "c_z": 1.0,
-          "exp_i": 1,
+          "exp_i": 0,
           "exp_p": 0,
           "exp_z": 2,
-          "name": "Load_const_impedance"
+          "name": "Load_general"
         }
       },
       "system_type": "FIXED_CONSUMPTION",
@@ -662,11 +1020,20 @@
           "name": "Load_const_current"
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
       "name": "Load_3",
       "node": "Node_3",
@@ -676,6 +1043,7 @@
         "cosphi_a": 1.0,
         "cosphi_b": 1.0,
         "cosphi_c": 1.0,
+        "power_type": "AC_APPARENT",
         "value": 60000000.0,
         "value_a": 20000000.0,
         "value_b": 20000000.0,
@@ -703,55 +1071,6 @@
         "characteristic": null,
         "load_model": {
           "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 0,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_general"
-        }
-      },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
-      "description": "",
-      "name": "Load_1",
-      "node": "Node_1",
-      "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.990309,
-        "cosphi_a": 0.990309,
-        "cosphi_b": 0.990309,
-        "cosphi_c": 0.990309,
-        "value": 10097857.0,
-        "value_a": 3365952.27,
-        "value_b": 3365952.27,
-        "value_c": 3365952.27
-      },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 0,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_general"
-        }
-      },
-      "system_type": "FIXED_CONSUMPTION",
-      "type": "CONSUMER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": {
-          "c_i": 0.0,
           "c_p": 1.0,
           "c_z": 0.0,
           "exp_i": 1,
@@ -760,20 +1079,30 @@
           "name": "Load_const_power"
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "N"
+        ],
+        "phases_b": [
+          "B",
+          "N"
+        ],
+        "phases_c": [
+          "C",
+          "N"
+        ]
+      },
       "description": "",
       "name": "Load_2",
       "node": "Node_2",
-      "phase_connection_type": "THREE_PH_D",
+      "phase_connection_type": "THREE_PH_PH_E",
       "rated_power": {
         "cosphi": 0.980581,
         "cosphi_a": 0.980581,
         "cosphi_b": 0.980581,
         "cosphi_c": 0.980581,
+        "power_type": "AC_APPARENT",
         "value": 50990195.0,
         "value_a": 16996731.69,
         "value_b": 16996731.69,
@@ -801,6 +1130,65 @@
         "characteristic": null,
         "load_model": {
           "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 1,
+          "exp_p": 0,
+          "exp_z": 2,
+          "name": "Load_const_impedance"
+        }
+      },
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
+      "description": "",
+      "name": "Load_8",
+      "node": "Node_8/Field_2",
+      "phase_connection_type": "THREE_PH_D",
+      "rated_power": {
+        "cosphi": 0.894427,
+        "cosphi_a": 0.894427,
+        "cosphi_b": 0.894427,
+        "cosphi_c": 0.894427,
+        "power_type": "AC_APPARENT",
+        "value": 22360680.0,
+        "value_a": 7453559.92,
+        "value_b": 7453559.92,
+        "value_c": 7453559.92
+      },
+      "reactive_power": {
+        "external_controller_name": null,
+        "load_model": {
+          "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 1,
+          "exp_p": 0,
+          "exp_z": 2,
+          "name": "Load_const_impedance"
+        }
+      },
+      "system_type": "FIXED_CONSUMPTION",
+      "type": "CONSUMER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": {
+          "c_i": 0.0,
           "c_p": 1.0,
           "c_z": 0.0,
           "exp_i": 1,
@@ -809,11 +1197,20 @@
           "name": null
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "N"
+        ],
+        "phases_b": [
+          "B",
+          "N"
+        ],
+        "phases_c": [
+          "C",
+          "N"
+        ]
+      },
       "description": "",
       "name": "LV_Load_7a_FIXED_CONSUMPTION",
       "node": "Node_7_LV",
@@ -823,6 +1220,7 @@
         "cosphi_a": 0.9,
         "cosphi_b": 0.95,
         "cosphi_c": 0.95,
+        "power_type": "AC_APPARENT",
         "value": 9007.0,
         "value_a": 2309.4,
         "value_b": 3695.04,
@@ -858,11 +1256,20 @@
           "name": null
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "N"
+        ],
+        "phases_b": [
+          "B",
+          "N"
+        ],
+        "phases_c": [
+          "C",
+          "N"
+        ]
+      },
       "description": "",
       "name": "LV_Load_7b_(0)_FIXED_CONSUMPTION",
       "node": "Node_7_LV",
@@ -872,6 +1279,7 @@
         "cosphi_a": 1.0,
         "cosphi_b": 1.0,
         "cosphi_c": 1.0,
+        "power_type": "AC_APPARENT",
         "value": 10000.0,
         "value_a": 3333.33,
         "value_b": 3333.33,
@@ -907,11 +1315,20 @@
           "name": null
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "N"
+        ],
+        "phases_b": [
+          "B",
+          "N"
+        ],
+        "phases_c": [
+          "C",
+          "N"
+        ]
+      },
       "description": "",
       "name": "LV_Load_7b_(0)_NIGHT_STORAGE",
       "node": "Node_7_LV",
@@ -921,6 +1338,7 @@
         "cosphi_a": 1.0,
         "cosphi_b": 1.0,
         "cosphi_c": 1.0,
+        "power_type": "AC_APPARENT",
         "value": 2000.0,
         "value_a": 666.67,
         "value_b": 666.67,
@@ -956,11 +1374,20 @@
           "name": null
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "N"
+        ],
+        "phases_b": [
+          "B",
+          "N"
+        ],
+        "phases_c": [
+          "C",
+          "N"
+        ]
+      },
       "description": "",
       "name": "LV_Load_7b_(1)_VARIABLE_CONSUMPTION",
       "node": "Node_7_LV",
@@ -970,10 +1397,11 @@
         "cosphi_a": 0.95,
         "cosphi_b": 0.95,
         "cosphi_c": 0.95,
-        "value": 4800.0,
-        "value_a": 1600.0,
-        "value_b": 1600.0,
-        "value_c": 1600.0
+        "power_type": "AC_APPARENT",
+        "value": 26400.0,
+        "value_a": 8800.0,
+        "value_b": 8800.0,
+        "value_c": 8800.0
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -1005,11 +1433,20 @@
           "name": null
         }
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
       "name": "MV_Load_6_CONSUMER",
       "node": "Node_6_MV",
@@ -1019,6 +1456,7 @@
         "cosphi_a": 0.95,
         "cosphi_b": 0.95,
         "cosphi_c": 0.95,
+        "power_type": "AC_APPARENT",
         "value": 10000000.0,
         "value_a": 3333333.33,
         "value_b": 3333333.33,
@@ -1046,11 +1484,20 @@
         "characteristic": null,
         "load_model": null
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
       "name": "MV_Load_6_PRODUCER",
       "node": "Node_6_MV",
@@ -1060,6 +1507,7 @@
         "cosphi_a": 0.9,
         "cosphi_b": 0.9,
         "cosphi_c": 0.9,
+        "power_type": "AC_APPARENT",
         "value": 200000.0,
         "value_a": 66666.67,
         "value_b": 66666.67,
@@ -1079,11 +1527,20 @@
         "characteristic": null,
         "load_model": null
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "Q-Control: konstQ ",
       "name": "StatGenerator_1",
       "node": "Node_4",
@@ -1093,6 +1550,7 @@
         "cosphi_a": 0.8,
         "cosphi_b": 0.8,
         "cosphi_c": 0.8,
+        "power_type": "AC_APPARENT",
         "value": 1000000.0,
         "value_a": 333333.33,
         "value_b": 333333.33,
@@ -1112,77 +1570,20 @@
         "characteristic": null,
         "load_model": null
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
-      "description": "Q-Control: konst cosphi",
-      "name": "StatGenerator_3",
-      "node": "Node_4",
-      "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.8,
-        "cosphi_a": 0.8,
-        "cosphi_b": 0.8,
-        "cosphi_c": 0.8,
-        "value": 1000000.0,
-        "value_a": 333333.33,
-        "value_b": 333333.33,
-        "value_c": 333333.33
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
       },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": null
-      },
-      "system_type": "WIND",
-      "type": "PRODUCER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": null
-      },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
-      "description": "Q-Control: Q(U)-Charakteristik",
-      "name": "WTG",
-      "node": "Node_WTG",
-      "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.9,
-        "cosphi_a": 0.9,
-        "cosphi_b": 0.9,
-        "cosphi_c": 0.9,
-        "value": 11110000.0,
-        "value_a": 3703333.22,
-        "value_b": 3703333.22,
-        "value_c": 3703333.22
-      },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": null
-      },
-      "system_type": "WIND",
-      "type": "PRODUCER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": null
-      },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
       "description": "Q-Control: cosphi(P)-Charakteristik",
       "name": "StatGenerator_2",
       "node": "Node_4",
@@ -1192,6 +1593,7 @@
         "cosphi_a": 0.8,
         "cosphi_b": 0.8,
         "cosphi_c": 0.8,
+        "power_type": "AC_APPARENT",
         "value": 1000000.0,
         "value_a": 333333.33,
         "value_b": 333333.33,
@@ -1211,11 +1613,106 @@
         "characteristic": null,
         "load_model": null
       },
-      "connected_phases": [
-        "A",
-        "B",
-        "C"
-      ],
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
+      "description": "Q-Control: Q(U)-Charakteristik",
+      "name": "WTG",
+      "node": "Node_WTG",
+      "phase_connection_type": "THREE_PH_D",
+      "rated_power": {
+        "cosphi": 0.9,
+        "cosphi_a": 0.9,
+        "cosphi_b": 0.9,
+        "cosphi_c": 0.9,
+        "power_type": "AC_APPARENT",
+        "value": 11110000.0,
+        "value_a": 3703333.22,
+        "value_b": 3703333.22,
+        "value_c": 3703333.22
+      },
+      "reactive_power": {
+        "external_controller_name": null,
+        "load_model": null
+      },
+      "system_type": "WIND",
+      "type": "PRODUCER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": null
+      },
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
+      "description": "Q-Control: konst cosphi",
+      "name": "StatGenerator_3",
+      "node": "Node_4",
+      "phase_connection_type": "THREE_PH_D",
+      "rated_power": {
+        "cosphi": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
+        "power_type": "AC_APPARENT",
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
+      },
+      "reactive_power": {
+        "external_controller_name": null,
+        "load_model": null
+      },
+      "system_type": "WIND",
+      "type": "PRODUCER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": null
+      },
+      "connected_phases": {
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
       "name": "PV-System",
       "node": "Node_4",
@@ -1225,6 +1722,7 @@
         "cosphi_a": 0.8,
         "cosphi_b": 0.8,
         "cosphi_c": 0.8,
+        "power_type": "AC_APPARENT",
         "value": 20000000.0,
         "value_a": 6666666.67,
         "value_b": 6666666.67,
@@ -1241,11 +1739,11 @@
     }
   ],
   "meta": {
-    "date": "2023-05-23",
-    "id": "ede757bd-da41-48f7-b15a-8280f74d7374",
+    "date": "2023-07-04",
+    "id": "ad274ed8-4682-4a9e-99f8-f60c773a0a97",
     "name": "HV_8_Bus",
     "project": "PowerFactory-Tools",
-    "version": "1.2.0"
+    "version": "1.4.0"
   },
   "nodes": [
     {
@@ -1342,58 +1840,74 @@
       "description": "substation internal",
       "name": "Node_8/TField_2.2",
       "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/BB",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T1.2",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T1.1",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/1",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T2.2",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T2.1",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/2",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T3.2",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T3.1",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/3",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T4.2",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/T4.1",
+      "u_n": 110000.0
+    },
+    {
+      "description": "substation internal",
+      "name": "Schaltanlage/4",
+      "u_n": 110000.0
     }
   ],
   "transformers": [
-    {
-      "description": "",
-      "i_0": 0.30000999569892883,
-      "name": "Transformer_2w_20/0.4",
-      "node_1": "Node_6_MV",
-      "node_2": "Node_7_LV",
-      "number": 1,
-      "p_fe": 1200.0,
-      "phase_technology_type": "THREE_PH",
-      "tap_max": 2,
-      "tap_min": -2,
-      "tap_neutral": 0,
-      "tap_side": "HV",
-      "tap_u_abs": 2.5,
-      "tap_u_phi": 0.0,
-      "vector_group": "Dyn5",
-      "windings": [
-        {
-          "neutral_connected": false,
-          "node": "Node_6_MV",
-          "phase_angle_clock": 0,
-          "r0": 11.999999925494196,
-          "r1": 11.999999925494196,
-          "re": null,
-          "s_r": 400000.0,
-          "u_n": 20000.0,
-          "u_r": 20000.0,
-          "vector_group": "D",
-          "x0": 58.78775479215749,
-          "x1": 58.78775479215749,
-          "xe": null
-        },
-        {
-          "neutral_connected": false,
-          "node": "Node_7_LV",
-          "phase_angle_clock": 5,
-          "r0": 0.0,
-          "r1": 0.0,
-          "re": null,
-          "s_r": 400000.0,
-          "u_n": 400.0,
-          "u_r": 400.0,
-          "vector_group": "YN",
-          "x0": 0.0,
-          "x1": 0.0,
-          "xe": null
-        }
-      ]
-    },
     {
       "description": "",
       "i_0": 1.0,
@@ -1436,6 +1950,55 @@
           "s_r": 40000000.0,
           "u_n": 20000.0,
           "u_r": 20000.0,
+          "vector_group": "YN",
+          "x0": 0.0,
+          "x1": 0.0,
+          "xe": null
+        }
+      ]
+    },
+    {
+      "description": "",
+      "i_0": 0.30000999569892883,
+      "name": "Transformer_2w_20/0.4",
+      "node_1": "Node_6_MV",
+      "node_2": "Node_7_LV",
+      "number": 1,
+      "p_fe": 1200.0,
+      "phase_technology_type": "THREE_PH",
+      "tap_max": 2,
+      "tap_min": -2,
+      "tap_neutral": 0,
+      "tap_side": "HV",
+      "tap_u_abs": 2.5,
+      "tap_u_phi": 0.0,
+      "vector_group": "Dyn5",
+      "windings": [
+        {
+          "neutral_connected": false,
+          "node": "Node_6_MV",
+          "phase_angle_clock": 0,
+          "r0": 11.999999925494196,
+          "r1": 11.999999925494196,
+          "re": null,
+          "s_r": 400000.0,
+          "u_n": 20000.0,
+          "u_r": 20000.0,
+          "vector_group": "D",
+          "x0": 58.78775479215749,
+          "x1": 58.78775479215749,
+          "xe": null
+        },
+        {
+          "neutral_connected": false,
+          "node": "Node_7_LV",
+          "phase_angle_clock": 5,
+          "r0": 0.0,
+          "r1": 0.0,
+          "re": null,
+          "s_r": 400000.0,
+          "u_n": 400.0,
+          "u_r": 400.0,
           "vector_group": "YN",
           "x0": 0.0,
           "x1": 0.0,
