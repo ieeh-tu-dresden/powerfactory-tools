@@ -59,27 +59,27 @@ LOAD_PHASE_MAPPING = {
     LoadPhaseConnectionType.TWO_PH_PH_E: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
         phases_b=[Phase.B, Phase.N],
-        phases_c=[],
+        phases_c=None,
     ),
     LoadPhaseConnectionType.TWO_PH_YN: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
         phases_b=[Phase.B, Phase.N],
-        phases_c=[],
+        phases_c=None,
     ),
     LoadPhaseConnectionType.ONE_PH_PH_PH: ConnectedPhases(
         phases_a=[Phase.A, Phase.B],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
     LoadPhaseConnectionType.ONE_PH_PH_N: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
     LoadPhaseConnectionType.ONE_PH_PH_E: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
 }
 
@@ -96,18 +96,18 @@ GENERATOR_PHASE_MAPPING = {
     ),
     GeneratorPhaseConnectionType.ONE_PH_PH_PH: ConnectedPhases(
         phases_a=[Phase.A, Phase.B],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
     GeneratorPhaseConnectionType.ONE_PH_PH_N: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
     GeneratorPhaseConnectionType.ONE_PH_PH_E: ConnectedPhases(
         phases_a=[Phase.A, Phase.N],
-        phases_b=[],
-        phases_c=[],
+        phases_b=None,
+        phases_c=None,
     ),
 }
 
