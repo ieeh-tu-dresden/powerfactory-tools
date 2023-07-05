@@ -960,7 +960,9 @@ class PowerFactoryExporter:
         power = self.calc_load_mv_power(load)
         logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
         phase_connection_type = (
-            PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name] if load.typ_id is not None else PhaseConnectionType.THREE_PH_D
+            PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+            if load.typ_id is not None
+            else PhaseConnectionType.THREE_PH_D
         )
         consumer = self.create_consumer(
             load=load,
