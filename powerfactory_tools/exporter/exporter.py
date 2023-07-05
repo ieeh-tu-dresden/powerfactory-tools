@@ -595,7 +595,7 @@ class PowerFactoryExporter:
         else:
             r1 = 0
             x1 = 0
-            i_r = math.inf
+            i_r = None
 
         b1 = 0
         g1 = 0
