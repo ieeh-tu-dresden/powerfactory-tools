@@ -32,6 +32,7 @@ class DecimalDigits:
     CURRENT = 1
     POWER = 0
     PU = 4
+    IMPEDANCE = 6
 
 
 class BaseUnits:

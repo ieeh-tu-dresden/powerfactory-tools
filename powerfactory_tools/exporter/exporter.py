@@ -502,25 +502,25 @@ class PowerFactoryExporter:
         i = l_type.InomAir if line.inAir else l_type.sline
         i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
-        r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
-        x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
-        r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
-        x0 = l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE
-        g1 = l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
-        g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        r1 = round(l_type.rline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.RESISTANCE
+        x1 = round(l_type.xline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.REACTANCE
+        r0 = round(l_type.rline0 * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.RESISTANCE
+        x0 = round(l_type.xline0 * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.REACTANCE
+        g1 = round(l_type.gline * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.CONDUCTANCE
+        b1 = round(l_type.bline * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.SUSCEPTANCE
+        g0 = round(l_type.gline0 * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.CONDUCTANCE
+        b0 = round(l_type.bline0 * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.SUSCEPTANCE
 
         if l_type.nneutral:
             l_type = typing.cast("PFTypes.LineNType", l_type)
-            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
-            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rn = round(l_type.rnline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.RESISTANCE
+            xn = round(l_type.xnline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.REACTANCE
+            rpn = round(l_type.rpnline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.RESISTANCE
+            xpn = round(l_type.xpnline * line.dline / line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.REACTANCE
             gn = 0  # as attribute 'gnline' does not exist in PF model type
-            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bn = round(l_type.bnline * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.SUSCEPTANCE
             gpn = 0  # as attribute 'gpnline' does not exist in PF model type
-            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bpn = round(l_type.bpnline * line.dline * line.nlnum, DecimalDigits.IMPEDANCE) * Exponents.SUSCEPTANCE
         else:
             rn = None
             xn = None
