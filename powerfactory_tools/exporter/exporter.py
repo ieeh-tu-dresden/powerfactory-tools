@@ -521,22 +521,27 @@ class PowerFactoryExporter:
         if l_type.nneutral:
             l_type = typing.cast("PFTypes.LineNType", l_type)
             rn = round(
-                l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE + digit_r,
+                l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE,
+                DecimalDigits.IMPEDANCE + digit_r,
             )
             xn = round(l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE + digit_x)
             rpn = round(
-                l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE + digit_r,
+                l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE,
+                DecimalDigits.IMPEDANCE + digit_r,
             )
             xpn = round(
-                l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE + digit_x,
+                l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE,
+                DecimalDigits.IMPEDANCE + digit_x,
             )
             gn = 0  # as attribute 'gnline' does not exist in PF model type
             bn = round(
-                l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.IMPEDANCE + digit_b,
+                l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE,
+                DecimalDigits.IMPEDANCE + digit_b,
             )
             gpn = 0  # as attribute 'gpnline' does not exist in PF model type
             bpn = round(
-                l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.IMPEDANCE + digit_b,
+                l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE,
+                DecimalDigits.IMPEDANCE + digit_b,
             )
         else:
             rn = None
