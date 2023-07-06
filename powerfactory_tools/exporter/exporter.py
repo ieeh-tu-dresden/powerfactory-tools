@@ -58,7 +58,7 @@ from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.constants import convert_exponent_in_decimal_digit
+from powerfactory_tools.constants import convert_exponent_to_decimal_digit
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
@@ -504,10 +504,10 @@ class PowerFactoryExporter:
         i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
         # additional decimal digits related to exponents
-        digit_r: int = convert_exponent_in_decimal_digit(Exponents.RESISTANCE)
-        digit_x: int = convert_exponent_in_decimal_digit(Exponents.REACTANCE)
-        digit_g: int = convert_exponent_in_decimal_digit(Exponents.CONDUCTANCE)
-        digit_b: int = convert_exponent_in_decimal_digit(Exponents.SUSCEPTANCE)
+        digit_r: int = convert_exponent_to_decimal_digit(Exponents.RESISTANCE)
+        digit_x: int = convert_exponent_to_decimal_digit(Exponents.REACTANCE)
+        digit_g: int = convert_exponent_to_decimal_digit(Exponents.CONDUCTANCE)
+        digit_b: int = convert_exponent_to_decimal_digit(Exponents.SUSCEPTANCE)
 
         r1 = round(l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE + digit_r)
         x1 = round(l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE + digit_x)

@@ -17,7 +17,7 @@ if t.TYPE_CHECKING:
     UnitConversion = tuple[str, MetricPrefix, MetricPrefix]
 
 
-def convert_exponent_in_decimal_digit(exp: float) -> int:
+def convert_exponent_to_decimal_digit(exp: float) -> int:
     dec = decimal.Decimal(str(exp))
     digit = dec.as_tuple().exponent
     if type(digit) == int:
