@@ -2498,7 +2498,7 @@ class PowerFactoryExporter:
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
                 phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
-                phases_c=[],
+                phases_c=None,
             )
         if (
             phase_connection_type == PhaseConnectionType.ONE_PH_PH_E
@@ -2507,15 +2507,15 @@ class PowerFactoryExporter:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
-                phases_b=[],
-                phases_c=[],
+                phases_b=None,
+                phases_c=None,
             )
         if phase_connection_type == PhaseConnectionType.ONE_PH_PH_PH:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
-                phases_b=[],
-                phases_c=[],
+                phases_b=None,
+                phases_c=None,
             )
 
         msg = "unreachable"
