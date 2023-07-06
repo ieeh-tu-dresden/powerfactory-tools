@@ -19,24 +19,6 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 10000000.0,
-        "value_a": 3333333.33,
-        "value_b": 3333333.33,
-        "value_c": 3333333.33
-      },
-      "name": "Load_1",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value": 1402395.0,
-        "value_a": 467465.02,
-        "value_b": 467465.02,
-        "value_c": 467465.02
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
         "value": 60000000.0,
         "value_a": 20000000.0,
         "value_b": 20000000.0,
@@ -50,6 +32,24 @@
         "value_a": 0.0,
         "value_b": 0.0,
         "value_c": 0.0
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value": 10000000.0,
+        "value_a": 3333333.33,
+        "value_b": 3333333.33,
+        "value_c": 3333333.33
+      },
+      "name": "Load_1",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 1402395.0,
+        "value_a": 467465.02,
+        "value_b": 467465.02,
+        "value_c": 467465.02
       }
     },
     {
@@ -78,7 +78,7 @@
         "value_b": 6666666.67,
         "value_c": 6666666.67
       },
-      "name": "Load_8",
+      "name": "Load_9",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -86,6 +86,24 @@
         "value_a": 3333333.33,
         "value_b": 3333333.33,
         "value_c": 3333333.33
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": false,
+        "value": 2000.0,
+        "value_a": 1000.0,
+        "value_b": 1000.0,
+        "value_c": 0.0
+      },
+      "name": "Load_8",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 0.0,
+        "value_a": 0.0,
+        "value_b": 0.0,
+        "value_c": 0.0
       }
     },
     {
@@ -207,10 +225,7 @@
       "name": "StatGenerator_1",
       "reactive_power": {
         "controller": {
-          "control_type": {
-            "control_strategy": "Q_CONST",
-            "q_set": -300000.0
-          },
+          "control_type": {},
           "external_controller_name": null,
           "node_target": "Node_4"
         },
@@ -224,65 +239,6 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": -400000.0,
-        "value_a": -133333.34,
-        "value_b": -133333.34,
-        "value_c": -133333.34
-      },
-      "name": "StatGenerator_2",
-      "reactive_power": {
-        "controller": {
-          "control_type": {
-            "control_strategy": "COSPHI_P",
-            "cosphi_oe": 0.96,
-            "cosphi_ue": 0.95,
-            "p_threshold_oe": -300000.0,
-            "p_threshold_ue": -800000.0
-          },
-          "external_controller_name": "Anlagenregelung_cosphi(P)",
-          "node_target": "Node_4"
-        },
-        "is_symmetrical": true,
-        "value": -128292.0,
-        "value_a": -42763.97,
-        "value_b": -42763.97,
-        "value_c": -42763.97
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value": -5000000.0,
-        "value_a": -1666666.67,
-        "value_b": -1666666.67,
-        "value_c": -1666666.67
-      },
-      "name": "WTG",
-      "reactive_power": {
-        "controller": {
-          "control_type": {
-            "control_strategy": "Q_U",
-            "m_tg_2015": 8.4175,
-            "m_tg_2018": 9.2593,
-            "q_max_oe": 4800000.0,
-            "q_max_ue": 4800000.0,
-            "u_deadband_low": 1100.0,
-            "u_deadband_up": 1100.0,
-            "u_q0": 110000.0
-          },
-          "external_controller_name": null,
-          "node_target": "Node_WTG"
-        },
-        "is_symmetrical": true,
-        "value": -0.0,
-        "value_a": -0.0,
-        "value_b": -0.0,
-        "value_c": -0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
         "value": -500000.0,
         "value_a": -166666.67,
         "value_b": -166666.67,
@@ -291,11 +247,7 @@
       "name": "StatGenerator_3",
       "reactive_power": {
         "controller": {
-          "control_type": {
-            "control_strategy": "COSPHI_CONST",
-            "cosphi": 0.7,
-            "cosphi_dir": "UE"
-          },
+          "control_type": {},
           "external_controller_name": null,
           "node_target": "Node_4"
         },
@@ -309,6 +261,72 @@
     {
       "active_power": {
         "is_symmetrical": true,
+        "value": -5000000.0,
+        "value_a": -1666666.67,
+        "value_b": -1666666.67,
+        "value_c": -1666666.67
+      },
+      "name": "WTG",
+      "reactive_power": {
+        "controller": {
+          "control_type": {},
+          "external_controller_name": null,
+          "node_target": "Node_WTG"
+        },
+        "is_symmetrical": true,
+        "value": -0.0,
+        "value_a": -0.0,
+        "value_b": -0.0,
+        "value_c": -0.0
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value": -400000.0,
+        "value_a": -133333.34,
+        "value_b": -133333.34,
+        "value_c": -133333.34
+      },
+      "name": "StatGenerator_2",
+      "reactive_power": {
+        "controller": {
+          "control_type": {},
+          "external_controller_name": "Anlagenregelung_cosphi(P)",
+          "node_target": "Node_4"
+        },
+        "is_symmetrical": true,
+        "value": -128292.0,
+        "value_a": -42763.97,
+        "value_b": -42763.97,
+        "value_c": -42763.97
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": false,
+        "value": -3000.0,
+        "value_a": -3000.0,
+        "value_b": -0.0,
+        "value_c": -0.0
+      },
+      "name": "Battery",
+      "reactive_power": {
+        "controller": {
+          "control_type": {},
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        },
+        "is_symmetrical": true,
+        "value": -0.0,
+        "value_a": -0.0,
+        "value_b": -0.0,
+        "value_c": -0.0
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
         "value": -16000000.0,
         "value_a": -5333333.33,
         "value_b": -5333333.33,
@@ -317,10 +335,7 @@
       "name": "PV-System",
       "reactive_power": {
         "controller": {
-          "control_type": {
-            "control_strategy": "Q_CONST",
-            "q_set": -7749140.0
-          },
+          "control_type": {},
           "external_controller_name": null,
           "node_target": "Node_4"
         },
@@ -333,19 +348,18 @@
     }
   ],
   "meta": {
-    "date": "2023-07-04",
-    "id": "ad274ed8-4682-4a9e-99f8-f60c773a0a97",
-    "name": "HV_8_Bus",
-    "project": "PowerFactory-Tools",
-    "version": "1.4.0"
+    "date": "2023-07-06",
+    "id": "4f5ff481-4c2a-4da5-b3e5-d430b72cccd2",
+    "name": "HV_9_Bus",
+    "project": "PowerFactory-Tools"
   },
   "transformers": [
     {
-      "name": "Transformer_2w_110/20",
+      "name": "Transformer_2w_20/0.4",
       "tap_pos": 0
     },
     {
-      "name": "Transformer_2w_20/0.4",
+      "name": "Transformer_2w_110/20",
       "tap_pos": 0
     }
   ]
