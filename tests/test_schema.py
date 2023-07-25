@@ -11,11 +11,12 @@ from psdm.topology.topology import Topology
 from psdm.topology_case.case import Case as TopologyCase
 
 GRID_PATH_PREFIX = "examples/grids/HV_9_Bus_"
+FLOAT_PRECISION: int = 12
 
 
 def round_floats(o):
     if isinstance(o, float):
-        return round(o, 10)
+        return round(o, FLOAT_PRECISION)
     if isinstance(o, dict):
         return {k: round_floats(v) for k, v in o.items()}
     if isinstance(o, list | tuple):
