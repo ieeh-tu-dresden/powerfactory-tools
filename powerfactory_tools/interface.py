@@ -277,14 +277,14 @@ class PowerFactoryInterface:
         else:
             grids = self.grids()
             try:
-                grid = [e for e in grids if e.loc_name == grid_name][0]
+                grid = next(e for e in grids if e.loc_name == grid_name)
                 name = grid.loc_name
             except IndexError as e:
                 msg = f"Grid {grid_name} does not exist."
                 raise RuntimeError(msg) from e
 
         project_name = self.project.loc_name
-        date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
+        date = datetime.datetime.now().astimezone().date()
 
         return PowerFactoryData(
             name=name,

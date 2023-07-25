@@ -342,7 +342,7 @@ class PowerFactoryExporter:
             data_type {Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
             export_path {pathlib.Path} -- the directory where the exported json file is saved
         """
-        timestamp = datetime.datetime.now().astimezone()  # noqa: DTZ005
+        timestamp = datetime.datetime.now().astimezone()
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             filename = f"{self.grid_name}_{timestamp_string}_{data_type}.json"
@@ -1567,7 +1567,7 @@ class PowerFactoryExporter:
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
-        if load_type == "DEF" or load_type == "PQ":
+        if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_sym(
                 pow_act=load.plini,
                 pow_react=load.qlini,
@@ -1654,7 +1654,7 @@ class PowerFactoryExporter:
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
         cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
-        if load_type == "DEF" or load_type == "PQ":
+        if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_asym(
                 pow_act_a=load.plinir,
                 pow_act_b=load.plinis,
@@ -2502,30 +2502,21 @@ class PowerFactoryExporter:
                 phases_b=[Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
                 phases_c=[Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
             )
-        if (
-            phase_connection_type == PhaseConnectionType.THREE_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.THREE_PH_YN
-        ):
+        if phase_connection_type in (PhaseConnectionType.THREE_PH_PH_E, PhaseConnectionType.THREE_PH_YN):
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
                 phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
                 phases_c=[Phase[PFPhase(phases[2]).name], Phase.N],
             )
-        if (
-            phase_connection_type == PhaseConnectionType.TWO_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.TWO_PH_YN
-        ):
+        if phase_connection_type in (PhaseConnectionType.TWO_PH_PH_E, PhaseConnectionType.TWO_PH_YN):
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
                 phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
                 phases_c=None,
             )
-        if (
-            phase_connection_type == PhaseConnectionType.ONE_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.ONE_PH_PH_N
-        ):
+        if phase_connection_type in (PhaseConnectionType.ONE_PH_PH_E, PhaseConnectionType.ONE_PH_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return ConnectedPhases(
                 phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],

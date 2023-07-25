@@ -379,21 +379,21 @@ class LoadPower:
 
     @staticmethod
     def get_factors_for_phases(phase_connection_type: PhaseConnectionType) -> tuple[int, int, int, int]:
-        if (
-            phase_connection_type == PhaseConnectionType.THREE_PH_D
-            or phase_connection_type == PhaseConnectionType.THREE_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.THREE_PH_YN
+        if phase_connection_type in (
+            PhaseConnectionType.THREE_PH_D,
+            PhaseConnectionType.THREE_PH_PH_E,
+            PhaseConnectionType.THREE_PH_YN,
         ):
             return (3, 1, 1, 1)
-        if (
-            phase_connection_type == PhaseConnectionType.TWO_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.TWO_PH_YN
+        if phase_connection_type in (
+            PhaseConnectionType.TWO_PH_PH_E,
+            PhaseConnectionType.TWO_PH_YN,
         ):
             return (2, 1, 1, 0)
-        if (
-            phase_connection_type == PhaseConnectionType.ONE_PH_PH_E
-            or phase_connection_type == PhaseConnectionType.ONE_PH_PH_N
-            or phase_connection_type == PhaseConnectionType.ONE_PH_PH_PH
+        if phase_connection_type in (
+            PhaseConnectionType.ONE_PH_PH_E,
+            PhaseConnectionType.ONE_PH_PH_N,
+            PhaseConnectionType.ONE_PH_PH_PH,
         ):
             return (1, 1, 0, 0)
 
