@@ -27,15 +27,12 @@ jobs:
           fetch-depth: 1
 
       - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v3.2
         with:
           python-version: ${{ matrix.python-version }}
           cache: true
           architecture: x64
-          prerelease: true
           enable-pep582: true
-        env:
-          PDM_DEPS: "urllib3<2"
 
       - name: Install dependencies
         run: pdm install

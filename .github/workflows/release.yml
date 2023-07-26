@@ -56,15 +56,12 @@ jobs:
           fetch-depth: 0
 
       - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v3.2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: true
           architecture: x64
-          prerelease: true
           enable-pep582: true
-        env:
-          PDM_DEPS: "urllib3<2"
 
       - name: Get current date
         id: get_date

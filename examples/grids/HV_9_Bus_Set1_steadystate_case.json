@@ -19,28 +19,10 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 20000000.0,
-        "value_a": 6666666.67,
-        "value_b": 6666666.67,
-        "value_c": 6666666.67
-      },
-      "name": "Load_8",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value": 10000000.0,
-        "value_a": 3333333.33,
-        "value_b": 3333333.33,
-        "value_c": 3333333.33
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value": 60000000.0,
-        "value_a": 20000000.0,
-        "value_b": 20000000.0,
-        "value_c": 20000000.0
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
       },
       "name": "Load_3",
       "reactive_power": {
@@ -55,37 +37,73 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 10000000.0,
-        "value_a": 3333333.33,
-        "value_b": 3333333.33,
-        "value_c": 3333333.33
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
       },
       "name": "Load_1",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
-        "value": 1402395.0,
-        "value_a": 467465.02,
-        "value_b": 467465.02,
-        "value_c": 467465.02
+        "value": 9897813.0,
+        "value_a": 3299270.92,
+        "value_b": 3299270.92,
+        "value_c": 3299270.92
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 49999997.0,
-        "value_a": 16666665.83,
-        "value_b": 16666665.83,
-        "value_c": 16666665.83
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
       },
       "name": "Load_2",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
-        "value": -10000012.0,
-        "value_a": -3333337.39,
-        "value_b": -3333337.39,
-        "value_c": -3333337.39
+        "value": -10000000.0,
+        "value_a": -3333333.38,
+        "value_b": -3333333.38,
+        "value_c": -3333333.38
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
+      },
+      "name": "Load_9",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 10000000.0,
+        "value_a": 3333333.33,
+        "value_b": 3333333.33,
+        "value_c": 3333333.33
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": false,
+        "value": 2000.0,
+        "value_a": 1000.0,
+        "value_b": 1000.0,
+        "value_c": 0.0
+      },
+      "name": "Load_8",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 0.0,
+        "value_a": 0.0,
+        "value_b": 0.0,
+        "value_c": 0.0
       }
     },
     {
@@ -308,6 +326,31 @@
     },
     {
       "active_power": {
+        "is_symmetrical": false,
+        "value": -3000.0,
+        "value_a": -3000.0,
+        "value_b": -0.0,
+        "value_c": -0.0
+      },
+      "name": "Battery",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": -0.0
+          },
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        },
+        "is_symmetrical": true,
+        "value": -0.0,
+        "value_a": -0.0,
+        "value_b": -0.0,
+        "value_c": -0.0
+      }
+    },
+    {
+      "active_power": {
         "is_symmetrical": true,
         "value": -16000000.0,
         "value_a": -5333333.33,
@@ -333,11 +376,10 @@
     }
   ],
   "meta": {
-    "date": "2023-05-23",
-    "id": "ede757bd-da41-48f7-b15a-8280f74d7374",
-    "name": "HV_8_Bus",
-    "project": "PowerFactory-Tools",
-    "version": "1.2.0"
+    "date": "2023-07-25",
+    "id": "b8662289-8422-4986-a2bb-54eb7b6a1ca5",
+    "name": "HV_9_Bus",
+    "project": "PowerFactory-Tools"
   },
   "transformers": [
     {
