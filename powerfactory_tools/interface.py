@@ -38,11 +38,10 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-class Config:
-    use_enum_values = True
+config =  pydantic.ConfigDict(use_enum_values = True)
 
 
-@pydantic.dataclasses.dataclass(config=Config)
+@pydantic.dataclasses.dataclass(config=config)
 class UnitConversionSetting:
     filtclass: Sequence[str]
     filtvar: str
@@ -54,7 +53,7 @@ class UnitConversionSetting:
     ufacB: float  # noqa: N815
 
 
-@pydantic.dataclasses.dataclass(config=Config)
+@pydantic.dataclasses.dataclass(config=config)
 class ProjectUnitSetting:
     ilenunit: UnitSystem
     clenexp: MetricPrefix  # Lengths
