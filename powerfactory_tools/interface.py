@@ -38,7 +38,7 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-config =  pydantic.ConfigDict(use_enum_values = True)
+config = pydantic.ConfigDict(use_enum_values=True)
 
 
 @pydantic.dataclasses.dataclass(config=config)
