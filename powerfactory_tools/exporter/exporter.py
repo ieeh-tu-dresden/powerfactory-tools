@@ -476,7 +476,7 @@ class PowerFactoryExporter:
             self.pfi.filter_none(bfuses),
         )
 
-    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
+    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:  # noqa: PLR0915
         name = self.pfi.create_name(line, grid_name)
         logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
