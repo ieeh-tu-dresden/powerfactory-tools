@@ -38,11 +38,10 @@ PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
 
-class Config:
-    use_enum_values = True
+config = pydantic.ConfigDict(use_enum_values=True)
 
 
-@pydantic.dataclasses.dataclass(config=Config)
+@pydantic.dataclasses.dataclass(config=config)
 class UnitConversionSetting:
     filtclass: Sequence[str]
     filtvar: str
@@ -54,7 +53,7 @@ class UnitConversionSetting:
     ufacB: float  # noqa: N815
 
 
-@pydantic.dataclasses.dataclass(config=Config)
+@pydantic.dataclasses.dataclass(config=config)
 class ProjectUnitSetting:
     ilenunit: UnitSystem
     clenexp: MetricPrefix  # Lengths
@@ -278,14 +277,14 @@ class PowerFactoryInterface:
         else:
             grids = self.grids()
             try:
-                grid = [e for e in grids if e.loc_name == grid_name][0]
+                grid = next(e for e in grids if e.loc_name == grid_name)
                 name = grid.loc_name
             except IndexError as e:
                 msg = f"Grid {grid_name} does not exist."
                 raise RuntimeError(msg) from e
 
         project_name = self.project.loc_name
-        date = datetime.datetime.now().astimezone().date()  # noqa: DTZ005
+        date = datetime.datetime.now().astimezone().date()
 
         return PowerFactoryData(
             name=name,

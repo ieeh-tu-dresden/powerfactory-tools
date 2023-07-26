@@ -70,7 +70,7 @@ class GeneratorPhaseConnectionType(enum.IntEnum):
     ONE_PH_PH_PH = 4
 
 
-class LoadPhaseConnectionType(enum.IntEnum):
+class LoadLVPhaseConnectionType(enum.IntEnum):
     THREE_PH_D = 0
     THREE_PH_PH_E = 2
     THREE_PH_YN = 3
@@ -79,6 +79,17 @@ class LoadPhaseConnectionType(enum.IntEnum):
     ONE_PH_PH_PH = 7
     ONE_PH_PH_N = 8
     ONE_PH_PH_E = 9
+
+
+class LoadPhaseConnectionType(enum.Enum):
+    THREE_PH_D = "3PH-'D'"
+    THREE_PH_PH_E = "3PH PH-E"
+    THREE_PH_YN = "3PH-'YN'"
+    TWO_PH_PH_E = "2PH PH-E"
+    TWO_PH_YN = "2PH-'YN'"
+    ONE_PH_PH_PH = "1PH PH-PH"
+    ONE_PH_PH_N = "1PH PH-N"
+    ONE_PH_PH_E = "1PH PH-E"
 
 
 class PFRecap(enum.IntEnum):
@@ -690,6 +701,7 @@ class PowerFactoryTypes:
         p_under: float
         p_over: float
         usetp: float
+        phtech: GeneratorPhaseConnectionType
 
     class QPCharacteristic(DataObject, Protocol):
         inputmod: Literal[0, 1]
@@ -697,12 +709,10 @@ class PowerFactoryTypes:
     class Generator(GeneratorBase, Protocol):
         aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
-        phtech: GeneratorPhaseConnectionType
 
     class PVSystem(GeneratorBase, Protocol):
         uk: float
         Pcu: float
-        phtech: GeneratorPhaseConnectionType
 
     class LoadBase(Element, Protocol):
         slini: float
@@ -732,6 +742,7 @@ class PowerFactoryTypes:
         mode_inp: ModeInpLoad
         i_sym: ISym
         u0: float
+        phtech: LoadPhaseConnectionType
 
     class LoadLVP(DataObject, Protocol):
         iopt_inp: IOpt
@@ -748,11 +759,12 @@ class PowerFactoryTypes:
         cSmax: float  # noqa: N815
         ccosphi: float
         pf_recap: PFRecap
+        phtech: LoadLVPhaseConnectionType
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
         i_sym: ISym
         lodparts: Sequence[PowerFactoryTypes.LoadLVP]
-        phtech: LoadPhaseConnectionType
+        phtech: LoadLVPhaseConnectionType
 
     class LoadMV(LoadBase, Protocol):
         mode_inp: ModeInpMV
@@ -774,6 +786,7 @@ class PowerFactoryTypes:
         gscale: float
         pf_recap: PFRecap
         pfg_recap: PFRecap
+        phtech: LoadPhaseConnectionType
 
     class Switch(DataObject, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle

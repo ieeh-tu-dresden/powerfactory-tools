@@ -18,15 +18,12 @@ jobs:
           fetch-depth: 1
 
       - name: Setting up PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v3.2
         with:
           python-version: ${{ matrix.python-version }}
           cache: true
           architecture: x64
-          prerelease: true
           enable-pep582: true
-        env:
-          PDM_DEPS: "urllib3<2"
 
       - name: Check lockfile
         run: pdm lock --check

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import decimal
 import typing as t
 
 from powerfactory_tools.powerfactory_types import Currency
@@ -16,22 +17,31 @@ if t.TYPE_CHECKING:
     UnitConversion = tuple[str, MetricPrefix, MetricPrefix]
 
 
+def convert_exponent_to_decimal_digit(exp: float) -> int:
+    dec = decimal.Decimal(str(exp))
+    digit = dec.as_tuple().exponent
+    if type(digit) == int:
+        return -1 * digit
+    return 0
+
+
 class Exponents:
-    VOLTAGE = 10**3
-    CURRENT = 10**3
-    RESISTANCE = 1
-    REACTANCE = 1
-    SUSCEPTANCE = 10**-6
-    CONDUCTANCE = 10**-6
-    POWER = 10**6
+    VOLTAGE: float = 10**3
+    CURRENT: float = 10**3
+    RESISTANCE: float = 10**0
+    REACTANCE: float = 10**0
+    SUSCEPTANCE: float = 10**-6
+    CONDUCTANCE: float = 10**-6
+    POWER: float = 10**6
 
 
 class DecimalDigits:
-    COSPHI = 6
-    VOLTAGE = 1
-    CURRENT = 1
-    POWER = 0
-    PU = 4
+    COSPHI: int = 6
+    VOLTAGE: int = 1
+    CURRENT: int = 1
+    POWER: int = 0
+    PU: int = 4
+    IMPEDANCE: int = 6
 
 
 class BaseUnits:
