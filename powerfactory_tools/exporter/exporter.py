@@ -464,7 +464,7 @@ class PowerFactoryExporter:
 
         return self.pfi.list_from_sequences(self.pfi.filter_none(blines), self.pfi.filter_none(bcouplers))
 
-    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:  # noqa: PLR0915
+    def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(line, grid_name)
         logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
