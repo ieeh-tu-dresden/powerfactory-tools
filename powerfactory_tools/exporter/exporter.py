@@ -942,6 +942,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                load_model_default="Z",
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -954,6 +955,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                load_model_default="Z",
             )
             if power.night.pow_app_abs != 0
             else None
@@ -966,6 +968,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                load_model_default="Z",
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -1014,6 +1017,7 @@ class PowerFactoryExporter:
         system_type: SystemType,
         phase_connection_type: PhaseConnectionType,
         name_suffix: str = "",
+        load_model_default: Literal["U", "Z", "P"] = "P",
     ) -> Load | None:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
         logger.debug("Creating consumer {load_name}...", load_name=l_name)
@@ -1046,7 +1050,7 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
-        load_model_p = self.load_model_of(load, specifier="p")
+        load_model_p = self.load_model_of(load, specifier="p", default=load_model_default)
         active_power = ActivePower(load_model=load_model_p)
 
         load_model_q = self.load_model_of(load, specifier="q")
@@ -1075,7 +1079,11 @@ class PowerFactoryExporter:
         )
 
     @staticmethod
-    def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:
+    def load_model_of(
+        load: PFTypes.LoadBase,
+        specifier: Literal["p", "q"],
+        default: Literal["U", "P", "Z"] = "P",
+    ) -> LoadModel:
         load_type = load.typ_id
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
@@ -1112,7 +1120,13 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        return LoadModel()  # default: 100% power-const. load
+        if default == "U":
+            return LoadModel(c_i=1, c_p=0)
+
+        if default == "P":
+            return LoadModel(c_i=0, c_p=1)
+
+        return LoadModel(c_i=0, c_p=0)
 
     def create_producers_normal(
         self,
