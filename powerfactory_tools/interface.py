@@ -1001,7 +1001,7 @@ class PowerFactoryInterface:
 
     @staticmethod
     def is_efuse(fuse: PFTypes.Fuse) -> bool:
-        return not(fuse.bus1) and not(fuse.bus2)
+        return not (fuse.bus1) and not (fuse.bus2)
 
     @staticmethod
     def is_bfuse(fuse: PFTypes.Fuse) -> bool:

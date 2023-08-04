@@ -302,6 +302,7 @@ class FuseCharacteristicType(enum.Enum):
     NH = 1
     HH = 2
 
+
 class UnitSystem(enum.IntEnum):
     METRIC = 0
     ENG_TRANSMISSION = 1

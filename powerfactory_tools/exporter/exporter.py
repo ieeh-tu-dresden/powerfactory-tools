@@ -455,7 +455,9 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            description = "substation internal" if not description else "substation internal" + STRING_SEPARATOR + description
+            description = (
+                "substation internal" if not description else "substation internal" + STRING_SEPARATOR + description
+            )
 
         return Node(name=name, u_n=u_n, description=description)
 
@@ -690,9 +692,13 @@ class PowerFactoryExporter:
         if fuse.typ_id is not None:
             i_r = fuse.typ_id.irat
             # save fuse typ in description tag
-            description = "Type: " + fuse.typ_id.loc_name if not description else description + STRING_SEPARATOR + "Type: " + fuse.typ_id.loc_name
+            description = (
+                "Type: " + fuse.typ_id.loc_name
+                if not description
+                else description + STRING_SEPARATOR + "Type: " + fuse.typ_id.loc_name
+            )
         else:
-             i_r = None
+            i_r = None
 
         r1 = 0
         x1 = 0
