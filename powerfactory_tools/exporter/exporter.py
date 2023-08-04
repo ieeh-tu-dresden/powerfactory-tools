@@ -99,6 +99,7 @@ PYTHON_VERSION = "3.10"
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
+STRING_SEPARATOR = "; "
 
 
 @pydantic.dataclasses.dataclass
@@ -454,7 +455,7 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            description = "substation internal" if not description else "substation internal; " + description
+            description = "substation internal" if not description else "substation internal" + STRING_SEPARATOR + description
 
         return Node(name=name, u_n=u_n, description=description)
 
@@ -686,10 +687,15 @@ class PowerFactoryExporter:
             logger.warning("Fuse {fuse} connected to DC and AC bus. Skipping.", fuse=fuse)
             return None
 
+        if fuse.typ_id is not None:
+            i_r = fuse.typ_id.irat
+            # save fuse typ in description tag
+            description = "Type: " + fuse.typ_id.loc_name if not description else description + STRING_SEPARATOR + "Type: " + fuse.typ_id.loc_name
+        else:
+             i_r = None
+
         r1 = 0
         x1 = 0
-        i_r = math.inf
-
         b1 = 0
         g1 = 0
 
@@ -737,7 +743,7 @@ class PowerFactoryExporter:
             if not description:
                 return "substation internal"
 
-            return "substation internal; " + description
+            return "substation internal" + STRING_SEPARATOR + description
 
         return description
 
@@ -1499,7 +1505,7 @@ class PowerFactoryExporter:
         return None
 
     def create_bfuse_states(self, fuses: Sequence[PFTypes.BFuse], grid_name: str) -> Sequence[ElementState]:
-        """Create element states for all type of elements based on if the coupler is open.
+        """Create element states for all type of elements based on if the fuse is open.
 
         The element states contain a node reference.
 
@@ -1530,7 +1536,7 @@ class PowerFactoryExporter:
         The element states contain a node reference.
 
         Arguments:
-            fusees {Sequence[PFTypes.EFuse]} -- sequence of PowerFactory objects of type Switch
+            fusees {Sequence[PFTypes.EFuse]} -- sequence of PowerFactory objects of type Fuse
 
         Returns:
             Sequence[ElementState] -- set of element states
@@ -1541,11 +1547,11 @@ class PowerFactoryExporter:
         return self.pfi.filter_none(states)
 
     def create_efuse_state(self, fuse: PFTypes.EFuse, grid_name: str) -> ElementState | None:
-        if fuse.on_off and not fuse.outserv:
+        if not fuse.on_off or fuse.outserv:
             cub = fuse.fold_id
-            element = cub.obj_id
+            element = cub.obj_id  # also accessible via 'fuse.cbranch'
             if element is not None:
-                terminal = cub.cterm
+                terminal = cub.cterm  # also accessible via 'fuse.cn_bus'
                 node_name = self.pfi.create_name(terminal, grid_name)
                 element_name = self.pfi.create_name(element, grid_name)
                 logger.debug(
@@ -1553,7 +1559,7 @@ class PowerFactoryExporter:
                     node_name=node_name,
                     element_name=element_name,
                 )
-                return ElementState(name=element_name, open_fusees=(node_name,))
+                return ElementState(name=element_name, open_switches=(node_name,))
 
         return None
 
