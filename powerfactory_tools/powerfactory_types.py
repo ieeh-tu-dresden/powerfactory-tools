@@ -199,6 +199,7 @@ class VectorGroup(enum.Enum):
     Dyn5 = "Dyn5"
     Yd5 = "Yd5"
     YNd5 = "YNd5"
+    YNyn5 = "YNyn5"
     Yz5 = "Yz5"
     YNz5 = "YNz5"
     Yzn5 = "Yzn5"
