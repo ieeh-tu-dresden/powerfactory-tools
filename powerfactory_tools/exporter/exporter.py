@@ -1053,7 +1053,7 @@ class PowerFactoryExporter:
         load_model_p = self.load_model_of(load, specifier="p", default=load_model_default)
         active_power = ActivePower(load_model=load_model_p)
 
-        load_model_q = self.load_model_of(load, specifier="q")
+        load_model_q = self.load_model_of(load, specifier="q", default=load_model_default)
         reactive_power = ReactivePower(load_model=load_model_q)
 
         connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
