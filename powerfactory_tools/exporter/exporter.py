@@ -1565,6 +1565,11 @@ class PowerFactoryExporter:
                     node_name=node_name,
                     element_name=element_name,
                 )
+                logger.warning(
+                    "Element fuse at {node_name}-{element_name}: Exporter considers element as disconnected due to open fuse, but in PowerFactory element will still be handled as connected.",
+                    node_name=node_name,
+                    element_name=element_name,
+                )
                 return ElementState(name=element_name, open_switches=(node_name,))
 
         return None
