@@ -376,18 +376,18 @@
     }
   ],
   "meta": {
-    "date": "2023-07-25",
-    "id": "b8662289-8422-4986-a2bb-54eb7b6a1ca5",
+    "date": "2023-08-18",
+    "id": "deb63d86-8a93-42ad-a4e1-f8186b933b10",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   },
   "transformers": [
     {
-      "name": "Transformer_2w_20/0.4",
+      "name": "Transformer_2w_110/20",
       "tap_pos": 0
     },
     {
-      "name": "Transformer_2w_110/20",
+      "name": "Transformer_2w_20/0.4",
       "tap_pos": 0
     }
   ]

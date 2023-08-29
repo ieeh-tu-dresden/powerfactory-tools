@@ -297,6 +297,12 @@ class VoltageSystemType(enum.IntEnum):
     DC = 1
 
 
+class FuseCharacteristicType(enum.Enum):
+    NS = 0
+    NH = 1
+    HH = 2
+
+
 class UnitSystem(enum.IntEnum):
     METRIC = 0
     ENG_TRANSMISSION = 1
@@ -792,9 +798,6 @@ class PowerFactoryTypes:
         fold_id: PowerFactoryTypes.StationCubicle
         isclosed: bool  # 0:open; 1:closed
 
-    class Fuse(DataObject, Protocol):
-        ...
-
     class Line(LineBase, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
         bus2: PowerFactoryTypes.StationCubicle | None
@@ -804,6 +807,30 @@ class PowerFactoryTypes:
         inAir: bool  # noqa: N815 # 0:soil; 1:air
         Inom_a: float  # nominal current (actual)
         typ_id: PowerFactoryTypes.LineType | None
+
+    class FuseType(DataObject, Protocol):
+        urat: float  # rated voltage
+        irat: float  # rated current
+        frq: float  # nominal frequency
+        itype: FuseCharacteristicType
+
+    class Fuse(DataObject, Protocol):
+        desc: Sequence[str]
+        typ_id: PowerFactoryTypes.FuseType | None
+        on_off: bool  # closed = 1; open = 0
+        outserv: bool
+        bus1: PowerFactoryTypes.StationCubicle | None
+        bus2: PowerFactoryTypes.StationCubicle | None
+
+    class BFuse(Fuse, Protocol):
+        ...
+
+    class EFuse(Fuse, Protocol):
+        fold_id: PowerFactoryTypes.StationCubicle
+        cn_bus: PowerFactoryTypes.Terminal
+        cbranch: PowerFactoryTypes.LineBase | PowerFactoryTypes.Element | PowerFactoryTypes.Fuse
+        bus1: None
+        bus2: None
 
     class ExternalGrid(DataObject, Protocol):
         bustp: BusType
