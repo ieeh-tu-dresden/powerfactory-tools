@@ -88,7 +88,8 @@ class PowerFactoryData:
     pv_systems: Sequence[PFTypes.PVSystem]
     couplers: Sequence[PFTypes.Coupler]
     switches: Sequence[PFTypes.Switch]
-    fuses: Sequence[PFTypes.Fuse]
+    bfuses: Sequence[PFTypes.BFuse]
+    efuses: Sequence[PFTypes.EFuse]
     ac_current_sources: Sequence[PFTypes.AcCurrentSource]
 
 
@@ -301,7 +302,8 @@ class PowerFactoryInterface:
             pv_systems=self.pv_systems(grid=grid_name),
             couplers=self.couplers(grid=grid_name),
             switches=self.switches(grid=grid_name),
-            fuses=self.fuses(grid=grid_name),
+            bfuses=self.bfuses(grid=grid_name),
+            efuses=self.efuses(grid=grid_name),
             ac_current_sources=self.ac_current_sources(grid=grid_name),
         )
 
@@ -586,12 +588,23 @@ class PowerFactoryInterface:
         elements = self.grid_elements("StaSwitch", name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
-    def fuse(self, name: str = "*", grid: str = "*") -> PFTypes.Fuse | None:
-        return self.first_of(elements=self.fuses(name=name, grid=grid))
+    def bfuse(self, name: str = "*", grid: str = "*") -> PFTypes.BFuse | None:
+        return self.first_of(elements=self.bfuses(name=name, grid=grid))
 
-    def fuses(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Fuse]:
-        elements = self.grid_elements("RelFuse", name, grid, calc_relevant=calc_relevant)
-        return [t.cast("PFTypes.Fuse", element) for element in elements]
+    def bfuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.BFuse]:
+        elements = self.grid_elements("RelFuse", name, grid)
+        fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
+        bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
+        return [t.cast("PFTypes.BFuse", fuse) for fuse in bfuses]
+
+    def efuse(self, name: str = "*", grid: str = "*") -> PFTypes.EFuse | None:
+        return self.first_of(elements=self.efuses(name=name, grid=grid))
+
+    def efuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.EFuse]:
+        elements = self.grid_elements("RelFuse", name, grid)
+        fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
+        efuses = [fuse for fuse in fuses if self.is_efuse(fuse)]
+        return [t.cast("PFTypes.EFuse", fuse) for fuse in efuses]
 
     def line(self, name: str = "*", grid: str = "*") -> PFTypes.Line | None:
         return self.first_of(elements=self.lines(name=name, grid=grid))
@@ -985,3 +998,11 @@ class PowerFactoryInterface:
     @staticmethod
     def filter_none(data: Sequence[T | None]) -> Sequence[T]:
         return [e for e in data if e is not None]
+
+    @staticmethod
+    def is_efuse(fuse: PFTypes.Fuse) -> bool:
+        return not (fuse.bus1) and not (fuse.bus2)
+
+    @staticmethod
+    def is_bfuse(fuse: PFTypes.Fuse) -> bool:
+        return fuse.bus1 is not None or fuse.bus2 is not None

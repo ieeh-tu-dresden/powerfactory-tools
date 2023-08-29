@@ -98,6 +98,7 @@ PYTHON_VERSION = "3.10"
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
+STRING_SEPARATOR = "; "
 
 
 @pydantic.dataclasses.dataclass
@@ -373,7 +374,12 @@ class PowerFactoryExporter:
             grid_name=data.name,
         )
         nodes = self.create_nodes(terminals=data.terminals, grid_name=data.name)
-        branches = self.create_branches(lines=data.lines, couplers=data.couplers, grid_name=data.name)
+        branches = self.create_branches(
+            lines=data.lines,
+            couplers=data.couplers,
+            fuses=data.bfuses,
+            grid_name=data.name,
+        )
         loads = self.create_loads(
             consumers=data.loads,
             consumers_lv=data.loads_lv,
@@ -448,7 +454,9 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
-            description = "substation internal" if not description else "substation internal; " + description
+            description = (
+                "substation internal" if not description else "substation internal" + STRING_SEPARATOR + description
+            )
 
         return Node(name=name, u_n=u_n, description=description)
 
@@ -456,13 +464,19 @@ class PowerFactoryExporter:
         self,
         lines: Sequence[PFTypes.Line],
         couplers: Sequence[PFTypes.Coupler],
+        fuses: Sequence[PFTypes.BFuse],
         grid_name: str,
     ) -> Sequence[Branch]:
         logger.info("Creating branches...")
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
+        bfuses = [self.create_fuse(fuse, grid_name) for fuse in fuses]
 
-        return self.pfi.list_from_sequences(self.pfi.filter_none(blines), self.pfi.filter_none(bcouplers))
+        return self.pfi.list_from_sequences(
+            self.pfi.filter_none(blines),
+            self.pfi.filter_none(bcouplers),
+            self.pfi.filter_none(bfuses),
+        )
 
     def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(line, grid_name)
@@ -627,7 +641,7 @@ class PowerFactoryExporter:
             )
             return None
 
-        description = self.get_coupler_description(terminal1=t1, terminal2=t2, description=description)
+        description = self.get_element_description(terminal1=t1, terminal2=t2, description=description)
 
         t1_name = self.pfi.create_name(t1, grid_name)
         t2_name = self.pfi.create_name(t2, grid_name)
@@ -649,7 +663,76 @@ class PowerFactoryExporter:
             voltage_system_type=voltage_system_type,
         )
 
-    def get_coupler_description(
+    def create_fuse(self, fuse: PFTypes.BFuse, grid_name: str) -> Branch | None:
+        name = self.pfi.create_name(fuse, grid_name)
+        logger.debug("Creating fuse {fuse_name}...", fuse_name=name)
+        export, description = self.get_description(fuse)
+        if not export:
+            logger.warning("Fuse {fuse_name} not set for export. Skipping.", fuse_name=name)
+            return None
+
+        if fuse.bus1 is None or fuse.bus2 is None:
+            logger.warning("Fuse {fuse} not connected to buses on both sides. Skipping.", fuse=fuse)
+            return None
+
+        t1 = fuse.bus1.cterm
+        t2 = fuse.bus2.cterm
+
+        if t1.systype != t2.systype:
+            logger.warning("Fuse {fuse} connected to DC and AC bus. Skipping.", fuse=fuse)
+            return None
+
+        if fuse.typ_id is not None:
+            i_r = fuse.typ_id.irat
+            # save fuse typ in description tag
+            description = (
+                "Type: " + fuse.typ_id.loc_name
+                if not description
+                else description + STRING_SEPARATOR + "Type: " + fuse.typ_id.loc_name
+            )
+        else:
+            i_r = None
+
+        r1 = 0
+        x1 = 0
+        b1 = 0
+        g1 = 0
+
+        u_nom_1 = t1.uknom
+        u_nom_2 = t2.uknom
+
+        if round(u_nom_1, 2) == round(u_nom_2, 2):
+            u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
+        else:
+            logger.warning(
+                "Fuse {fuse_name} couples busbars with different voltage levels. Skipping.",
+                fuse_name=name,
+            )
+            return None
+
+        description = self.get_element_description(terminal1=t1, terminal2=t2, description=description)
+
+        t1_name = self.pfi.create_name(t1, grid_name)
+        t2_name = self.pfi.create_name(t2, grid_name)
+
+        voltage_system_type = VoltageSystemType[TerminalVoltageSystemType(t1.systype).name]
+
+        return Branch(
+            name=name,
+            node_1=t1_name,
+            node_2=t2_name,
+            r1=r1,
+            x1=x1,
+            g1=g1,
+            b1=b1,
+            i_r=i_r,
+            description=description,
+            u_n=u_nom,
+            type=BranchType.FUSE,
+            voltage_system_type=voltage_system_type,
+        )
+
+    def get_element_description(
         self,
         terminal1: PFTypes.Terminal,
         terminal2: PFTypes.Terminal,
@@ -659,7 +742,7 @@ class PowerFactoryExporter:
             if not description:
                 return "substation internal"
 
-            return "substation internal; " + description
+            return "substation internal" + STRING_SEPARATOR + description
 
         return description
 
@@ -846,7 +929,12 @@ class PowerFactoryExporter:
 
     @staticmethod
     def get_description(
-        element: PFTypes.Terminal | PFTypes.LineBase | PFTypes.Element | PFTypes.Coupler | PFTypes.ExternalGrid,
+        element: PFTypes.Terminal
+        | PFTypes.LineBase
+        | PFTypes.Element
+        | PFTypes.Coupler
+        | PFTypes.ExternalGrid
+        | PFTypes.Fuse,
     ) -> tuple[bool, str]:
         desc = element.desc
         if desc:
@@ -1238,8 +1326,10 @@ class PowerFactoryExporter:
 
     def create_topology_case(self, meta: Meta, data: PowerFactoryData) -> TopologyCase:
         logger.debug("Creating topology case...")
-        switch_states = self.create_switch_states(data.switches)
-        coupler_states = self.create_coupler_states(data.couplers)
+        switch_states = self.create_switch_states(data.switches, grid_name=data.name)
+        coupler_states = self.create_coupler_states(data.couplers, grid_name=data.name)
+        bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.name)
+        efuse_states = self.create_efuse_states(data.efuses, grid_name=data.name)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
             data.loads,
             data.loads_lv,
@@ -1248,13 +1338,15 @@ class PowerFactoryExporter:
             data.pv_systems,
             data.external_grids,
         )
-        node_power_on_states = self.create_node_power_on_states(data.terminals)
-        line_power_on_states = self.create_element_power_on_states(data.lines)
-        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w)
-        element_power_on_states = self.create_element_power_on_states(elements)
+        node_power_on_states = self.create_node_power_on_states(data.terminals, grid_name=data.name)
+        line_power_on_states = self.create_element_power_on_states(data.lines, grid_name=data.name)
+        transformer_2w_power_on_states = self.create_element_power_on_states(data.transformers_2w, grid_name=data.name)
+        element_power_on_states = self.create_element_power_on_states(elements, grid_name=data.name)
         power_on_states = self.pfi.list_from_sequences(
             switch_states,
             coupler_states,
+            bfuse_states,
+            efuse_states,
             node_power_on_states,
             line_power_on_states,
             transformer_2w_power_on_states,
@@ -1275,7 +1367,7 @@ class PowerFactoryExporter:
         open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
         return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
 
-    def create_switch_states(self, switches: Sequence[PFTypes.Switch]) -> Sequence[ElementState]:
+    def create_switch_states(self, switches: Sequence[PFTypes.Switch], grid_name: str) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the switch is open.
 
         The element states contain a node reference.
@@ -1288,17 +1380,21 @@ class PowerFactoryExporter:
         """
 
         logger.info("Creating switch states...")
-        states = [self.create_switch_state(switch=switch) for switch in switches]
+        states = [self.create_switch_state(switch=switch, grid_name=grid_name) for switch in switches]
         return self.pfi.filter_none(states)
 
-    def create_switch_state(self, switch: PFTypes.Switch) -> ElementState | None:
+    def create_switch_state(
+        self,
+        switch: PFTypes.Switch,
+        grid_name: str,
+    ) -> ElementState | None:
         if not switch.isclosed:
             cub = switch.fold_id
             element = cub.obj_id
             if element is not None:
                 terminal = cub.cterm
-                node_name = self.pfi.create_name(terminal, self.grid_name)
-                element_name = self.pfi.create_name(element, self.grid_name)
+                node_name = self.pfi.create_name(terminal, grid_name)
+                element_name = self.pfi.create_name(element, grid_name)
                 logger.debug(
                     "Creating switch state {node_name}-{element_name}...",
                     node_name=node_name,
@@ -1308,33 +1404,41 @@ class PowerFactoryExporter:
 
         return None
 
-    def create_coupler_states(self, couplers: Sequence[PFTypes.Coupler]) -> Sequence[ElementState]:
+    def create_coupler_states(self, couplers: Sequence[PFTypes.Coupler], grid_name: str) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the coupler is open.
 
         The element states contain a node reference.
 
         Arguments:
-            swtiches {Sequence[PFTypes.Coupler]} -- sequence of PowerFactory objects of type Coupler
+            couplers {Sequence[PFTypes.Coupler]} -- sequence of PowerFactory objects of type Coupler
 
         Returns:
             Sequence[ElementState] -- set of element states
         """
         logger.info("Creating coupler states...")
-        states = [self.create_coupler_state(coupler=coupler) for coupler in couplers]
+        states = [self.create_coupler_state(coupler=coupler, grid_name=grid_name) for coupler in couplers]
         return self.pfi.filter_none(states)
 
-    def create_coupler_state(self, coupler: PFTypes.Coupler) -> ElementState | None:
+    def create_coupler_state(
+        self,
+        coupler: PFTypes.Coupler,
+        grid_name: str,
+    ) -> ElementState | None:
         if not coupler.isclosed:
-            element_name = self.pfi.create_name(coupler, self.grid_name)
+            element_name = self.pfi.create_name(coupler, grid_name)
             logger.debug(
-                "Creating switch state {element_name}...",
+                "Creating coupler state {element_name}...",
                 element_name=element_name,
             )
             return ElementState(name=element_name, disabled=True)
 
         return None
 
-    def create_node_power_on_states(self, terminals: Sequence[PFTypes.Terminal]) -> Sequence[ElementState]:
+    def create_node_power_on_states(
+        self,
+        terminals: Sequence[PFTypes.Terminal],
+        grid_name: str,
+    ) -> Sequence[ElementState]:
         """Create element states based on if the connected nodes are out of service.
 
         The element states contain a node reference.
@@ -1347,12 +1451,16 @@ class PowerFactoryExporter:
         """
 
         logger.info("Creating node power on states...")
-        states = [self.create_node_power_on_state(terminal=terminal) for terminal in terminals]
+        states = [self.create_node_power_on_state(terminal=terminal, grid_name=grid_name) for terminal in terminals]
         return self.pfi.filter_none(states)
 
-    def create_node_power_on_state(self, terminal: PFTypes.Terminal) -> ElementState | None:
+    def create_node_power_on_state(
+        self,
+        terminal: PFTypes.Terminal,
+        grid_name: str,
+    ) -> ElementState | None:
         if terminal.outserv:
-            node_name = self.pfi.create_name(terminal, self.grid_name)
+            node_name = self.pfi.create_name(terminal, grid_name)
             logger.debug(
                 "Creating node power on state {node_name}...",
                 node_name=node_name,
@@ -1364,6 +1472,7 @@ class PowerFactoryExporter:
     def create_element_power_on_states(
         self,
         elements: Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W],
+        grid_name: str,
     ) -> Sequence[ElementState]:
         """Create element states for one-sided connected elements based on if the elements are out of service.
 
@@ -1376,20 +1485,85 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
         logger.info("Creating element power on states...")
-        states = [self.create_element_power_on_state(element=element) for element in elements]
+        states = [self.create_element_power_on_state(element=element, grid_name=grid_name) for element in elements]
         return self.pfi.filter_none(states)
 
     def create_element_power_on_state(
         self,
         element: ElementBase | PFTypes.Line | PFTypes.Transformer2W,
+        grid_name: str,
     ) -> ElementState | None:
         if element.outserv:
-            element_name = self.pfi.create_name(element, self.grid_name)
+            element_name = self.pfi.create_name(element, grid_name)
             logger.debug(
                 "Creating element power on state {element_name}...",
                 element_name=element_name,
             )
             return ElementState(name=element_name, disabled=True)
+
+        return None
+
+    def create_bfuse_states(self, fuses: Sequence[PFTypes.BFuse], grid_name: str) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the fuse is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            fuses {Sequence[PFTypes.BFuse]} -- sequence of PowerFactory objects of type Fuse
+
+        Returns:
+            Sequence[ElementState] -- set of element states
+        """
+        logger.info("Creating fuse states...")
+        states = [self.create_bfuse_state(fuse=fuse, grid_name=grid_name) for fuse in fuses]
+        return self.pfi.filter_none(states)
+
+    def create_bfuse_state(self, fuse: PFTypes.BFuse, grid_name: str) -> ElementState | None:
+        if not fuse.on_off or fuse.outserv:
+            element_name = self.pfi.create_name(fuse, grid_name)
+            logger.debug(
+                "Creating fuse state {element_name}...",
+                element_name=element_name,
+            )
+            return ElementState(name=element_name, disabled=True)
+
+        return None
+
+    def create_efuse_states(self, fuses: Sequence[PFTypes.EFuse], grid_name: str) -> Sequence[ElementState]:
+        """Create element states for all type of elements based on if the fuse is open.
+
+        The element states contain a node reference.
+
+        Arguments:
+            fusees {Sequence[PFTypes.EFuse]} -- sequence of PowerFactory objects of type Fuse
+
+        Returns:
+            Sequence[ElementState] -- set of element states
+        """
+
+        logger.info("Creating fuse states...")
+        states = [self.create_efuse_state(fuse=fuse, grid_name=grid_name) for fuse in fuses]
+        return self.pfi.filter_none(states)
+
+    def create_efuse_state(self, fuse: PFTypes.EFuse, grid_name: str) -> ElementState | None:
+        if not fuse.on_off or fuse.outserv:
+            cub = fuse.fold_id
+            element = cub.obj_id  # also accessible via 'fuse.cbranch'
+            if element is not None:
+                terminal = cub.cterm  # also accessible via 'fuse.cn_bus'
+                node_name = self.pfi.create_name(terminal, grid_name)
+                element_name = self.pfi.create_name(element, grid_name)
+                logger.debug(
+                    "Creating fuse state {node_name}-{element_name}...",
+                    node_name=node_name,
+                    element_name=element_name,
+                )
+                logger.warning(
+                    "Element fuse at {node_name}-{element_name}: Exporter considers element as disconnected due to open fuse, but in PowerFactory element will still be handled as connected.",
+                    node_name=node_name,
+                    element_name=element_name,
+                )
+                return ElementState(name=element_name, open_switches=(node_name,))
 
         return None
 
@@ -2185,7 +2359,7 @@ class PowerFactoryExporter:
         # Q-Controller
         external_controller = generator.c_pstac
         if external_controller is None:
-            controller = self.create_q_controller_builtin(gen=generator, u_n=u_n)
+            controller = self.create_q_controller_builtin(gen=generator, u_n=u_n, grid_name=grid_name)
         else:
             controller = self.create_q_controller_external(
                 gen=generator,
@@ -2206,10 +2380,11 @@ class PowerFactoryExporter:
         self,
         gen: PFTypes.GeneratorBase,
         u_n: float,
+        grid_name: str,
     ) -> Controller | None:
         logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
         if gen.bus1 is not None:
-            node_target_name = self.pfi.create_name(gen.bus1.cterm, self.grid_name)
+            node_target_name = self.pfi.create_name(gen.bus1.cterm, grid_name=grid_name)
         else:
             return None
 

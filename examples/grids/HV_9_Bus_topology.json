@@ -579,6 +579,35 @@
       "x1": 0.0,
       "xn": null,
       "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": 0.0,
+      "bn": null,
+      "bpn": null,
+      "description": "Type: AK_3NA_00_500_GG_32A",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": 0.0,
+      "gn": null,
+      "gpn": null,
+      "i_r": 32.0,
+      "length": null,
+      "name": "Fuse_Node_8",
+      "node_1": "Node_7_LV",
+      "node_2": "Node_8_LV",
+      "r0": null,
+      "r1": 0.0,
+      "rn": null,
+      "rpn": null,
+      "type": "FUSE",
+      "u_n": 400.0000059604645,
+      "voltage_system_type": "DC",
+      "x0": null,
+      "x1": 0.0,
+      "xn": null,
+      "xpn": null
     }
   ],
   "external_grids": [
@@ -1518,8 +1547,8 @@
     }
   ],
   "meta": {
-    "date": "2023-07-25",
-    "id": "f66ace88-55b0-4327-9369-1ffaad288f55",
+    "date": "2023-08-18",
+    "id": "12680f36-ff46-474a-ae47-294061b0862f",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   },
@@ -1566,12 +1595,12 @@
     },
     {
       "description": "",
-      "name": "Node_7_LV",
+      "name": "Node_8_LV",
       "u_n": 400.0
     },
     {
       "description": "",
-      "name": "Node_8_LV",
+      "name": "Node_7_LV",
       "u_n": 400.0
     },
     {
@@ -1628,55 +1657,6 @@
   "transformers": [
     {
       "description": "",
-      "i_0": 0.30000999569892883,
-      "name": "Transformer_2w_20/0.4",
-      "node_1": "Node_6_MV",
-      "node_2": "Node_7_LV",
-      "number": 1,
-      "p_fe": 1200.0,
-      "phase_technology_type": "THREE_PH",
-      "tap_max": 2,
-      "tap_min": -2,
-      "tap_neutral": 0,
-      "tap_side": "HV",
-      "tap_u_abs": 2.5,
-      "tap_u_phi": 0.0,
-      "vector_group": "Dyn5",
-      "windings": [
-        {
-          "neutral_connected": false,
-          "node": "Node_6_MV",
-          "phase_angle_clock": 0,
-          "r0": 11.999999925494196,
-          "r1": 11.999999925494196,
-          "re": null,
-          "s_r": 400000.0,
-          "u_n": 20000.0,
-          "u_r": 20000.0,
-          "vector_group": "D",
-          "x0": 58.78775479215749,
-          "x1": 58.78775479215749,
-          "xe": null
-        },
-        {
-          "neutral_connected": false,
-          "node": "Node_7_LV",
-          "phase_angle_clock": 5,
-          "r0": 0.0,
-          "r1": 0.0,
-          "re": null,
-          "s_r": 400000.0,
-          "u_n": 400.0,
-          "u_r": 400.0,
-          "vector_group": "YN",
-          "x0": 0.0,
-          "x1": 0.0,
-          "xe": null
-        }
-      ]
-    },
-    {
-      "description": "",
       "i_0": 1.0,
       "name": "Transformer_2w_110/20",
       "node_1": "Node_2",
@@ -1717,6 +1697,55 @@
           "s_r": 40000000.0,
           "u_n": 20000.0,
           "u_r": 20000.0,
+          "vector_group": "YN",
+          "x0": 0.0,
+          "x1": 0.0,
+          "xe": null
+        }
+      ]
+    },
+    {
+      "description": "",
+      "i_0": 0.30000999569892883,
+      "name": "Transformer_2w_20/0.4",
+      "node_1": "Node_6_MV",
+      "node_2": "Node_7_LV",
+      "number": 1,
+      "p_fe": 1200.0,
+      "phase_technology_type": "THREE_PH",
+      "tap_max": 2,
+      "tap_min": -2,
+      "tap_neutral": 0,
+      "tap_side": "HV",
+      "tap_u_abs": 2.5,
+      "tap_u_phi": 0.0,
+      "vector_group": "Dyn5",
+      "windings": [
+        {
+          "neutral_connected": true,
+          "node": "Node_6_MV",
+          "phase_angle_clock": 0,
+          "r0": 11.999999925494196,
+          "r1": 11.999999925494196,
+          "re": null,
+          "s_r": 400000.0,
+          "u_n": 20000.0,
+          "u_r": 20000.0,
+          "vector_group": "D",
+          "x0": 58.78775479215749,
+          "x1": 58.78775479215749,
+          "xe": null
+        },
+        {
+          "neutral_connected": true,
+          "node": "Node_7_LV",
+          "phase_angle_clock": 5,
+          "r0": 0.0,
+          "r1": 0.0,
+          "re": null,
+          "s_r": 400000.0,
+          "u_n": 400.0,
+          "u_r": 400.0,
           "vector_group": "YN",
           "x0": 0.0,
           "x1": 0.0,
