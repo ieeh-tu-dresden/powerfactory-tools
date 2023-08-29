@@ -88,6 +88,7 @@ if typing.TYPE_CHECKING:
     from typing import Literal
 
     from psdm.steadystate_case.controller import ControlType
+    from typing_extensions import Self
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
@@ -183,14 +184,14 @@ class PowerFactoryExporter:
             python_version=self.python_version,
         )
 
-    def __enter__(self) -> PowerFactoryExporter:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.pfi.close()
 

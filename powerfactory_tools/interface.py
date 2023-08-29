@@ -28,6 +28,8 @@ if t.TYPE_CHECKING:
     from collections.abc import Iterable
     from types import TracebackType
 
+    from typing_extensions import Self
+
     from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
@@ -118,14 +120,14 @@ class PowerFactoryInterface:
             logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
 
-    def __enter__(self) -> PowerFactoryInterface:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.close()
 
