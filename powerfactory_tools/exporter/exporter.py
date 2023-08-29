@@ -752,7 +752,13 @@ class PowerFactoryExporter:
             x_0 = t_type.x0pu * pu2abs
 
             # Wiring group
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            try:
+                vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            except ValueError as e:
+                msg = f"Vector group {t_type.vecgrp} is technically impossible. Aborting."
+                logger.error(msg)
+                raise RuntimeError from e
+
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
