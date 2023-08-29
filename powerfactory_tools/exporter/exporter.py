@@ -755,7 +755,7 @@ class PowerFactoryExporter:
             try:
                 vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
             except ValueError as e:
-                msg = f"Vector group {t_type.vecgrp} is technically impossible. Aborting."
+                msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
                 logger.error(msg)
                 raise RuntimeError from e
 
