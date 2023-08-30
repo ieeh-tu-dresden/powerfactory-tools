@@ -1,11 +1,11 @@
+import loguru
 import pytest
 from _pytest.logging import LogCaptureFixture
-from loguru import logger
 
 
 @pytest.fixture()
 def caplog(caplog: LogCaptureFixture):
-    handler_id = logger.add(
+    handler_id = loguru.logger.add(
         caplog.handler,
         format="{message}",
         level=0,
@@ -13,4 +13,4 @@ def caplog(caplog: LogCaptureFixture):
         enqueue=False,  # Set to 'True' if your test is spawning child processes.
     )
     yield caplog
-    logger.remove(handler_id)
+    loguru.logger.remove(handler_id)
