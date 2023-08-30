@@ -856,7 +856,13 @@ class PowerFactoryExporter:
             x_0_l = x_0 * t_type.zx0hl_l
 
             # Wiring group
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            try:
+                vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            except ValueError as e:
+                msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
+                logger.error(msg)
+                raise RuntimeError from e
+
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
