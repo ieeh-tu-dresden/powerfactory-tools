@@ -2263,7 +2263,7 @@ class PowerFactoryExporter:
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
         cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
+        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap == 1 else CosphiDir.OE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
                 pow_act_a=load.plinir,
@@ -2412,8 +2412,8 @@ class PowerFactoryExporter:
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
-            cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
-            q_controller: ControlType = ControlCosphiConst(
+            cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+            q_controller = ControlCosphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
@@ -2516,7 +2516,7 @@ class PowerFactoryExporter:
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             u_set = controller.usetp
             u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
-            q_controller: ControlType = ControlUConst(
+            q_controller = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
             )
