@@ -87,8 +87,6 @@ if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Literal
 
-    from psdm.steadystate_case.controller import ControlType
-
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
 
