@@ -525,8 +525,8 @@ class PowerFactoryTypes:
 
     class LoadType(DataObject, Protocol):
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
-        systp: Literal[0, 1]  # VoltageSystemType
-        phtech: str  # LoadPhaseConnectionType
+        systp: VoltageSystemType
+        phtech: LoadPhaseConnectionType
 
         aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
@@ -542,7 +542,7 @@ class PowerFactoryTypes:
         kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
         kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
 
-        i_crsc: Literal[0, 1, 2]  # HarmonicLoadModelType
+        i_crsc: HarmonicLoadModelType
         i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
@@ -562,7 +562,7 @@ class PowerFactoryTypes:
 
         nneutral: bool  # no. of neutral conductors
 
-        systp: Literal[0, 1]  # VoltageSystemType
+        systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
     class LineNType(LineType, Protocol):
@@ -591,11 +591,11 @@ class PowerFactoryTypes:
         rtox0_n: float
 
         vecgrp: VectorGroup
-        tr2cn_l: str  # Vector  # vector at LV side
-        tr2cn_h: str  # Vector  # vector at HV side
+        tr2cn_l: Vector  # vector at LV side
+        tr2cn_h: Vector  # vector at HV side
         nt2ag: float
 
-        tap_side: Literal[0, 1]  # TrfTapSide
+        tap_side: TrfTapSide
         ntpmn: int
         ntpmx: int
         nntap0: int
@@ -604,7 +604,7 @@ class PowerFactoryTypes:
         itapch: int
         itapch2: int
 
-        nt2ph: Literal[1, 2, 3]  # TrfPhaseTechnology
+        nt2ph: TrfPhaseTechnology
 
     class Transformer3WType(DataObject, Protocol):
         ...
@@ -615,7 +615,7 @@ class PowerFactoryTypes:
         X_on: float
 
     class HarmonicSourceType(DataObject, Protocol):
-        i_usym: Literal[0, 1, 2]  # HarmonicSourceSystemType
+        i_usym: HarmonicSourceSystemType
 
     class Coupler(DataObject, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
@@ -642,12 +642,12 @@ class PowerFactoryTypes:
         ciEnergized: bool  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: Literal[0, 1, 2]  # NodeType  # noqa: N815
+        iUsage: NodeType  # noqa: N815
         outserv: bool
         cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
-        systype: Literal[0, 1, 2]  # TerminalVoltageSystemType
+        systype: TerminalVoltageSystemType
 
     class StationCubicle(DataObject, Protocol):
         cterm: PowerFactoryTypes.Terminal
@@ -663,8 +663,8 @@ class PowerFactoryTypes:
         nntap: int
 
         cneutcon: TrfNeutralConnectionType
-        cgnd_h: bool  # TrfNeutralPointState
-        cgnd_l: bool  # TrfNeutralPointState
+        cgnd_h: TrfNeutralPointState
+        cgnd_l: TrfNeutralPointState
         cpeter_h: bool
         cpeter_l: bool
         re0tr_h: float
@@ -689,8 +689,8 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: Literal[0, 1, 2, 3]  # CtrlMode
-        qu_char: Literal[0, 1, 2]  # QChar
+        i_ctrl: CtrlMode
+        qu_char: QChar
         qsetp: float
         iQorient: QOrient  # noqa: N815
         refbar: PowerFactoryTypes.Terminal
@@ -700,9 +700,9 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: Literal[0, 1, 2]  # CosphiChar
+        cosphi_char: CosphiChar
         pfsetp: float
-        pf_recap: Literal[0, 1]  # PFRecap
+        pf_recap: PFRecap
         tansetp: float
         usetp: float
         pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
@@ -713,14 +713,14 @@ class PowerFactoryTypes:
         pf_over: float
         p_under: float
         p_over: float
-        i_phase: Literal[0, 1, 2, 3, 4, 5, 6, 7]  # CtrlVoltageRef
+        i_phase: CtrlVoltageRef
 
     class CompoundModel(DataObject, Protocol):
         ...
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
-        pf_recap: Literal[0, 1]  # PFRecap
+        pf_recap: PFRecap
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -731,7 +731,7 @@ class PowerFactoryTypes:
         pgini: float
         qgini: float
         cosgini: float
-        pf_recap: Literal[0, 1]  # PFRecap
+        pf_recap: PFRecap
         Kpf: float
         ddroop: float
         Qfu_min: float
@@ -739,13 +739,13 @@ class PowerFactoryTypes:
         udeadblow: float
         udeadbup: float
         outserv: bool
-        av_mode: str  # QCtrlTypes
-        mode_inp: str  # ModeInpGen
+        av_mode: QCtrlTypes
+        mode_inp: ModeInpGen
         sgini_a: float
         pgini_a: float
         qgini_a: float
         cosgini_a: float
-        pf_recap_a: Literal[0, 1]  # PFRecap
+        pf_recap_a: PFRecap
         scale0_a: float
         c_pstac: PowerFactoryTypes.StationController | None
         c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
@@ -755,13 +755,13 @@ class PowerFactoryTypes:
         p_under: float
         p_over: float
         usetp: float
-        phtech: Literal[0, 1, 2, 3, 4]  # GeneratorPhaseConnectionType
+        phtech: GeneratorPhaseConnectionType
 
     class QPCharacteristic(DataObject, Protocol):
         inputmod: Literal[0, 1]
 
     class Generator(GeneratorBase, Protocol):
-        aCategory: str  # GeneratorSystemType  # noqa: N815
+        aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
 
     class PVSystem(GeneratorBase, Protocol):
@@ -793,13 +793,13 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.LoadType | None
 
     class Load(LoadBase, Protocol):
-        mode_inp: str  # ModeInpLoad
-        i_sym: bool  # ISym
+        mode_inp: ModeInpLoad
+        i_sym: ISym
         u0: float
-        phtech: str  # LoadPhaseConnectionType
+        phtech: LoadPhaseConnectionType
 
     class LoadLVP(DataObject, Protocol):
-        iopt_inp: Literal[0, 1, 2, 3]  # IOpt
+        iopt_inp: IOpt
         elini: float
         cplinia: float
         slini: float
@@ -812,17 +812,17 @@ class PowerFactoryTypes:
         cSav: float  # noqa: N815
         cSmax: float  # noqa: N815
         ccosphi: float
-        pf_recap: Literal[0, 1]  # PFRecap
-        phtech: Literal[0, 2, 3, 4, 5, 7, 8, 9]  # LoadLVPhaseConnectionType
+        pf_recap: PFRecap
+        phtech: LoadLVPhaseConnectionType
 
     class LoadLV(LoadBase, LoadLVP, Protocol):
-        i_sym: bool  # ISym
+        i_sym: ISym
         lodparts: Sequence[PowerFactoryTypes.LoadLVP]
-        phtech: Literal[0, 2, 3, 4, 5, 7, 8, 9]  # LoadLVPhaseConnectionType
+        phtech: LoadLVPhaseConnectionType
 
     class LoadMV(LoadBase, Protocol):
-        mode_inp: str  # ModeInpMV
-        ci_sym: bool  # ISym
+        mode_inp: ModeInpMV
+        ci_sym: ISym
         elini: float
         cplinia: float
         sgini: float
@@ -838,9 +838,9 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
-        pf_recap: Literal[0, 1]  # PFRecap
-        pfg_recap: Literal[0, 1]  # PFRecap
-        phtech: str  # LoadPhaseConnectionType
+        pf_recap: PFRecap
+        pfg_recap: PFRecap
+        phtech: LoadPhaseConnectionType
 
     class Switch(DataObject, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle
@@ -860,7 +860,7 @@ class PowerFactoryTypes:
         urat: float  # rated voltage
         irat: float  # rated current
         frq: float  # nominal frequency
-        itype: Literal[0, 1, 2]  # FuseCharacteristicType
+        itype: FuseCharacteristicType
 
     class Fuse(DataObject, Protocol):
         desc: Sequence[str]
@@ -881,7 +881,7 @@ class PowerFactoryTypes:
         bus2: None
 
     class ExternalGrid(DataObject, Protocol):
-        bustp: str  # BusType
+        bustp: BusType
         bus1: PowerFactoryTypes.StationCubicle | None
         desc: Sequence[str]
         usetp: float  # in p.u.
@@ -903,7 +903,7 @@ class PowerFactoryTypes:
         Ir: float
         isetp: float
         cosini: float
-        i_cap: Literal[0, 1]  # PFRecap
+        i_cap: PFRecap
         G1: float
         B1: float
         isetp2: float
