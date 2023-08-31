@@ -14,6 +14,35 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+class PFClassId(enum.Enum):
+    AREA = "ElmArea"
+    COUPLER = "ElmCoup"
+    CUBICLE = "StaCubic"
+    CURRENT_SOURCE_AC = "ElmIac"
+    EXTERNAL_GRID = "ElmXNet"
+    FOLDER = "ElmFolder"
+    FUSE = "RelFuse"
+    GENERATOR = "ElmGenstat"
+    GRID = "ElmNet"
+    GRID_GRAPHIC = "IntGrfnet"
+    LINE = "ElmLne"
+    LOAD = "ElmLod"
+    LOAD_LV = "ElmLodLv"
+    LOAD_LV_PART = "ElmLodlvp"
+    LOAD_MV = "ElmLodMv"
+    RESULT = "ElmRes"
+    PVSYSTEM = "ElmPvsys"
+    STUDY_CASE = "IntCase"
+    SWITCH = "StaSwitch"
+    TERMINAL = "ElmTerm"
+    TRANSFORMER_2W = "ElmTr2"
+    TRANSFORMER_3W = "ElmTr3"
+    UNIT = "IntUnit"
+    VARIANT = "IntScheme"
+    VARIANT_STAGE = "IntSstage"
+    ZONE = "ElmZone"
+
+
 class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     COSPHI_CONST = "constc"
@@ -450,6 +479,32 @@ class PowerFactoryTypes:
             ...
 
         def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+    class GridVariant(DataObject, Protocol):
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def NewStage(  # noqa: N802
+            self,
+            name: str,
+            activationTime: int,  # noqa: N803 # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
+            activate: int,  # bool: 1 - Activate (should be dafault); 0 - do not activate
+            /,
+        ) -> bool:
+            ...
+
+    class GridVariantStage(DataObject, Protocol):
+        tAcTime: str  # noqa: N815
+        iExclude: int  # noqa: N815
+
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
 
     class ProjectSettings(DataObject, Protocol):
@@ -984,6 +1039,16 @@ class PowerFactoryTypes:
             ...
 
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+            ...
+
+        def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
+            ...
+
+        def GetActiveStages(  # noqa: N802
+            self,
+            variedFolder: PowerFactoryTypes.DataObject,  # noqa: N803
+            /,
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
             ...
 
         def GetProjectFolder(  # noqa: N802
