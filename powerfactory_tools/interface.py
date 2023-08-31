@@ -22,6 +22,9 @@ from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
+from powerfactory_tools.powerfactory_types import PFClassId
+from powerfactory_tools.powerfactory_types import TimeSimulationNetworkCalcType
+from powerfactory_tools.powerfactory_types import TimeSimulationType
 from powerfactory_tools.powerfactory_types import UnitSystem
 
 if t.TYPE_CHECKING:
@@ -141,6 +144,7 @@ class PowerFactoryInterface:
         self.types_dir = self.app.GetProjectFolder("equip")
         self.op_dir = self.app.GetProjectFolder("oplib")
         self.chars_dir = self.app.GetProjectFolder("chars")
+        self.templates_dir = self.app.GetProjectFolder("templ")
 
         self.grid_data = self.app.GetProjectFolder("netdat")
         self.study_case_dir = self.app.GetProjectFolder("study")
@@ -493,6 +497,13 @@ class PowerFactoryInterface:
     def scenarios(self, name: str = "*") -> Sequence[PFTypes.Scenario]:
         elements = self.elements_of(element=self.scenario_dir, pattern=name)
         return [t.cast("PFTypes.Scenario", element) for element in elements]
+
+    def template(self, name: str = "*") -> PFTypes.Template | None:
+        return self.first_of(elements=self.templates(name=name))
+
+    def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
+        elements = self.elements_of(element=self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
+        return [t.cast("PFTypes.Template", element) for element in elements]
 
     def line_type(self, name: str = "*") -> PFTypes.LineType | None:
         return self.first_of(elements=self.line_types(name=name))
@@ -880,7 +891,7 @@ class PowerFactoryInterface:
 
         Keyword Arguments:
             ac {bool} -- the voltage system used for load flow calculation
-            symmetrical {bool} -- posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical)
+            symmetrical {bool} -- posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). Defaults to True.
 
         Returns:
             PFTypes.Result | None -- the result object of ldf
@@ -900,6 +911,58 @@ class PowerFactoryInterface:
             raise ValueError(msg)
 
         return self.result(name="All*")
+
+    def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> None:
+        """Wrapper to easily run RMS time simulation.
+
+        Args:
+            time (float): simualtion time in s
+            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). Defaults to True.
+        """
+        sim_start_cmd = t.cast(
+            "PFTypes.CommandTimeSimulationStart",
+            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
+        )
+        sim_start_cmd.iopt_sim = TimeSimulationType.RMS.value
+        sim_start_cmd.iopt_net = (
+            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            if symmetrical
+            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
+        )
+        sim_start_cmd.Execute()
+
+        time_sim_cmd = t.cast(
+            "PFTypes.CommandTimeSimulation",
+            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
+        )
+        time_sim_cmd.tstop = time
+        time_sim_cmd.Execute()
+
+    def run_emt_simulation(self, time: float, *, symmetrical: bool = True) -> None:
+        """Wrapper to easily run EMT time simulation.
+
+        Args:
+            time (float): simualtion time in s
+            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). Defaults to True.
+        """
+        sim_start_cmd = t.cast(
+            "PFTypes.CommandTimeSimulationStart",
+            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
+        )
+        sim_start_cmd.iopt_sim = TimeSimulationType.EMT.value
+        sim_start_cmd.iopt_net = (
+            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            if symmetrical
+            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
+        )
+        sim_start_cmd.Execute()
+
+        time_sim_cmd = t.cast(
+            "PFTypes.CommandTimeSimulation",
+            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
+        )
+        time_sim_cmd.tstop = time
+        time_sim_cmd.Execute()
 
     def update_object(self, element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
         for key, value in data.items():

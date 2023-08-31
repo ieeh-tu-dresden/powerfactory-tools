@@ -14,6 +14,11 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+class PFClassId(enum.Enum):
+    STATION_CONTROLLER = "ElmStactrl"
+    TEMPLATE = "IntTemplate"
+
+
 class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     COSPHI_CONST = "constc"
@@ -353,6 +358,16 @@ class TemperatureDependencyType(enum.IntEnum):
     USER_TEMP = 3
 
 
+class TimeSimulationType(enum.Enum):
+    RMS = "rms"
+    EMT = "ins"
+
+
+class TimeSimulationNetworkCalcType(enum.Enum):
+    AC_SYM_POSITIVE_SEQUENCE = "sym"
+    AC_UNSYM_ABC = "rst"  # unsym. 3-Phase(abc)
+
+
 class CalculationType(enum.IntEnum):  # only excerpt
     ALL_CALCULATIONS = 0
     RELIABILITY_MONTE_CARLO = 1
@@ -391,10 +406,33 @@ class CalculationCommand(enum.Enum):  # only excerpt
     FREQUENCY_SWEEP = "ComFsweep"
 
 
+class SelectionTarget(enum.IntEnum):  # only excerpt
+    CONTINGENCY_ANALYSIS = 0
+    SHORT_CIRCUIT = 1
+    OUTPUTS = 2
+    GENERAL = 5
+    SGL_LAYOUT = 23
+
+
+class SelectionType(enum.IntEnum):
+    K_NEIGHBORHOOD = 0
+    GRIDS = 1
+    FEEDERS = 2
+    INTERCHANGE_NEIGHBORHOOD = 3
+
+
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
         fold_id: PowerFactoryTypes.DataObject | None
+
+        def AddCopy(  # noqa: N802
+            self,
+            objectToCopy: PowerFactoryTypes.DataObject,  # noqa: N803
+            objectNameParts: str | int | None,  # noqa: N803
+            /,
+        ) -> PowerFactoryTypes.DataObject:
+            ...
 
         def GetContents(  # noqa: N802
             self,
@@ -412,7 +450,16 @@ class PowerFactoryTypes:
         ) -> PowerFactoryTypes.DataObject | None:
             ...
 
+        def CopyData(self, source: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
+            ...
+
         def Delete(self) -> int:  # noqa: N802
+            ...
+
+        def GetClassName(self) -> str:  # noqa: N802
+            ...
+
+        def GetParent(self) -> PowerFactoryTypes.DataObject | None:  # noqa: N802
             ...
 
     class GridDiagram(DataObject, Protocol):
@@ -869,6 +916,35 @@ class PowerFactoryTypes:
         B0: float
         phmc: PowerFactoryTypes.HarmonicSourceType | None
 
+    class Template(DataObject, Protocol):
+        ...
+
+    class Events(DataObject, Protocol):
+        ...
+
+    class Selection(DataObject, Protocol):  # SetSelect
+        iused: int  # SelectionTarget
+        iusedSub: Literal[0, 1, 2, 3]  # SelectionType  # noqa: N815
+
+        def AddRef(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.DataObject | list[PowerFactoryTypes.DataObject],
+            /,
+        ) -> None:
+            ...
+
+        def All(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
+            ...
+
+        def GetAll(self, className: str, /) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802, N803
+            ...
+
+        def AllElm(self) -> Sequence[PowerFactoryTypes.Element]:  # noqa: N802
+            ...
+
+        def Clear(self) -> None:  # noqa: N802
+            ...
+
     class Result(DataObject, Protocol):
         desc: Sequence[str]
         calTp: CalculationType  # noqa: N815
@@ -918,13 +994,13 @@ class PowerFactoryTypes:
             ...
 
     class CommandLoadFlow(CommandBase, Protocol):
-        iopt_net: Literal[0, 1, 2]
+        iopt_net: Literal[0, 1, 2]  # NetworkExtendedCalcType
         iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
         iopt_plim: bool  # apply active power limits
         iopt_at: bool  # automatic step control of transformers
         iopt_asht: bool  # automatic step control of compensators/filters
         iopt_lim: bool  # apply reactive power limits
-        iopt_tem: TemperatureDependencyType
+        iopt_tem: Literal[0, 1, 2, 3]  # TemperatureDependencyType
         temperature: float
         iopt_pq: bool  # apply voltage dependecy of loads
         iopt_fls: bool  # load scaling at defined feeders
@@ -936,13 +1012,22 @@ class PowerFactoryTypes:
         scMotFac: float  # noqa: N815  # motor scaling factor in percentage
         zoneScale: int  # noqa: N815  # zone scaling; 0 - apply for all loads; 1 - apply only for scalable loads
 
-    class CommandHarmonicCalculation(CommandBase, Protocol):
+        def IsAC(self) -> int:  # noqa: N802
+            ...
+
+        def IsDC(self) -> int:  # noqa: N802
+            ...
+
+        def IsBalanced(self) -> int:  # noqa: N802
+            ...
+
+    class CommandHarmonicCalculation(CommandBase, Protocol):  # ComHldf
         iopt_sweep: int
         iopt_allfrq: int
         iopt_flicker: bool
         iopt_SkV: bool  # noqa: N815
         iopt_pseq: bool
-        iopt_net: NetworkCalcType
+        iopt_net: Literal[0, 1]  # NetworkCalcType
         frnom: float
         fshow: float
         ifshow: float
@@ -953,13 +1038,41 @@ class PowerFactoryTypes:
         ninc: float
         iopt_thd: int
 
-    class CommandFrequencySweep(CommandBase, Protocol):
-        iopt_net: NetworkCalcType
+    class CommandFrequencySweep(CommandBase, Protocol):  # ComFsweep
+        iopt_net: Literal[0, 1]  # NetworkCalcType
         ildfinit: bool  # load flow initialisation
         fstart: float
         fstep: float
         fstop: float
         i_adapt: bool  # automatic step size adaption
+
+    class CommandSglLayout(CommandBase, Protocol):  # ComSgllayout
+        iAction: int  # noqa: N815
+        orthoType: int  # noqa: N815
+        insertionMode: int  # noqa: N815
+        nodeDispersion: int  # noqa: N815
+        neighborhoodSize: int  # noqa: N815
+        neighborStartElems: PowerFactoryTypes.Selection  # noqa: N815
+
+    class CommandTimeSimulationStart(CommandBase, Protocol):  # ComInc
+        iopt_sim: str  # TimeSimulationType
+        iopt_net: str  # TimeSimulationNetworkCalcType
+        iopt_show: int
+        iopt_adapt: int  # automatic step size adaption
+        iReuseLdf: int  # noqa: N815 # re-use load flow results
+        p_event: PowerFactoryTypes.Events  # collection of events to be used
+        p_resvar: PowerFactoryTypes.Result  # result object to be used for savings
+        c_butldf: PowerFactoryTypes.CommandLoadFlow  # related load flow object if used
+
+        dtgrd: float  # step size electro-mechanical
+        tstart: float  # start time related to 0 seconds
+
+    class CommandTimeSimulation(CommandBase, Protocol):  # ComSim
+        tstop: float  # final simulation time
+        cominc: PowerFactoryTypes.CommandTimeSimulationStart
+
+        def GetSimulationTime(self) -> int:  # noqa: N802
+            ...
 
     class Script(Protocol):
         def SetExternalObject(  # noqa: N802
