@@ -87,7 +87,6 @@ if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Literal
 
-    from psdm.steadystate_case.controller import ControlType
     from typing_extensions import Self
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
@@ -1316,7 +1315,7 @@ class PowerFactoryExporter:
         pow_app = gen.sgn * gen.ngnum
         cosphi = gen.cosn
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+        cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         return LoadPower.from_sc_sym(
             pow_app=pow_app,
@@ -1786,7 +1785,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_sym(
@@ -1874,7 +1873,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_asym(
                 pow_act_a=load.plinir,
@@ -2050,7 +2049,7 @@ class PowerFactoryExporter:
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
         logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         scaling = load.scale0
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load=load, scaling=scaling)
         else:
@@ -2089,7 +2088,7 @@ class PowerFactoryExporter:
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
             cosphi=load.ccosphi,
@@ -2112,7 +2111,7 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_sym(
@@ -2160,7 +2159,7 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_asym(
                 pow_app_a=load.slinir,
@@ -2231,9 +2230,9 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
+        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
@@ -2295,9 +2294,9 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
+        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
                 pow_act_a=load.plinir,
@@ -2446,8 +2445,8 @@ class PowerFactoryExporter:
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
-            cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
-            q_controller: ControlType = ControlCosphiConst(
+            cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
+            q_controller = ControlCosphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
@@ -2550,7 +2549,7 @@ class PowerFactoryExporter:
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             u_set = controller.usetp
             u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
-            q_controller: ControlType = ControlUConst(
+            q_controller = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
             )
