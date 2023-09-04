@@ -1,40 +1,8 @@
 {
   "elements": [
     {
-      "disabled": false,
-      "name": "Line_23",
-      "open_switches": [
-        "Node_3"
-      ]
-    },
-    {
-      "disabled": true,
-      "name": "Transformer_2w_110/20",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/IS1.2",
-      "open_switches": []
-    },
-    {
       "disabled": true,
       "name": "Fuse_Node_8",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Line_34",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Load_1",
       "open_switches": []
     },
     {
@@ -49,11 +17,44 @@
         "Node_6_MV",
         "Node_5_MV"
       ]
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/ISField_2.3",
+      "open_switches": []
+    },
+    {
+      "disabled": false,
+      "name": "Line_23",
+      "open_switches": [
+        "Node_3"
+      ]
+    },
+    {
+      "disabled": true,
+      "name": "Line_34",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Load_1",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/IS1.2",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Transformer_2w_110/20",
+      "open_switches": []
     }
   ],
   "meta": {
-    "date": "2023-08-29",
-    "id": "69b949dc-30f3-453b-8cdd-5309d9c0de70",
+    "case": null,
+    "date": "2023-09-04",
+    "id": "fb400214-479b-4080-9dae-b6c76ef0f4ac",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   }

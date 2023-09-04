@@ -832,12 +832,20 @@ class PowerFactoryExporter:
             z_k_0 = t_type.uk0tr * pu2abs  # Ohm
             z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
             try:
-                r_m_0 = z_m_0 / math.sqrt(1 + (1 / t_type.rtox0_n) ** 2)
+                x2r = 1 / t_type.rtox0_n
+            except ZeroDivisionError:
+                x2r = float("inf")
+
+            r_m_0 = z_m_0 / math.sqrt(1 + x2r**2)
+            try:
                 p_fe0 = u_ref_h**2 / r_m_0  # W
             except ZeroDivisionError:
-                r_m_0 = 0
                 p_fe0 = 0
-            i_00 = 100 / z_m_0 * pu2abs  # %
+
+            try:
+                i_00 = 100 / z_m_0 * pu2abs  # %
+            except ZeroDivisionError:
+                i_00 = float("inf")
 
             # Create Winding Objects
             # Leakage impedance
