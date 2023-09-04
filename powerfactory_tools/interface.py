@@ -20,6 +20,7 @@ from loguru import logger
 from powerfactory_tools.constants import BaseUnits
 from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
+from powerfactory_tools.powerfactory_types import FolderType
 from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
 from powerfactory_tools.powerfactory_types import PFClassId
@@ -138,17 +139,23 @@ class PowerFactoryInterface:
     def load_project_folders_from_pf_db(self) -> None:
         self.load_project_setting_folders_from_pf_db()
 
-        self.grid_model = self.app.GetProjectFolder("netmod")
-        self.types_dir = self.app.GetProjectFolder("equip")
-        self.op_dir = self.app.GetProjectFolder("oplib")
-        self.chars_dir = self.app.GetProjectFolder("chars")
+        self.grid_model = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_MODEL.value))
+        self.types_dir = t.cast(
+            "PFTypes.ProjectFolder",
+            self.app.GetProjectFolder(FolderType.EQUIPMENT_TYPE_LIBRARY.value),
+        )
+        self.op_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.OPERATIONAL_LIBRARY.value))
+        self.chars_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.CHARACTERISTICS.value))
 
-        self.grid_data = self.app.GetProjectFolder("netdat")
-        self.grid_graphs_dir = self.app.GetProjectFolder("dia")
+        self.grid_data = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_DATA.value))
+        self.grid_graphs_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.DIAGRAMS.value))
 
-        self.study_case_dir = self.app.GetProjectFolder("study")
-        self.scenario_dir = self.app.GetProjectFolder("scen")
-        self.grid_variant_dir = self.app.GetProjectFolder("scheme")
+        self.study_case_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.STUDY_CASES.value))
+        self.scenario_dir = t.cast(
+            "PFTypes.ProjectFolder",
+            self.app.GetProjectFolder(FolderType.OPERATION_SCENARIOS.value),
+        )
+        self.grid_variant_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.VARIATIONS.value))
 
         self.ext_data_dir = self.project_settings.extDataDir
 
@@ -169,7 +176,7 @@ class PowerFactoryInterface:
         spec.loader.exec_module(pfm)
         return t.cast("PFTypes.PowerFactoryModule", pfm)
 
-    def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
+    def load_settings_dir_from_pf(self) -> PFTypes.DataObject:
         logger.debug("Loading settings from PowerFactory...")
         _settings_dirs = self.elements_of(element=self.project, pattern="*.SetFold", recursive=False)
         settings_dir = self.first_of(elements=_settings_dirs)
@@ -178,9 +185,9 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
         logger.debug("Loading settings from PowerFactory... Done.")
-        return t.cast("PFTypes.DataDir", settings_dir)
+        return settings_dir
 
-    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
+    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataObject:
         logger.debug("Loading unit settings from PowerFactory...")
         _unit_settings_dirs = self.elements_of(
             element=self.settings_dir,
@@ -194,9 +201,12 @@ class PowerFactoryInterface:
                 class_name=PFClassId.UNIT.value,
                 location=self.settings_dir,
             )
+            if unit_settings_dir is None:
+                msg = "Could not create unit settings directory."
+                raise RuntimeError(msg)
 
         logger.debug("Loading unit settings from PowerFactory... Done.")
-        return t.cast("PFTypes.DataDir", unit_settings_dir)
+        return unit_settings_dir
 
     def close(self) -> None:
         logger.info("Closing PowerFactory Interface...")
@@ -522,7 +532,10 @@ class PowerFactoryInterface:
         )
         return [t.cast("PFTypes.Result", element) for element in elements]
 
-    def study_case(self, name: str = "*") -> PFTypes.StudyCase | None:
+    def study_case(self, name: str = "*", *, only_active: bool = False) -> PFTypes.StudyCase | None:
+        if only_active:
+            return self.app.GetActiveStudyCase()
+
         return self.first_of(elements=self.study_cases(name=name))
 
     def study_cases(self, name: str = "*") -> Sequence[PFTypes.StudyCase]:
@@ -554,7 +567,7 @@ class PowerFactoryInterface:
         name: str = "*",
         *,
         grid_variant: PFTypes.GridVariant | None = None,
-        folder: PFTypes.DataDir | None = None,
+        folder: PFTypes.DataObject | None = None,
         only_active: bool = False,
     ) -> PFTypes.GridVariantStage | None:
         return self.first_of(
@@ -571,7 +584,7 @@ class PowerFactoryInterface:
         name: str = "*",
         *,
         grid_variant: PFTypes.GridVariant | None = None,
-        folder: PFTypes.DataDir | None = None,
+        folder: PFTypes.DataObject | None = None,
         only_active: bool = False,
     ) -> Sequence[PFTypes.GridVariantStage]:
         """Returns grid variant stages specified by affiliation and relenvance.
@@ -579,12 +592,12 @@ class PowerFactoryInterface:
         Within the root 'grid_variant_dir', subfolders can exist.
         Thus, grid variants with the same name can be stored in different subfolders.
         Grid variant stages with the same name can be exist in different grid variants.
-        Remark: Specify only grid_variant and no folder, if you want to get stages of this unique grid variant.
+        Remark: If you want to get stages of this unique grid variant, just specify only grid_variant and no folder.
 
         Args:
             name (str, optional): Name of requested grid variant stage. Defaults to "*".
             grid_variant (PFTypes.GridVariant | None, optional): The parent grid variant related to. Defaults to None.
-            folder (PFTypes.DataDir | None, optional): The parent grid variant folder to search. Defaults to None.
+            folder (PFTypes.DataObject | None, optional): The parent grid variant folder to search. Defaults to None.
             only_active (bool, optional): Flag to return only currently ative grid variant stages. Defaults to False.
 
         Returns:
@@ -951,7 +964,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         stage_name: str = "initial stage",
-        location: PFTypes.DataDir | None = None,
+        location: PFTypes.DataObject | None = None,
         data: dict[str, t.Any] | None = None,
         force: bool = False,
         update: bool = True,
@@ -961,7 +974,7 @@ class PowerFactoryInterface:
         Args:
             name (str) -- the name of the grid variant to be created
             stage_name (str) -- the name of the variant stage related to the grid variant (at least one active stage is necessary)
-            location {PFTypes.DataDir | None} -- the folder within which the variant should be created. Defaults to None.
+            location {PFTypes.DataObject | None} -- the folder within which the variant should be created. Defaults to None.
             data {dict[str, t.Any] | None} -- a dictionary with name-value-pairs of object attributes. Defaults to None.
             force (bool) -- force the creation, nonetheless if variant already exits. Defaulst to False.
             update (bool) -- update object attributes if objects already exists. Defaulst to True.
@@ -1057,34 +1070,37 @@ class PowerFactoryInterface:
 
         return stage
 
-    def create_folder(  # noqa: PLR0913
+    def create_folder(
         self,
         *,
         name: str,
-        location: PFTypes.DataDir | PFTypes.StudyCase | PFTypes.GridDiagram,
-        data: dict[str, t.Any] | None = None,
+        location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram,
         force: bool = False,
-        update: bool = True,
     ) -> PFTypes.DataObject | None:
-        if data is None:
-            data = {"sSymName": "GeneralCompRect"}
+        """Create simple folder within given directory.
 
-        folder = self.create_object(
+        Args:
+            name (str): the folder name
+            location (PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram): the directory where the folder should be created
+            force (bool, optional): Force creation if already exists. Defaults to False.
+
+        Returns:
+            PFTypes.DataObject | None
+        """
+        logger.debug("Create folder {name} in {location} ...", name=name, location=location.loc_name)
+        return self.create_object(
             name=name,
             class_name=PFClassId.FOLDER.value,
             location=location,
-            data=data,
             force=force,
-            update=update,
         )
-        return t.cast("PFTypes.DataObject", folder) if not folder else None
 
     def create_object(  # noqa: PLR0913
         self,
         *,
         name: str,
         class_name: str,
-        location: PFTypes.DataDir | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant,
+        location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant,
         data: dict[str, t.Any] | None = None,
         force: bool = False,
         update: bool = True,
@@ -1096,7 +1112,7 @@ class PowerFactoryInterface:
 
         Keyword Arguments:
             name {str} -- the name of the grid variant to be created
-            location {PFTypes.DataDir | PFTypes.StudyCase} -- the directory the object is stored in
+            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- the directory the object is stored in
             data {dict[str, t.Any] | None} -- a dictionary with name-value-pairs of object attributes
             force {bool} -- force the creation of the object, nonetheless if it already exits (default: {False})
             update {bool} -- update object attributes if objects already exists (default: {True})

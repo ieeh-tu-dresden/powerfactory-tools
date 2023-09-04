@@ -16,11 +16,12 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
+    COMPOSITE_GRID_ELEMENT = "ElmFolder"
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
     EXTERNAL_GRID = "ElmXNet"
-    FOLDER = "ElmFolder"
+    FOLDER = "IntFolder"
     FUSE = "RelFuse"
     GENERATOR = "ElmGenstat"
     GRID = "ElmNet"
@@ -31,7 +32,9 @@ class PFClassId(enum.Enum):
     LOAD_LV_PART = "ElmLodlvp"
     LOAD_MV = "ElmLodMv"
     RESULT = "ElmRes"
+    PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
+    SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
     TERMINAL = "ElmTerm"
@@ -41,6 +44,41 @@ class PFClassId(enum.Enum):
     VARIANT = "IntScheme"
     VARIANT_STAGE = "IntSstage"
     ZONE = "ElmZone"
+
+
+class FolderType(enum.Enum):
+    CB_RATINGS = "cbrat"
+    CIM_MODEL = "cim"
+    CHARACTERISTICS = "chars"
+    COMMON_MODE_FAILURES = "common"
+    DEMAND_TRANSFERS = "demand"
+    DIAGRAMS = "dia"
+    EQUIPMENT_TYPE_LIBRARY = "equip"
+    FAULTS = "fault"
+    GENERIC = "gen"
+    GENERATOR_COST_CURVES = "cstgen"
+    GENERATOR_EFFICIENCY_CURVES = "effgen"
+    LIBRARY = "lib"
+    MVAR_LIMIT_CURVES = "mvar"
+    NETWORK_DATA = "netdat"
+    NETWORK_MODEL = "netmod"
+    OPERATIONAL_LIBRARY = "oplib"
+    OPERATION_SCENARIOS = "scen"
+    OUTAGES = "outage"
+    QP_CURVES = "qpc"
+    PROBABILISTIC_ASSESSMENT = "rnd"
+    RUNNING_ARRANGEMENTS = "ra"
+    REMEDIAL_ACTION_SCHEMES = "ras"
+    SCRIPTS = "script"
+    STATION_WARE = "sw"
+    STUDY_CASES = "study"
+    TABLE_REPORTS = "report"
+    TARIFFS = "tariff"
+    TEMPLATES = "templ"
+    THERMAL_RATINGS = "therm"
+    USER_DEFINED_MODELS = "blk"
+    VARIATIONS = "scheme"
+    V_CONTROL_CURVES = "ucc"
 
 
 class LocalQCtrlMode(enum.Enum):
@@ -507,7 +545,7 @@ class PowerFactoryTypes:
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
 
-    class ProjectSettings(DataObject, Protocol):
+    class ProjectSettings(DataObject, Protocol):  # SetPrj
         extDataDir: PowerFactoryTypes.DataDir  # noqa: N815
         ilenunit: UnitSystem
         clenexp: MetricPrefix  # Lengths
@@ -1026,6 +1064,16 @@ class PowerFactoryTypes:
             ...
 
         def Execute(self) -> int:  # noqa: N802
+            ...
+
+    class ProjectFolder(DataObject, Protocol):  # IntPrjfolder
+        desc: Sequence[str]
+        iopt_typ: FolderType
+
+        def GetProjectFolderType(self) -> str:  # noqa: N802
+            ...
+
+        def IsProjectFolderType(self, folder_type: str) -> int:  # noqa: N802
             ...
 
     class Application(Protocol):
