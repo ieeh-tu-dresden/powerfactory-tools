@@ -88,6 +88,7 @@ if typing.TYPE_CHECKING:
     from typing import Literal
 
     from psdm.steadystate_case.controller import ControlType
+    from typing_extensions import Self
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
@@ -183,14 +184,14 @@ class PowerFactoryExporter:
             python_version=self.python_version,
         )
 
-    def __enter__(self) -> PowerFactoryExporter:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.pfi.close()
 
@@ -763,7 +764,7 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(  # noqa: PLR0915
+    def create_transformer_2w(  # noqa: PLR0915, PLR0912
         self,
         transformer_2w: PFTypes.Transformer2W,
         grid_name: str,
