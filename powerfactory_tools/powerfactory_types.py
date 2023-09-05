@@ -1156,3 +1156,7 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application:
             ...
+
+
+ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
+ValidPFValue = ValidPFPrimitive | list[ValidPFPrimitive] | dict[str, ValidPFPrimitive]

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
-import datetime
+import datetime as dt
 import importlib.util
 import itertools
 import pathlib
@@ -25,10 +25,13 @@ from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
 from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import UnitSystem
+from powerfactory_tools.powerfactory_types import ValidPFValue
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
     from types import TracebackType
+
+    import typing_extensions as te
 
     from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 
@@ -76,7 +79,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @dataclasses.dataclass
 class PowerFactoryData:
     name: str
-    date: datetime.date
+    date: dt.date
     project: str
     external_grids: Sequence[PFTypes.ExternalGrid]
     terminals: Sequence[PFTypes.Terminal]
@@ -120,14 +123,14 @@ class PowerFactoryInterface:
             logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
 
-    def __enter__(self) -> PowerFactoryInterface:
+    def __enter__(self) -> te.Self:
         return self
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.close()
 
@@ -321,7 +324,7 @@ class PowerFactoryInterface:
                 raise RuntimeError(msg) from e
 
         project_name = self.project.loc_name
-        date = datetime.datetime.now().astimezone().date()
+        date = dt.datetime.now().astimezone().date()
 
         return PowerFactoryData(
             name=name,
@@ -946,12 +949,12 @@ class PowerFactoryInterface:
 
         return []
 
-    def create_result(  # noqa: PLR0913
+    def create_result(
         self,
         *,
         name: str,
         study_case: PFTypes.StudyCase,
-        data: dict[str, t.Any] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
@@ -966,13 +969,13 @@ class PowerFactoryInterface:
         )
         return t.cast("PFTypes.Result", element) if element is not None else None
 
-    def create_grid_variant(  # noqa: PLR0913
+    def create_grid_variant(
         self,
         *,
         name: str,
         stage_name: str = "initial stage",
         location: PFTypes.DataObject | None = None,
-        data: dict[str, t.Any] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.GridVariant | None:
@@ -982,7 +985,7 @@ class PowerFactoryInterface:
             name {str} -- The name of the grid variant to be created.
             stage_name {str} -- The name of the variant stage related to the grid variant; at least one active stage is necessary (default: {"initial stage"}).
             location {PFTypes.DataObject | None} -- The folder within which the variant should be created (default: {None}).
-            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation, nonetheless if variant already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1018,12 +1021,12 @@ class PowerFactoryInterface:
 
         return variant if stage is not None else None
 
-    def create_grid_variant_stage(  # noqa: PLR0913
+    def create_grid_variant_stage(
         self,
         *,
         name: str,
         grid_variant: PFTypes.GridVariant,
-        data: dict[str, t.Any] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.GridVariantStage | None:
@@ -1032,7 +1035,7 @@ class PowerFactoryInterface:
         Keyword Arguments:
             name {str} -- The given name of the grid variant stage.
             grid_variant {PFTypes.GridVariant} -- The name of the grid variant.
-            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation nonetheless if stage already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1065,7 +1068,7 @@ class PowerFactoryInterface:
                 )
         else:
             # if stage does not exist, try to create a new one
-            activation_time = 0 if data is None else data.get("tAcTime", 0)
+            activation_time = 0 if data is None else t.cast("int", data.get("tAcTime", 0))
             error = grid_variant.NewStage(name, activation_time, 1)
             if error:
                 logger.warning(
@@ -1102,13 +1105,13 @@ class PowerFactoryInterface:
             force=force,
         )
 
-    def create_object(  # noqa: PLR0913
+    def create_object(
         self,
         *,
         name: str,
         class_name: str,
         location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant,
-        data: dict[str, t.Any] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
@@ -1121,7 +1124,7 @@ class PowerFactoryInterface:
             name {str} -- The name of the grid variant to be created.
             class_name {str} -- The PowerFactory class name string for the type of object.
             location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- The directory the object should be created in.
-            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1148,7 +1151,7 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
-    def update_object(self, element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
+    def update_object(self, element: PFTypes.DataObject, data: dict[str, ValidPFValue]) -> PFTypes.DataObject:
         for key, value in data.items():
             if getattr(element, key, None) is not None:
                 setattr(element, key, value)
