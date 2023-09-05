@@ -34,13 +34,15 @@ class PFClassId(enum.Enum):
     RESULT = "ElmRes"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
+    SETTINGS_FOLDER = "SetFold"
+    SETTINGS_FOLDER_UNITS = "IntUnit"
     SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
     TERMINAL = "ElmTerm"
     TRANSFORMER_2W = "ElmTr2"
     TRANSFORMER_3W = "ElmTr3"
-    UNIT = "IntUnit"
+    UNIT_VARIABLE = "SetVariable"
     VARIANT = "IntScheme"
     VARIANT_STAGE = "IntSstage"
     ZONE = "ElmZone"
@@ -482,6 +484,9 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+    class DataDir(DataObject, Protocol):
+        ...
+
     class GridDiagram(DataObject, Protocol):
         ...
 
@@ -546,7 +551,7 @@ class PowerFactoryTypes:
             ...
 
     class ProjectSettings(DataObject, Protocol):  # SetPrj
-        extDataDir: PowerFactoryTypes.DataDir  # noqa: N815
+        extDataDir: str  # noqa: N815
         ilenunit: UnitSystem
         clenexp: MetricPrefix  # Lengths
         cspqexp: MetricPrefix  # Loads etc.
@@ -562,9 +567,6 @@ class PowerFactoryTypes:
         cuserexp: MetricPrefix
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
-
-    class DataDir(DataObject, Protocol):
-        ...
 
     class Substation(DataObject, Protocol):
         ...

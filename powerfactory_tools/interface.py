@@ -176,9 +176,13 @@ class PowerFactoryInterface:
         spec.loader.exec_module(pfm)
         return t.cast("PFTypes.PowerFactoryModule", pfm)
 
-    def load_settings_dir_from_pf(self) -> PFTypes.DataObject:
+    def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         logger.debug("Loading settings from PowerFactory...")
-        _settings_dirs = self.elements_of(element=self.project, pattern="*.SetFold", recursive=False)
+        _settings_dirs = self.elements_of(
+            element=self.project,
+            pattern="*." + PFClassId.SETTINGS_FOLDER.value,
+            recursive=False,
+        )
         settings_dir = self.first_of(elements=_settings_dirs)
         if settings_dir is None:
             msg = "Could not access settings."
@@ -187,18 +191,18 @@ class PowerFactoryInterface:
         logger.debug("Loading settings from PowerFactory... Done.")
         return settings_dir
 
-    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataObject:
+    def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
         logger.debug("Loading unit settings from PowerFactory...")
         _unit_settings_dirs = self.elements_of(
             element=self.settings_dir,
-            pattern="*." + PFClassId.UNIT.value,
+            pattern="*." + PFClassId.SETTINGS_FOLDER_UNITS.value,
             recursive=False,
         )
         unit_settings_dir = self.first_of(elements=_unit_settings_dirs)
         if unit_settings_dir is None:
             unit_settings_dir = self.create_object(
                 name="Units",
-                class_name=PFClassId.UNIT.value,
+                class_name=PFClassId.SETTINGS_FOLDER_UNITS.value,
                 location=self.settings_dir,
             )
             if unit_settings_dir is None:
@@ -922,7 +926,7 @@ class PowerFactoryInterface:
             data = dataclasses.asdict(uc)
             element = self.create_object(
                 name=name,
-                class_name="SetVariable",
+                class_name=PFClassId.UNIT_VARIABLE.value,
                 location=self.unit_settings_dir,
                 data=data,
             )
@@ -937,7 +941,7 @@ class PowerFactoryInterface:
 
     def unit_conversion_settings(self) -> Sequence[PFTypes.UnitConversionSetting]:
         if self.unit_settings_dir is not None:
-            elements = self.elements_of(element=self.unit_settings_dir, pattern="*.SetVariable")
+            elements = self.elements_of(element=self.unit_settings_dir, pattern="*." + PFClassId.UNIT_VARIABLE.value)
             return [t.cast("PFTypes.UnitConversionSetting", element) for element in elements]
 
         return []
