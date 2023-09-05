@@ -110,7 +110,7 @@ class PowerFactoryInterface:
 
     def __post_init__(self) -> None:
         try:
-            loguru.logger.remove()
+            loguru.logger.remove(handler_id=0)
             loguru.logger.add(
                 sys.stdout,
                 colorize=True,
