@@ -88,7 +88,6 @@ if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Literal
 
-    from psdm.steadystate_case.controller import ControlType
     from typing_extensions import Self
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
@@ -428,7 +427,10 @@ class PowerFactoryExporter:
             return None
 
         if ext_grid.bus1 is None:
-            loguru.logger.warning("External grid {ext_grid_name} not connected to any bus. Skipping.", ext_grid_name=name)
+            loguru.logger.warning(
+                "External grid {ext_grid_name} not connected to any bus. Skipping.",
+                ext_grid_name=name,
+            )
             return None
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name)
@@ -767,7 +769,7 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(  # noqa: PLR0915
+    def create_transformer_2w(  # noqa: PLR0915, PLR0912
         self,
         transformer_2w: PFTypes.Transformer2W,
         grid_name: str,
@@ -826,20 +828,55 @@ class PowerFactoryExporter:
             u_nom_l = transformer_2w.buslv.cterm.uknom
 
             # Rated values
+            s_r = t_type.strn  # MVA
+            pu2abs = u_ref_h**2 / s_r
+
+            # Magnetising impedance
             p_fe = t_type.pfe  # kW
             i_0 = t_type.curmg  # %
-            s_r = t_type.strn  # MVA
+
+            z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+            z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
+            try:
+                x2r = 1 / t_type.rtox0_n
+            except ZeroDivisionError:
+                x2r = float("inf")
+
+            r_m_0 = z_m_0 / math.sqrt(1 + x2r**2)
+            try:
+                p_fe0 = u_ref_h**2 / r_m_0  # W
+            except ZeroDivisionError:
+                p_fe0 = 0
+
+            try:
+                i_00 = 100 / z_m_0 * pu2abs  # %
+            except ZeroDivisionError:
+                i_00 = float("inf")
 
             # Create Winding Objects
-            # Resulting impedance
-            pu2abs = u_ref_h**2 / s_r
+            # Leakage impedance
             r_1 = t_type.r1pu * pu2abs
-            r_0 = t_type.r0pu * pu2abs
+            r_1_h = r_1 * t_type.itrdr
+            r_1_l = r_1 * t_type.itrdr_lv
             x_1 = t_type.x1pu * pu2abs
+            x_1_h = x_1 * t_type.itrdl
+            x_1_l = x_1 * t_type.itrdl_lv
+
+            r_0 = t_type.r0pu * pu2abs
+            r_0_h = r_0 * t_type.zx0hl_h
+            r_0_l = r_0 * t_type.zx0hl_l
             x_0 = t_type.x0pu * pu2abs
+            x_0_h = x_0 * t_type.zx0hl_h
+            x_0_l = x_0 * t_type.zx0hl_l
 
             # Wiring group
-            vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            try:
+                vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+            except KeyError as e:
+                msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
+                loguru.logger.error(msg)
+                raise RuntimeError from e
+
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
@@ -864,15 +901,16 @@ class PowerFactoryExporter:
                 re_l = None
                 xe_l = None
 
+            # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
                 s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
                 u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=r_1,
-                r0=r_0,
-                x1=x_1,
-                x0=x_0,
+                r1=r_1_h,
+                r0=r_0_h,
+                x1=x_1_h,
+                x0=x_0_h,
                 re_h=re_h,
                 xe_h=xe_h,
                 vector_group=vector_group_h,
@@ -880,15 +918,16 @@ class PowerFactoryExporter:
                 neutral_connected=neutral_connected_h,
             )
 
+            # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
                 s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
                 u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=float(0),
-                r0=float(0),
-                x1=float(0),
-                x0=float(0),
+                r1=r_1_l,
+                r0=r_0_l,
+                x1=x_1_l,
+                x0=x_0_l,
                 re_l=re_l,
                 xe_l=xe_l,
                 vector_group=vector_group_l,
@@ -903,6 +942,8 @@ class PowerFactoryExporter:
                 number=t_number,
                 i_0=i_0,
                 p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
+                i_00=i_00,
+                p_fe0=round(p_fe0, DecimalDigits.POWER),
                 vector_group=vector_group,
                 tap_u_abs=tap_u_abs,
                 tap_u_phi=tap_u_phi,
@@ -913,11 +954,12 @@ class PowerFactoryExporter:
                 description=description,
                 phase_technology_type=ph_technology,
                 windings=[wh, wl],
-                i_00=0.0,
-                p_fe0=0.0,
             )
 
-        loguru.logger.warning("Type not set for 2-winding transformer {transformer_name}. Skipping.", transformer_name=name)
+        loguru.logger.warning(
+            "Type not set for 2-winding transformer {transformer_name}. Skipping.",
+            transformer_name=name,
+        )
         return None
 
     @staticmethod
@@ -1029,6 +1071,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                load_model_default="Z",
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1041,6 +1084,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                load_model_default="Z",
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1053,6 +1097,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                load_model_default="Z",
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -1101,6 +1146,7 @@ class PowerFactoryExporter:
         system_type: SystemType,
         phase_connection_type: PhaseConnectionType,
         name_suffix: str = "",
+        load_model_default: Literal["U", "Z", "P"] = "P",
     ) -> Load | None:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
         loguru.logger.debug("Creating consumer {load_name}...", load_name=l_name)
@@ -1133,10 +1179,10 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
-        load_model_p = self.load_model_of(load, specifier="p")
+        load_model_p = self.load_model_of(load, specifier="p", default=load_model_default)
         active_power = ActivePower(load_model=load_model_p)
 
-        load_model_q = self.load_model_of(load, specifier="q")
+        load_model_q = self.load_model_of(load, specifier="q", default=load_model_default)
         reactive_power = ReactivePower(load_model=load_model_q)
 
         connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
@@ -1162,7 +1208,11 @@ class PowerFactoryExporter:
         )
 
     @staticmethod
-    def load_model_of(load: PFTypes.LoadBase, specifier: Literal["p", "q"]) -> LoadModel:
+    def load_model_of(
+        load: PFTypes.LoadBase,
+        specifier: Literal["p", "q"],
+        default: Literal["U", "P", "Z"] = "P",
+    ) -> LoadModel:
         load_type = load.typ_id
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
@@ -1199,7 +1249,13 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        return LoadModel()  # default: 100% power-const. load
+        if default == "U":
+            return LoadModel(c_i=1, c_p=0)
+
+        if default == "P":
+            return LoadModel(c_i=0, c_p=1)
+
+        return LoadModel(c_i=0, c_p=0)
 
     def create_producers_normal(
         self,
@@ -1268,7 +1324,7 @@ class PowerFactoryExporter:
         pow_app = gen.sgn * gen.ngnum
         cosphi = gen.cosn
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.OE
+        cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         return LoadPower.from_sc_sym(
             pow_app=pow_app,
@@ -1627,7 +1683,10 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> TransformerSSC | None:
         name = self.pfi.create_name(pf_transformer_2w, grid_name)
-        loguru.logger.debug("Creating 2-winding transformer {transformer_name} steadystate case...", transformer_name=name)
+        loguru.logger.debug(
+            "Creating 2-winding transformer {transformer_name} steadystate case...",
+            transformer_name=name,
+        )
         export, _ = self.get_description(pf_transformer_2w)
         if not export:
             loguru.logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
@@ -1661,7 +1720,10 @@ class PowerFactoryExporter:
             return None
 
         if ext_grid.bus1 is None:
-            loguru.logger.warning("External grid {ext_grid_name} not connected to any bus. Skipping.", ext_grid_name=name)
+            loguru.logger.warning(
+                "External grid {ext_grid_name} not connected to any bus. Skipping.",
+                ext_grid_name=name,
+            )
             return None
 
         g_type = GridType(ext_grid.bustp)
@@ -1739,7 +1801,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_sym(
@@ -1827,7 +1889,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_asym(
                 pow_act_a=load.plinir,
@@ -2003,7 +2065,7 @@ class PowerFactoryExporter:
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
         loguru.logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         scaling = load.scale0
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load=load, scaling=scaling)
         else:
@@ -2042,7 +2104,7 @@ class PowerFactoryExporter:
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
             cosphi=load.ccosphi,
@@ -2065,7 +2127,7 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_sym(
@@ -2113,7 +2175,7 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_asym(
                 pow_app_a=load.slinir,
@@ -2184,9 +2246,9 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
+        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
@@ -2248,9 +2310,9 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.UE if load.pf_recap == 0 else CosphiDir.OE
+        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.OE if load.pfg_recap == 0 else CosphiDir.UE
+        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
                 pow_act_a=load.plinir,
@@ -2311,7 +2373,10 @@ class PowerFactoryExporter:
         loguru.logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=name)
         export, _ = self.get_description(load)
         if not export:
-            loguru.logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
+            loguru.logger.warning(
+                "External grid {consumer_ssc_name} not set for export. Skipping.",
+                consumer_ssc_name=name,
+            )
             return None
 
         active_power = power.as_active_power_ssc()
@@ -2342,12 +2407,18 @@ class PowerFactoryExporter:
         loguru.logger.debug("Creating producer {producer_name} steadystate case...", producer_name=producer_name)
         export, _ = self.get_description(generator)
         if not export:
-            loguru.logger.warning("Generator {producer_name} not set for export. Skipping.", producer_name=producer_name)
+            loguru.logger.warning(
+                "Generator {producer_name} not set for export. Skipping.",
+                producer_name=producer_name,
+            )
             return None
 
         bus = generator.bus1
         if bus is None:
-            loguru.logger.warning("Generator {producer_name} not connected to any bus. Skipping.", producer_name=producer_name)
+            loguru.logger.warning(
+                "Generator {producer_name} not connected to any bus. Skipping.",
+                producer_name=producer_name,
+            )
             return None
 
         terminal = bus.cterm
@@ -2399,8 +2470,8 @@ class PowerFactoryExporter:
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
-            cosphi_dir = CosphiDir.UE if gen.pf_recap == 1 else CosphiDir.UE
-            q_controller: ControlType = ControlCosphiConst(
+            cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
+            q_controller = ControlCosphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
@@ -2503,7 +2574,7 @@ class PowerFactoryExporter:
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             u_set = controller.usetp
             u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
-            q_controller: ControlType = ControlUConst(
+            q_controller = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
             )

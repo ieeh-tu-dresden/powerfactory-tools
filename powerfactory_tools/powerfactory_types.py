@@ -199,6 +199,7 @@ class VectorGroup(enum.Enum):
     Dyn5 = "Dyn5"
     Yd5 = "Yd5"
     YNd5 = "YNd5"
+    YNyn5 = "YNyn5"
     Yz5 = "Yz5"
     YNz5 = "YNz5"
     Yzn5 = "Yzn5"
@@ -534,13 +535,21 @@ class PowerFactoryTypes:
         curmg: float  # no-load current
         pcutr: float  # Cupper losses
         strn: float  # rated power
-        uktr: float  # short-circuit voltage in percentage
+        uktr: float  # short-circuit voltage in percentage (pos. seq.)
+        uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
         r1pu: float
         r0pu: float
         x1pu: float
         x0pu: float
-        zx0hl_n: float
-        rtox0_n: float
+        zx0hl_n: float  # Zero Sequence Magnetising Impedance: Mag. Impedance / uk0
+        rtox0_n: float  # Zero Sequence Magnetising R/X ratio: Mag. R/X
+        itrdr: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. HV-Side
+        itrdr_lv: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. LV-Side
+        itrdl: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. HV-Side
+        itrdl_lv: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. LV-Side
+        zx0hl_h: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. HV-Side
+        zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
+        x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
 
         vecgrp: VectorGroup
         tr2cn_l: Vector  # vector at LV side

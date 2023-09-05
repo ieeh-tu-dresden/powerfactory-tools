@@ -7,7 +7,7 @@
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model==1.6.0",
+    "ieeh-power-system-data-model==1.7.0",
     "loguru",
     "pydantic>=2.1.1",
   ]

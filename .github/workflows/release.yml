@@ -23,7 +23,7 @@ jobs:
           fetch-depth: 0
 
       - name: Temporarily disable 'include administrators' default branch protection
-        uses: benjefferies/branch-protection-bot@master
+        uses: benjefferies/branch-protection-bot@1.0.9
         if: always()
         with:
           access_token: ${{ secrets.ACCESS_TOKEN }}
@@ -31,7 +31,7 @@ jobs:
           enforce_admins: false
 
       - name: Update license year
-        uses: FantasticFiasco/action-update-license-year@v2
+        uses: FantasticFiasco/action-update-license-year@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,7 +42,7 @@ jobs:
 
       - name: Find new version
         id: cz
-        uses: commitizen-tools/commitizen-action@master
+        uses: commitizen-tools/commitizen-action@0.18.2
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           push: false
