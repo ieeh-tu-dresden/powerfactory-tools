@@ -6,7 +6,7 @@ groups = ["default", "deployment", "formatting", "linter", "prototype", "test", 
 cross_platform = true
 static_urls = false
 lock_version = "4.3"
-content_hash = "sha256:be6e4db906e76811ad1a5a165e7d1f9ee9aac6a1f172fdd157519a3a191d5a7f"
+content_hash = "sha256:4684e1f7e16fcf030bd1205f9a2bbe0ca3038454a669d0da111acff5f77f8381"
 
 [[package]]
 name = "annotated-types"
@@ -318,7 +318,7 @@ files = [
 
 [[package]]
 name = "ieeh-power-system-data-model"
-version = "1.5.1"
+version = "1.7.0"
 requires_python = ">=3.10"
 summary = "A data model for describing power systems"
 dependencies = [
@@ -326,8 +326,8 @@ dependencies = [
     "pydantic>=2.0",
 ]
 files = [
-    {file = "ieeh-power-system-data-model-1.5.1.tar.gz", hash = "sha256:6298fc0aad73dea6b2bad515b8ccfb2c390bef7662de60c0cc115144fd70fe7f"},
-    {file = "ieeh_power_system_data_model-1.5.1-py3-none-any.whl", hash = "sha256:2dd8f2d08f8f171791045a550b5377728aba99a0c3a0528bef1383076c68a286"},
+    {file = "ieeh-power-system-data-model-1.7.0.tar.gz", hash = "sha256:16d5bc8318890ccb6849dc896e89138f31b9ea20707e18edc865b7e6b5c5083f"},
+    {file = "ieeh_power_system_data_model-1.7.0-py3-none-any.whl", hash = "sha256:81ae6b8bf063627f5c3031bbd3be8c4253c251adfb44380d73500bdbd3874517"},
 ]
 
 [[package]]
