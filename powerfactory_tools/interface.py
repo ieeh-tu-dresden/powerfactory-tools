@@ -114,7 +114,7 @@ class PowerFactoryInterface:
             loguru.logger.add(
                 sys.stdout,
                 colorize=True,
-                format="<green>{time}</green> <level>{message}</level>",
+                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
                 filter="powerfactory_tools",
                 level=self.logging_level,
             )
