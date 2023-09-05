@@ -594,15 +594,18 @@ class PowerFactoryInterface:
         Grid variant stages with the same name can be exist in different grid variants.
         Remark: If you want to get stages of this unique grid variant, just specify only grid_variant and no folder.
 
-        Args:
-            name (str, optional): Name of requested grid variant stage. Defaults to "*".
-            grid_variant (PFTypes.GridVariant | None, optional): The parent grid variant related to. Defaults to None.
-            folder (PFTypes.DataObject | None, optional): The parent grid variant folder to search. Defaults to None.
-            only_active (bool, optional): Flag to return only currently ative grid variant stages. Defaults to False.
+        Arguments:
+            name {str} -- Name of requested grid variant stage (default: {"*"})
+
+        Keyword Arguments:
+            grid_variant {PFTypes.GridVariant | None} -- The parent grid variant related to (default: {None})
+            folder {PFTypes.DataObject | None} -- The parent grid variant folder to search (default: {None})
+            only_active {bool} -- Flag to return only currently ative grid variant stages (default: {False})
 
         Returns:
-            Sequence[PFTypes.GridVariantStage]:
+            {Sequence[PFTypes.GridVariantStage]} -- A List of existing grid variant stages
         """
+
         is_folder_none_and_variant_not_none = False
         if folder is None:
             folder = self.grid_variant_dir
@@ -971,16 +974,16 @@ class PowerFactoryInterface:
     ) -> PFTypes.GridVariant | None:
         """Create a grid variant with related variant stage.
 
-        Args:
-            name (str) -- the name of the grid variant to be created
-            stage_name (str) -- the name of the variant stage related to the grid variant (at least one active stage is necessary)
-            location {PFTypes.DataObject | None} -- the folder within which the variant should be created. Defaults to None.
-            data {dict[str, t.Any] | None} -- a dictionary with name-value-pairs of object attributes. Defaults to None.
-            force (bool) -- force the creation, nonetheless if variant already exits. Defaulst to False.
-            update (bool) -- update object attributes if objects already exists. Defaulst to True.
+        Keyword Arguments:
+            name {str} -- The name of the grid variant to be created.
+            stage_name {str} -- The name of the variant stage related to the grid variant; at least one active stage is necessary (default: {"initial stage"}).
+            location {PFTypes.DataObject | None} -- The folder within which the variant should be created (default: {None}).
+            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation, nonetheless if variant already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            PFTypes.GridVariant | None -- the created grid variant if successful
+            {PFTypes.GridVariant | None} -- The created grid variant if successful.
         """
         if location is None:
             location = self.grid_variant_dir
@@ -1022,15 +1025,15 @@ class PowerFactoryInterface:
     ) -> PFTypes.GridVariantStage | None:
         """Create a grid variant stage as child of the given grid variant.
 
-        Args:
-            name (str): _description_
-            grid_variant (PFTypes.GridVariant): the name of the variant stage
-            data {dict[str, t.Any] | None} -- a dictionary with name-value-pairs of object attributes
-            force (bool, optional): force the creation, nonetheless if stage already exits . Defaults to False.
-            update (bool, optional): update object attributes if objects already exists. Defaults to True.
+        Keyword Arguments:
+            name {str} -- The given name of the grid variant stage.
+            grid_variant {PFTypes.GridVariant} -- The name of the grid variant.
+            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation nonetheless if stage already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            PFTypes.GridVariantStage | None:
+            {PFTypes.GridVariantStage | None} -- The created grid variant stage if successful.
         """
         # try to catch possibly existing variant stage
         stage = self.grid_variant_stage(
@@ -1079,13 +1082,13 @@ class PowerFactoryInterface:
     ) -> PFTypes.DataObject | None:
         """Create simple folder within given directory.
 
-        Args:
-            name (str): the folder name
-            location (PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram): the directory where the folder should be created
-            force (bool, optional): Force creation if already exists. Defaults to False.
+        Keyword Arguments
+            name {str} -- The folder name.
+            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram} -- The directory where the folder should be created.
+            force {bool} -- Flag to force creation nonetheless if already exists (default: {False}).
 
         Returns:
-            PFTypes.DataObject | None
+            {PFTypes.DataObject | None} - The created folder if successful.
         """
         logger.debug("Create folder {name} in {location} ...", name=name, location=location.loc_name)
         return self.create_object(
@@ -1111,14 +1114,15 @@ class PowerFactoryInterface:
         Use the flags force and update to handle the action if an object with the choosen naem already exists.
 
         Keyword Arguments:
-            name {str} -- the name of the grid variant to be created
-            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- the directory the object is stored in
-            data {dict[str, t.Any] | None} -- a dictionary with name-value-pairs of object attributes
-            force {bool} -- force the creation of the object, nonetheless if it already exits (default: {False})
-            update {bool} -- update object attributes if objects already exists (default: {True})
+            name {str} -- The name of the grid variant to be created.
+            class_name {str} -- The PowerFactory class name string for the type of object.
+            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- The directory the object should be created in.
+            data {dict[str, t.Any] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            PFTypes.DataObject | None -- the created object if successful
+            {PFTypes.DataObject | None} -- The created object if successful.
         """
 
         _elements = self.elements_of(element=location, pattern=f"{name}.{class_name}")
@@ -1159,11 +1163,11 @@ class PowerFactoryInterface:
         """Run load flow calculation.
 
         Keyword Arguments:
-            ac {bool} -- the voltage system used for load flow calculation
-            symmetrical {bool} -- posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical)
+            ac {bool} -- The voltage system used for load flow calculation (default: {True}).
+            symmetrical {bool} -- Flag to indicate symmetrical (posivie sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
 
         Returns:
-            PFTypes.Result | None -- the result object of ldf
+            {PFTypes.Result | None} -- The default result object of load flow.
         """
         ldf_cmd = self.ldf_command()
         if ac:
@@ -1195,14 +1199,14 @@ class PowerFactoryInterface:
         element.g. in case of detailed template or detailed substation.
 
         Arguments:
-            element {PFTypes.DataObject} -- the object itself for which a unique name is going to be created
-            grid_name {str} -- the name of the grid to which the object belongs (root)
+            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
+            grid_name {str} -- The name of the grid to which the object belongs (root).
 
         Keyword Arguments:
-            element_name {str | None} -- element name if needed to specify independently (default: {None})
+            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
 
         Returns:
-            str -- the unique name of the object
+            {str} -- The unique name of the object.
         """
 
         if element_name is None:
@@ -1225,14 +1229,13 @@ class PowerFactoryInterface:
         Takes into account models in which the generator might be grouped in.
 
         Arguments:
-            generator {PFTypes.GeneratorBase} -- the generator object
+            generator {PFTypes.GeneratorBase} -- The generator object for which the name should be created.
 
         Keyword Arguments:
-            generator_name {str | None} -- name of generator or generator related object (e.g. external controller)
-            if needed to specify independently (default: {None})
+            generator_name {str | None} -- The already existing name of generator or generator related object (e.g. external controller) if needed to specify independently (default: {None})
 
         Returns:
-            str -- the name of the generator object
+            {str} -- The unique name of the generator object.
         """
         if generator_name is None:
             generator_name = generator.loc_name
@@ -1247,10 +1250,10 @@ class PowerFactoryInterface:
         """Check if requested terminal is part of substation (parent).
 
         Arguments:
-            terminal {PFTypes.Terminal} -- the terminal for which the check is requested
+            terminal {PFTypes.Terminal} -- The terminal for which the check is requested.
 
         Returns:
-            bool -- result of check
+            {bool} -- The result of the check.
         """
 
         return terminal.cpSubstat is not None
@@ -1260,10 +1263,10 @@ class PowerFactoryInterface:
         """Combine iterable sequences with the same base type into one list.
 
         Arguments:
-            sequences {Iterable[T]} -- enumeration of sequences (all the same base type T)
+            sequences {Iterable[T]} -- An enumeration of sequences (all the same base type T).
 
         Returns:
-            list -- list of elements of base type T
+            {list} -- A list of elements of base type T.
         """
         return list(itertools.chain.from_iterable([*sequences]))
 
