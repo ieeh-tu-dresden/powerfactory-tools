@@ -87,6 +87,8 @@ if typing.TYPE_CHECKING:
     from types import TracebackType
     from typing import Literal
 
+    from typing_extensions import Self
+
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
 
@@ -181,14 +183,14 @@ class PowerFactoryExporter:
             python_version=self.python_version,
         )
 
-    def __enter__(self) -> PowerFactoryExporter:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(
         self,
-        exc_type: type[BaseException],
-        exc_val: BaseException,
-        exc_tb: TracebackType,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         self.pfi.close()
 
@@ -761,7 +763,7 @@ class PowerFactoryExporter:
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(  # noqa: PLR0915
+    def create_transformer_2w(  # noqa: PLR0915, PLR0912
         self,
         transformer_2w: PFTypes.Transformer2W,
         grid_name: str,
@@ -820,22 +822,51 @@ class PowerFactoryExporter:
             u_nom_l = transformer_2w.buslv.cterm.uknom
 
             # Rated values
+            s_r = t_type.strn  # MVA
+            pu2abs = u_ref_h**2 / s_r
+
+            # Magnetising impedance
             p_fe = t_type.pfe  # kW
             i_0 = t_type.curmg  # %
-            s_r = t_type.strn  # MVA
+
+            z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+            z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
+            try:
+                x2r = 1 / t_type.rtox0_n
+            except ZeroDivisionError:
+                x2r = float("inf")
+
+            r_m_0 = z_m_0 / math.sqrt(1 + x2r**2)
+            try:
+                p_fe0 = u_ref_h**2 / r_m_0  # W
+            except ZeroDivisionError:
+                p_fe0 = 0
+
+            try:
+                i_00 = 100 / z_m_0 * pu2abs  # %
+            except ZeroDivisionError:
+                i_00 = float("inf")
 
             # Create Winding Objects
-            # Resulting impedance
-            pu2abs = u_ref_h**2 / s_r
+            # Leakage impedance
             r_1 = t_type.r1pu * pu2abs
-            r_0 = t_type.r0pu * pu2abs
+            r_1_h = r_1 * t_type.itrdr
+            r_1_l = r_1 * t_type.itrdr_lv
             x_1 = t_type.x1pu * pu2abs
+            x_1_h = x_1 * t_type.itrdl
+            x_1_l = x_1 * t_type.itrdl_lv
+
+            r_0 = t_type.r0pu * pu2abs
+            r_0_h = r_0 * t_type.zx0hl_h
+            r_0_l = r_0 * t_type.zx0hl_l
             x_0 = t_type.x0pu * pu2abs
+            x_0_h = x_0 * t_type.zx0hl_h
+            x_0_l = x_0 * t_type.zx0hl_l
 
             # Wiring group
             try:
                 vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
-            except ValueError as e:
+            except KeyError as e:
                 msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
                 logger.error(msg)
                 raise RuntimeError from e
@@ -864,15 +895,16 @@ class PowerFactoryExporter:
                 re_l = None
                 xe_l = None
 
+            # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
                 s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
                 u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=r_1,
-                r0=r_0,
-                x1=x_1,
-                x0=x_0,
+                r1=r_1_h,
+                r0=r_0_h,
+                x1=x_1_h,
+                x0=x_0_h,
                 re_h=re_h,
                 xe_h=xe_h,
                 vector_group=vector_group_h,
@@ -880,15 +912,16 @@ class PowerFactoryExporter:
                 neutral_connected=neutral_connected_h,
             )
 
+            # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
                 s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
                 u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
                 u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=float(0),
-                r0=float(0),
-                x1=float(0),
-                x0=float(0),
+                r1=r_1_l,
+                r0=r_0_l,
+                x1=x_1_l,
+                x0=x_0_l,
                 re_l=re_l,
                 xe_l=xe_l,
                 vector_group=vector_group_l,
@@ -903,6 +936,8 @@ class PowerFactoryExporter:
                 number=t_number,
                 i_0=i_0,
                 p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
+                i_00=i_00,
+                p_fe0=round(p_fe0, DecimalDigits.POWER),
                 vector_group=vector_group,
                 tap_u_abs=tap_u_abs,
                 tap_u_phi=tap_u_phi,
