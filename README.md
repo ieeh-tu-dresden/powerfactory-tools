@@ -44,8 +44,9 @@ Please find below some general remarks and assumptions to consider for the appli
 + Export of `fuses`:
   + Branch like fuses are exported as switching state.
   + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
-+ Export of `SteadyStateCase`: the load centered counting system is used for all types of loads.
-
++ Export of `SteadyStateCase`:
+  + The load centered counting system is used for all types of loads.
+  + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
 
 
 ## <div id="installation" /> Installation
