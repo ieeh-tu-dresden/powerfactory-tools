@@ -21,14 +21,15 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 The following functionalities are provided:
 
 * export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
+* basic control of PowerFactory
 * [intended in future release] import from external grid data into the PowerFactory environment
-* [intended in future release] basic control of PowerFactory
 
 ## <div id="tutorials" /> Tutorials
 
 Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 * for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
+* for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
 
 ## <div id="installation" /> Installation
 
@@ -58,11 +59,13 @@ Linux/Mac:
 curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
 ```
 
-Install [pdm-venv](https://github.com/pdm-project/pdm-venv)
+Or using pipx or pip:
 
 ```bash
-pdm plugin add pdm-venv
-pdm config venv.in_project true
+pipx install pdm
+```
+```bash
+pip install --user pdm
 ```
 
 Clone `powerfactory-tools`
@@ -89,7 +92,7 @@ pdm install
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
 
-* [flake8](https://github.com/PyCQA/flake8)
+* [ruff](https://github.com/astral-sh/ruff)
 * [black](https://github.com/psf/black)
 * [mypy](https://github.com/python/mypy)
 
@@ -97,7 +100,7 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 
 Please note that this work is part of research activities and is still under active development.
 
-This code was tested with `DIgSILENT PowerFactory 2021 SP5` and `DIgSILENT PowerFactory 2022 SP2`.
+This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4) and `DIgSILENT PowerFactory 2022 SP2`.
 
 ## <div id="attribution" /> Attribution
 
