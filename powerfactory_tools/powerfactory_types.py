@@ -14,6 +14,75 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+class PFClassId(enum.Enum):
+    AREA = "ElmArea"
+    COMPOSITE_GRID_ELEMENT = "ElmFolder"
+    COUPLER = "ElmCoup"
+    CUBICLE = "StaCubic"
+    CURRENT_SOURCE_AC = "ElmIac"
+    EXTERNAL_GRID = "ElmXNet"
+    FOLDER = "IntFolder"
+    FUSE = "RelFuse"
+    GENERATOR = "ElmGenstat"
+    GRID = "ElmNet"
+    GRID_GRAPHIC = "IntGrfnet"
+    LINE = "ElmLne"
+    LOAD = "ElmLod"
+    LOAD_LV = "ElmLodLv"
+    LOAD_LV_PART = "ElmLodlvp"
+    LOAD_MV = "ElmLodMv"
+    RESULT = "ElmRes"
+    PROJECT_SETTINGS = "SetPrj"
+    PVSYSTEM = "ElmPvsys"
+    SETTINGS_FOLDER = "SetFold"
+    SETTINGS_FOLDER_UNITS = "IntUnit"
+    SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
+    STUDY_CASE = "IntCase"
+    SWITCH = "StaSwitch"
+    TERMINAL = "ElmTerm"
+    TRANSFORMER_2W = "ElmTr2"
+    TRANSFORMER_3W = "ElmTr3"
+    UNIT_VARIABLE = "SetVariable"
+    VARIANT = "IntScheme"
+    VARIANT_STAGE = "IntSstage"
+    ZONE = "ElmZone"
+
+
+class FolderType(enum.Enum):
+    CB_RATINGS = "cbrat"
+    CIM_MODEL = "cim"
+    CHARACTERISTICS = "chars"
+    COMMON_MODE_FAILURES = "common"
+    DEMAND_TRANSFERS = "demand"
+    DIAGRAMS = "dia"
+    EQUIPMENT_TYPE_LIBRARY = "equip"
+    FAULTS = "fault"
+    GENERIC = "gen"
+    GENERATOR_COST_CURVES = "cstgen"
+    GENERATOR_EFFICIENCY_CURVES = "effgen"
+    LIBRARY = "lib"
+    MVAR_LIMIT_CURVES = "mvar"
+    NETWORK_DATA = "netdat"
+    NETWORK_MODEL = "netmod"
+    OPERATIONAL_LIBRARY = "oplib"
+    OPERATION_SCENARIOS = "scen"
+    OUTAGES = "outage"
+    QP_CURVES = "qpc"
+    PROBABILISTIC_ASSESSMENT = "rnd"
+    RUNNING_ARRANGEMENTS = "ra"
+    REMEDIAL_ACTION_SCHEMES = "ras"
+    SCRIPTS = "script"
+    STATION_WARE = "sw"
+    STUDY_CASES = "study"
+    TABLE_REPORTS = "report"
+    TARIFFS = "tariff"
+    TEMPLATES = "templ"
+    THERMAL_RATINGS = "therm"
+    USER_DEFINED_MODELS = "blk"
+    VARIATIONS = "scheme"
+    V_CONTROL_CURVES = "ucc"
+
+
 class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     COSPHI_CONST = "constc"
@@ -415,6 +484,9 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+    class DataDir(DataObject, Protocol):
+        ...
+
     class GridDiagram(DataObject, Protocol):
         ...
 
@@ -452,8 +524,34 @@ class PowerFactoryTypes:
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
-    class ProjectSettings(DataObject, Protocol):
-        extDataDir: PowerFactoryTypes.DataDir  # noqa: N815
+    class GridVariant(DataObject, Protocol):
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def NewStage(  # noqa: N802
+            self,
+            name: str,
+            activationTime: int,  # noqa: N803 # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
+            activate: int,  # bool: 1 - Activate (should be dafault); 0 - do not activate
+            /,
+        ) -> bool:
+            ...
+
+    class GridVariantStage(DataObject, Protocol):
+        tAcTime: str  # noqa: N815
+        iExclude: int  # noqa: N815
+
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
+            ...
+
+    class ProjectSettings(DataObject, Protocol):  # SetPrj
+        extDataDir: str  # noqa: N815
         ilenunit: UnitSystem
         clenexp: MetricPrefix  # Lengths
         cspqexp: MetricPrefix  # Loads etc.
@@ -469,9 +567,6 @@ class PowerFactoryTypes:
         cuserexp: MetricPrefix
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
-
-    class DataDir(DataObject, Protocol):
-        ...
 
     class Substation(DataObject, Protocol):
         ...
@@ -981,6 +1076,16 @@ class PowerFactoryTypes:
         def Execute(self) -> int:  # noqa: N802
             ...
 
+    class ProjectFolder(DataObject, Protocol):  # IntPrjfolder
+        desc: Sequence[str]
+        iopt_typ: FolderType
+
+        def GetProjectFolderType(self) -> str:  # noqa: N802
+            ...
+
+        def IsProjectFolderType(self, folder_type: str) -> int:  # noqa: N802
+            ...
+
     class Application(Protocol):
         def ActivateProject(self, name: str) -> int:  # noqa: N802
             ...
@@ -992,6 +1097,16 @@ class PowerFactoryTypes:
             ...
 
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+            ...
+
+        def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
+            ...
+
+        def GetActiveStages(  # noqa: N802
+            self,
+            variedFolder: PowerFactoryTypes.DataObject,  # noqa: N803
+            /,
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1049,3 +1164,7 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application:
             ...
+
+
+ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
+ValidPFValue = ValidPFPrimitive | list[ValidPFPrimitive] | dict[str, ValidPFPrimitive]

@@ -5,14 +5,15 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import itertools
 import logging
 import math
 import multiprocessing
 import pathlib
 import textwrap
-import typing
+import typing as t
+from typing import TYPE_CHECKING
 
 import loguru
 import pydantic
@@ -83,12 +84,11 @@ from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
-    from typing import Literal
 
-    from typing_extensions import Self
+    import typing_extensions as te
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
 
@@ -186,7 +186,7 @@ class PowerFactoryExporter:
             logging_level=self.logging_level,
         )
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> te.Self:
         return self
 
     def __exit__(
@@ -241,7 +241,7 @@ class PowerFactoryExporter:
             export_path=export_path,
         )
 
-    def export_scenario(  # noqa: PLR0913
+    def export_scenario(
         self,
         *,
         export_path: pathlib.Path,
@@ -334,7 +334,7 @@ class PowerFactoryExporter:
         self,
         data: Topology | TopologyCase | SteadystateCase,
         data_name: str | None,
-        data_type: Literal["topology", "topology_case", "steadystate_case"],
+        data_type: t.Literal["topology", "topology_case", "steadystate_case"],
         export_path: pathlib.Path,
     ) -> None:
         """Export data to json file.
@@ -342,10 +342,10 @@ class PowerFactoryExporter:
         Arguments:
             data {Topology | TopologyCase | SteadystateCase} -- data to export
             data_name {str | None} -- the chosen file name for data
-            data_type {Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
+            data_type {t.Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
             export_path {pathlib.Path} -- the directory where the exported json file is saved
         """
-        timestamp = datetime.datetime.now().astimezone()
+        timestamp = dt.datetime.now().astimezone()
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             filename = f"{self.grid_name}_{timestamp_string}_{data_type}.json"
@@ -532,7 +532,7 @@ class PowerFactoryExporter:
         b0 = round(l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE)
 
         if l_type.nneutral:
-            l_type = typing.cast("PFTypes.LineNType", l_type)
+            l_type = t.cast("PFTypes.LineNType", l_type)
             rn = round(
                 l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE,
                 DecimalDigits.IMPEDANCE,
@@ -993,7 +993,7 @@ class PowerFactoryExporter:
 
         return True, ""
 
-    def create_loads(  # noqa: PLR0913 # fix
+    def create_loads(
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -1049,7 +1049,7 @@ class PowerFactoryExporter:
         ]
         return self.pfi.list_from_sequences(*consumer_lv_parts)
 
-    def create_consumer_lv_parts(  # noqa: PLR0913 # fix
+    def create_consumer_lv_parts(
         self,
         load: PFTypes.LoadLV,
         grid_name: str,
@@ -1138,7 +1138,7 @@ class PowerFactoryExporter:
 
         return [consumer, producer]
 
-    def create_consumer(  # noqa: PLR0913 # fix
+    def create_consumer(
         self,
         load: PFTypes.LoadBase,
         power: LoadPower,
@@ -1146,7 +1146,7 @@ class PowerFactoryExporter:
         system_type: SystemType,
         phase_connection_type: PhaseConnectionType,
         name_suffix: str = "",
-        load_model_default: Literal["U", "Z", "P"] = "P",
+        load_model_default: t.Literal["U", "Z", "P"] = "P",
     ) -> Load | None:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
         loguru.logger.debug("Creating consumer {load_name}...", load_name=l_name)
@@ -1210,8 +1210,8 @@ class PowerFactoryExporter:
     @staticmethod
     def load_model_of(
         load: PFTypes.LoadBase,
-        specifier: Literal["p", "q"],
-        default: Literal["U", "P", "Z"] = "P",
+        specifier: t.Literal["p", "q"],
+        default: t.Literal["U", "P", "Z"] = "P",
     ) -> LoadModel:
         load_type = load.typ_id
         if load_type is not None:
@@ -1334,7 +1334,7 @@ class PowerFactoryExporter:
             phase_connection_type=phase_connection_type,
         )
 
-    def create_producer(  # noqa: PLR0913 # fix
+    def create_producer(
         self,
         generator: PFTypes.GeneratorBase | PFTypes.LoadMV,
         gen_name: str,
@@ -1750,7 +1750,7 @@ class PowerFactoryExporter:
 
         return ExternalGridSSC(name=name)
 
-    def create_loads_ssc(  # noqa: PLR0913
+    def create_loads_ssc(
         self,
         consumers: Sequence[PFTypes.Load],
         consumers_lv: Sequence[PFTypes.LoadLV],
@@ -2015,7 +2015,7 @@ class PowerFactoryExporter:
         ]
         return list(itertools.chain.from_iterable(consumer_ssc_lv_parts))
 
-    def create_consumer_ssc_lv_parts(  # noqa: PLR0913 # fix
+    def create_consumer_ssc_lv_parts(
         self,
         load: PFTypes.LoadLV,
         grid_name: str,
@@ -2783,8 +2783,8 @@ class PowerFactoryExporter:
     @staticmethod
     def transform_qu_slope(
         slope: float,
-        given_format: Literal["2015", "2018"],
-        target_format: Literal["2015", "2018"],
+        given_format: t.Literal["2015", "2018"],
+        target_format: t.Literal["2015", "2018"],
         u_n: float,
     ) -> float:
         """Transform slope of Q(U)-characteristic from given format type to another format type.
@@ -2808,7 +2808,7 @@ class PowerFactoryExporter:
         raise RuntimeError(msg)
 
 
-def export_powerfactory_data(  # noqa: PLR0913
+def export_powerfactory_data(
     export_path: pathlib.Path,
     project_name: str,
     grid_name: str,

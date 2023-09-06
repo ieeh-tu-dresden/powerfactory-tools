@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import dataclasses
-import datetime
+import datetime as dt
 import importlib.util
 import itertools
 import logging
@@ -22,15 +22,18 @@ import pydantic
 from powerfactory_tools.constants import BaseUnits
 from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
+from powerfactory_tools.powerfactory_types import FolderType
 from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
+from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import UnitSystem
+from powerfactory_tools.powerfactory_types import ValidPFValue
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
     from types import TracebackType
 
-    from typing_extensions import Self
+    import typing_extensions as te
 
     from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 
@@ -78,7 +81,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @dataclasses.dataclass
 class PowerFactoryData:
     name: str
-    date: datetime.date
+    date: dt.date
     project: str
     external_grids: Sequence[PFTypes.ExternalGrid]
     terminals: Sequence[PFTypes.Terminal]
@@ -131,7 +134,7 @@ class PowerFactoryInterface:
             loguru.logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> te.Self:
         return self
 
     def __exit__(
@@ -150,15 +153,23 @@ class PowerFactoryInterface:
     def load_project_folders_from_pf_db(self) -> None:
         self.load_project_setting_folders_from_pf_db()
 
-        self.grid_model = self.app.GetProjectFolder("netmod")
-        self.types_dir = self.app.GetProjectFolder("equip")
-        self.op_dir = self.app.GetProjectFolder("oplib")
-        self.chars_dir = self.app.GetProjectFolder("chars")
+        self.grid_model = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_MODEL.value))
+        self.types_dir = t.cast(
+            "PFTypes.ProjectFolder",
+            self.app.GetProjectFolder(FolderType.EQUIPMENT_TYPE_LIBRARY.value),
+        )
+        self.op_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.OPERATIONAL_LIBRARY.value))
+        self.chars_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.CHARACTERISTICS.value))
 
-        self.grid_data = self.app.GetProjectFolder("netdat")
-        self.study_case_dir = self.app.GetProjectFolder("study")
-        self.scenario_dir = self.app.GetProjectFolder("scen")
-        self.grid_graphs_dir = self.app.GetProjectFolder("dia")
+        self.grid_data = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_DATA.value))
+        self.grid_graphs_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.DIAGRAMS.value))
+
+        self.study_case_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.STUDY_CASES.value))
+        self.scenario_dir = t.cast(
+            "PFTypes.ProjectFolder",
+            self.app.GetProjectFolder(FolderType.OPERATION_SCENARIOS.value),
+        )
+        self.grid_variant_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.VARIATIONS.value))
 
         self.ext_data_dir = self.project_settings.extDataDir
 
@@ -181,24 +192,39 @@ class PowerFactoryInterface:
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         loguru.logger.debug("Loading settings from PowerFactory...")
-        _settings_dirs = self.elements_of(element=self.project, pattern="*.SetFold", recursive=False)
+        _settings_dirs = self.elements_of(
+            element=self.project,
+            pattern="*." + PFClassId.SETTINGS_FOLDER.value,
+            recursive=False,
+        )
         settings_dir = self.first_of(elements=_settings_dirs)
         if settings_dir is None:
             msg = "Could not access settings."
             raise RuntimeError(msg)
 
         loguru.logger.debug("Loading settings from PowerFactory... Done.")
-        return t.cast("PFTypes.DataDir", settings_dir)
+        return settings_dir
 
     def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
         loguru.logger.debug("Loading unit settings from PowerFactory...")
-        _unit_settings_dirs = self.elements_of(element=self.settings_dir, pattern="*.IntUnit", recursive=False)
+        _unit_settings_dirs = self.elements_of(
+            element=self.settings_dir,
+            pattern="*." + PFClassId.SETTINGS_FOLDER_UNITS.value,
+            recursive=False,
+        )
         unit_settings_dir = self.first_of(elements=_unit_settings_dirs)
         if unit_settings_dir is None:
-            unit_settings_dir = self.create_object(name="Units", class_name="IntUnit", location=self.settings_dir)
+            unit_settings_dir = self.create_object(
+                name="Units",
+                class_name=PFClassId.SETTINGS_FOLDER_UNITS.value,
+                location=self.settings_dir,
+            )
+            if unit_settings_dir is None:
+                msg = "Could not create unit settings directory."
+                raise RuntimeError(msg)
 
         loguru.logger.debug("Loading unit settings from PowerFactory... Done.")
-        return t.cast("PFTypes.DataDir", unit_settings_dir)
+        return unit_settings_dir
 
     def close(self) -> None:
         loguru.logger.info("Closing PowerFactory Interface...")
@@ -283,6 +309,18 @@ class PowerFactoryInterface:
             msg = f"Scenario {scen} does not exist."
             raise RuntimeError(msg)
 
+    def switch_grid_variant(self, grid_variant_name: str) -> None:
+        # first deactivate all existing variants to prevent overriding
+        for var in self.grid_variants():
+            var.Deactivate()  # use the built-in function to ignore error when variant is already deactive
+
+        variant = self.grid_variant(name=grid_variant_name)
+        if variant is not None:
+            self.activate_grid_variant(variant)
+        else:
+            msg = f"Grid variant {grid_variant_name} does not exist."
+            raise RuntimeError(msg)
+
     def compile_powerfactory_data(self, grid_name: str) -> PowerFactoryData:
         loguru.logger.debug("Compiling data from PowerFactory...")
         if grid_name == "*":
@@ -297,7 +335,7 @@ class PowerFactoryInterface:
                 raise RuntimeError(msg) from e
 
         project_name = self.project.loc_name
-        date = datetime.datetime.now().astimezone().date()
+        date = dt.datetime.now().astimezone().date()
 
         return PowerFactoryData(
             name=name,
@@ -383,6 +421,24 @@ class PowerFactoryInterface:
         )
         if stc.Deactivate():
             msg = "Could not deactivate case study."
+            raise RuntimeError(msg)
+
+    def activate_grid_variant(self, grid_var: PFTypes.GridVariant) -> None:
+        loguru.logger.debug(
+            "Activating grid variant {variant_name} application...",
+            variant_name=grid_var.loc_name,
+        )
+        if grid_var.Activate():
+            msg = "Could not activate grid variant."
+            raise RuntimeError(msg)
+
+    def deactivate_grid_variant(self, grid_var: PFTypes.GridVariant) -> None:
+        loguru.logger.debug(
+            "Deactivating grid variant {variant_name} application...",
+            variant_name=grid_var.loc_name,
+        )
+        if grid_var.Deactivate():
+            msg = "Could not deactivate grid variant."
             raise RuntimeError(msg)
 
     def set_default_unit_conversion(self) -> None:
@@ -480,21 +536,28 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def subloads_of(self, load: PFTypes.LoadLV) -> Sequence[PFTypes.LoadLVP]:
-        elements = self.elements_of(element=load, pattern="*.ElmLodlvp")
+        elements = self.elements_of(element=load, pattern="*." + PFClassId.LOAD_LV_PART.value)
         return [t.cast("PFTypes.LoadLVP", element) for element in elements]
 
     def result(self, name: str = "*", study_case_name: str = "*") -> PFTypes.Result | None:
         return self.first_of(elements=self.results(name=name, study_case_name=study_case_name))
 
     def results(self, name: str = "*", study_case_name: str = "*") -> Sequence[PFTypes.Result]:
-        elements = self.study_case_elements(class_name="ElmRes", name=name, study_case_name=study_case_name)
+        elements = self.study_case_elements(
+            class_name=PFClassId.RESULT.value,
+            name=name,
+            study_case_name=study_case_name,
+        )
         return [t.cast("PFTypes.Result", element) for element in elements]
 
-    def study_case(self, name: str = "*") -> PFTypes.StudyCase | None:
+    def study_case(self, name: str = "*", *, only_active: bool = False) -> PFTypes.StudyCase | None:
+        if only_active:
+            return self.app.GetActiveStudyCase()
+
         return self.first_of(elements=self.study_cases(name=name))
 
     def study_cases(self, name: str = "*") -> Sequence[PFTypes.StudyCase]:
-        elements = self.elements_of(element=self.study_case_dir, pattern=name + ".IntCase")
+        elements = self.elements_of(element=self.study_case_dir, pattern=name + "." + PFClassId.STUDY_CASE.value)
         return [t.cast("PFTypes.StudyCase", element) for element in elements]
 
     def scenario(self, name: str = "*", *, only_active: bool = False) -> PFTypes.Scenario | None:
@@ -506,6 +569,84 @@ class PowerFactoryInterface:
     def scenarios(self, name: str = "*") -> Sequence[PFTypes.Scenario]:
         elements = self.elements_of(element=self.scenario_dir, pattern=name)
         return [t.cast("PFTypes.Scenario", element) for element in elements]
+
+    def grid_variant(self, name: str = "*", *, only_active: bool = False) -> PFTypes.GridVariant | None:
+        return self.first_of(elements=self.grid_variants(name=name, only_active=only_active))
+
+    def grid_variants(self, name: str = "*", *, only_active: bool = False) -> Sequence[PFTypes.GridVariant]:
+        if only_active:
+            return [variant for variant in self.app.GetActiveNetworkVariations() if name in variant.loc_name]
+
+        elements = self.elements_of(element=self.grid_variant_dir, pattern=name + "." + PFClassId.VARIANT.value)
+        return [t.cast("PFTypes.GridVariant", element) for element in elements]
+
+    def grid_variant_stage(
+        self,
+        name: str = "*",
+        *,
+        grid_variant: PFTypes.GridVariant | None = None,
+        folder: PFTypes.DataObject | None = None,
+        only_active: bool = False,
+    ) -> PFTypes.GridVariantStage | None:
+        return self.first_of(
+            elements=self.grid_variant_stages(
+                name=name,
+                grid_variant=grid_variant,
+                folder=folder,
+                only_active=only_active,
+            ),
+        )
+
+    def grid_variant_stages(
+        self,
+        name: str = "*",
+        *,
+        grid_variant: PFTypes.GridVariant | None = None,
+        folder: PFTypes.DataObject | None = None,
+        only_active: bool = False,
+    ) -> Sequence[PFTypes.GridVariantStage]:
+        """Returns grid variant stages specified by affiliation and relenvance.
+
+        Within the root 'grid_variant_dir', subfolders can exist.
+        Thus, grid variants with the same name can be stored in different subfolders.
+        Grid variant stages with the same name can be exist in different grid variants.
+        Remark: If you want to get stages of this unique grid variant, just specify only grid_variant and no folder.
+
+        Arguments:
+            name {str} -- Name of requested grid variant stage (default: {"*"})
+
+        Keyword Arguments:
+            grid_variant {PFTypes.GridVariant | None} -- The parent grid variant related to (default: {None})
+            folder {PFTypes.DataObject | None} -- The parent grid variant folder to search (default: {None})
+            only_active {bool} -- Flag to return only currently ative grid variant stages (default: {False})
+
+        Returns:
+            {Sequence[PFTypes.GridVariantStage]} -- A List of existing grid variant stages
+        """
+
+        is_folder_none_and_variant_not_none = False
+        if folder is None:
+            folder = self.grid_variant_dir
+            if grid_variant is not None:
+                is_folder_none_and_variant_not_none = True
+
+        if only_active:
+            return [stage for stage in self.app.GetActiveStages(folder) if name in stage.loc_name]
+
+        if grid_variant is None:
+            elements = self.elements_of(element=folder, pattern=name)
+        elif is_folder_none_and_variant_not_none:
+            # check if unique grid variant is requested be used as parent for the stages or not
+            elements = self.elements_of(element=grid_variant, pattern=name)
+        else:
+            # get all variants within folder with the requested variant name
+            relevant_variants = self.elements_of(element=folder, pattern=grid_variant.loc_name)
+            # get all stages for all relevant_variants with the requested stage name
+            elements = []
+            for variant in relevant_variants:
+                elements += self.elements_of(element=variant, pattern=name)
+
+        return [t.cast("PFTypes.GridVariantStage", element) for element in elements]
 
     def line_type(self, name: str = "*") -> PFTypes.LineType | None:
         return self.first_of(elements=self.line_types(name=name))
@@ -539,19 +680,19 @@ class PowerFactoryInterface:
         return self.first_of(elements=self.areas(name=name))
 
     def areas(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
-        return self.grid_model_elements("ElmArea", name)
+        return self.grid_model_elements(PFClassId.AREA.value, name)
 
     def zone(self, name: str = "*") -> PFTypes.DataObject | None:
         return self.first_of(elements=self.zones(name=name))
 
     def zones(self, name: str = "*") -> Sequence[PFTypes.DataObject]:
-        return self.grid_model_elements("ElmZone", name)
+        return self.grid_model_elements(PFClassId.ZONE.value, name)
 
-    def grid_diagram(self, grid: str = "*") -> PFTypes.GridDiagram | None:
-        return self.first_of(elements=self.grid_diagrams(grid=grid))
+    def grid_diagram(self, name: str = "*") -> PFTypes.GridDiagram | None:
+        return self.first_of(elements=self.grid_diagrams(name=name))
 
-    def grid_diagrams(self, grid: str = "*") -> Sequence[PFTypes.GridDiagram]:
-        elements = self.grid_elements("IntGrfnet", grid=grid)
+    def grid_diagrams(self, name: str = "*") -> Sequence[PFTypes.GridDiagram]:
+        elements = self.grid_model_elements(PFClassId.GRID_GRAPHIC.value, name)
         return [t.cast("PFTypes.GridDiagram", element) for element in elements]
 
     def external_grid(self, name: str = "*", grid: str = "*") -> PFTypes.ExternalGrid | None:
@@ -564,14 +705,14 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.ExternalGrid]:
-        elements = self.grid_elements("ElmXNet", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.EXTERNAL_GRID.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
 
     def terminal(self, name: str = "*", grid: str = "*") -> PFTypes.Terminal | None:
         return self.first_of(elements=self.terminals(name=name, grid=grid))
 
     def terminals(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Terminal]:
-        elements = self.grid_elements("ElmTerm", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.TERMINAL.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Terminal", element) for element in elements]
 
     def cubicle(self, name: str = "*", grid: str = "*") -> PFTypes.StationCubicle | None:
@@ -584,28 +725,28 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.StationCubicle]:
-        elements = self.grid_elements("StaCubic", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.CUBICLE.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
 
     def coupler(self, name: str = "*", grid: str = "*") -> PFTypes.Coupler | None:
         return self.first_of(elements=self.couplers(name=name, grid=grid))
 
     def couplers(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Coupler]:
-        elements = self.grid_elements("ElmCoup", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.COUPLER.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Coupler", element) for element in elements]
 
     def switch(self, name: str = "*", grid: str = "*") -> PFTypes.Switch | None:
         return self.first_of(elements=self.switches(name=name, grid=grid))
 
     def switches(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Switch]:
-        elements = self.grid_elements("StaSwitch", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.SWITCH.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
     def bfuse(self, name: str = "*", grid: str = "*") -> PFTypes.BFuse | None:
         return self.first_of(elements=self.bfuses(name=name, grid=grid))
 
     def bfuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.BFuse]:
-        elements = self.grid_elements("RelFuse", name, grid)
+        elements = self.grid_elements(PFClassId.FUSE.value, name, grid)
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
         return [t.cast("PFTypes.BFuse", fuse) for fuse in bfuses]
@@ -614,7 +755,7 @@ class PowerFactoryInterface:
         return self.first_of(elements=self.efuses(name=name, grid=grid))
 
     def efuses(self, name: str = "*", grid: str = "*") -> Sequence[PFTypes.EFuse]:
-        elements = self.grid_elements("RelFuse", name, grid)
+        elements = self.grid_elements(PFClassId.FUSE.value, name, grid)
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         efuses = [fuse for fuse in fuses if self.is_efuse(fuse)]
         return [t.cast("PFTypes.EFuse", fuse) for fuse in efuses]
@@ -623,7 +764,7 @@ class PowerFactoryInterface:
         return self.first_of(elements=self.lines(name=name, grid=grid))
 
     def lines(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Line]:
-        elements = self.grid_elements("ElmLne", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.LINE.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Line", element) for element in elements]
 
     def transformer_2w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer2W | None:
@@ -636,7 +777,7 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Transformer2W]:
-        elements = self.grid_elements("ElmTr2", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.TRANSFORMER_2W.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
 
     def transformer_3w(self, name: str = "*", grid: str = "*") -> PFTypes.Transformer3W | None:
@@ -649,28 +790,28 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Transformer3W]:
-        elements = self.grid_elements("ElmTr3", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.TRANSFORMER_3W.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
 
     def load(self, name: str = "*", grid: str = "*") -> PFTypes.Load | None:
         return self.first_of(elements=self.loads(name=name, grid=grid))
 
     def loads(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Load]:
-        elements = self.grid_elements("ElmLod", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.LOAD.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Load", element) for element in elements]
 
     def load_lv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadLV | None:
         return self.first_of(elements=self.loads_lv(name=name, grid=grid))
 
     def loads_lv(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.LoadLV]:
-        elements = self.grid_elements("ElmLodLv", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.LOAD_LV.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.LoadLV", element) for element in elements]
 
     def load_mv(self, name: str = "*", grid: str = "*") -> PFTypes.LoadMV | None:
         return self.first_of(elements=self.loads_mv(name=name, grid=grid))
 
     def loads_mv(self, name: str = "*", grid: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.LoadMV]:
-        elements = self.grid_elements("ElmLodMv", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.LOAD_MV.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.LoadMV", element) for element in elements]
 
     def generator(self, name: str = "*", grid: str = "*") -> PFTypes.Generator | None:
@@ -683,7 +824,7 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Generator]:
-        elements = self.grid_elements("ElmGenstat", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.GENERATOR.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Generator", element) for element in elements]
 
     def pv_system(self, name: str = "*", grid: str = "*") -> PFTypes.PVSystem | None:
@@ -696,7 +837,7 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.PVSystem]:
-        elements = self.grid_elements("ElmPvsys", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.PVSYSTEM.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
 
     def ac_current_source(self, name: str = "*", grid: str = "*") -> PFTypes.AcCurrentSource | None:
@@ -709,14 +850,14 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.AcCurrentSource]:
-        elements = self.grid_elements("ElmIac", name, grid, calc_relevant=calc_relevant)
+        elements = self.grid_elements(PFClassId.CURRENT_SOURCE_AC.value, name, grid, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
 
     def grid(self, name: str = "*") -> PFTypes.Grid | None:
         return self.first_of(elements=self.grids(name=name))
 
     def grids(self, name: str = "*", *, calc_relevant: bool = False) -> Sequence[PFTypes.Grid]:
-        elements = self.grid_model_elements("ElmNet", name, calc_relevant=calc_relevant)
+        elements = self.grid_model_elements(PFClassId.GRID.value, name, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Grid", element) for element in elements]
 
     def grid_elements(
@@ -799,7 +940,7 @@ class PowerFactoryInterface:
             data = dataclasses.asdict(uc)
             element = self.create_object(
                 name=name,
-                class_name="SetVariable",
+                class_name=PFClassId.UNIT_VARIABLE.value,
                 location=self.unit_settings_dir,
                 data=data,
             )
@@ -814,24 +955,24 @@ class PowerFactoryInterface:
 
     def unit_conversion_settings(self) -> Sequence[PFTypes.UnitConversionSetting]:
         if self.unit_settings_dir is not None:
-            elements = self.elements_of(element=self.unit_settings_dir, pattern="*.SetVariable")
+            elements = self.elements_of(element=self.unit_settings_dir, pattern="*." + PFClassId.UNIT_VARIABLE.value)
             return [t.cast("PFTypes.UnitConversionSetting", element) for element in elements]
 
         return []
 
-    def create_result(  # noqa: PLR0913
+    def create_result(
         self,
         *,
         name: str,
         study_case: PFTypes.StudyCase,
-        data: dict[str, t.Any] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
         loguru.logger.debug("Create result object {name} ...", name=name)
         element = self.create_object(
             name=name,
-            class_name="ElmRes",
+            class_name=PFClassId.RESULT.value,
             location=study_case,
             data=data,
             force=force,
@@ -839,29 +980,169 @@ class PowerFactoryInterface:
         )
         return t.cast("PFTypes.Result", element) if element is not None else None
 
-    def create_object(  # noqa: PLR0913
+    def create_grid_variant(
+        self,
+        *,
+        name: str,
+        stage_name: str = "initial stage",
+        location: PFTypes.DataObject | None = None,
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.GridVariant | None:
+        """Create a grid variant with related variant stage.
+
+        Keyword Arguments:
+            name {str} -- The name of the grid variant to be created.
+            stage_name {str} -- The name of the variant stage related to the grid variant; at least one active stage is necessary (default: {"initial stage"}).
+            location {PFTypes.DataObject | None} -- The folder within which the variant should be created (default: {None}).
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation, nonetheless if variant already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
+
+        Returns:
+            {PFTypes.GridVariant | None} -- The created grid variant if successful.
+        """
+        if location is None:
+            location = self.grid_variant_dir
+
+        loguru.logger.debug("Create grid variant {name} ...", name=name)
+        variant = self.create_object(
+            name=name,
+            class_name=PFClassId.VARIANT.value,
+            location=location,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if variant is None:
+            loguru.logger.warning(
+                "{object_name}.{class_name} could not be created.",
+                object_name=name,
+                class_name=PFClassId.VARIANT.value,
+            )
+            return None
+        variant = t.cast("PFTypes.GridVariant", variant)
+
+        # create initial stage
+        stage = self.create_grid_variant_stage(
+            name=stage_name,
+            grid_variant=variant,
+        )
+
+        return variant if stage is not None else None
+
+    def create_grid_variant_stage(
+        self,
+        *,
+        name: str,
+        grid_variant: PFTypes.GridVariant,
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.GridVariantStage | None:
+        """Create a grid variant stage as child of the given grid variant.
+
+        Keyword Arguments:
+            name {str} -- The given name of the grid variant stage.
+            grid_variant {PFTypes.GridVariant} -- The name of the grid variant.
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation nonetheless if stage already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
+
+        Returns:
+            {PFTypes.GridVariantStage | None} -- The created grid variant stage if successful.
+        """
+        # try to catch possibly existing variant stage
+        stage = self.grid_variant_stage(
+            name=name,
+            grid_variant=grid_variant,
+        )
+
+        if stage is not None:
+            # if stage already exists and creation is forced, override existing stage
+            if force:
+                elm = self.create_object(
+                    name=name,
+                    class_name=PFClassId.VARIANT_STAGE.value,
+                    location=grid_variant,
+                    data=data,
+                    force=force,
+                    update=update,
+                )
+                stage = t.cast("PFTypes.GridVariantStage", elm) if elm else None
+            else:
+                loguru.logger.warning(
+                    "{object_name}.{class_name} already exists. Use force=True to create it anyway.",
+                    object_name=name,
+                    class_name=PFClassId.VARIANT_STAGE.value,
+                )
+        else:
+            # if stage does not exist, try to create a new one
+            activation_time = 0 if data is None else t.cast("int", data.get("tAcTime", 0))
+            error = grid_variant.NewStage(name, activation_time, 1)
+            if error:
+                loguru.logger.warning(
+                    "{object_name}.{class_name} could not be created.",
+                    object_name=name,
+                    class_name=PFClassId.VARIANT_STAGE.value,
+                )
+                return None
+
+        return stage
+
+    def create_folder(
+        self,
+        *,
+        name: str,
+        location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram,
+        force: bool = False,
+    ) -> PFTypes.DataObject | None:
+        """Create simple folder within given directory.
+
+        Keyword Arguments
+            name {str} -- The folder name.
+            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram} -- The directory where the folder should be created.
+            force {bool} -- Flag to force creation nonetheless if already exists (default: {False}).
+
+        Returns:
+            {PFTypes.DataObject | None} - The created folder if successful.
+        """
+        loguru.logger.debug("Create folder {name} in {location} ...", name=name, location=location.loc_name)
+        return self.create_object(
+            name=name,
+            class_name=PFClassId.FOLDER.value,
+            location=location,
+            force=force,
+        )
+
+    def create_object(
         self,
         *,
         name: str,
         class_name: str,
-        location: PFTypes.DataDir | PFTypes.StudyCase,
-        data: dict[str, t.Any] | None = None,
+        location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant,
+        data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
-        """Create a new object resp. element.
+        """Create an object at a given location.
+
+        Create an object at a specified location with attributes defined in a data dictionary.
+        Use the flags force and update to handle the action if an object with the choosen naem already exists.
 
         Keyword Arguments:
-            name {str} -- the name for the new object
-            class_name {str} -- the name of the object class in PowerFactory
-            location {PFTypes.DataDir | PFTypes.StudyCase} -- the location the new object to be stored
-            data {dict[str, any]} -- optional dictionary with object attributes
-            force {bool} -- flag if creation should be forced if object already exists (old object will be replaced)
-            update {bool} -- flag if attributes of already existing object should be updated
+            name {str} -- The name of the grid variant to be created.
+            class_name {str} -- The PowerFactory class name string for the type of object.
+            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- The directory the object should be created in.
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            PFTypes.DataObject -- the created object itself
+            {PFTypes.DataObject | None} -- The created object if successful.
         """
+
         _elements = self.elements_of(element=location, pattern=f"{name}.{class_name}")
         element = self.first_of(elements=_elements)
         if element is not None and force is False:
@@ -881,6 +1162,14 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
+    def update_object(self, element: PFTypes.DataObject, data: dict[str, ValidPFValue]) -> PFTypes.DataObject:
+        for key, value in data.items():
+            if getattr(element, key, None) is not None:
+                setattr(element, key, value)
+
+        self.load_project_folders_from_pf_db()
+        return element
+
     def calc_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
         return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
 
@@ -892,11 +1181,11 @@ class PowerFactoryInterface:
         """Run load flow calculation.
 
         Keyword Arguments:
-            ac {bool} -- the voltage system used for load flow calculation
-            symmetrical {bool} -- posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical)
+            ac {bool} -- The voltage system used for load flow calculation (default: {True}).
+            symmetrical {bool} -- Flag to indicate symmetrical (posivie sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
 
         Returns:
-            PFTypes.Result | None -- the result object of ldf
+            {PFTypes.Result | None} -- The default result object of load flow.
         """
         ldf_cmd = self.ldf_command()
         if ac:
@@ -914,14 +1203,6 @@ class PowerFactoryInterface:
 
         return self.result(name="All*")
 
-    def update_object(self, element: PFTypes.DataObject, data: dict[str, t.Any]) -> PFTypes.DataObject:
-        for key, value in data.items():
-            if getattr(element, key, None) is not None:
-                setattr(element, key, value)
-
-        self.load_project_folders_from_pf_db()
-        return element
-
     @staticmethod
     def delete_object(element: PFTypes.DataObject) -> None:
         if element.Delete():
@@ -936,14 +1217,14 @@ class PowerFactoryInterface:
         element.g. in case of detailed template or detailed substation.
 
         Arguments:
-            element {PFTypes.DataObject} -- the object itself for which a unique name is going to be created
-            grid_name {str} -- the name of the grid to which the object belongs (root)
+            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
+            grid_name {str} -- The name of the grid to which the object belongs (root).
 
         Keyword Arguments:
-            element_name {str | None} -- element name if needed to specify independently (default: {None})
+            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
 
         Returns:
-            str -- the unique name of the object
+            {str} -- The unique name of the object.
         """
 
         if element_name is None:
@@ -966,14 +1247,13 @@ class PowerFactoryInterface:
         Takes into account models in which the generator might be grouped in.
 
         Arguments:
-            generator {PFTypes.GeneratorBase} -- the generator object
+            generator {PFTypes.GeneratorBase} -- The generator object for which the name should be created.
 
         Keyword Arguments:
-            generator_name {str | None} -- name of generator or generator related object (e.g. external controller)
-            if needed to specify independently (default: {None})
+            generator_name {str | None} -- The already existing name of generator or generator related object (e.g. external controller) if needed to specify independently (default: {None})
 
         Returns:
-            str -- the name of the generator object
+            {str} -- The unique name of the generator object.
         """
         if generator_name is None:
             generator_name = generator.loc_name
@@ -988,10 +1268,10 @@ class PowerFactoryInterface:
         """Check if requested terminal is part of substation (parent).
 
         Arguments:
-            terminal {PFTypes.Terminal} -- the terminal for which the check is requested
+            terminal {PFTypes.Terminal} -- The terminal for which the check is requested.
 
         Returns:
-            bool -- result of check
+            {bool} -- The result of the check.
         """
 
         return terminal.cpSubstat is not None
@@ -1001,10 +1281,10 @@ class PowerFactoryInterface:
         """Combine iterable sequences with the same base type into one list.
 
         Arguments:
-            sequences {Iterable[T]} -- enumeration of sequences (all the same base type T)
+            sequences {Iterable[T]} -- An enumeration of sequences (all the same base type T).
 
         Returns:
-            list -- list of elements of base type T
+            {list} -- A list of elements of base type T.
         """
         return list(itertools.chain.from_iterable([*sequences]))
 
