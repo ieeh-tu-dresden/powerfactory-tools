@@ -7,14 +7,15 @@ from __future__ import annotations
 
 import datetime
 import itertools
+import logging
 import math
 import multiprocessing
 import pathlib
 import textwrap
 import typing
 
+import loguru
 import pydantic
-from loguru import logger
 from psdm.base import CosphiDir
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
@@ -173,6 +174,7 @@ class PowerFactoryExporter:
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = POWERFACTORY_VERSION
     python_version: str = PYTHON_VERSION
+    logging_level: int = logging.DEBUG
 
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
@@ -181,6 +183,7 @@ class PowerFactoryExporter:
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
             python_version=self.python_version,
+            logging_level=self.logging_level,
         )
 
     def __enter__(self) -> Self:
@@ -214,7 +217,7 @@ class PowerFactoryExporter:
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data
         """
 
-        logger.debug("Exporting {project_name}...", project_name=self.project_name)
+        loguru.logger.debug("Exporting {project_name}...", project_name=self.project_name)
         data = self.pfi.compile_powerfactory_data(self.grid_name)
         meta = self.create_meta_data(data=data)
 
@@ -261,7 +264,7 @@ class PowerFactoryExporter:
             verify_steadystate_case {bool} -- if True, associated topology is created to be checked against
         """
 
-        logger.debug("Exporting scenario {scenario_name}...", scenario_name=scenario_name)
+        loguru.logger.debug("Exporting scenario {scenario_name}...", scenario_name=scenario_name)
         if scenario_name is not None:
             self.pfi.switch_scenario(scenario_name)
 
@@ -288,7 +291,7 @@ class PowerFactoryExporter:
         )
 
     def export_topology(self, topology: Topology, topology_name: str | None, export_path: pathlib.Path) -> None:
-        logger.debug("Exporting topology {topology_name}...", topology_name=topology_name)
+        loguru.logger.debug("Exporting topology {topology_name}...", topology_name=topology_name)
         self.export_data(
             data=topology,
             data_name=topology_name,
@@ -302,7 +305,7 @@ class PowerFactoryExporter:
         topology_case_name: str | None,
         export_path: pathlib.Path,
     ) -> None:
-        logger.debug("Exporting topology case {topology_case_name}...", topology_case_name=topology_case_name)
+        loguru.logger.debug("Exporting topology case {topology_case_name}...", topology_case_name=topology_case_name)
         self.export_data(
             data=topology_case,
             data_name=topology_case_name,
@@ -316,7 +319,7 @@ class PowerFactoryExporter:
         steadystate_case_name: str | None,
         export_path: pathlib.Path,
     ) -> None:
-        logger.debug(
+        loguru.logger.debug(
             "Exporting steadystate case {steadystate_case_name}...",
             steadystate_case_name=steadystate_case_name,
         )
@@ -360,7 +363,7 @@ class PowerFactoryExporter:
 
     @staticmethod
     def create_meta_data(data: PowerFactoryData) -> Meta:
-        logger.debug("Creating meta data...")
+        loguru.logger.debug("Creating meta data...")
         grid_name = data.name.replace(" ", "-")
         project = data.project.replace(" ", "-")
         date = data.date
@@ -368,7 +371,7 @@ class PowerFactoryExporter:
         return Meta(name=grid_name, date=date, project=project)
 
     def create_topology(self, meta: Meta, data: PowerFactoryData) -> Topology:
-        logger.debug("Creating topology...")
+        loguru.logger.debug("Creating topology...")
         external_grids = self.create_external_grids(
             ext_grids=data.external_grids,
             grid_name=data.name,
@@ -407,7 +410,7 @@ class PowerFactoryExporter:
         ext_grids: Sequence[PFTypes.ExternalGrid],
         grid_name: str,
     ) -> Sequence[ExternalGrid]:
-        logger.info("Creating external grids...")
+        loguru.logger.info("Creating external grids...")
         external_grids = [self.create_external_grid(ext_grid, grid_name) for ext_grid in ext_grids]
         return self.pfi.filter_none(external_grids)
 
@@ -417,14 +420,17 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> ExternalGrid | None:
         name = self.pfi.create_name(ext_grid, grid_name)
-        logger.debug("Creating external_grid {ext_grid_name}...", ext_grid_name=name)
+        loguru.logger.debug("Creating external_grid {ext_grid_name}...", ext_grid_name=name)
         export, description = self.get_description(ext_grid)
         if not export:
-            logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
+            loguru.logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
             return None
 
         if ext_grid.bus1 is None:
-            logger.warning("External grid {ext_grid_name} not connected to any bus. Skipping.", ext_grid_name=name)
+            loguru.logger.warning(
+                "External grid {ext_grid_name} not connected to any bus. Skipping.",
+                ext_grid_name=name,
+            )
             return None
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name)
@@ -439,16 +445,16 @@ class PowerFactoryExporter:
         )
 
     def create_nodes(self, terminals: Sequence[PFTypes.Terminal], grid_name: str) -> Sequence[Node]:
-        logger.info("Creating nodes...")
+        loguru.logger.info("Creating nodes...")
         nodes = [self.create_node(terminal, grid_name) for terminal in terminals]
         return self.pfi.filter_none(nodes)
 
     def create_node(self, terminal: PFTypes.Terminal, grid_name: str) -> Node | None:
         export, description = self.get_description(terminal)
         name = self.pfi.create_name(terminal, grid_name)
-        logger.debug("Creating node {node_name}...", node_name=name)
+        loguru.logger.debug("Creating node {node_name}...", node_name=name)
         if not export:
-            logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
+            loguru.logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
@@ -467,7 +473,7 @@ class PowerFactoryExporter:
         fuses: Sequence[PFTypes.BFuse],
         grid_name: str,
     ) -> Sequence[Branch]:
-        logger.info("Creating branches...")
+        loguru.logger.info("Creating branches...")
         blines = [self.create_line(line, grid_name) for line in lines]
         bcouplers = [self.create_coupler(coupler, grid_name) for coupler in couplers]
         bfuses = [self.create_fuse(fuse, grid_name) for fuse in fuses]
@@ -480,21 +486,21 @@ class PowerFactoryExporter:
 
     def create_line(self, line: PFTypes.Line, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(line, grid_name)
-        logger.debug("Creating line {line_name}...", line_name=name)
+        loguru.logger.debug("Creating line {line_name}...", line_name=name)
         export, description = self.get_description(line)
         if not export:
-            logger.warning("Line {line_name} not set for export. Skipping.", line_name=name)
+            loguru.logger.warning("Line {line_name} not set for export. Skipping.", line_name=name)
             return None
 
         if line.bus1 is None or line.bus2 is None:
-            logger.warning("Line {line_name} not connected to buses on both sides. Skipping.", line_name=name)
+            loguru.logger.warning("Line {line_name} not connected to buses on both sides. Skipping.", line_name=name)
             return None
 
         t1 = line.bus1.cterm
         t2 = line.bus2.cterm
 
         if t1.systype != t2.systype:
-            logger.warning("Line {line_name} connected to DC and AC bus. Skipping.", line_name=name)
+            loguru.logger.warning("Line {line_name} connected to DC and AC bus. Skipping.", line_name=name)
             return None
 
         t1_name = self.pfi.create_name(t1, grid_name)
@@ -505,7 +511,7 @@ class PowerFactoryExporter:
 
         l_type = line.typ_id
         if l_type is None:
-            logger.warning(
+            loguru.logger.warning(
                 "Type not set for line {line_name}. Skipping.",
                 line_name=name,
             )
@@ -600,21 +606,21 @@ class PowerFactoryExporter:
 
     def create_coupler(self, coupler: PFTypes.Coupler, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(coupler, grid_name)
-        logger.debug("Creating coupler {coupler_name}...", coupler_name=name)
+        loguru.logger.debug("Creating coupler {coupler_name}...", coupler_name=name)
         export, description = self.get_description(coupler)
         if not export:
-            logger.warning("Coupler {coupler_name} not set for export. Skipping.", coupler_name=name)
+            loguru.logger.warning("Coupler {coupler_name} not set for export. Skipping.", coupler_name=name)
             return None
 
         if coupler.bus1 is None or coupler.bus2 is None:
-            logger.warning("Coupler {coupler} not connected to buses on both sides. Skipping.", coupler=coupler)
+            loguru.logger.warning("Coupler {coupler} not connected to buses on both sides. Skipping.", coupler=coupler)
             return None
 
         t1 = coupler.bus1.cterm
         t2 = coupler.bus2.cterm
 
         if t1.systype != t2.systype:
-            logger.warning("Coupler {coupler} connected to DC and AC bus. Skipping.", coupler=coupler)
+            loguru.logger.warning("Coupler {coupler} connected to DC and AC bus. Skipping.", coupler=coupler)
             return None
 
         if coupler.typ_id is not None:
@@ -635,7 +641,7 @@ class PowerFactoryExporter:
         if round(u_nom_1, 2) == round(u_nom_2, 2):
             u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
         else:
-            logger.warning(
+            loguru.logger.warning(
                 "Coupler {coupler_name} couples busbars with different voltage levels. Skipping.",
                 coupler_name=name,
             )
@@ -665,21 +671,21 @@ class PowerFactoryExporter:
 
     def create_fuse(self, fuse: PFTypes.BFuse, grid_name: str) -> Branch | None:
         name = self.pfi.create_name(fuse, grid_name)
-        logger.debug("Creating fuse {fuse_name}...", fuse_name=name)
+        loguru.logger.debug("Creating fuse {fuse_name}...", fuse_name=name)
         export, description = self.get_description(fuse)
         if not export:
-            logger.warning("Fuse {fuse_name} not set for export. Skipping.", fuse_name=name)
+            loguru.logger.warning("Fuse {fuse_name} not set for export. Skipping.", fuse_name=name)
             return None
 
         if fuse.bus1 is None or fuse.bus2 is None:
-            logger.warning("Fuse {fuse} not connected to buses on both sides. Skipping.", fuse=fuse)
+            loguru.logger.warning("Fuse {fuse} not connected to buses on both sides. Skipping.", fuse=fuse)
             return None
 
         t1 = fuse.bus1.cterm
         t2 = fuse.bus2.cterm
 
         if t1.systype != t2.systype:
-            logger.warning("Fuse {fuse} connected to DC and AC bus. Skipping.", fuse=fuse)
+            loguru.logger.warning("Fuse {fuse} connected to DC and AC bus. Skipping.", fuse=fuse)
             return None
 
         if fuse.typ_id is not None:
@@ -704,7 +710,7 @@ class PowerFactoryExporter:
         if round(u_nom_1, 2) == round(u_nom_2, 2):
             u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
         else:
-            logger.warning(
+            loguru.logger.warning(
                 "Fuse {fuse_name} couples busbars with different voltage levels. Skipping.",
                 fuse_name=name,
             )
@@ -751,7 +757,7 @@ class PowerFactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
-        logger.info("Creating transformers...")
+        loguru.logger.info("Creating transformers...")
         return self.create_transformers_2w(pf_transformers_2w, grid_name)
 
     def create_transformers_2w(
@@ -759,7 +765,7 @@ class PowerFactoryExporter:
         transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[Transformer]:
-        logger.info("Creating 2-winding transformers...")
+        loguru.logger.info("Creating 2-winding transformers...")
         transformers = [self.create_transformer_2w(transformer_2w, grid_name) for transformer_2w in transformers_2w]
         return self.pfi.filter_none(transformers)
 
@@ -769,17 +775,17 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> Transformer | None:
         name = self.pfi.create_name(element=transformer_2w, grid_name=grid_name)
-        logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
+        loguru.logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
         if not export:
-            logger.warning(
+            loguru.logger.warning(
                 "2-winding transformer {transformer_name} not set for export. Skipping.",
                 transformer_name=name,
             )
             return None
 
         if transformer_2w.buslv is None or transformer_2w.bushv is None:
-            logger.warning(
+            loguru.logger.warning(
                 "2-winding transformer {transformer_name} not connected to buses on both sides. Skipping.",
                 transformer_name=name,
             )
@@ -807,7 +813,7 @@ class PowerFactoryExporter:
             tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
 
             if bool(t_type.itapch2) is True:
-                logger.warning(
+                loguru.logger.warning(
                     "2-winding transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
                     transformer_name=name,
                 )
@@ -868,7 +874,7 @@ class PowerFactoryExporter:
                 vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
             except KeyError as e:
                 msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
-                logger.error(msg)
+                loguru.logger.error(msg)
                 raise RuntimeError from e
 
             vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
@@ -950,7 +956,10 @@ class PowerFactoryExporter:
                 windings=[wh, wl],
             )
 
-        logger.warning("Type not set for 2-winding transformer {transformer_name}. Skipping.", transformer_name=name)
+        loguru.logger.warning(
+            "Type not set for 2-winding transformer {transformer_name}. Skipping.",
+            transformer_name=name,
+        )
         return None
 
     @staticmethod
@@ -993,7 +1002,7 @@ class PowerFactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[Load]:
-        logger.info("Creating loads...")
+        loguru.logger.info("Creating loads...")
         normal_consumers = self.create_consumers_normal(consumers, grid_name)
         lv_consumers = self.create_consumers_lv(consumers_lv, grid_name)
         load_mvs = self.create_loads_mv(consumers_mv, grid_name)
@@ -1002,7 +1011,7 @@ class PowerFactoryExporter:
         return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
 
     def create_consumers_normal(self, loads: Sequence[PFTypes.Load], grid_name: str) -> Sequence[Load]:
-        logger.info("Creating normal consumers...")
+        loguru.logger.info("Creating normal consumers...")
         consumers = [self.create_consumer_normal(load=load, grid_name=grid_name) for load in loads]
         return self.pfi.filter_none(consumers)
 
@@ -1025,12 +1034,12 @@ class PowerFactoryExporter:
         return None
 
     def create_consumers_lv(self, loads: Sequence[PFTypes.LoadLV], grid_name: str) -> Sequence[Load]:
-        logger.info("Creating low voltage consumers...")
+        loguru.logger.info("Creating low voltage consumers...")
         consumers_lv_parts = [self.create_consumers_lv_parts(load, grid_name) for load in loads]
         return self.pfi.list_from_sequences(*consumers_lv_parts)
 
     def create_consumers_lv_parts(self, load: PFTypes.LoadLV, grid_name: str) -> Sequence[Load]:
-        logger.debug("Creating subconsumers for low voltage consumer {name}...", name=load.loc_name)
+        loguru.logger.debug("Creating subconsumers for low voltage consumer {name}...", name=load.loc_name)
         powers = self.calc_load_lv_powers(load)
         sfx_pre = "" if len(powers) == 1 else "_({})"
 
@@ -1048,7 +1057,7 @@ class PowerFactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[Load]:
-        logger.debug(
+        loguru.logger.debug(
             "Creating partial consumers for subconsumer {index} of low voltage consumer {name}...",
             index=index,
             name=load.loc_name,
@@ -1096,14 +1105,14 @@ class PowerFactoryExporter:
         return self.pfi.filter_none([consumer_fixed, consumer_night, consumer_flex])
 
     def create_loads_mv(self, loads: Sequence[PFTypes.LoadMV], grid_name: str) -> Sequence[Load]:
-        logger.info("Creating medium voltage loads...")
+        loguru.logger.info("Creating medium voltage loads...")
         loads_mv_ = [self.create_load_mv(load=load, grid_name=grid_name) for load in loads]
         loads_mv = self.pfi.list_from_sequences(*loads_mv_)
         return self.pfi.filter_none(loads_mv)
 
     def create_load_mv(self, load: PFTypes.LoadMV, grid_name: str) -> Sequence[Load | None]:
         power = self.calc_load_mv_power(load)
-        logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
+        loguru.logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
         phase_connection_type = (
             PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
             if load.typ_id is not None
@@ -1140,20 +1149,20 @@ class PowerFactoryExporter:
         load_model_default: Literal["U", "Z", "P"] = "P",
     ) -> Load | None:
         l_name = self.pfi.create_name(load, grid_name) + name_suffix
-        logger.debug("Creating consumer {load_name}...", load_name=l_name)
+        loguru.logger.debug("Creating consumer {load_name}...", load_name=l_name)
         export, description = self.get_description(load)
         if not export:
-            logger.warning("Consumer {load_name} not set for export. Skipping.", load_name=l_name)
+            loguru.logger.warning("Consumer {load_name} not set for export. Skipping.", load_name=l_name)
             return None
 
         bus = load.bus1
         if bus is None:
-            logger.warning("Consumer {load_name} not connected to any bus. Skipping.", load_name=l_name)
+            loguru.logger.warning("Consumer {load_name} not connected to any bus. Skipping.", load_name=l_name)
             return None
 
         phase_id = bus.cPhInfo
         if phase_id == "SPN":
-            logger.warning(
+            loguru.logger.warning(
                 "Load {load_name} is a 1-phase load which is currently not supported. Skipping.",
                 load_name=load.loc_name,
             )
@@ -1165,7 +1174,7 @@ class PowerFactoryExporter:
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         rated_power = power.as_rated_power()
-        logger.debug(
+        loguru.logger.debug(
             "{load_name}: there is no real rated power, it is calculated based on actual power.",
             load_name=l_name,
         )
@@ -1207,11 +1216,11 @@ class PowerFactoryExporter:
         load_type = load.typ_id
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
-                logger.warning(
+                loguru.logger.warning(
                     "Please check load model setting of {load_name} for RMS simulation.",
                     load_name=load.loc_name,
                 )
-                logger.info(
+                loguru.logger.info(
                     "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
@@ -1253,7 +1262,7 @@ class PowerFactoryExporter:
         generators: Sequence[PFTypes.Generator],
         grid_name: str,
     ) -> Sequence[Load]:
-        logger.info("Creating normal producers...")
+        loguru.logger.info("Creating normal producers...")
         producers = [self.create_producer_normal(generator=generator, grid_name=grid_name) for generator in generators]
         return self.pfi.filter_none(producers)
 
@@ -1282,7 +1291,7 @@ class PowerFactoryExporter:
         generators: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[Load]:
-        logger.info("Creating PV producers...")
+        loguru.logger.info("Creating PV producers...")
         producers = [self.create_producer_pv(generator=generator, grid_name=grid_name) for generator in generators]
         return self.pfi.filter_none(producers)
 
@@ -1337,10 +1346,10 @@ class PowerFactoryExporter:
         name_suffix: str = "",
     ) -> Load | None:
         gen_name = self.pfi.create_name(generator, grid_name, element_name=gen_name) + name_suffix
-        logger.debug("Creating producer {gen_name}...", gen_name=gen_name)
+        loguru.logger.debug("Creating producer {gen_name}...", gen_name=gen_name)
         export, description = self.get_description(generator)
         if not export:
-            logger.warning(
+            loguru.logger.warning(
                 "Generator {gen_name} not set for export. Skipping.",
                 gen_name=gen_name,
             )
@@ -1348,7 +1357,7 @@ class PowerFactoryExporter:
 
         bus = generator.bus1
         if bus is None:
-            logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
+            loguru.logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
             return None
 
         terminal = bus.cterm
@@ -1378,7 +1387,7 @@ class PowerFactoryExporter:
         )
 
     def create_topology_case(self, meta: Meta, data: PowerFactoryData) -> TopologyCase:
-        logger.debug("Creating topology case...")
+        loguru.logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(data.switches, grid_name=data.name)
         coupler_states = self.create_coupler_states(data.couplers, grid_name=data.name)
         bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.name)
@@ -1406,6 +1415,7 @@ class PowerFactoryExporter:
             element_power_on_states,
         )
         power_on_states = self.merge_power_on_states(power_on_states)
+
         return TopologyCase(meta=meta, elements=power_on_states)
 
     def merge_power_on_states(self, power_on_states: Sequence[ElementState]) -> Sequence[ElementState]:
@@ -1432,7 +1442,7 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
-        logger.info("Creating switch states...")
+        loguru.logger.info("Creating switch states...")
         states = [self.create_switch_state(switch=switch, grid_name=grid_name) for switch in switches]
         return self.pfi.filter_none(states)
 
@@ -1448,7 +1458,7 @@ class PowerFactoryExporter:
                 terminal = cub.cterm
                 node_name = self.pfi.create_name(terminal, grid_name)
                 element_name = self.pfi.create_name(element, grid_name)
-                logger.debug(
+                loguru.logger.debug(
                     "Creating switch state {node_name}-{element_name}...",
                     node_name=node_name,
                     element_name=element_name,
@@ -1468,7 +1478,7 @@ class PowerFactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-        logger.info("Creating coupler states...")
+        loguru.logger.info("Creating coupler states...")
         states = [self.create_coupler_state(coupler=coupler, grid_name=grid_name) for coupler in couplers]
         return self.pfi.filter_none(states)
 
@@ -1479,7 +1489,7 @@ class PowerFactoryExporter:
     ) -> ElementState | None:
         if not coupler.isclosed:
             element_name = self.pfi.create_name(coupler, grid_name)
-            logger.debug(
+            loguru.logger.debug(
                 "Creating coupler state {element_name}...",
                 element_name=element_name,
             )
@@ -1503,7 +1513,7 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
-        logger.info("Creating node power on states...")
+        loguru.logger.info("Creating node power on states...")
         states = [self.create_node_power_on_state(terminal=terminal, grid_name=grid_name) for terminal in terminals]
         return self.pfi.filter_none(states)
 
@@ -1514,7 +1524,7 @@ class PowerFactoryExporter:
     ) -> ElementState | None:
         if terminal.outserv:
             node_name = self.pfi.create_name(terminal, grid_name)
-            logger.debug(
+            loguru.logger.debug(
                 "Creating node power on state {node_name}...",
                 node_name=node_name,
             )
@@ -1537,7 +1547,7 @@ class PowerFactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-        logger.info("Creating element power on states...")
+        loguru.logger.info("Creating element power on states...")
         states = [self.create_element_power_on_state(element=element, grid_name=grid_name) for element in elements]
         return self.pfi.filter_none(states)
 
@@ -1548,7 +1558,7 @@ class PowerFactoryExporter:
     ) -> ElementState | None:
         if element.outserv:
             element_name = self.pfi.create_name(element, grid_name)
-            logger.debug(
+            loguru.logger.debug(
                 "Creating element power on state {element_name}...",
                 element_name=element_name,
             )
@@ -1567,14 +1577,14 @@ class PowerFactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-        logger.info("Creating fuse states...")
+        loguru.logger.info("Creating fuse states...")
         states = [self.create_bfuse_state(fuse=fuse, grid_name=grid_name) for fuse in fuses]
         return self.pfi.filter_none(states)
 
     def create_bfuse_state(self, fuse: PFTypes.BFuse, grid_name: str) -> ElementState | None:
         if not fuse.on_off or fuse.outserv:
             element_name = self.pfi.create_name(fuse, grid_name)
-            logger.debug(
+            loguru.logger.debug(
                 "Creating fuse state {element_name}...",
                 element_name=element_name,
             )
@@ -1594,7 +1604,7 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
-        logger.info("Creating fuse states...")
+        loguru.logger.info("Creating fuse states...")
         states = [self.create_efuse_state(fuse=fuse, grid_name=grid_name) for fuse in fuses]
         return self.pfi.filter_none(states)
 
@@ -1606,12 +1616,12 @@ class PowerFactoryExporter:
                 terminal = cub.cterm  # also accessible via 'fuse.cn_bus'
                 node_name = self.pfi.create_name(terminal, grid_name)
                 element_name = self.pfi.create_name(element, grid_name)
-                logger.debug(
+                loguru.logger.debug(
                     "Creating fuse state {node_name}-{element_name}...",
                     node_name=node_name,
                     element_name=element_name,
                 )
-                logger.warning(
+                loguru.logger.warning(
                     "Element fuse at {node_name}-{element_name}: Exporter considers element as disconnected due to open fuse, but in PowerFactory element will still be handled as connected.",
                     node_name=node_name,
                     element_name=element_name,
@@ -1621,7 +1631,7 @@ class PowerFactoryExporter:
         return None
 
     def create_steadystate_case(self, meta: Meta, data: PowerFactoryData) -> SteadystateCase:
-        logger.info("Creating steadystate case...")
+        loguru.logger.info("Creating steadystate case...")
         loads = self.create_loads_ssc(
             consumers=data.loads,
             consumers_lv=data.loads_lv,
@@ -1651,7 +1661,7 @@ class PowerFactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
-        logger.info("Creating transformers steadystate case...")
+        loguru.logger.info("Creating transformers steadystate case...")
         transformers_2w_sscs = self.create_transformers_2w_ssc(pf_transformers_2w, grid_name)
         return self.pfi.list_from_sequences(transformers_2w_sscs)
 
@@ -1660,7 +1670,7 @@ class PowerFactoryExporter:
         pf_transformers_2w: Sequence[PFTypes.Transformer2W],
         grid_name: str,
     ) -> Sequence[TransformerSSC]:
-        logger.info("Creating 2-winding transformers steadystate cases...")
+        loguru.logger.info("Creating 2-winding transformers steadystate cases...")
         transformers_2w_sscs = [
             self.create_transformer_2w_ssc(pf_transformer_2w=pf_transformer_2w, grid_name=grid_name)
             for pf_transformer_2w in pf_transformers_2w
@@ -1673,10 +1683,13 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> TransformerSSC | None:
         name = self.pfi.create_name(pf_transformer_2w, grid_name)
-        logger.debug("Creating 2-winding transformer {transformer_name} steadystate case...", transformer_name=name)
+        loguru.logger.debug(
+            "Creating 2-winding transformer {transformer_name} steadystate case...",
+            transformer_name=name,
+        )
         export, _ = self.get_description(pf_transformer_2w)
         if not export:
-            logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
+            loguru.logger.warning("Transformer {transformer_name} not set for export. Skipping.", transformer_name=name)
             return None
 
         # Transformer Tap Changer
@@ -1690,7 +1703,7 @@ class PowerFactoryExporter:
         ext_grids: Sequence[PFTypes.ExternalGrid],
         grid_name: str,
     ) -> Sequence[ExternalGridSSC]:
-        logger.info("Creating external grids steadystate case...")
+        loguru.logger.info("Creating external grids steadystate case...")
         ext_grid_sscs = [self.create_external_grid_ssc_state(grid, grid_name) for grid in ext_grids]
         return self.pfi.filter_none(ext_grid_sscs)
 
@@ -1700,14 +1713,17 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> ExternalGridSSC | None:
         name = self.pfi.create_name(ext_grid, grid_name)
-        logger.debug("Creating external grid {ext_grid_name} steadystate case...", ext_grid_name=name)
+        loguru.logger.debug("Creating external grid {ext_grid_name} steadystate case...", ext_grid_name=name)
         export, _ = self.get_description(ext_grid)
         if not export:
-            logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
+            loguru.logger.warning("External grid {ext_grid_name} not set for export. Skipping.", ext_grid_name=name)
             return None
 
         if ext_grid.bus1 is None:
-            logger.warning("External grid {ext_grid_name} not connected to any bus. Skipping.", ext_grid_name=name)
+            loguru.logger.warning(
+                "External grid {ext_grid_name} not connected to any bus. Skipping.",
+                ext_grid_name=name,
+            )
             return None
 
         g_type = GridType(ext_grid.bustp)
@@ -1743,7 +1759,7 @@ class PowerFactoryExporter:
         pv_systems: Sequence[PFTypes.PVSystem],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        logger.info("Creating loads steadystate case...")
+        loguru.logger.info("Creating loads steadystate case...")
         normal_consumers = self.create_consumers_ssc_normal(loads=consumers, grid_name=grid_name)
         lv_consumers = self.create_consumers_ssc_lv(loads=consumers_lv, grid_name=grid_name)
         mv_consumers = self.create_loads_ssc_mv(loads=consumers_mv, grid_name=grid_name)
@@ -1756,7 +1772,7 @@ class PowerFactoryExporter:
         loads: Sequence[PFTypes.Load],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        logger.info("Creating normal consumers steadystate case...")
+        loguru.logger.info("Creating normal consumers steadystate case...")
         consumers_ssc = [self.create_consumer_ssc_normal(load, grid_name) for load in loads]
         return self.pfi.filter_none(consumers_ssc)
 
@@ -1772,13 +1788,13 @@ class PowerFactoryExporter:
         return None
 
     def calc_normal_load_power(self, load: PFTypes.Load) -> LoadPower | None:
-        logger.debug("Calculating power for normal load {load_name}...", load_name=load.loc_name)
+        loguru.logger.debug("Calculating power for normal load {load_name}...", load_name=load.loc_name)
         power = self.calc_normal_load_power_sym(load) if not load.i_sym else self.calc_normal_load_power_asym(load)
 
         if power:
             return power
 
-        logger.warning("Power is not set for load {load_name}. Skipping.", load_name=load.loc_name)
+        loguru.logger.warning("Power is not set for load {load_name}. Skipping.", load_name=load.loc_name)
         return None
 
     def calc_normal_load_power_sym(self, load: PFTypes.Load) -> LoadPower | None:  # noqa: PLR0911
@@ -1815,7 +1831,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
 
-            logger.warning(
+            loguru.logger.warning(
                 "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
@@ -1843,7 +1859,7 @@ class PowerFactoryExporter:
                     scaling=scaling,
                     phase_connection_type=phase_connection_type,
                 )
-            logger.warning(
+            loguru.logger.warning(
                 "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
@@ -1910,7 +1926,7 @@ class PowerFactoryExporter:
                     cosphi_dir=cosphi_dir,
                     scaling=scaling,
                 )
-            logger.warning(
+            loguru.logger.warning(
                 "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
@@ -1952,7 +1968,7 @@ class PowerFactoryExporter:
                     cosphi_dir=cosphi_dir,
                     scaling=scaling,
                 )
-            logger.warning(
+            loguru.logger.warning(
                 "Load {load_name} is not connected to grid. Can not calculate power based on current and active power as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
@@ -1985,7 +2001,7 @@ class PowerFactoryExporter:
         raise RuntimeError(msg)
 
     def create_consumers_ssc_lv(self, loads: Sequence[PFTypes.LoadLV], grid_name: str) -> Sequence[LoadSSC]:
-        logger.info("Creating low voltage consumers steadystate case...")
+        loguru.logger.info("Creating low voltage consumers steadystate case...")
         consumers_ssc_lv_parts = [self.create_consumers_ssc_lv_parts(load, grid_name) for load in loads]
         return list(itertools.chain.from_iterable(consumers_ssc_lv_parts))
 
@@ -2047,7 +2063,7 @@ class PowerFactoryExporter:
         return [self.calc_load_lv_power_sym(sl) for sl in subloads]
 
     def calc_load_lv_power(self, load: PFTypes.LoadLV) -> LoadLV:
-        logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
+        loguru.logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         scaling = load.scale0
         cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
         if not load.i_sym:
@@ -2203,7 +2219,7 @@ class PowerFactoryExporter:
         loads: Sequence[PFTypes.LoadMV],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        logger.info("Creating medium voltage loads steadystate case...")
+        loguru.logger.info("Creating medium voltage loads steadystate case...")
         loads_ssc_mv_ = [self.create_load_ssc_mv(load=load, grid_name=grid_name) for load in loads]
         loads_ssc_mv = self.pfi.list_from_sequences(*loads_ssc_mv_)
         return self.pfi.filter_none(loads_ssc_mv)
@@ -2219,7 +2235,7 @@ class PowerFactoryExporter:
         return [consumer_ssc, producer_ssc]
 
     def calc_load_mv_power(self, load: PFTypes.LoadMV) -> LoadMV:
-        logger.debug("Calculating power for medium voltage load {load_name}...", load_name=load.loc_name)
+        loguru.logger.debug("Calculating power for medium voltage load {load_name}...", load_name=load.loc_name)
         if not load.ci_sym:
             return self.calc_load_mv_power_sym(load)
 
@@ -2269,7 +2285,7 @@ class PowerFactoryExporter:
             return LoadMV(consumer=power_consumer, producer=power_producer)
 
         if load_type == "EC":
-            logger.warning("Power from yearly demand is not implemented yet. Skipping.")
+            loguru.logger.warning("Power from yearly demand is not implemented yet. Skipping.")
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
@@ -2354,10 +2370,13 @@ class PowerFactoryExporter:
         name_suffix: str = "",
     ) -> LoadSSC | None:
         name = self.pfi.create_name(load, grid_name) + name_suffix
-        logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=name)
+        loguru.logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=name)
         export, _ = self.get_description(load)
         if not export:
-            logger.warning("External grid {consumer_ssc_name} not set for export. Skipping.", consumer_ssc_name=name)
+            loguru.logger.warning(
+                "External grid {consumer_ssc_name} not set for export. Skipping.",
+                consumer_ssc_name=name,
+            )
             return None
 
         active_power = power.as_active_power_ssc()
@@ -2374,7 +2393,7 @@ class PowerFactoryExporter:
         loads: Sequence[PFTypes.GeneratorBase],
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        logger.info("Creating producers steadystate case...")
+        loguru.logger.info("Creating producers steadystate case...")
         producers_ssc = [self.create_producer_ssc(generator=load, grid_name=grid_name) for load in loads]
         return self.pfi.filter_none(producers_ssc)
 
@@ -2385,15 +2404,21 @@ class PowerFactoryExporter:
     ) -> LoadSSC | None:
         gen_name = self.pfi.create_generator_name(generator)
         producer_name = self.pfi.create_name(generator, grid_name, element_name=gen_name)
-        logger.debug("Creating producer {producer_name} steadystate case...", producer_name=producer_name)
+        loguru.logger.debug("Creating producer {producer_name} steadystate case...", producer_name=producer_name)
         export, _ = self.get_description(generator)
         if not export:
-            logger.warning("Generator {producer_name} not set for export. Skipping.", producer_name=producer_name)
+            loguru.logger.warning(
+                "Generator {producer_name} not set for export. Skipping.",
+                producer_name=producer_name,
+            )
             return None
 
         bus = generator.bus1
         if bus is None:
-            logger.warning("Generator {producer_name} not connected to any bus. Skipping.", producer_name=producer_name)
+            loguru.logger.warning(
+                "Generator {producer_name} not connected to any bus. Skipping.",
+                producer_name=producer_name,
+            )
             return None
 
         terminal = bus.cterm
@@ -2435,7 +2460,7 @@ class PowerFactoryExporter:
         u_n: float,
         grid_name: str,
     ) -> Controller | None:
-        logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
+        loguru.logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
         if gen.bus1 is not None:
             node_target_name = self.pfi.create_name(gen.bus1.cterm, grid_name=grid_name)
         else:
@@ -2505,14 +2530,14 @@ class PowerFactoryExporter:
             return Controller(node_target=node_target_name, control_type=q_controller)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
-            logger.warning(
+            loguru.logger.warning(
                 "Generator {gen_name}: Voltage control with Q-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
             )
             return None
 
         if av_mode == LocalQCtrlMode.U_I_DROOP:
-            logger.warning(
+            loguru.logger.warning(
                 "Generator {gen_name}: Voltage control with I-droop is not implemented yet. Skipping.",
                 gen_name=gen.loc_name,
             )
@@ -2529,7 +2554,7 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> Controller | None:
         controller_name = self.pfi.create_generator_name(gen, generator_name=controller.loc_name)
-        logger.debug(
+        loguru.logger.debug(
             "Creating producer {gen_name} external Q controller {controller_name}...",
             gen_name=gen.loc_name,
             controller_name=controller_name,
@@ -2538,7 +2563,7 @@ class PowerFactoryExporter:
         # Controlled node
         node_target_cub = controller.p_cub
         if node_target_cub is None:
-            logger.warning(
+            loguru.logger.warning(
                 "Generator {gen_name}: external controller has no target node. Skipping.",
                 gen_name=gen.loc_name,
             )

@@ -9,7 +9,7 @@ import math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from loguru import logger
+import loguru
 from psdm.base import CosphiDir
 from psdm.steadystate_case.active_power import ActivePower
 from psdm.steadystate_case.reactive_power import ReactivePower
@@ -212,7 +212,9 @@ class LoadPower:
         try:
             pow_app = abs(pow_act / cosphi)
         except ZeroDivisionError:
-            logger.warning("`cosphi` is 0, but only active power is given. Actual state could not be determined.")
+            loguru.logger.warning(
+                "`cosphi` is 0, but only active power is given. Actual state could not be determined.",
+            )
             return {
                 "power_apparent": 0,
                 "power_active": 0,
@@ -284,7 +286,9 @@ class LoadPower:
         try:
             pow_app = abs(pow_react / math.sin(math.acos(cosphi)))
         except ZeroDivisionError:
-            logger.warning("`cosphi` is 1, but only reactive power is given. Actual state could not be determined.")
+            loguru.logger.warning(
+                "`cosphi` is 1, but only reactive power is given. Actual state could not be determined.",
+            )
             return {
                 "power_apparent": 0,
                 "power_active": 0,
