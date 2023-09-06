@@ -7,6 +7,7 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
+  - [ General Remarks](#-remarks)
   - [ Installation](#-installation)
   - [ Compatibility](#-compatibility)
   - [ Development](#-development)
@@ -20,16 +21,32 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
 The following functionalities are provided:
 
-* export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
-* basic control of PowerFactory
-* [intended in future release] import from external grid data into the PowerFactory environment
++ export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
++ basic control of PowerFactory
++ [intended in future release] import from external grid data into the PowerFactory environment
 
 ## <div id="tutorials" /> Tutorials
 
 Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
-* for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-* for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
++ for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
++ for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+
+## <div id="remarks" /> General Remarks
+
+Please find below some general remarks and assumptions to consider for the application:
+
++ By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
++ The `Rated Power` is always defined positive (absolute value).
++ Export of `transformer`:
+  + Impedances of all winding objects are referred to the high voltage side of the transformer.
+  + Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
++ Export of `fuses`:
+  + Branch like fuses are exported as switching state.
+  + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
++ Export of `SteadyStateCase`: the load centered counting system is used for all types of loads.
+
+
 
 ## <div id="installation" /> Installation
 
