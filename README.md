@@ -34,7 +34,7 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 ## <div id="remarks" /> General Remarks
 
-Please find below some general remarks and assumptions to consider for the application:
+Please find below some important general remarks and assumptions to consider for the application:
 
 + By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
 + The `Rated Power` is always defined positive (absolute value).
@@ -46,7 +46,8 @@ Please find below some general remarks and assumptions to consider for the appli
   + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
 + Export of `SteadyStateCase`:
   + The load centered counting system is used for all types of loads.
-  + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
+  + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator. 
+  The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported q operating point is the same that set by the station controller.
 
 
 ## <div id="installation" /> Installation
