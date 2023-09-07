@@ -420,8 +420,8 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/IS1.2",
-      "node_1": "Node_9/BB1",
+      "name": "Node_9/IS1.3",
+      "node_1": "Node_9/BB2",
       "node_2": "Node_9/T1.2",
       "r0": null,
       "r1": 0.0,
@@ -449,8 +449,8 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/IS1.3",
-      "node_1": "Node_9/BB2",
+      "name": "Node_9/IS1.2",
+      "node_1": "Node_9/BB1",
       "node_2": "Node_9/T1.2",
       "r0": null,
       "r1": 0.0,
@@ -633,67 +633,6 @@
       "active_power": {
         "characteristic": null,
         "load_model": {
-          "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 0,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_general"
-        }
-      },
-      "connected_phases": {
-        "n_connected_phases": 3,
-        "phases_a": [
-          "A",
-          "B"
-        ],
-        "phases_b": [
-          "B",
-          "C"
-        ],
-        "phases_c": [
-          "C",
-          "A"
-        ]
-      },
-      "description": "",
-      "name": "Load_1",
-      "node": "Node_1",
-      "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.990309,
-        "cosphi_a": 0.990309,
-        "cosphi_b": 0.990309,
-        "cosphi_c": 0.990309,
-        "is_symmetrical": true,
-        "power_type": "AC_APPARENT",
-        "value": 10097857.0,
-        "value_a": 3365952.27,
-        "value_b": 3365952.27,
-        "value_c": 3365952.27
-      },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 0.0,
-          "c_z": 1.0,
-          "exp_i": 0,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_general"
-        }
-      },
-      "system_type": "FIXED_CONSUMPTION",
-      "type": "CONSUMER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": {
           "c_i": 1.0,
           "c_p": 0.0,
           "c_z": 0.0,
@@ -744,6 +683,67 @@
           "exp_p": 0,
           "exp_z": 2,
           "name": "Load_const_current"
+        }
+      },
+      "system_type": "FIXED_CONSUMPTION",
+      "type": "CONSUMER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": {
+          "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 0,
+          "exp_p": 0,
+          "exp_z": 2,
+          "name": "Load_general"
+        }
+      },
+      "connected_phases": {
+        "n_connected_phases": 3,
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
+      "description": "",
+      "name": "Load_1",
+      "node": "Node_1",
+      "phase_connection_type": "THREE_PH_D",
+      "rated_power": {
+        "cosphi": 0.990309,
+        "cosphi_a": 0.990309,
+        "cosphi_b": 0.990309,
+        "cosphi_c": 0.990309,
+        "is_symmetrical": true,
+        "power_type": "AC_APPARENT",
+        "value": 10097857.0,
+        "value_a": 3365952.27,
+        "value_b": 3365952.27,
+        "value_c": 3365952.27
+      },
+      "reactive_power": {
+        "external_controller_name": null,
+        "load_model": {
+          "c_i": 0.0,
+          "c_p": 0.0,
+          "c_z": 1.0,
+          "exp_i": 0,
+          "exp_p": 0,
+          "exp_z": 2,
+          "name": "Load_general"
         }
       },
       "system_type": "FIXED_CONSUMPTION",
@@ -1346,8 +1346,8 @@
           "A"
         ]
       },
-      "description": "Q-Control: cosphi(P)-Charakteristik",
-      "name": "StatGenerator_2",
+      "description": "Q-Control: konst cosphi",
+      "name": "StatGenerator_3",
       "node": "Node_4",
       "phase_connection_type": "THREE_PH_D",
       "rated_power": {
@@ -1363,10 +1363,10 @@
         "value_c": 333333.33
       },
       "reactive_power": {
-        "external_controller_name": "Anlagenregelung_cosphi(P)",
+        "external_controller_name": null,
         "load_model": null
       },
-      "system_type": "STAT_GEN",
+      "system_type": "WIND",
       "type": "PRODUCER",
       "u_n": 110000.0,
       "voltage_system_type": "AC"
@@ -1406,51 +1406,6 @@
         "value_a": 3703333.22,
         "value_b": 3703333.22,
         "value_c": 3703333.22
-      },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": null
-      },
-      "system_type": "WIND",
-      "type": "PRODUCER",
-      "u_n": 110000.0,
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power": {
-        "characteristic": null,
-        "load_model": null
-      },
-      "connected_phases": {
-        "n_connected_phases": 3,
-        "phases_a": [
-          "A",
-          "B"
-        ],
-        "phases_b": [
-          "B",
-          "C"
-        ],
-        "phases_c": [
-          "C",
-          "A"
-        ]
-      },
-      "description": "Q-Control: konst cosphi",
-      "name": "StatGenerator_3",
-      "node": "Node_4",
-      "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.8,
-        "cosphi_a": 0.8,
-        "cosphi_b": 0.8,
-        "cosphi_c": 0.8,
-        "is_symmetrical": true,
-        "power_type": "AC_APPARENT",
-        "value": 1000000.0,
-        "value_a": 333333.33,
-        "value_b": 333333.33,
-        "value_c": 333333.33
       },
       "reactive_power": {
         "external_controller_name": null,
@@ -1520,6 +1475,51 @@
           "A"
         ]
       },
+      "description": "Q-Control: cosphi(P)-Charakteristik",
+      "name": "StatGenerator_2",
+      "node": "Node_4",
+      "phase_connection_type": "THREE_PH_D",
+      "rated_power": {
+        "cosphi": 0.8,
+        "cosphi_a": 0.8,
+        "cosphi_b": 0.8,
+        "cosphi_c": 0.8,
+        "is_symmetrical": true,
+        "power_type": "AC_APPARENT",
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
+      },
+      "reactive_power": {
+        "external_controller_name": "Anlagenregelung_cosphi(P)",
+        "load_model": null
+      },
+      "system_type": "STAT_GEN",
+      "type": "PRODUCER",
+      "u_n": 110000.0,
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power": {
+        "characteristic": null,
+        "load_model": null
+      },
+      "connected_phases": {
+        "n_connected_phases": 3,
+        "phases_a": [
+          "A",
+          "B"
+        ],
+        "phases_b": [
+          "B",
+          "C"
+        ],
+        "phases_c": [
+          "C",
+          "A"
+        ]
+      },
       "description": "",
       "name": "PV-System",
       "node": "Node_4",
@@ -1548,8 +1548,8 @@
   ],
   "meta": {
     "case": null,
-    "date": "2023-09-06",
-    "id": "5122ff5b-f8fc-4348-8ac7-5a3f8193f15a",
+    "date": "2023-09-07",
+    "id": "a7ae1bc8-e311-4585-a1f8-1b3c71e4ec0c",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   },
@@ -1596,12 +1596,12 @@
     },
     {
       "description": "",
-      "name": "Node_7_LV",
+      "name": "Node_8_LV",
       "u_n": 400.0
     },
     {
       "description": "",
-      "name": "Node_8_LV",
+      "name": "Node_7_LV",
       "u_n": 400.0
     },
     {
