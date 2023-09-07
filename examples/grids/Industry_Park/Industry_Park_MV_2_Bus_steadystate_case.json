@@ -1,14 +1,14 @@
 {
   "external_grids": [
     {
-      "name": "ExternalGrid",
+      "name": "HV_9_Bus/ExternalGrid",
       "p_0": null,
       "phi_0": 0.0,
       "q_0": null,
       "u_0": 110000.0
     },
     {
-      "name": "ExternalGrid_2",
+      "name": "HV_9_Bus/ExternalGrid_2",
       "p_0": 10000000.0,
       "phi_0": null,
       "q_0": null,
@@ -19,30 +19,12 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 60000000.0,
+        "value_a": 20000000.0,
+        "value_b": 20000000.0,
+        "value_c": 20000000.0
       },
-      "name": "Load_1",
-      "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value": 9897813.0,
-        "value_a": 3299270.92,
-        "value_b": 3299270.92,
-        "value_c": 3299270.92
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
-      },
-      "name": "Load_3",
+      "name": "HV_9_Bus/Load_3",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -55,30 +37,48 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 10000000.0,
+        "value_a": 3333333.33,
+        "value_b": 3333333.33,
+        "value_c": 3333333.33
       },
-      "name": "Load_2",
+      "name": "HV_9_Bus/Load_1",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
-        "value": -10000000.0,
-        "value_a": -3333333.38,
-        "value_b": -3333333.38,
-        "value_c": -3333333.38
+        "value": 1402395.0,
+        "value_a": 467465.02,
+        "value_b": 467465.02,
+        "value_c": 467465.02
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 49999997.0,
+        "value_a": 16666665.83,
+        "value_b": 16666665.83,
+        "value_c": 16666665.83
       },
-      "name": "Load_9",
+      "name": "HV_9_Bus/Load_2",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": -10000012.0,
+        "value_a": -3333337.39,
+        "value_b": -3333337.39,
+        "value_c": -3333337.39
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value": 20000000.0,
+        "value_a": 6666666.67,
+        "value_b": 6666666.67,
+        "value_c": 6666666.67
+      },
+      "name": "HV_9_Bus/Load_9",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -96,7 +96,7 @@
         "value_b": 1000.0,
         "value_c": 0.0
       },
-      "name": "Load_8",
+      "name": "HV_9_Bus/Load_8",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -108,13 +108,31 @@
     },
     {
       "active_power": {
+        "is_symmetrical": true,
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
+      },
+      "name": "Industry_Load",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
+      }
+    },
+    {
+      "active_power": {
         "is_symmetrical": false,
         "value": 8441.0,
         "value_a": 2078.46,
         "value_b": 3510.29,
         "value_c": 2852.11
       },
-      "name": "LV_Load_7a_FIXED_CONSUMPTION",
+      "name": "HV_9_Bus/LV_Load_7a_FIXED_CONSUMPTION",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": false,
@@ -132,7 +150,7 @@
         "value_b": 3333.33,
         "value_c": 3333.33
       },
-      "name": "LV_Load_7b_(0)_FIXED_CONSUMPTION",
+      "name": "HV_9_Bus/LV_Load_7b_(0)_FIXED_CONSUMPTION",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -150,7 +168,7 @@
         "value_b": 666.67,
         "value_c": 666.67
       },
-      "name": "LV_Load_7b_(0)_NIGHT_STORAGE",
+      "name": "HV_9_Bus/LV_Load_7b_(0)_NIGHT_STORAGE",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -168,7 +186,7 @@
         "value_b": 1520.0,
         "value_c": 1520.0
       },
-      "name": "LV_Load_7b_(1)_VARIABLE_CONSUMPTION",
+      "name": "HV_9_Bus/LV_Load_7b_(1)_VARIABLE_CONSUMPTION",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -186,7 +204,7 @@
         "value_b": 3166666.63,
         "value_c": 3166666.63
       },
-      "name": "MV_Load_6_CONSUMER",
+      "name": "HV_9_Bus/MV_Load_6_CONSUMER",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -204,7 +222,7 @@
         "value_b": -60000.0,
         "value_c": -60000.0
       },
-      "name": "MV_Load_6_PRODUCER",
+      "name": "HV_9_Bus/MV_Load_6_PRODUCER",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
@@ -222,7 +240,7 @@
         "value_b": -166666.67,
         "value_c": -166666.67
       },
-      "name": "StatGenerator_1",
+      "name": "HV_9_Bus/StatGenerator_1",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -230,7 +248,7 @@
             "q_set": -300000.0
           },
           "external_controller_name": null,
-          "node_target": "Node_4"
+          "node_target": "HV_9_Bus/Node_4"
         },
         "is_symmetrical": true,
         "value": -300000.0,
@@ -242,29 +260,27 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": -400000.0,
-        "value_a": -133333.34,
-        "value_b": -133333.34,
-        "value_c": -133333.34
+        "value": -500000.0,
+        "value_a": -166666.67,
+        "value_b": -166666.67,
+        "value_c": -166666.67
       },
-      "name": "StatGenerator_2",
+      "name": "HV_9_Bus/StatGenerator_3",
       "reactive_power": {
         "controller": {
           "control_type": {
-            "control_strategy": "COSPHI_P",
-            "cosphi_oe": 0.96,
-            "cosphi_ue": 0.95,
-            "p_threshold_oe": -300000.0,
-            "p_threshold_ue": -800000.0
+            "control_strategy": "COSPHI_CONST",
+            "cosphi": 0.7,
+            "cosphi_dir": "UE"
           },
-          "external_controller_name": "Anlagenregelung_cosphi(P)",
-          "node_target": "Node_4"
+          "external_controller_name": null,
+          "node_target": "HV_9_Bus/Node_4"
         },
         "is_symmetrical": true,
-        "value": -128292.0,
-        "value_a": -42763.97,
-        "value_b": -42763.97,
-        "value_c": -42763.97
+        "value": 510102.0,
+        "value_a": 170034.01,
+        "value_b": 170034.01,
+        "value_c": 170034.01
       }
     },
     {
@@ -275,7 +291,7 @@
         "value_b": -1666666.67,
         "value_c": -1666666.67
       },
-      "name": "WTG",
+      "name": "HV_9_Bus/WTG",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -289,39 +305,13 @@
             "u_q0": 110000.0
           },
           "external_controller_name": null,
-          "node_target": "Node_WTG"
+          "node_target": "HV_9_Bus/Node_WTG"
         },
         "is_symmetrical": true,
         "value": -0.0,
         "value_a": -0.0,
         "value_b": -0.0,
         "value_c": -0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value": -500000.0,
-        "value_a": -166666.67,
-        "value_b": -166666.67,
-        "value_c": -166666.67
-      },
-      "name": "StatGenerator_3",
-      "reactive_power": {
-        "controller": {
-          "control_type": {
-            "control_strategy": "COSPHI_CONST",
-            "cosphi": 0.7,
-            "cosphi_dir": "UE"
-          },
-          "external_controller_name": null,
-          "node_target": "Node_4"
-        },
-        "is_symmetrical": true,
-        "value": 510102.0,
-        "value_a": 170034.01,
-        "value_b": 170034.01,
-        "value_c": 170034.01
       }
     },
     {
@@ -332,7 +322,7 @@
         "value_b": -0.0,
         "value_c": -0.0
       },
-      "name": "Battery",
+      "name": "HV_9_Bus/Battery",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -340,7 +330,7 @@
             "q_set": -0.0
           },
           "external_controller_name": null,
-          "node_target": "Node_8_LV"
+          "node_target": "HV_9_Bus/Node_8_LV"
         },
         "is_symmetrical": true,
         "value": -0.0,
@@ -352,12 +342,40 @@
     {
       "active_power": {
         "is_symmetrical": true,
+        "value": -400000.0,
+        "value_a": -133333.34,
+        "value_b": -133333.34,
+        "value_c": -133333.34
+      },
+      "name": "HV_9_Bus/StatGenerator_2",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "COSPHI_P",
+            "cosphi_oe": 0.96,
+            "cosphi_ue": 0.95,
+            "p_threshold_oe": -300000.0,
+            "p_threshold_ue": -800000.0
+          },
+          "external_controller_name": "Anlagenregelung_cosphi(P)",
+          "node_target": "HV_9_Bus/Node_4"
+        },
+        "is_symmetrical": true,
+        "value": -85319.0,
+        "value_a": -28439.67,
+        "value_b": -28439.67,
+        "value_c": -28439.67
+      }
+    },
+    {
+      "active_power": {
+        "is_symmetrical": true,
         "value": -16000000.0,
         "value_a": -5333333.33,
         "value_b": -5333333.33,
         "value_c": -5333333.33
       },
-      "name": "PV-System",
+      "name": "HV_9_Bus/PV-System",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -365,7 +383,7 @@
             "q_set": -7749140.0
           },
           "external_controller_name": null,
-          "node_target": "Node_4"
+          "node_target": "HV_9_Bus/Node_4"
         },
         "is_symmetrical": true,
         "value": -7749140.0,
@@ -376,19 +394,23 @@
     }
   ],
   "meta": {
-    "case": null,
-    "date": "2023-09-06",
-    "id": "36761b01-e90a-4eff-a68e-ff521bbdb2bb",
-    "name": "HV_9_Bus",
+    "case": "Industry_Park",
+    "date": "2023-09-07",
+    "id": "0c2910bb-ad05-4046-b12a-d640cf873810",
+    "name": "MV_2_Bus",
     "project": "PowerFactory-Tools"
   },
   "transformers": [
     {
-      "name": "Transformer_2w_110/20",
+      "name": "HV_9_Bus/Transformer_2w_110/20",
       "tap_pos": 0
     },
     {
-      "name": "Transformer_2w_20/0.4",
+      "name": "HV_9_Bus/Transformer_2w_20/0.4",
+      "tap_pos": 0
+    },
+    {
+      "name": "Industry_Transformer_2w_110/20",
       "tap_pos": 0
     }
   ]
