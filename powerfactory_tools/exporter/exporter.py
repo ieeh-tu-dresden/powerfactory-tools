@@ -72,6 +72,7 @@ from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
+from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
@@ -264,6 +265,11 @@ class PowerFactoryExporter:
         steadystate_case_name: str | None,
     ) -> None:
         grids = self.pfi.grids(calc_relevant=True)
+        # Remove superior grid which exists at study case level
+        superior_grids = self.pfi.elements_of(self.pfi.app.GetActiveStudyCase(), pattern="*." + PFClassId.GRID.value)
+        for g in superior_grids:
+            grids.remove(g)
+
         for grid in grids:
             grid_name = grid.loc_name
             loguru.logger.info(
@@ -282,12 +288,6 @@ class PowerFactoryExporter:
             if steadystate_case.is_valid_topology(topology) is False:
                 msg = "Steadystate case does not match specified topology."
                 raise ValueError(msg)
-
-            topology_name = grid_name if topology_name is None else f"{topology_name}_{grid_name}"
-            topology_case_name = grid_name if topology_case_name is None else f"{topology_case_name}_{grid_name}"
-            steadystate_case_name = (
-                grid_name if steadystate_case_name is None else f"{steadystate_case_name}_{grid_name}"
-            )
 
             self.export_topology(
                 topology=topology,
@@ -384,11 +384,11 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{grid_name}_{timestamp_string}_{data_type}_{data.meta.case}.json"
+                filename = f"{data.meta.case}_{grid_name}_{data_type}.json"
             else:
-                filename = f"{grid_name}_{timestamp_string}_{data_type}.json"
+                filename = f"{data.meta.case}_{grid_name}_{data_type}_{timestamp_string}.json"
         else:
-            filename = f"{data_name}_{data_type}.json"
+            filename = f"{data_name}_{grid_name}_{data_type}.json"
 
         file_path = export_path / filename
         try:

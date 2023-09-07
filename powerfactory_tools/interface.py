@@ -153,7 +153,7 @@ class PowerFactoryInterface:
     def load_project_folders_from_pf_db(self) -> None:
         self.load_project_setting_folders_from_pf_db()
 
-        self.grid_model = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_MODEL.value))
+        self.grid_model_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_MODEL.value))
         self.types_dir = t.cast(
             "PFTypes.ProjectFolder",
             self.app.GetProjectFolder(FolderType.EQUIPMENT_TYPE_LIBRARY.value),
@@ -161,7 +161,7 @@ class PowerFactoryInterface:
         self.op_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.OPERATIONAL_LIBRARY.value))
         self.chars_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.CHARACTERISTICS.value))
 
-        self.grid_data = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_DATA.value))
+        self.grid_data_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.NETWORK_DATA.value))
         self.grid_graphs_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.DIAGRAMS.value))
 
         self.study_case_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.STUDY_CASES.value))
@@ -424,7 +424,7 @@ class PowerFactoryInterface:
             "Activating study_case {study_case_name} application...",
             study_case_name=study_case.loc_name,
         )
-        if study_case.Activate():
+        if study_case.loc_name != self.app.GetActiveStudyCase().loc_name and study_case.Activate():
             msg = "Could not activate case study."
             raise RuntimeError(msg)
 
@@ -1266,7 +1266,7 @@ class PowerFactoryInterface:
         if calc_relevant:
             return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
 
-        return self.elements_of(self.grid_model, pattern=name + "." + class_name)
+        return self.elements_of(self.grid_model_dir, pattern=name + "." + class_name)
 
     def equipment_type_elements(
         self,
