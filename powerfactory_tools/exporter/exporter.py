@@ -202,11 +202,12 @@ class PowerFactoryExporter:
         three json files with given schema. The whole grid data is separated into topology (raw assets), topology_case
         (binary switching info and out of service info) and steadystate_case (operation points).
 
-        Arguments:
+        Keyword Arguments:
             export_path {pathlib.Path} -- the directory where the exported json files are saved
-            topology_name {str} -- the chosen file name for 'topology' data
-            topology_case_name {str} -- the chosen file name for related 'topology_case' data
-            steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data
+            topology_name {str} -- the chosen file name for 'topology' data (default: {None})
+            topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
+            steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
+            study_case_names {list[str]} -- a list of study cases to export (default: {None})
         """
 
         if study_case_names is not None:
@@ -218,9 +219,10 @@ class PowerFactoryExporter:
                 steadystate_case_name=steadystate_case_name,
             )
         else:
+            active_study_case = self.pfi.app.GetActiveStudyCase()
             self.export_active_study_case(
                 export_path=export_path,
-                study_case_name="default",
+                study_case_name=active_study_case.loc_name,
                 topology_name=topology_name,
                 topology_case_name=topology_case_name,
                 steadystate_case_name=steadystate_case_name,
@@ -264,7 +266,7 @@ class PowerFactoryExporter:
         grids = self.pfi.grids(calc_relevant=True)
         for grid in grids:
             grid_name = grid.loc_name
-            loguru.logger.debug(
+            loguru.logger.info(
                 "Exporting {project_name} - study case '{study_case_name}' - grid {grid_name}...",
                 project_name=self.project_name,
                 study_case_name=study_case_name,
@@ -371,7 +373,7 @@ class PowerFactoryExporter:
     ) -> None:
         """Export data to json file.
 
-        Arguments:
+        Keyword Arguments:
             data {Topology | TopologyCase | SteadystateCase} -- data to export
             data_name {str | None} -- the chosen file name for data
             data_type {t.Literal['topology', 'topology_case', 'steadystate_case']} -- the data type
@@ -1619,6 +1621,8 @@ class PowerFactoryExporter:
         Arguments:
             switches {Sequence[PFTypes.Switch]} -- sequence of PowerFactory objects of type Switch
 
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
         Returns:
             Sequence[ElementState] -- set of element states
         """
@@ -1664,6 +1668,9 @@ class PowerFactoryExporter:
         Arguments:
             couplers {Sequence[PFTypes.Coupler]} -- sequence of PowerFactory objects of type Coupler
 
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
+
         Returns:
             Sequence[ElementState] -- set of element states
         """
@@ -1701,6 +1708,9 @@ class PowerFactoryExporter:
 
         Arguments:
             terminals {Sequence[PFTypes.Terminal]} -- sequence of PowerFactory objects of type Terminal
+
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
 
         Returns:
             Sequence[ElementState] -- set of element states
@@ -1741,6 +1751,9 @@ class PowerFactoryExporter:
         Arguments:
             elements {Sequence[ElementBase} -- sequence of one-sided connected PowerFactory objects
 
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
+
         Returns:
             Sequence[ElementState] -- set of element states
         """
@@ -1779,6 +1792,9 @@ class PowerFactoryExporter:
         Arguments:
             fuses {Sequence[PFTypes.BFuse]} -- sequence of PowerFactory objects of type Fuse
 
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
+
         Returns:
             Sequence[ElementState] -- set of element states
         """
@@ -1815,7 +1831,10 @@ class PowerFactoryExporter:
         The element states contain a node reference.
 
         Arguments:
-            fusees {Sequence[PFTypes.EFuse]} -- sequence of PowerFactory objects of type Fuse
+            fuses {Sequence[PFTypes.EFuse]} -- sequence of PowerFactory objects of type Fuse
+
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
 
         Returns:
             Sequence[ElementState] -- set of element states
@@ -3153,12 +3172,13 @@ def export_powerfactory_data(
         Arguments:
             export_path {pathlib.Path} -- the directory where the exported json files are saved
             project_name {str} -- project name in PowerFactory to which the grid belongs
-            powerfactory_user_profile {str} -- user profile for login in PowerFactory
+            powerfactory_user_profile {str} -- user profile for login in PowerFactory  (default: {""})
             powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
             powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
-            topology_name {str} -- the chosen file name for 'topology' data
-            topology_case_name {str} -- the chosen file name for related 'topology_case' data
-            steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data
+            python_version {str} -- version number of Python
+            topology_name {str} -- the chosen file name for 'topology' data (default: {None})
+            topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
+            steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
 
         Returns:
             None
