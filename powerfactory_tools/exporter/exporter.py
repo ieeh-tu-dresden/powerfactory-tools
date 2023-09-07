@@ -118,7 +118,7 @@ class LoadMV:
 
 
 class PowerFactoryExporterProcess(multiprocessing.Process):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         *,
         export_path: pathlib.Path,
@@ -127,9 +127,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
         powerfactory_version: str = POWERFACTORY_VERSION,
         python_version: str = PYTHON_VERSION,
+        logging_level: int = logging.DEBUG,
         topology_name: str | None = None,
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
+        study_case_names: list[str] | None = None,
     ) -> None:
         super().__init__()
         self.export_path = export_path
@@ -138,9 +140,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.powerfactory_path = powerfactory_path
         self.powerfactory_version = powerfactory_version
         self.python_version = python_version
+        self.logging_level = logging_level
         self.topology_name = topology_name
         self.topology_case_name = topology_case_name
         self.steadystate_case_name = steadystate_case_name
+        self.study_case_names = study_case_names
 
     def run(self) -> None:
         pfe = PowerFactoryExporter(
@@ -149,12 +153,14 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             powerfactory_path=self.powerfactory_path,
             powerfactory_version=self.powerfactory_version,
             python_version=self.python_version,
+            logging_level=self.logging_level,
         )
         pfe.export(
             export_path=self.export_path,
             topology_name=self.topology_name,
             topology_case_name=self.topology_case_name,
             steadystate_case_name=self.steadystate_case_name,
+            study_case_names=self.study_case_names,
         )
 
 
@@ -3150,7 +3156,7 @@ class PowerFactoryExporter:
         raise RuntimeError(msg)
 
 
-def export_powerfactory_data(
+def export_powerfactory_data(  # noqa: PLR0913
     *,
     export_path: pathlib.Path,
     project_name: str,
@@ -3158,9 +3164,11 @@ def export_powerfactory_data(
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
     powerfactory_version: str = POWERFACTORY_VERSION,
     python_version: str = PYTHON_VERSION,
+    logging_level: int = logging.DEBUG,
     topology_name: str | None = None,
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
+    study_case_names: list[str] | None = None,
 ) -> None:
     """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
@@ -3179,6 +3187,7 @@ def export_powerfactory_data(
             topology_name {str} -- the chosen file name for 'topology' data (default: {None})
             topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
+            study_case_names {list[str]} -- a list of study cases to export (default: {None})
 
         Returns:
             None
@@ -3191,9 +3200,11 @@ def export_powerfactory_data(
         powerfactory_path=powerfactory_path,
         powerfactory_version=powerfactory_version,
         python_version=python_version,
+        logging_level=logging_level,
         topology_name=topology_name,
         topology_case_name=topology_case_name,
         steadystate_case_name=steadystate_case_name,
+        study_case_names=study_case_names,
     )
     process.start()
     process.join()
