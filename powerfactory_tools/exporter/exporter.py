@@ -72,7 +72,6 @@ from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
-from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
@@ -270,11 +269,7 @@ class PowerFactoryExporter:
         topology_case_name: str | None,
         steadystate_case_name: str | None,
     ) -> None:
-        grids = self.pfi.grids(calc_relevant=True)
-        # Remove superior grid which exists at study case level
-        superior_grids = self.pfi.elements_of(self.pfi.app.GetActiveStudyCase(), pattern="*." + PFClassId.GRID.value)
-        for g in superior_grids:
-            grids.remove(g)
+        grids = self.pfi.independent_grids(calc_relevant=True)
 
         for grid in grids:
             grid_name = grid.loc_name

@@ -1242,6 +1242,20 @@ class PowerFactoryInterface:
         elements = self.grid_model_elements(class_name=PFClassId.GRID.value, name=name, calc_relevant=calc_relevant)
         return [t.cast("PFTypes.Grid", element) for element in elements]
 
+    def independent_grids(
+        self,
+        name: str = "*",
+        /,
+        *,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.Grid]:
+        study_case = self.study_case(only_active=True)
+        if study_case is not None:
+            superior_grids = self.elements_of(study_case, pattern="*." + PFClassId.GRID.value)
+            return list(filter(lambda g: g not in superior_grids, self.grids(name, calc_relevant=calc_relevant)))
+
+        return []
+
     def grid_elements(
         self,
         *,
