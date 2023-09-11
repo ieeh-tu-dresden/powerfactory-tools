@@ -17,9 +17,9 @@
     }
   ],
   "meta": {
-    "case": "Base",
-    "date": "2023-09-11",
-    "id": "e225fafa-c8e8-48f2-a38f-9718a427d1e9",
+    "case": null,
+    "date": "2023-09-07",
+    "id": "a7ae1bc8-e311-4585-a1f8-1b3c71e4ec0c",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   }

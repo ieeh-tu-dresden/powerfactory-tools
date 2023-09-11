@@ -19,7 +19,7 @@ Based on the class arguments of PowerFactoryExporter a DIgSILENT PowerFactory gr
 ### Usage
 
 **Please note** that default values for the installation directory and version number of PowerFactory are used.
-The user can adapt `powerfactory_path` and `powerfactory_version` when initializing the [PowerFactoryInterface][link_to_interface].
+The user can adapt `powerfactory_path` and `powerfactory_version` when initialazing the [PowerFactoryInterface][link_to_interface].
 
 By default, **all assests of all active grids** within the selected PowerFactory project are to be exported.
 For more control, the user can select _study cases_, _operation scenarios_ and _grid variations_ before export, see [control example 5](powerfactory_control.ipynb).
