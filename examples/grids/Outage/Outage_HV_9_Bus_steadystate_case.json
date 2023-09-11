@@ -224,27 +224,29 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": -500000.0,
-        "value_a": -166666.67,
-        "value_b": -166666.67,
-        "value_c": -166666.67
+        "value": -400000.0,
+        "value_a": -133333.34,
+        "value_b": -133333.34,
+        "value_c": -133333.34
       },
-      "name": "StatGenerator_3",
+      "name": "StatGenerator_2",
       "reactive_power": {
         "controller": {
           "control_type": {
-            "control_strategy": "COSPHI_CONST",
-            "cosphi": 0.7,
-            "cosphi_dir": "UE"
+            "control_strategy": "COSPHI_P",
+            "cosphi_oe": 0.96,
+            "cosphi_ue": 0.95,
+            "p_threshold_oe": -300000.0,
+            "p_threshold_ue": -800000.0
           },
-          "external_controller_name": null,
+          "external_controller_name": "Anlagenregelung_cosphi(P)",
           "node_target": "Node_4"
         },
         "is_symmetrical": true,
-        "value": 510102.0,
-        "value_a": 170034.01,
-        "value_b": 170034.01,
-        "value_c": 170034.01
+        "value": -85319.0,
+        "value_a": -28439.67,
+        "value_b": -28439.67,
+        "value_c": -28439.67
       }
     },
     {
@@ -280,6 +282,32 @@
     },
     {
       "active_power": {
+        "is_symmetrical": true,
+        "value": -500000.0,
+        "value_a": -166666.67,
+        "value_b": -166666.67,
+        "value_c": -166666.67
+      },
+      "name": "StatGenerator_3",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "COSPHI_CONST",
+            "cosphi": 0.7,
+            "cosphi_dir": "UE"
+          },
+          "external_controller_name": null,
+          "node_target": "Node_4"
+        },
+        "is_symmetrical": true,
+        "value": 510102.0,
+        "value_a": 170034.01,
+        "value_b": 170034.01,
+        "value_c": 170034.01
+      }
+    },
+    {
+      "active_power": {
         "is_symmetrical": false,
         "value": -3000.0,
         "value_a": -3000.0,
@@ -301,34 +329,6 @@
         "value_a": -0.0,
         "value_b": -0.0,
         "value_c": -0.0
-      }
-    },
-    {
-      "active_power": {
-        "is_symmetrical": true,
-        "value": -400000.0,
-        "value_a": -133333.34,
-        "value_b": -133333.34,
-        "value_c": -133333.34
-      },
-      "name": "StatGenerator_2",
-      "reactive_power": {
-        "controller": {
-          "control_type": {
-            "control_strategy": "COSPHI_P",
-            "cosphi_oe": 0.96,
-            "cosphi_ue": 0.95,
-            "p_threshold_oe": -300000.0,
-            "p_threshold_ue": -800000.0
-          },
-          "external_controller_name": "Anlagenregelung_cosphi(P)",
-          "node_target": "Node_4"
-        },
-        "is_symmetrical": true,
-        "value": -85319.0,
-        "value_a": -28439.67,
-        "value_b": -28439.67,
-        "value_c": -28439.67
       }
     },
     {
@@ -359,8 +359,8 @@
   ],
   "meta": {
     "case": "Outage",
-    "date": "2023-09-07",
-    "id": "c527422d-6c9b-4390-b63a-406fecac294c",
+    "date": "2023-09-11",
+    "id": "f8234b59-ec42-4faa-abda-978c5e39aba4",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   },
