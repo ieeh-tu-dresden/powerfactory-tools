@@ -335,21 +335,21 @@ class PowerFactoryInterface:
             date=date,
             project_name=project_name,
             grid_name=grid_name,
-            external_grids=self.external_grids(grid=grid_name, calc_relevant=True),
-            terminals=self.terminals(grid=grid_name, calc_relevant=True),
-            lines=self.lines(grid=grid_name, calc_relevant=True),
-            transformers_2w=self.transformers_2w(grid=grid_name, calc_relevant=True),
-            transformers_3w=self.transformers_3w(grid=grid_name, calc_relevant=True),
-            loads=self.loads(grid=grid_name, calc_relevant=True),
-            loads_lv=self.loads_lv(grid=grid_name, calc_relevant=True),
-            loads_mv=self.loads_mv(grid=grid_name, calc_relevant=True),
-            generators=self.generators(grid=grid_name, calc_relevant=True),
-            pv_systems=self.pv_systems(grid=grid_name, calc_relevant=True),
-            couplers=self.couplers(grid=grid_name, calc_relevant=True),
-            switches=self.switches(grid=grid_name, calc_relevant=True),
-            bfuses=self.bfuses(grid=grid_name, calc_relevant=True),
-            efuses=self.efuses(grid=grid_name, calc_relevant=True),
-            ac_current_sources=self.ac_current_sources(grid=grid_name, calc_relevant=True),
+            external_grids=self.external_grids(grid_name=grid_name, calc_relevant=True),
+            terminals=self.terminals(grid_name=grid_name, calc_relevant=True),
+            lines=self.lines(grid_name=grid_name, calc_relevant=True),
+            transformers_2w=self.transformers_2w(grid_name=grid_name, calc_relevant=True),
+            transformers_3w=self.transformers_3w(grid_name=grid_name, calc_relevant=True),
+            loads=self.loads(grid_name=grid_name, calc_relevant=True),
+            loads_lv=self.loads_lv(grid_name=grid_name, calc_relevant=True),
+            loads_mv=self.loads_mv(grid_name=grid_name, calc_relevant=True),
+            generators=self.generators(grid_name=grid_name, calc_relevant=True),
+            pv_systems=self.pv_systems(grid_name=grid_name, calc_relevant=True),
+            couplers=self.couplers(grid_name=grid_name, calc_relevant=True),
+            switches=self.switches(grid_name=grid_name, calc_relevant=True),
+            bfuses=self.bfuses(grid_name=grid_name, calc_relevant=True),
+            efuses=self.efuses(grid_name=grid_name, calc_relevant=True),
+            ac_current_sources=self.ac_current_sources(grid_name=grid_name, calc_relevant=True),
         )
 
     def set_result_variables(
@@ -375,7 +375,7 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def deactivate_grids(self) -> None:
-        for grid in self.grids():
+        for grid in self.independent_grids(calc_relevant=True):
             self.deactivate_grid(grid)
 
     def deactivate_grid(
@@ -832,22 +832,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.ExternalGrid | None:
-        return self.first_of(self.external_grids(name, grid=grid))
+        return self.first_of(self.external_grids(name, grid_name=grid_name))
 
     def external_grids(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.ExternalGrid]:
         elements = self.grid_elements(
             class_name=PFClassId.EXTERNAL_GRID.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
@@ -857,22 +857,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Terminal | None:
-        return self.first_of(self.terminals(name, grid=grid))
+        return self.first_of(self.terminals(name, grid_name=grid_name))
 
     def terminals(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Terminal]:
         elements = self.grid_elements(
             class_name=PFClassId.TERMINAL.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Terminal", element) for element in elements]
@@ -882,22 +882,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.StationCubicle | None:
-        return self.first_of(self.cubicles(name, grid=grid))
+        return self.first_of(self.cubicles(name, grid_name=grid_name))
 
     def cubicles(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements(
             class_name=PFClassId.CUBICLE.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
@@ -907,22 +907,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Coupler | None:
-        return self.first_of(self.couplers(name, grid=grid))
+        return self.first_of(self.couplers(name, grid_name=grid_name))
 
     def couplers(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Coupler]:
         elements = self.grid_elements(
             class_name=PFClassId.COUPLER.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Coupler", element) for element in elements]
@@ -932,22 +932,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Switch | None:
-        return self.first_of(self.switches(name, grid=grid))
+        return self.first_of(self.switches(name, grid_name=grid_name))
 
     def switches(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Switch]:
         elements = self.grid_elements(
             class_name=PFClassId.SWITCH.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Switch", element) for element in elements]
@@ -957,22 +957,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.BFuse | None:
-        return self.first_of(self.bfuses(name, grid=grid))
+        return self.first_of(self.bfuses(name, grid_name=grid_name))
 
     def bfuses(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.BFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
@@ -984,22 +984,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.EFuse | None:
-        return self.first_of(self.efuses(name, grid=grid))
+        return self.first_of(self.efuses(name, grid_name=grid_name))
 
     def efuses(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.EFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
@@ -1011,22 +1011,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Line | None:
-        return self.first_of(self.lines(name, grid=grid))
+        return self.first_of(self.lines(name, grid_name=grid_name))
 
     def lines(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Line]:
         elements = self.grid_elements(
             class_name=PFClassId.LINE.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Line", element) for element in elements]
@@ -1036,22 +1036,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Transformer2W | None:
-        return self.first_of(self.transformers_2w(name, grid=grid))
+        return self.first_of(self.transformers_2w(name, grid_name=grid_name))
 
     def transformers_2w(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Transformer2W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_2W.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
@@ -1059,22 +1059,22 @@ class PowerFactoryInterface:
     def transformer_3w(
         self,
         name: str = "*",
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Transformer3W | None:
-        return self.first_of(self.transformers_3w(name, grid=grid))
+        return self.first_of(self.transformers_3w(name, grid_name=grid_name))
 
     def transformers_3w(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Transformer3W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_3W.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
@@ -1084,22 +1084,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Load | None:
-        return self.first_of(self.loads(name, grid=grid))
+        return self.first_of(self.loads(name, grid_name=grid_name))
 
     def loads(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Load]:
         elements = self.grid_elements(
             class_name=PFClassId.LOAD.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Load", element) for element in elements]
@@ -1109,22 +1109,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.LoadLV | None:
-        return self.first_of(self.loads_lv(name, grid=grid))
+        return self.first_of(self.loads_lv(name, grid_name=grid_name))
 
     def loads_lv(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.LoadLV]:
         elements = self.grid_elements(
             class_name=PFClassId.LOAD_LV.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.LoadLV", element) for element in elements]
@@ -1134,22 +1134,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.LoadMV | None:
-        return self.first_of(self.loads_mv(name, grid=grid))
+        return self.first_of(self.loads_mv(name, grid_name=grid_name))
 
     def loads_mv(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.LoadMV]:
         elements = self.grid_elements(
             class_name=PFClassId.LOAD_MV.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.LoadMV", element) for element in elements]
@@ -1159,22 +1159,22 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.Generator | None:
-        return self.first_of(self.generators(name, grid=grid))
+        return self.first_of(self.generators(name, grid_name=grid_name))
 
     def generators(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Generator]:
         elements = self.grid_elements(
             class_name=PFClassId.GENERATOR.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Generator", element) for element in elements]
@@ -1182,22 +1182,22 @@ class PowerFactoryInterface:
     def pv_system(
         self,
         name: str = "*",
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.PVSystem | None:
-        return self.first_of(self.pv_systems(name, grid=grid))
+        return self.first_of(self.pv_systems(name, grid_name=grid_name))
 
     def pv_systems(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements(
             class_name=PFClassId.PVSYSTEM.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
@@ -1205,22 +1205,22 @@ class PowerFactoryInterface:
     def ac_current_source(
         self,
         name: str = "*",
-        grid: str = "*",
+        grid_name: str = "*",
     ) -> PFTypes.AcCurrentSource | None:
-        return self.first_of(self.ac_current_sources(name, grid=grid))
+        return self.first_of(self.ac_current_sources(name, grid_name=grid_name))
 
     def ac_current_sources(
         self,
         name: str = "*",
         /,
         *,
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.AcCurrentSource]:
         elements = self.grid_elements(
             class_name=PFClassId.CURRENT_SOURCE_AC.value,
             name=name,
-            grid=grid,
+            grid_name=grid_name,
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
@@ -1249,6 +1249,15 @@ class PowerFactoryInterface:
         *,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Grid]:
+        """Gets all grid entities except the superior summary grid stored at the study case level.
+
+        Keyword Arguments:
+            name -- Name of grid to be accessed (default: {"*"})
+            calc_relevant -- Flag, if only calc relevant (active) grids should be accessed (default: {False})
+
+        Returns:
+            Sequence of grids without superior summary grid entitiy.
+        """
         study_case = self.study_case(only_active=True)
         if study_case is not None:
             superior_grids = self.elements_of(study_case, pattern="*." + PFClassId.GRID.value)
@@ -1261,13 +1270,13 @@ class PowerFactoryInterface:
         *,
         class_name: str,
         name: str = "*",
-        grid: str = "*",
+        grid_name: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.DataObject]:
         if calc_relevant:
             return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
 
-        rv = [self.elements_of(g, pattern=name + "." + class_name) for g in self.grids(grid)]
+        rv = [self.elements_of(g, pattern=name + "." + class_name) for g in self.grids(grid_name)]
         return self.list_from_sequences(*rv)
 
     def grid_model_elements(
@@ -1504,6 +1513,7 @@ class PowerFactoryInterface:
         name: str,
         location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram,
         force: bool = False,
+        update: bool = True,
     ) -> PFTypes.DataObject | None:
         """Create simple folder within given directory.
 
@@ -1511,6 +1521,7 @@ class PowerFactoryInterface:
             name {str} -- The folder name.
             location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram} -- The directory where the folder should be created.
             force {bool} -- Flag to force creation nonetheless if already exists (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
             {PFTypes.DataObject | None} - The created folder if successful.
@@ -1521,6 +1532,7 @@ class PowerFactoryInterface:
             class_name=PFClassId.FOLDER.value,
             location=location,
             force=force,
+            update=update,
         )
 
     def create_object(
@@ -1528,7 +1540,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         class_name: str,
-        location: PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant,
+        location: PFTypes.DataObject,
         data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
@@ -1541,7 +1553,7 @@ class PowerFactoryInterface:
         Keyword Arguments:
             name {str} -- The name of the grid variant to be created.
             class_name {str} -- The PowerFactory class name string for the type of object.
-            location {PFTypes.ProjectFolder | PFTypes.StudyCase | PFTypes.GridDiagram | PFTypes.GridVariant} -- The directory the object should be created in.
+            location {PFTypes.DataObject} -- The directory the object should be created in.
             data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
