@@ -110,16 +110,19 @@ class PowerFactoryInterface:
     powerfactory_ini_name: str | None = None
     python_version: str = PYTHON_VERSION
     logging_level: int = logging.DEBUG
+    log_file_path: pathlib.Path | None = None
 
     def __post_init__(self) -> None:
+        log_destination = sys.stdout if self.log_file_path is None else self.log_file_path
         try:
             loguru.logger.remove(handler_id=0)
             loguru.logger.add(
-                sys.stdout,
+                log_destination,
                 colorize=True,
                 format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
                 filter="powerfactory_tools",
                 level=self.logging_level,
+                enqueue=True,
             )
             loguru.logger.info("Starting PowerFactory Interface...")
             pf = self.load_powerfactory_module_from_path()
