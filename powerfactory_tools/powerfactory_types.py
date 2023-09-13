@@ -484,6 +484,22 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+        def IsCalcRelevant(self) -> int:  # noqa: N802
+            ...
+
+        def IsEarthed(self) -> int:  # noqa: N802
+            ...
+
+        def IsEnergized(self) -> int:  # noqa: N802
+            ...
+
+        def IsObjectActive(  # noqa: N802  # Check if an object is active for specific time.
+            self,
+            time: int,  # Time in seconds since 01.01.1970 00:00:00
+            /,
+        ) -> int:
+            ...
+
     class DataDir(DataObject, Protocol):
         ...
 

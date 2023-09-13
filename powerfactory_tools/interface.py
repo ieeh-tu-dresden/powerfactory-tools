@@ -117,7 +117,7 @@ class PowerFactoryInterface:
         try:
             loguru.logger.remove(handler_id=0)
             loguru.logger.add(
-                log_destination,
+                sink=log_destination,
                 colorize=True,
                 format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
                 filter="powerfactory_tools",
@@ -373,7 +373,7 @@ class PowerFactoryInterface:
         /,
     ) -> None:
         loguru.logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
-        if grid.Activate():
+        if not grid.IsCalcRelevant() and grid.Activate():
             msg = "Could not activate grid."
             raise RuntimeError(msg)
 
@@ -387,7 +387,7 @@ class PowerFactoryInterface:
         /,
     ) -> None:
         loguru.logger.debug("Deactivating grid {grid_name} application...", grid_name=grid.loc_name)
-        if grid.Deactivate():
+        if grid.IsCalcRelevant() and grid.Deactivate():
             msg = "Could not deactivate grid."
             raise RuntimeError(msg)
 
@@ -651,10 +651,11 @@ class PowerFactoryInterface:
         *,
         only_active: bool = False,
     ) -> Sequence[PFTypes.GridVariant]:
-        if only_active:
-            return [variant for variant in self.app.GetActiveNetworkVariations() if name in variant.loc_name]
-
         elements = self.elements_of(self.grid_variant_dir, pattern=name + "." + PFClassId.VARIANT.value)
+
+        if only_active:
+            active_variants = self.app.GetActiveNetworkVariations()
+            return [variant for variant in active_variants if variant in elements]
         return [t.cast("PFTypes.GridVariant", element) for element in elements]
 
     def grid_variant_stage(
@@ -702,15 +703,11 @@ class PowerFactoryInterface:
         Returns:
             {Sequence[PFTypes.GridVariantStage]} -- A List of existing grid variant stages
         """
-
         is_folder_none_and_variant_not_none = False
         if folder is None:
             folder = self.grid_variant_dir
             if grid_variant is not None:
                 is_folder_none_and_variant_not_none = True
-
-        if only_active:
-            return [stage for stage in self.app.GetActiveStages(folder) if name in stage.loc_name]
 
         if grid_variant is None:
             elements = self.elements_of(folder, pattern=name)
@@ -724,6 +721,10 @@ class PowerFactoryInterface:
             elements = []
             for variant in relevant_variants:
                 elements += self.elements_of(variant, pattern=name)
+
+        if only_active:
+            active_stages = self.app.GetActiveStages(folder)
+            return [stage for stage in active_stages if stage in elements]
 
         return [t.cast("PFTypes.GridVariantStage", element) for element in elements]
 
