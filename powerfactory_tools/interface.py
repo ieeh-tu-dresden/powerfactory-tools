@@ -113,17 +113,25 @@ class PowerFactoryInterface:
     log_file_path: pathlib.Path | None = None
 
     def __post_init__(self) -> None:
-        log_destination = sys.stdout if self.log_file_path is None else self.log_file_path
         try:
             loguru.logger.remove(handler_id=0)
-            loguru.logger.add(
-                sink=log_destination,
-                colorize=True,
-                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
-                filter="powerfactory_tools",
-                level=self.logging_level,
-                enqueue=True,
-            )
+            if self.log_file_path is None:
+                loguru.logger.add(
+                    sink=sys.stdout,
+                    colorize=True,
+                    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
+                    filter="powerfactory_tools",
+                    level=self.logging_level,
+                )
+            else:
+                loguru.logger.add(
+                    sink=self.log_file_path,
+                    colorize=True,
+                    format="{time:YYYY-MM-DD HH:mm:ss} {level} {file}:{line} {message}",
+                    filter="powerfactory_tools",
+                    level=self.logging_level,
+                    enqueue=True,
+                )
             loguru.logger.info("Starting PowerFactory Interface...")
             pf = self.load_powerfactory_module_from_path()
             self.app = self.connect_to_app(pf)
@@ -1399,6 +1407,94 @@ class PowerFactoryInterface:
             update=update,
         )
         return t.cast("PFTypes.Result", element) if element is not None else None
+
+    def create_study_case(
+        self,
+        *,
+        name: str,
+        grids: Sequence[PFTypes.Grid],
+        grid_variants: Sequence[PFTypes.GridVariant],
+        scenario: PFTypes.Scenario,
+        target_datetime: dt.datetime,
+        location: PFTypes.DataObject | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.StudyCase:
+        if location is None:
+            location = self.study_case_dir
+
+        loguru.logger.debug("Create study case {name} ...", name=name)
+        study_case = self.create_object(
+            name=name,
+            class_name=PFClassId.STUDY_CASE.value,
+            location=location,
+            force=force,
+            update=update,
+        )
+        if study_case is None:
+            loguru.logger.warning(
+                "{object_name}.{class_name} could not be created.",
+                object_name=name,
+                class_name=PFClassId.STUDY_CASE.value,
+            )
+            return None
+
+        grid_variant_config = self.create_object(
+            name=f"{name}_variants",
+            class_name=PFClassId.VARIANT_CONFIG.value,
+            location=study_case,
+            force=force,
+            update=update,
+        )
+        for grid_variant in grid_variants:
+            self.create_object(
+                name=grid_variant.loc_name,
+                class_name=PFClassId.REFERENCE.value,
+                data={"obj_id": grid_variant},
+                location=grid_variant_config,
+                force=force,
+                update=update,
+            )
+
+        entire_grid = self.create_object(
+            name="entire_grid",
+            class_name=PFClassId.GRID.value,
+            location=study_case,
+            force=force,
+            update=update,
+        )
+        for grid in grids:
+            self.create_object(
+                name=grid.loc_name,
+                class_name=PFClassId.REFERENCE.value,
+                data={"obj_id": grid},
+                location=entire_grid,
+                force=force,
+                update=update,
+            )
+
+        self.create_object(
+            name=scenario.loc_name,
+            class_name=PFClassId.REFERENCE.value,
+            data={"obj_id": scenario},
+            location=study_case,
+            force=force,
+            update=update,
+        )
+
+        self.create_object(
+            name="target_datetime",
+            class_name=PFClassId.DATETIME.value,
+            data={
+                "cDate": target_datetime.date,
+                "cTime": target_datetime.time,
+            },
+            location=study_case,
+            force=force,
+            update=update,
+        )
+
+        return t.cast("PFTypes.GridVariant", study_case)
 
     def create_grid_variant(
         self,

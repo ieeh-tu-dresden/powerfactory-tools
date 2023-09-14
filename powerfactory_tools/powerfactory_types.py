@@ -31,19 +31,22 @@ class PFClassId(enum.Enum):
     LOAD_LV = "ElmLodLv"
     LOAD_LV_PART = "ElmLodlvp"
     LOAD_MV = "ElmLodMv"
-    RESULT = "ElmRes"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
+    REFERENCE = "IntRef"
+    RESULT = "ElmRes"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
     SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
     TERMINAL = "ElmTerm"
+    DATETIME = "SetTime"
     TRANSFORMER_2W = "ElmTr2"
     TRANSFORMER_3W = "ElmTr3"
     UNIT_VARIABLE = "SetVariable"
     VARIANT = "IntScheme"
+    VARIANT_CONFIG = "IntAcscheme"
     VARIANT_STAGE = "IntSstage"
     ZONE = "ElmZone"
 
@@ -500,6 +503,13 @@ class PowerFactoryTypes:
         ) -> int:
             ...
 
+        def AddCopy(  # noqa: N802
+            self,
+            data_object: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            /,
+        ) -> None:
+            ...
+
     class DataDir(DataObject, Protocol):
         ...
 
@@ -565,6 +575,8 @@ class PowerFactoryTypes:
 
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
+
+    class GridConfig(DataObject, Protocol):
 
     class ProjectSettings(DataObject, Protocol):  # SetPrj
         extDataDir: str  # noqa: N815
