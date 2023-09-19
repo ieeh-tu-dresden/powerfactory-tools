@@ -1423,7 +1423,7 @@ class PowerFactoryInterface:
         location: PFTypes.DataObject | None = None,
         force: bool = False,
         update: bool = True,
-    ) -> PFTypes.StudyCase:
+    ) -> PFTypes.StudyCase | None:
         if location is None:
             location = self.study_case_dir
 
@@ -1450,6 +1450,14 @@ class PowerFactoryInterface:
             force=force,
             update=update,
         )
+        if grid_variant_config is None:
+            loguru.logger.warning(
+                "{object_name}.{class_name} could not be created.",
+                object_name=f"{name}_variants",
+                class_name=PFClassId.VARIANT_CONFIG.value,
+            )
+            return None
+
         for grid_variant in grid_variants:
             self.create_object(
                 name=grid_variant.loc_name,
@@ -1467,6 +1475,14 @@ class PowerFactoryInterface:
             force=force,
             update=update,
         )
+        if entire_grid is None:
+            loguru.logger.warning(
+                "{object_name}.{class_name} could not be created.",
+                object_name="entire_grid",
+                class_name=PFClassId.GRID.value,
+            )
+            return None
+
         for grid in grids:
             self.create_object(
                 name=grid.loc_name,
@@ -1490,8 +1506,8 @@ class PowerFactoryInterface:
             name="target_datetime",
             class_name=PFClassId.DATETIME.value,
             data={
-                "cDate": target_datetime.date,
-                "cTime": target_datetime.time,
+                "cDate": target_datetime.date().isoformat(),
+                "cTime": target_datetime.time().isoformat(),
             },
             location=study_case,
             force=force,

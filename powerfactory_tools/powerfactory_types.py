@@ -576,8 +576,6 @@ class PowerFactoryTypes:
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
 
-    class GridConfig(DataObject, Protocol):
-
     class ProjectSettings(DataObject, Protocol):  # SetPrj
         extDataDir: str  # noqa: N815
         ilenunit: UnitSystem
