@@ -7,12 +7,13 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
-  - [ General Remarks](#-remarks)
+  - [ General Remarks](#-general-remarks)
   - [ Installation](#-installation)
   - [ Compatibility](#-compatibility)
   - [ Development](#-development)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
+
 
 ## <div id="application" /> Field of Application
 
@@ -36,8 +37,11 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 Please find below some important general remarks and assumptions to consider for the application:
 
++ The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model/blob/main/README.md):
+  + The passive sign convention should be used for all types of loads (consumer as well as producer). 
+  + The `Rated Power` is always defined positive (absolute value).
 + By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
-+ The `Rated Power` is always defined positive (absolute value).
+
 + Export of `transformer`:
   + Impedances of all winding objects are referred to the high voltage side of the transformer.
   + Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
@@ -45,7 +49,6 @@ Please find below some important general remarks and assumptions to consider for
   + Branch like fuses are exported as switching state.
   + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
 + Export of `SteadyStateCase`:
-  + The load centered counting system is used for all types of loads.
   + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator. 
   The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported q operating point is the same that set by the station controller.
 
