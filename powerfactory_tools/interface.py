@@ -114,24 +114,7 @@ class PowerFactoryInterface:
 
     def __post_init__(self) -> None:
         try:
-            loguru.logger.remove(handler_id=0)
-            if self.log_file_path is None:
-                loguru.logger.add(
-                    sink=sys.stdout,
-                    colorize=True,
-                    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
-                    filter="powerfactory_tools",
-                    level=self.logging_level,
-                )
-            else:
-                loguru.logger.add(
-                    sink=self.log_file_path,
-                    colorize=True,
-                    format="{time:YYYY-MM-DD HH:mm:ss} {level} {file}:{line} {message}",
-                    filter="powerfactory_tools",
-                    level=self.logging_level,
-                    enqueue=True,
-                )
+            self._set_logging_handler(self.log_file_path)
             loguru.logger.info("Starting PowerFactory Interface...")
             pf = self.load_powerfactory_module_from_path()
             self.app = self.connect_to_app(pf)
@@ -144,6 +127,25 @@ class PowerFactoryInterface:
         except RuntimeError:
             loguru.logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
+
+    def _set_logging_handler(self, log_file_path: pathlib.Path | None) -> None:
+        loguru.logger.remove(handler_id=0)
+        if log_file_path is None:
+            loguru.logger.add(
+                sink=sys.stdout,
+                colorize=True,
+                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
+                filter="powerfactory_tools",
+                level=self.logging_level,
+            )
+        else:
+            loguru.logger.add(
+                sink=log_file_path,
+                format="{time:YYYY-MM-DD HH:mm:ss} {level} {file}:{line} {message}",
+                filter="powerfactory_tools",
+                level=self.logging_level,
+                enqueue=True,
+            )
 
     def __enter__(self) -> te.Self:
         return self
@@ -1284,9 +1286,10 @@ class PowerFactoryInterface:
         name: str = "*",
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.DataObject]:
         if calc_relevant:
-            return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
+            return self.app.GetCalcRelevantObjects(name + "." + class_name, include_out_of_service)
 
         rv = [self.elements_of(g, pattern=name + "." + class_name) for g in self.grids(grid_name)]
         return self.list_from_sequences(*rv)
@@ -1297,9 +1300,10 @@ class PowerFactoryInterface:
         class_name: str,
         name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.DataObject]:
         if calc_relevant:
-            return self.app.GetCalcRelevantObjects(name + "." + class_name, 0)
+            return self.app.GetCalcRelevantObjects(name + "." + class_name, include_out_of_service)
 
         return self.elements_of(self.grid_model_dir, pattern=name + "." + class_name)
 

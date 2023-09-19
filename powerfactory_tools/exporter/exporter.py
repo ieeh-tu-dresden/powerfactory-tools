@@ -171,6 +171,7 @@ class PowerFactoryExporter:
     powerfactory_version: str = POWERFACTORY_VERSION
     python_version: str = PYTHON_VERSION
     logging_level: int = logging.DEBUG
+    log_file_path: pathlib.Path | None = None
 
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
@@ -180,6 +181,7 @@ class PowerFactoryExporter:
             powerfactory_version=self.powerfactory_version,
             python_version=self.python_version,
             logging_level=self.logging_level,
+            log_file_path=self.log_file_path,
         )
 
     def __enter__(self) -> te.Self:
