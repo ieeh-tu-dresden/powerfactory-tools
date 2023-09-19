@@ -127,6 +127,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         powerfactory_version: str = POWERFACTORY_VERSION,
         python_version: str = PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
+        log_file_path: pathlib.Path | None = None,
         topology_name: str | None = None,
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
@@ -140,6 +141,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.powerfactory_version = powerfactory_version
         self.python_version = python_version
         self.logging_level = logging_level
+        self.log_file_path = log_file_path
         self.topology_name = topology_name
         self.topology_case_name = topology_case_name
         self.steadystate_case_name = steadystate_case_name
@@ -153,6 +155,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             powerfactory_version=self.powerfactory_version,
             python_version=self.python_version,
             logging_level=self.logging_level,
+            log_file_path=self.log_file_path,
         )
         pfe.export(
             export_path=self.export_path,
@@ -3162,6 +3165,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     powerfactory_version: str = POWERFACTORY_VERSION,
     python_version: str = PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
+    log_file_path: pathlib.Path | None = None,
     topology_name: str | None = None,
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
@@ -3181,6 +3185,8 @@ def export_powerfactory_data(  # noqa: PLR0913
             powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
             powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
             python_version {str} -- version number of Python
+            logging_level {int} -- flag for the level of logging criticality
+            log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
             topology_name {str} -- the chosen file name for 'topology' data (default: {None})
             topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
@@ -3198,6 +3204,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         powerfactory_version=powerfactory_version,
         python_version=python_version,
         logging_level=logging_level,
+        log_file_path=log_file_path,
         topology_name=topology_name,
         topology_case_name=topology_case_name,
         steadystate_case_name=steadystate_case_name,
