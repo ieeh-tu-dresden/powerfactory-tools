@@ -20,6 +20,7 @@ import pydantic
 from psdm.base import CosphiDir
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
+from psdm.meta import SignConvention
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlCosphiConst
 from psdm.steadystate_case.controller import ControlCosphiP
@@ -416,7 +417,7 @@ class PowerFactoryExporter:
         project_name = data.project_name.replace(" ", "-")
         date = data.date
 
-        return Meta(name=grid_name, date=date, project=project_name, case=case)
+        return Meta(name=grid_name, date=date, project=project_name, case=case, sign_convention=SignConvention.PASSIVE)
 
     def create_topology(
         self,
