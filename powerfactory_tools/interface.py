@@ -1289,8 +1289,19 @@ class PowerFactoryInterface:
         include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.DataObject]:
         if calc_relevant:
-            return self.app.GetCalcRelevantObjects(name + "." + class_name, include_out_of_service)
+            calc_elements = self.app.GetCalcRelevantObjects(name + "." + class_name, include_out_of_service)
+            grid_elements = self._grid_elements(class_name=class_name, name=name, grid_name=grid_name)
+            return list(filter(lambda e: e in grid_elements, calc_elements))
 
+        return self._grid_elements(class_name=class_name, name=name, grid_name=grid_name)
+
+    def _grid_elements(
+        self,
+        *,
+        class_name: str,
+        name: str = "*",
+        grid_name: str = "*",
+    ) -> Sequence[PFTypes.DataObject]:
         rv = [self.elements_of(g, pattern=name + "." + class_name) for g in self.grids(grid_name)]
         return self.list_from_sequences(*rv)
 
