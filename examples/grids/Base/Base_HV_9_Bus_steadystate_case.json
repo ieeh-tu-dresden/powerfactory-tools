@@ -19,10 +19,10 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 60000000.0,
+        "value_a": 20000000.0,
+        "value_b": 20000000.0,
+        "value_c": 20000000.0
       },
       "name": "Load_3",
       "reactive_power": {
@@ -37,46 +37,46 @@
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 10000000.0,
+        "value_a": 3333333.33,
+        "value_b": 3333333.33,
+        "value_c": 3333333.33
       },
       "name": "Load_1",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
-        "value": 9897813.0,
-        "value_a": 3299270.92,
-        "value_b": 3299270.92,
-        "value_c": 3299270.92
+        "value": 1402395.0,
+        "value_a": 467465.02,
+        "value_b": 467465.02,
+        "value_c": 467465.02
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 49999997.0,
+        "value_a": 16666665.83,
+        "value_b": 16666665.83,
+        "value_c": 16666665.83
       },
       "name": "Load_2",
       "reactive_power": {
         "controller": null,
         "is_symmetrical": true,
-        "value": -10000000.0,
-        "value_a": -3333333.38,
-        "value_b": -3333333.38,
-        "value_c": -3333333.38
+        "value": -10000012.0,
+        "value_a": -3333337.39,
+        "value_b": -3333337.39,
+        "value_c": -3333337.39
       }
     },
     {
       "active_power": {
         "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "value": 20000000.0,
+        "value_a": 6666666.67,
+        "value_b": 6666666.67,
+        "value_c": 6666666.67
       },
       "name": "Load_9",
       "reactive_power": {
@@ -91,9 +91,9 @@
     {
       "active_power": {
         "is_symmetrical": false,
-        "value": 2000000.0,
-        "value_a": 1000000.0,
-        "value_b": 1000000.0,
+        "value": 2000.0,
+        "value_a": 1000.0,
+        "value_b": 1000.0,
         "value_c": 0.0
       },
       "name": "Load_8",
@@ -376,9 +376,9 @@
     }
   ],
   "meta": {
-    "case": null,
-    "date": "2023-09-07",
-    "id": "a54b6aca-3d34-47d4-b607-12ce4875e50a",
+    "case": "Base",
+    "date": "2023-09-20",
+    "id": "5d1d6fef-25dc-4fd7-90f5-941f843002d4",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   },

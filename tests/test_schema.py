@@ -10,7 +10,7 @@ from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.topology.topology import Topology
 from psdm.topology_case.case import Case as TopologyCase
 
-GRID_PATH_PREFIX = "examples/grids/HV_9_Bus_"
+GRID_PATH = pathlib.Path("examples/grids/")
 FLOAT_PRECISION: int = 12
 
 
@@ -25,6 +25,14 @@ def round_floats(o):
 
 
 @pytest.mark.parametrize(
+    ("case"),
+    [
+        ("Base"),
+        ("Industry_Park"),
+        ("Outage"),
+    ],
+)
+@pytest.mark.parametrize(
     (
         "schema_class",
         "json_file_name",
@@ -35,8 +43,8 @@ def round_floats(o):
         (SteadystateCase, "steadystate_case.json"),
     ],
 )
-def test_schema_import(schema_class, json_file_name) -> None:
-    json_file_path = pathlib.Path(GRID_PATH_PREFIX + json_file_name)
+def test_schema_import(case, schema_class, json_file_name) -> None:
+    json_file_path = GRID_PATH / case / (case + "_HV_9_Bus_" + json_file_name)
 
     data = schema_class.from_file(json_file_path)
     _json_str1 = data.model_dump()

@@ -31,19 +31,22 @@ class PFClassId(enum.Enum):
     LOAD_LV = "ElmLodLv"
     LOAD_LV_PART = "ElmLodlvp"
     LOAD_MV = "ElmLodMv"
-    RESULT = "ElmRes"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
+    REFERENCE = "IntRef"
+    RESULT = "ElmRes"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
     SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
     TERMINAL = "ElmTerm"
+    DATETIME = "SetTime"
     TRANSFORMER_2W = "ElmTr2"
     TRANSFORMER_3W = "ElmTr3"
     UNIT_VARIABLE = "SetVariable"
     VARIANT = "IntScheme"
+    VARIANT_CONFIG = "IntAcscheme"
     VARIANT_STAGE = "IntSstage"
     ZONE = "ElmZone"
 
@@ -484,6 +487,29 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+        def IsCalcRelevant(self) -> int:  # noqa: N802
+            ...
+
+        def IsEarthed(self) -> int:  # noqa: N802
+            ...
+
+        def IsEnergized(self) -> int:  # noqa: N802
+            ...
+
+        def IsObjectActive(  # noqa: N802  # Check if an object is active for specific time.
+            self,
+            time: int,  # Time in seconds since 01.01.1970 00:00:00
+            /,
+        ) -> int:
+            ...
+
+        def AddCopy(  # noqa: N802
+            self,
+            data_object: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            /,
+        ) -> None:
+            ...
+
     class DataDir(DataObject, Protocol):
         ...
 
@@ -518,10 +544,33 @@ class PowerFactoryTypes:
             ...
 
     class StudyCase(DataObject, Protocol):
+        iStudyTime: int  # noqa: N815
+
         def Activate(self) -> bool:  # noqa: N802
             ...
 
+        def ApplyNetworkState(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: grids, scenarios and network variations configuration
+        ) -> Literal[0, 1, 2, 3, 4, 5]:
+            ...
+
+        def ApplyStudyTime(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: study time
+        ) -> Literal[0, 1, 2, 3, 4]:
+            ...
+
+        def Consolidate(self) -> bool:  # noqa: N802
+            ...
+
         def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def SetStudyTime(  # noqa: N802
+            self,
+            dateTime: int,  # noqa: N803 # Seconds since 01.01.1970 00:00:00.
+        ) -> None:
             ...
 
     class GridVariant(DataObject, Protocol):
