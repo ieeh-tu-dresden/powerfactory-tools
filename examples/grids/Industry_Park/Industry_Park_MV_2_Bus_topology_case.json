@@ -1,25 +1,9 @@
 {
-  "elements": [
-    {
-      "disabled": true,
-      "name": "Node_9/ISField_3.2",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/IS1.2",
-      "open_switches": []
-    }
-  ],
+  "elements": [],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-11",
-    "id": "2087d53a-fa06-4ca8-9a0e-38e6e43d001d",
+    "date": "2023-09-20",
+    "id": "8aa5831e-1fc1-4060-862e-bd1d5b25172c",
     "name": "MV_2_Bus",
     "project": "PowerFactory-Tools"
   }

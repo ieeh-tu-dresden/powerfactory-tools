@@ -14,12 +14,19 @@
       "disabled": true,
       "name": "Node_9/IS1.2",
       "open_switches": []
+    },
+    {
+      "disabled": false,
+      "name": "Transformer_2w_20/0.4",
+      "open_switches": [
+        "Node_6_MV"
+      ]
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-11",
-    "id": "604d798e-9a5c-45a6-b73d-45b0da84381e",
+    "date": "2023-09-20",
+    "id": "06ae9b8c-f1c8-4f60-9557-5dfe8e41f2fe",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools"
   }

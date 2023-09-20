@@ -1525,7 +1525,7 @@ class PowerFactoryInterface:
             update=update,
         )
 
-        return t.cast("PFTypes.GridVariant", study_case)
+        return t.cast("PFTypes.StudyCase", study_case)
 
     def create_grid_variant(
         self,
