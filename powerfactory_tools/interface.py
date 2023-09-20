@@ -13,6 +13,7 @@ import itertools
 import logging
 import pathlib
 import sys
+import time
 import typing as t
 from collections.abc import Sequence
 
@@ -20,6 +21,7 @@ import loguru
 import pydantic
 
 from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.powerfactory_types import PFTYPE_MAPPING
 from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import FolderType
@@ -1468,19 +1470,19 @@ class PowerFactoryInterface:
                 class_name=PFClassId.STUDY_CASE.value,
             )
             return None
+
         study_case = t.cast("PFTypes.StudyCase", study_case)
 
         if target_datetime is not None:
-            ref_datetime = dt.datetime(1970, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
-            target_seconds_since_ref = int((target_datetime - ref_datetime).total_seconds())
-            study_case.SetStudyTime(target_seconds_since_ref)
+            target_timestamp = time.mktime(target_datetime.timetuple())
+            study_case.SetStudyTime(target_timestamp)
             # check if datetime was successfully set
-            set_seconds_since_ref = study_case.iStudyTime
-            if set_seconds_since_ref != target_seconds_since_ref:
+            set_timestamp = study_case.iStudyTime
+            if set_timestamp != target_timestamp:
                 loguru.logger.warning("Requested study time could not be set.")
                 return None
 
-        actual_study_case = self.app.GetActiveStudyCase()
+        current_study_case = self.app.GetActiveStudyCase()
         self.switch_study_case(study_case.loc_name)
 
         if grids is not None:
@@ -1494,7 +1496,7 @@ class PowerFactoryInterface:
         if scenario is not None:
             self.activate_scenario(scenario)
 
-        self.switch_study_case(actual_study_case.loc_name)
+        self.switch_study_case(current_study_case.loc_name)
 
         return study_case
 
