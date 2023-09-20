@@ -13,7 +13,6 @@ import multiprocessing
 import pathlib
 import textwrap
 import typing as t
-from typing import TYPE_CHECKING
 
 import loguru
 import pydantic
@@ -21,19 +20,23 @@ from psdm.base import CosphiDir
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
+from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlCosphiConst
 from psdm.steadystate_case.controller import ControlCosphiP
 from psdm.steadystate_case.controller import ControlCosphiU
 from psdm.steadystate_case.controller import ControlledVoltageRef
-from psdm.steadystate_case.controller import Controller
+from psdm.steadystate_case.controller import ControlPConst
 from psdm.steadystate_case.controller import ControlQConst
 from psdm.steadystate_case.controller import ControlQP
 from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import ControlTanphiConst
 from psdm.steadystate_case.controller import ControlUConst
+from psdm.steadystate_case.controller import PController
+from psdm.steadystate_case.controller import QController
 from psdm.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from psdm.steadystate_case.load import Load as LoadSSC
+from psdm.steadystate_case.reactive_power import ReactivePower as ReactivePowerSSC
 from psdm.steadystate_case.transformer import Transformer as TransformerSSC
 from psdm.topology.active_power import ActivePower
 from psdm.topology.branch import Branch
@@ -85,7 +88,7 @@ from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
 
@@ -2730,8 +2733,22 @@ class PowerFactoryExporter:
             )
             return None
 
-        active_power = power.as_active_power_ssc()
-        reactive_power = power.as_reactive_power_ssc()
+        # P-Controller
+        p_controller = self.create_p_controller_builtin(
+            load,
+            grid_name=grid_name,
+            power=power,
+        )
+        active_power = ActivePowerSSC(controller=p_controller)
+
+        # Q-Controller
+        q_controller = self.create_consumer_q_controller_builtin(
+            load,
+            grid_name=grid_name,
+            power=power,
+        )
+
+        reactive_power = ReactivePowerSSC(controller=q_controller)
 
         return LoadSSC(
             name=name,
@@ -2776,8 +2793,6 @@ class PowerFactoryExporter:
             )
             return None
 
-        terminal = bus.cterm
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
 
         power = LoadPower.from_pq_sym(
@@ -2787,21 +2802,29 @@ class PowerFactoryExporter:
             phase_connection_type=phase_connection_type,
         )
 
-        active_power = power.as_active_power_ssc()
+        # P-Controller
+        p_controller = self.create_p_controller_builtin(
+            generator,
+            grid_name=grid_name,
+            power=power,
+        )
+        active_power = ActivePowerSSC(controller=p_controller)
 
         # Q-Controller
         external_controller = generator.c_pstac
         if external_controller is None:
-            controller = self.create_q_controller_builtin(generator, u_n=u_n, grid_name=grid_name)
-        else:
-            controller = self.create_q_controller_external(
+            q_controller = self.create_q_controller_builtin(
                 generator,
-                u_n=u_n,
-                controller=external_controller,
                 grid_name=grid_name,
             )
+        else:
+            q_controller = self.create_q_controller_external(
+                generator,
+                grid_name=grid_name,
+                controller=external_controller,
+            )
 
-        reactive_power = power.as_reactive_power_ssc(controller=controller)
+        reactive_power = ReactivePowerSSC(controller=q_controller)
 
         return LoadSSC(
             name=producer_name,
@@ -2809,37 +2832,115 @@ class PowerFactoryExporter:
             reactive_power=reactive_power,
         )
 
+    def create_p_controller_builtin(
+        self,
+        load: PFTypes.GeneratorBase | PFTypes.LoadBase,
+        /,
+        *,
+        grid_name: str,
+        power: LoadPower | None = None,
+    ) -> PController | None:
+        loguru.logger.debug("Creating load {load_name} internal P controller...", load_name=load.loc_name)
+        if load.bus1 is not None:
+            node_target_name = self.pfi.create_name(load.bus1.cterm, grid_name=grid_name)
+        else:
+            return None
+
+        # at the moment there is only controller of type PConst
+        if power is not None:
+            active_power_ssc = power.as_active_power_ssc()
+            p_control_type = ControlPConst(
+                value=active_power_ssc.value,
+                value_a=active_power_ssc.value_a,
+                value_b=active_power_ssc.value_b,
+                value_c=active_power_ssc.value_c,
+                is_symmetrical=active_power_ssc.is_symmetrical,
+            )
+            return PController(node_target=node_target_name, control_type=p_control_type)
+
+        return None
+
+    def create_consumer_q_controller_builtin(
+        self,
+        load: PFTypes.LoadBase,
+        /,
+        *,
+        grid_name: str,
+        power: LoadPower | None = None,
+    ) -> QController | None:
+        loguru.logger.debug("Creating consumer {load_name} internal Q controller...", load_name=load.loc_name)
+        bus = load.bus1
+        if bus is None:
+            loguru.logger.warning(
+                "Consumer {load_name}: controller has no connected node. Skipping.",
+                load_name=load.loc_name,
+            )
+            return None
+        terminal = bus.cterm
+        node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
+
+        if power is not None:
+            reactive_power_ssc = power.as_active_power_ssc()
+            q_control_type = ControlQConst(
+                value=reactive_power_ssc.value,
+                value_a=reactive_power_ssc.value_a,
+                value_b=reactive_power_ssc.value_b,
+                value_c=reactive_power_ssc.value_c,
+                is_symmetrical=reactive_power_ssc.is_symmetrical,
+            )
+            return QController(node_target=node_target_name, control_type=q_control_type)
+        else:
+            # TODO 3 phasig cos_phi
+            return None
+
     def create_q_controller_builtin(  # noqa: PLR0911
         self,
         gen: PFTypes.GeneratorBase,
         /,
         *,
-        u_n: float,
         grid_name: str,
-    ) -> Controller | None:
-        loguru.logger.debug("Creating producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
-        if gen.bus1 is not None:
-            node_target_name = self.pfi.create_name(gen.bus1.cterm, grid_name=grid_name)
-        else:
+    ) -> QController | None:
+        loguru.logger.debug("Creating Producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
+        bus = gen.bus1
+        if bus is None:
+            loguru.logger.warning(
+                "Producer {gen_name}: controller has no connected node. Skipping.",
+                gen_name=gen.loc_name,
+            )
             return None
+        terminal = bus.cterm
+        node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         av_mode = LocalQCtrlMode(gen.av_mode)
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             cosphi = gen.cosgini
             cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
-            q_controller = ControlCosphiConst(
+            q_control_type = ControlCosphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
-            q_controller = ControlQConst(
-                q_set=round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+            phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+            power = LoadPower.from_pq_sym(
+                pow_act=0,
+                pow_react=q_set * Exponents.POWER * gen.ngnum,  # has to be negative as power is counted demand based
+                scaling=gen.scale0,
+                phase_connection_type=phase_connection_type,
             )
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            reactive_power_ssc = power.as_reactive_power_ssc()
+            q_control_type = ControlQConst(
+                value=reactive_power_ssc.value,
+                value_a=reactive_power_ssc.value_a,
+                value_b=reactive_power_ssc.value_b,
+                value_c=reactive_power_ssc.value_c,
+                is_symmetrical=reactive_power_ssc.is_symmetrical,
+            )
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_U:
             cosphi_a = gen.cosn
@@ -2850,41 +2951,41 @@ class PowerFactoryExporter:
             u_deadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
             m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a * Exponents.VOLTAGE  # (% von Pr) / kV
             m_tg_2018 = self.transform_qu_slope(slope=m_tg_2015, given_format="2015", target_format="2018", u_n=u_n)
-            q_controller = ControlQU(
-                m_tg_2015=round(m_tg_2015, DecimalDigits.PU),
-                m_tg_2018=round(m_tg_2018, DecimalDigits.PU),
+            q_control_type = ControlQU(
+                droop_tg_2015=round(m_tg_2015, DecimalDigits.PU),
+                droop_tg_2018=round(m_tg_2018, DecimalDigits.PU),
                 u_q0=round(u_q0 * u_n, DecimalDigits.VOLTAGE),
                 u_deadband_up=round(u_deadband_up * u_n, DecimalDigits.VOLTAGE),
                 u_deadband_low=round(u_deadband_low * u_n, DecimalDigits.VOLTAGE),
                 q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_P:
             if gen.pQPcurve is None:
                 return None
 
-            q_controller = ControlQP(q_p_characteristic_name=gen.pQPcurve.loc_name)
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            q_control_type = ControlQP(q_p_characteristic_name=gen.pQPcurve.loc_name)
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
             cosphi_ue = gen.pf_under
             cosphi_oe = gen.pf_over
             p_threshold_ue = gen.p_under * -1  # P-threshold for cosphi_ue
             p_threshold_oe = gen.p_over * -1  # P-threshold for cosphi_oe
-            q_controller = ControlCosphiP(
+            q_control_type = ControlCosphiP(
                 cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                 cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                 p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
             )
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
             u_set = gen.usetp
-            q_controller = ControlUConst(u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
-            return Controller(node_target=node_target_name, control_type=q_controller)
+            q_control_type = ControlUConst(u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
+            return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
             loguru.logger.warning(
@@ -2908,10 +3009,9 @@ class PowerFactoryExporter:
         gen: PFTypes.GeneratorBase,
         /,
         *,
-        u_n: float,
-        controller: PFTypes.StationController,
         grid_name: str,
-    ) -> Controller | None:
+        controller: PFTypes.StationController,
+    ) -> QController | None:
         controller_name = self.pfi.create_generator_name(gen, generator_name=controller.loc_name)
         loguru.logger.debug(
             "Creating producer {gen_name} external Q controller {controller_name}...",
@@ -2920,26 +3020,28 @@ class PowerFactoryExporter:
         )
 
         # Controlled node
-        node_target_cub = controller.p_cub
-        if node_target_cub is None:
+        bus = controller.p_cub  # target node
+        if bus is None:
             loguru.logger.warning(
                 "Generator {gen_name}: external controller has no target node. Skipping.",
                 gen_name=gen.loc_name,
             )
             return None
-        node_target_name = self.pfi.create_name(node_target_cub.cterm, grid_name=grid_name)
+        terminal = bus.cterm
+        node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
+        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
 
         ctrl_mode = controller.i_ctrl
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             u_set = controller.usetp
             u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
-            q_controller = ControlUConst(
+            q_control_type = ControlUConst(
                 u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
                 u_meas_ref=u_meas_ref,
             )
-            return Controller(
+            return QController(
                 node_target=node_target_name,
-                control_type=q_controller,
+                control_type=q_control_type,
                 external_controller_name=controller_name,
             )
 
@@ -2947,10 +3049,27 @@ class PowerFactoryExporter:
             if controller.qu_char == QChar.CONST:  # const. Q
                 q_dir = -1 if controller.iQorient else 1
                 q_set = controller.qsetp * q_dir * -1  # has to be negative as power is now counted demand based
-                q_controller = ControlQConst(q_set=round(q_set * Exponents.POWER * gen.ngnum, DecimalDigits.POWER))
-                return Controller(
+                phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+                power = LoadPower.from_pq_sym(
+                    pow_act=0,
+                    pow_react=q_set
+                    * Exponents.POWER
+                    * gen.ngnum,  # has to be negative as power is counted demand based
+                    scaling=1,
+                    phase_connection_type=phase_connection_type,
+                )
+                reactive_power_ssc = power.as_reactive_power_ssc()
+                q_control_type = ControlQConst(
+                    value=reactive_power_ssc.value,
+                    value_a=reactive_power_ssc.value_a,
+                    value_b=reactive_power_ssc.value_b,
+                    value_c=reactive_power_ssc.value_c,
+                    is_symmetrical=reactive_power_ssc.is_symmetrical,
+                )
+                q_control_type = QController(node_target=node_target_name, control_type=q_control_type)
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -2991,18 +3110,18 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_controller = ControlQU(
-                    m_tg_2015=round(m_tg_2015, DecimalDigits.PU),
-                    m_tg_2018=round(m_tg_2018, DecimalDigits.PU),
+                q_control_type = ControlQU(
+                    droop_tg_2015=round(m_tg_2015, DecimalDigits.PU),
+                    droop_tg_2018=round(m_tg_2018, DecimalDigits.PU),
                     u_q0=round(u_q0 * u_n, DecimalDigits.VOLTAGE),
                     u_deadband_up=round(u_deadband_up * u_n, DecimalDigits.VOLTAGE),
                     u_deadband_low=round(u_deadband_low * u_n, DecimalDigits.VOLTAGE),
                     q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 )
-                return Controller(
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -3011,14 +3130,14 @@ class PowerFactoryExporter:
                 q_max_ue = abs(controller.Qmin)
                 q_max_oe = abs(controller.Qmax)
                 q_dir = q_dir = -1 if controller.iQorient else 1
-                q_controller = ControlQP(
+                q_control_type = ControlQP(
                     q_p_characteristic_name=q_p_char_name,
                     q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 )
-                return Controller(
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -3032,13 +3151,13 @@ class PowerFactoryExporter:
                 # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
                 q_dir = q_dir = -1 if controller.iQorient else 1
                 cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
-                q_controller = ControlCosphiConst(
+                q_control_type = ControlCosphiConst(
                     cosphi=round(cosphi, DecimalDigits.COSPHI),
                     cosphi_dir=cosphi_dir,
                 )
-                return Controller(
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -3047,15 +3166,15 @@ class PowerFactoryExporter:
                 cosphi_oe = controller.pf_over
                 p_threshold_ue = controller.p_under * -1  # P-threshold for cosphi_ue
                 p_threshold_oe = controller.p_over * -1  # P-threshold for cosphi_oe
-                q_controller = ControlCosphiP(
+                q_control_type = ControlCosphiP(
                     cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                     p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                     p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
                 )
-                return Controller(
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -3064,15 +3183,15 @@ class PowerFactoryExporter:
                 cosphi_oe = controller.pf_over
                 u_threshold_ue = controller.u_under  # U-threshold for cosphi_ue
                 u_threshold_oe = controller.u_over  # U-threshold for cosphi_oe
-                q_controller = ControlCosphiU(
+                q_control_type = ControlCosphiU(
                     cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
                     cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
                     u_threshold_ue=round(u_threshold_ue * u_n, DecimalDigits.VOLTAGE),
                     u_threshold_oe=round(u_threshold_oe * u_n, DecimalDigits.VOLTAGE),
                 )
-                return Controller(
+                return QController(
                     node_target=node_target_name,
-                    control_type=q_controller,
+                    control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
@@ -3082,13 +3201,13 @@ class PowerFactoryExporter:
         if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
             cosphi = math.cos(math.atan(controller.tansetp))
             cosphi_dir = CosphiDir.UE if controller.iQorient else CosphiDir.OE
-            q_controller = ControlTanphiConst(
+            q_control_type = ControlTanphiConst(
                 cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
             )
-            return Controller(
+            return QController(
                 node_target=node_target_name,
-                control_type=q_controller,
+                control_type=q_control_type,
                 external_controller_name=controller_name,
             )
 

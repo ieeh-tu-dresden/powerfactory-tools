@@ -11,11 +11,10 @@ from typing import TYPE_CHECKING
 
 import loguru
 from psdm.base import CosphiDir
-from psdm.steadystate_case.active_power import ActivePower
-from psdm.steadystate_case.reactive_power import ReactivePower
 from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Phase
 from psdm.topology.load import PhaseConnectionType
+from psdm.topology.load import PowerBase
 from psdm.topology.load import PowerType
 from psdm.topology.load import RatedPower
 
@@ -26,8 +25,6 @@ from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 
 if TYPE_CHECKING:
     from typing import TypedDict
-
-    from psdm.steadystate_case.controller import Controller
 
     class PowerDict(TypedDict):
         power_apparent: float
@@ -858,8 +855,8 @@ class LoadPower:
             cosphi_dir=cosphi_dir,
         )
 
-    def as_active_power_ssc(self) -> ActivePower:
-        return ActivePower(
+    def as_active_power_ssc(self) -> PowerBase:
+        return PowerBase(
             value=round(self.pow_act, DecimalDigits.POWER),
             value_a=round(self.pow_act_a, DecimalDigits.POWER + 2),
             value_b=round(self.pow_act_b, DecimalDigits.POWER + 2),
@@ -867,15 +864,14 @@ class LoadPower:
             is_symmetrical=self.is_symmetrical_p,
         )
 
-    def as_reactive_power_ssc(self, controller: Controller | None = None) -> ReactivePower:
+    def as_reactive_power_ssc(self) -> PowerBase:
         # remark: actual reactive power set by external controller is not shown in ReactivePower
-        return ReactivePower(
+        return PowerBase(
             value=round(self.pow_react, DecimalDigits.POWER),
             value_a=round(self.pow_react_a, DecimalDigits.POWER + 2),
             value_b=round(self.pow_react_b, DecimalDigits.POWER + 2),
             value_c=round(self.pow_react_c, DecimalDigits.POWER + 2),
             is_symmetrical=self.is_symmetrical_q,
-            controller=controller,
         )
 
     def as_rated_power(self) -> RatedPower:
