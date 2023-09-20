@@ -1427,14 +1427,29 @@ class PowerFactoryInterface:
         self,
         *,
         name: str,
-        grids: Sequence[PFTypes.Grid],
-        grid_variants: Sequence[PFTypes.GridVariant],
-        scenario: PFTypes.Scenario,
-        target_datetime: dt.datetime,
+        grids: Sequence[PFTypes.Grid] | None = None,
+        grid_variants: Sequence[PFTypes.GridVariant] | None = None,
+        scenario: PFTypes.Scenario | None = None,
+        target_datetime: dt.datetime | None = None,
         location: PFTypes.DataObject | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.StudyCase | None:
+        """Create a study case with optional related grids, variants and scenarios.
+
+        Keyword Arguments:
+            name -- the name of the new study case
+            grids -- list of grids to be related to the study case (default: {None})
+            grid_variants -- list of grid variants to be related to the study case (default: {None})
+            scenario -- scenario to be related to the study case (default: {None})
+            target_datetime -- datetime basis to be related to the study case (default: {None})
+            location -- the folder where the study case should be created in (default: {None})
+            force -- flag to force the creation, nonetheless if variant already exits (default: {False})
+            update -- Flag to update object attributes if objects already exists (default: {True})
+
+        Returns:
+            created study case
+        """
         if location is None:
             location = self.study_case_dir
 
@@ -1453,79 +1468,35 @@ class PowerFactoryInterface:
                 class_name=PFClassId.STUDY_CASE.value,
             )
             return None
+        study_case = t.cast("PFTypes.StudyCase", study_case)
 
-        grid_variant_config = self.create_object(
-            name=f"{name}_variants",
-            class_name=PFClassId.VARIANT_CONFIG.value,
-            location=study_case,
-            force=force,
-            update=update,
-        )
-        if grid_variant_config is None:
-            loguru.logger.warning(
-                "{object_name}.{class_name} could not be created.",
-                object_name=f"{name}_variants",
-                class_name=PFClassId.VARIANT_CONFIG.value,
-            )
-            return None
+        if target_datetime is not None:
+            ref_datetime = dt.datetime(1970, 1, 1, 0, 0, 0, tzinfo=dt.timezone.utc)
+            target_seconds_since_ref = int((target_datetime - ref_datetime).total_seconds())
+            study_case.SetStudyTime(target_seconds_since_ref)
+            # check if datetime was successfully set
+            set_seconds_since_ref = study_case.iStudyTime
+            if set_seconds_since_ref != target_seconds_since_ref:
+                loguru.logger.warning("Requested study time could not be set.")
+                return None
 
-        for grid_variant in grid_variants:
-            self.create_object(
-                name=grid_variant.loc_name,
-                class_name=PFClassId.REFERENCE.value,
-                data={"obj_id": grid_variant},
-                location=grid_variant_config,
-                force=force,
-                update=update,
-            )
+        actual_study_case = self.app.GetActiveStudyCase()
+        self.switch_study_case(study_case.loc_name)
 
-        entire_grid = self.create_object(
-            name="entire_grid",
-            class_name=PFClassId.GRID.value,
-            location=study_case,
-            force=force,
-            update=update,
-        )
-        if entire_grid is None:
-            loguru.logger.warning(
-                "{object_name}.{class_name} could not be created.",
-                object_name="entire_grid",
-                class_name=PFClassId.GRID.value,
-            )
-            return None
+        if grids is not None:
+            for grid in grids:
+                self.activate_grid(grid)
 
-        for grid in grids:
-            self.create_object(
-                name=grid.loc_name,
-                class_name=PFClassId.REFERENCE.value,
-                data={"obj_id": grid},
-                location=entire_grid,
-                force=force,
-                update=update,
-            )
+        if grid_variants is not None:
+            for grid_variant in grid_variants:
+                self.activate_grid_variant(grid_variant)
 
-        self.create_object(
-            name=scenario.loc_name,
-            class_name=PFClassId.REFERENCE.value,
-            data={"obj_id": scenario},
-            location=study_case,
-            force=force,
-            update=update,
-        )
+        if scenario is not None:
+            self.activate_scenario(scenario)
 
-        self.create_object(
-            name="target_datetime",
-            class_name=PFClassId.DATETIME.value,
-            data={
-                "cDate": target_datetime.date().isoformat(),
-                "cTime": target_datetime.time().isoformat(),
-            },
-            location=study_case,
-            force=force,
-            update=update,
-        )
+        self.switch_study_case(actual_study_case.loc_name)
 
-        return t.cast("PFTypes.StudyCase", study_case)
+        return study_case
 
     def create_grid_variant(
         self,

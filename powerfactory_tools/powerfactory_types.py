@@ -544,10 +544,33 @@ class PowerFactoryTypes:
             ...
 
     class StudyCase(DataObject, Protocol):
+        iStudyTime: int  # noqa: N815
+
         def Activate(self) -> bool:  # noqa: N802
             ...
 
+        def ApplyNetworkState(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: grids, scenarios and network variations configuration
+        ) -> Literal[0, 1, 2, 3, 4, 5]:
+            ...
+
+        def ApplyStudyTime(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: study time
+        ) -> Literal[0, 1, 2, 3, 4]:
+            ...
+
+        def Consolidate(self) -> bool:  # noqa: N802
+            ...
+
         def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def SetStudyTime(  # noqa: N802
+            self,
+            dateTime: int,  # noqa: N803 # Seconds since 01.01.1970 00:00:00.
+        ) -> None:
             ...
 
     class GridVariant(DataObject, Protocol):
