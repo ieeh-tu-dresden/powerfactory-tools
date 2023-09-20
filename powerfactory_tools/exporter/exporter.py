@@ -1116,7 +1116,13 @@ class PowerFactoryExporter:
         load_mvs = self.create_loads_mv(consumers_mv, grid_name=grid_name)
         gen_producers = self.create_producers_normal(generators, grid_name=grid_name)
         pv_producers = self.create_producers_pv(pv_systems, grid_name=grid_name)
-        return self.pfi.list_from_sequences(normal_consumers, lv_consumers, load_mvs, gen_producers, pv_producers)
+        return self.pfi.list_from_sequences(
+            normal_consumers,
+            lv_consumers,
+            load_mvs,
+            gen_producers,
+            pv_producers,
+        )
 
     def create_consumers_normal(
         self,
@@ -1357,13 +1363,13 @@ class PowerFactoryExporter:
 
     @staticmethod
     def load_model_of(
-        load: PFTypes.LoadBase,
+        load: PFTypes.LoadBase | PFTypes.GeneratorBase,
         /,
         *,
         specifier: t.Literal["p", "q"],
         default: t.Literal["U", "P", "Z"] = "P",
     ) -> LoadModel:
-        load_type = load.typ_id
+        load_type = load.typ_id if type(load) is PFTypes.LoadBase else None
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
                 loguru.logger.warning(
@@ -1429,7 +1435,7 @@ class PowerFactoryExporter:
         gen_name = self.pfi.create_generator_name(generator)
         system_type = SystemType[GeneratorSystemType(generator.aCategory).name]
         phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
-        external_controller_name = self.get_external_controller_name(generator)
+
         return self.create_producer(
             generator,
             power=power,
@@ -1437,7 +1443,7 @@ class PowerFactoryExporter:
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
             system_type=system_type,
-            external_controller_name=external_controller_name,
+            load_model_default="P",
         )
 
     def create_producers_pv(
@@ -1469,6 +1475,7 @@ class PowerFactoryExporter:
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
             system_type=system_type,
+            load_model_default="P",
         )
 
     def get_external_controller_name(
@@ -1510,8 +1517,8 @@ class PowerFactoryExporter:
         grid_name: str,
         system_type: SystemType,
         phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
-        external_controller_name: str | None = None,
         name_suffix: str = "",
+        load_model_default: t.Literal["U", "Z", "P"] = "P",
     ) -> Load | None:
         gen_name = self.pfi.create_name(generator, grid_name=grid_name, element_name=gen_name) + name_suffix
         loguru.logger.debug("Creating producer {gen_name}...", gen_name=gen_name)
@@ -1534,7 +1541,12 @@ class PowerFactoryExporter:
 
         # Rated Values of single unit
         rated_power = power.as_rated_power()
-        reactive_power = ReactivePower(external_controller_name=external_controller_name)
+
+        load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default)
+        active_power = ActivePower(load_model=load_model_p)
+
+        load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default)
+        reactive_power = ReactivePower(load_model=load_model_q)
 
         phase_connection_type = PhaseConnectionType[phase_connection_type.name]
         connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
@@ -1545,7 +1557,7 @@ class PowerFactoryExporter:
             description=description,
             u_n=u_n,
             rated_power=rated_power,
-            active_power=ActivePower(),
+            active_power=active_power,
             reactive_power=reactive_power,
             type=LoadType.PRODUCER,
             connected_phases=connected_phases,
