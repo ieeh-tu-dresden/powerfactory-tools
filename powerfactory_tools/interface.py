@@ -21,7 +21,6 @@ import loguru
 import pydantic
 
 from powerfactory_tools.constants import BaseUnits
-from powerfactory_tools.powerfactory_types import PFTYPE_MAPPING
 from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import FolderType
@@ -1474,7 +1473,7 @@ class PowerFactoryInterface:
         study_case = t.cast("PFTypes.StudyCase", study_case)
 
         if target_datetime is not None:
-            target_timestamp = time.mktime(target_datetime.timetuple())
+            target_timestamp = int(time.mktime(target_datetime.timetuple()))
             study_case.SetStudyTime(target_timestamp)
             # check if datetime was successfully set
             set_timestamp = study_case.iStudyTime
