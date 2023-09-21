@@ -22,14 +22,9 @@ from psdm.meta import Meta
 from psdm.meta import SignConvention
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
-from psdm.steadystate_case.controller import ControlCosphiConst
-from psdm.steadystate_case.controller import ControlCosphiP
 from psdm.steadystate_case.controller import ControlCosphiU
 from psdm.steadystate_case.controller import ControlledVoltageRef
-from psdm.steadystate_case.controller import ControlPConst
-from psdm.steadystate_case.controller import ControlQConst
 from psdm.steadystate_case.controller import ControlQP
-from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import ControlTanphiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import PController
@@ -65,6 +60,9 @@ from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
+from powerfactory_tools.exporter.load_power import ControlCosphiPDict
+from powerfactory_tools.exporter.load_power import ControlQUDict
+from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
@@ -2872,14 +2870,7 @@ class PowerFactoryExporter:
             return None
 
         # at the moment there is only controller of type PConst
-        active_power_ssc = power.as_active_power_ssc()
-        p_control_type = ControlPConst(
-            value=active_power_ssc.value,
-            value_a=active_power_ssc.value_a,
-            value_b=active_power_ssc.value_b,
-            value_c=active_power_ssc.value_c,
-            is_symmetrical=active_power_ssc.is_symmetrical,
-        )
+        p_control_type = ControlType.create_p_const(power)
         return PController(node_target=node_target_name, control_type=p_control_type)
 
     def create_consumer_q_controller_builtin(
@@ -2902,25 +2893,11 @@ class PowerFactoryExporter:
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
 
         if power.pow_react_control_type == QControlStrategy.Q_CONST:
-            reactive_power_ssc = power.as_active_power_ssc()
-            q_control_type = ControlQConst(
-                value=reactive_power_ssc.value,
-                value_a=reactive_power_ssc.value_a,
-                value_b=reactive_power_ssc.value_b,
-                value_c=reactive_power_ssc.value_c,
-                is_symmetrical=reactive_power_ssc.is_symmetrical,
-            )
+            q_control_type = ControlType.create_q_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            q_control_type = ControlCosphiConst(
-                cosphi_dir=power.cosphi_dir,
-                cosphi=round(power.cosphi, DecimalDigits.COSPHI),
-                cosphi_a=round(power.cosphi_a, DecimalDigits.COSPHI),
-                cosphi_b=round(power.cosphi_b, DecimalDigits.COSPHI),
-                cosphi_c=round(power.cosphi_c, DecimalDigits.COSPHI),
-                is_symmetrical=power.is_symmetrical,
-            )
+            q_control_type = ControlType.create_cosphi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         msg = "unreachable"
@@ -2943,60 +2920,52 @@ class PowerFactoryExporter:
             return None
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
+
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+        scaling = gen.scale0
 
         av_mode = LocalQCtrlMode(gen.av_mode)
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
-            cosphi = round(gen.cosgini, DecimalDigits.COSPHI)
-            cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
-            q_control_type = ControlCosphiConst(
-                cosphi_dir=cosphi_dir,
-                cosphi=cosphi,
-                cosphi_a=cosphi,
-                cosphi_b=cosphi,
-                cosphi_c=cosphi,
-                is_symmetrical=True,
+            power = LoadPower.from_pc_sym(
+                pow_act=0,
+                cosphi=gen.cosgini,
+                cosphi_dir=CosphiDir.UE if gen.pf_recap else CosphiDir.OE,
+                scaling=scaling,
+                phase_connection_type=phase_connection_type,
             )
+            q_control_type = ControlType.create_cosphi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
-            phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
             power = LoadPower.from_pq_sym(
                 pow_act=0,
                 pow_react=q_set * gen.ngnum,  # has to be negative as power is counted demand based
-                scaling=gen.scale0,
+                scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
-            reactive_power_ssc = power.as_reactive_power_ssc()
-            q_control_type = ControlQConst(
-                value=reactive_power_ssc.value,
-                value_a=reactive_power_ssc.value_a,
-                value_b=reactive_power_ssc.value_b,
-                value_c=reactive_power_ssc.value_c,
-                is_symmetrical=reactive_power_ssc.is_symmetrical,
-            )
+            q_control_type = ControlType.create_q_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_U:
-            cosphi_a = gen.cosn
-            q_max_ue = abs(gen.Qfu_min)  # absolute value
-            q_max_oe = abs(gen.Qfu_max)  # absolute value
             u_q0 = gen.udeadbup - (gen.udeadbup - gen.udeadblow) / 2  # p.u.
             u_deadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
             u_deadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
-            m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / cosphi_a * Exponents.VOLTAGE  # (% von Pr) / kV
+            m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / gen.cosn * Exponents.VOLTAGE  # (% von Pr) / kV
             m_tg_2018 = self.transform_qu_slope(slope=m_tg_2015, given_format="2015", target_format="2018", u_n=u_n)
-            q_control_type = ControlQU(
-                droop_tg_2015=round(m_tg_2015, DecimalDigits.PU),
-                droop_tg_2018=round(m_tg_2018, DecimalDigits.PU),
-                u_q0=round(u_q0 * u_n, DecimalDigits.VOLTAGE),
-                u_deadband_up=round(u_deadband_up * u_n, DecimalDigits.VOLTAGE),
-                u_deadband_low=round(u_deadband_low * u_n, DecimalDigits.VOLTAGE),
-                q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+
+            q_u_params = ControlQUDict(
+                q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
+                q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
+                u_q0=u_q0 * u_n,
+                u_deadband_low=u_deadband_low * u_n,
+                u_deadband_up=u_deadband_up * u_n,
+                droop_tg_2015=m_tg_2015,
+                droop_tg_2018=m_tg_2018,
             )
+            q_control_type = ControlType.create_q_u(q_u_params)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_P:
@@ -3007,16 +2976,13 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            cosphi_ue = gen.pf_under
-            cosphi_oe = gen.pf_over
-            p_threshold_ue = gen.p_under * -1  # P-threshold for cosphi_ue
-            p_threshold_oe = gen.p_over * -1  # P-threshold for cosphi_oe
-            q_control_type = ControlCosphiP(
-                cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
-                cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+            params = ControlCosphiPDict(
+                cosphi_ue=gen.pf_under,
+                cosphi_oe=gen.pf_over,
+                p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
+                p_threshold_oe=gen.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
             )
+            q_control_type = ControlType.create_cosphi_p(params)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
@@ -3067,8 +3033,10 @@ class PowerFactoryExporter:
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
 
         ctrl_mode = controller.i_ctrl
+
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             u_set = controller.usetp
             u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
@@ -3086,7 +3054,6 @@ class PowerFactoryExporter:
             if controller.qu_char == QChar.CONST:  # const. Q
                 q_dir = -1 if controller.iQorient else 1
                 q_set = controller.qsetp * q_dir * -1  # has to be negative as power is now counted demand based
-                phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
                 power = LoadPower.from_pq_sym(
                     pow_act=0,
                     pow_react=q_set
@@ -3095,15 +3062,7 @@ class PowerFactoryExporter:
                     scaling=1,
                     phase_connection_type=phase_connection_type,
                 )
-                reactive_power_ssc = power.as_reactive_power_ssc()
-                q_control_type = ControlQConst(
-                    value=reactive_power_ssc.value,
-                    value_a=reactive_power_ssc.value_a,
-                    value_b=reactive_power_ssc.value_b,
-                    value_c=reactive_power_ssc.value_c,
-                    is_symmetrical=reactive_power_ssc.is_symmetrical,
-                )
-                q_control_type = QController(node_target=node_target_name, control_type=q_control_type)
+                q_control_type = ControlType.create_q_const(power)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3111,51 +3070,41 @@ class PowerFactoryExporter:
                 )
 
             if controller.qu_char == QChar.U:  # Q(U)
-                s_r = gen.sgn
-                cosphi_a = gen.cosn
-                u_nom = round(controller.refbar.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
-
-                q_max_ue = abs(controller.Qmin)
-                q_max_oe = abs(controller.Qmax)
                 u_q0 = controller.udeadbup - (controller.udeadbup - controller.udeadblow) / 2  # per unit
                 u_deadband_low = abs(u_q0 - controller.udeadblow)  # delta in per unit
                 u_deadband_up = abs(u_q0 - controller.udeadbup)  # delta in per unit
 
                 q_rated = controller.Srated
                 try:
-                    if abs((abs(q_rated) - abs(s_r)) / abs(s_r)) < M_TAB2015_MIN_THRESHOLD:  # q_rated == s_r
-                        m_tg_2015 = 100 / controller.ddroop * 100 / u_nom / cosphi_a * Exponents.VOLTAGE
+                    if abs((abs(q_rated) - abs(gen.sgn)) / abs(gen.sgn)) < M_TAB2015_MIN_THRESHOLD:  # q_rated == s_r
+                        m_tg_2015 = 100 / controller.ddroop * 100 / u_n / gen.cosn * Exponents.VOLTAGE
                     else:
                         m_tg_2015 = (
-                            100
-                            / abs(controller.ddroop)
-                            * 100
-                            / u_nom
-                            * math.tan(math.acos(cosphi_a))
-                            * Exponents.VOLTAGE
+                            100 / abs(controller.ddroop) * 100 / u_n * math.tan(math.acos(gen.cosn)) * Exponents.VOLTAGE
                         )
 
                     # in default there should q_rated=s_r, but user could enter incorrectly
-                    m_tg_2015 = m_tg_2015 * q_rated / s_r
+                    m_tg_2015 = m_tg_2015 * q_rated / gen.sgn
                     m_tg_2018 = self.transform_qu_slope(
                         slope=m_tg_2015,
                         given_format="2015",
                         target_format="2018",
-                        u_n=u_nom,
+                        u_n=u_n,
                     )
                 except ZeroDivisionError:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_control_type = ControlQU(
-                    droop_tg_2015=round(m_tg_2015, DecimalDigits.PU),
-                    droop_tg_2018=round(m_tg_2018, DecimalDigits.PU),
-                    u_q0=round(u_q0 * u_n, DecimalDigits.VOLTAGE),
-                    u_deadband_up=round(u_deadband_up * u_n, DecimalDigits.VOLTAGE),
-                    u_deadband_low=round(u_deadband_low * u_n, DecimalDigits.VOLTAGE),
-                    q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                q_u_params = ControlQUDict(
+                    q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
+                    q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
+                    u_q0=u_q0 * u_n,
+                    u_deadband_low=u_deadband_low * u_n,
+                    u_deadband_up=u_deadband_up * u_n,
+                    droop_tg_2015=m_tg_2015,
+                    droop_tg_2018=m_tg_2018,
                 )
+                q_control_type = ControlType.create_q_u(q_u_params)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3183,18 +3132,17 @@ class PowerFactoryExporter:
 
         if ctrl_mode == CtrlMode.COSPHI:  # cosphi control mode
             if controller.cosphi_char == CosphiChar.CONST:  # const. cosphi
-                cosphi = round(controller.pfsetp, DecimalDigits.COSPHI)
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
                 cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
-                q_control_type = ControlCosphiConst(
+                power = LoadPower.from_pc_sym(
+                    pow_act=0,
+                    cosphi=controller.pfsetp,
                     cosphi_dir=cosphi_dir,
-                    cosphi=cosphi,
-                    cosphi_a=cosphi,
-                    cosphi_b=cosphi,
-                    cosphi_c=cosphi,
-                    is_symmetrical=True,
+                    scaling=1,
+                    phase_connection_type=phase_connection_type,
                 )
+                q_control_type = ControlType.create_cosphi_const(power)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3202,16 +3150,13 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosphiChar.P:  # cosphi(P)
-                cosphi_ue = controller.pf_under
-                cosphi_oe = controller.pf_over
-                p_threshold_ue = controller.p_under * -1  # P-threshold for cosphi_ue
-                p_threshold_oe = controller.p_over * -1  # P-threshold for cosphi_oe
-                q_control_type = ControlCosphiP(
-                    cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
-                    cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                    p_threshold_ue=round(p_threshold_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    p_threshold_oe=round(p_threshold_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                params = ControlCosphiPDict(
+                    cosphi_ue=controller.pf_under,
+                    cosphi_oe=controller.pf_over,
+                    p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
+                    p_threshold_oe=controller.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
                 )
+                q_control_type = ControlType.create_cosphi_p(params)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,

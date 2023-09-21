@@ -11,6 +11,11 @@ from typing import TYPE_CHECKING
 
 import loguru
 from psdm.base import CosphiDir
+from psdm.steadystate_case.controller import ControlCosphiConst
+from psdm.steadystate_case.controller import ControlCosphiP
+from psdm.steadystate_case.controller import ControlPConst
+from psdm.steadystate_case.controller import ControlQConst
+from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Phase
@@ -34,6 +39,21 @@ if TYPE_CHECKING:
         cosphi: float
         cosphi_dir: CosphiDir
         power_reactive_control_type: QControlStrategy
+
+    class ControlQUDict(TypedDict):
+        droop_tg_2015: float  # (% von Pr) / kV
+        droop_tg_2018: float  # (% von Pr) / pu
+        u_q0: float  # in V
+        u_deadband_up: float  # in V
+        u_deadband_low: float  # in V
+        q_max_ue: float  # in var
+        q_max_oe: float  # in var
+
+    class ControlCosphiPDict(TypedDict):
+        cosphi_ue: float
+        cosphi_oe: float
+        p_threshold_ue: float  # in W
+        p_threshold_oe: float  # in W
 
 
 COSPHI_DEFAULT = 1
@@ -908,4 +928,61 @@ class LoadPower:
             cosphi_c=round(self.cosphi_c, DecimalDigits.COSPHI),
             is_symmetrical=self.is_symmetrical_s and self.is_symmetrical_cosphi,
             power_type=PowerType.AC_APPARENT,
+        )
+
+
+@dataclass
+class ControlType:
+    @staticmethod
+    def create_p_const(power: LoadPower) -> ControlPConst:
+        active_power_ssc = power.as_active_power_ssc()
+        return ControlQConst(
+            value=active_power_ssc.value,
+            value_a=active_power_ssc.value_a,
+            value_b=active_power_ssc.value_b,
+            value_c=active_power_ssc.value_c,
+            is_symmetrical=active_power_ssc.is_symmetrical,
+        )
+
+    @staticmethod
+    def create_q_const(power: LoadPower) -> ControlQConst:
+        reactive_power_ssc = power.as_reactive_power_ssc()
+        return ControlQConst(
+            value=reactive_power_ssc.value,
+            value_a=reactive_power_ssc.value_a,
+            value_b=reactive_power_ssc.value_b,
+            value_c=reactive_power_ssc.value_c,
+            is_symmetrical=reactive_power_ssc.is_symmetrical,
+        )
+
+    @staticmethod
+    def create_cosphi_const(power: LoadPower) -> ControlCosphiConst:
+        return ControlCosphiConst(
+            cosphi_dir=power.cosphi_dir,
+            cosphi=round(power.cosphi, DecimalDigits.COSPHI),
+            cosphi_a=round(power.cosphi_a, DecimalDigits.COSPHI),
+            cosphi_b=round(power.cosphi_b, DecimalDigits.COSPHI),
+            cosphi_c=round(power.cosphi_c, DecimalDigits.COSPHI),
+            is_symmetrical=power.is_symmetrical,
+        )
+
+    @staticmethod
+    def create_q_u(params: ControlQUDict) -> ControlQU:
+        return ControlQU(
+            droop_tg_2015=round(params["droop_tg_2015"], DecimalDigits.PU),
+            droop_tg_2018=round(params["droop_tg_2018"], DecimalDigits.PU),
+            u_q0=round(params["u_q0"], DecimalDigits.VOLTAGE),
+            u_deadband_low=round(params["u_deadband_low"], DecimalDigits.VOLTAGE),
+            u_deadband_up=round(params["u_deadband_up"], DecimalDigits.VOLTAGE),
+            q_max_ue=round(params["q_max_ue"], DecimalDigits.POWER),
+            q_max_oe=round(params["q_max_oe"], DecimalDigits.POWER),
+        )
+
+    @staticmethod
+    def create_cosphi_p(params: ControlCosphiPDict) -> ControlCosphiP:
+        return ControlCosphiP(
+            cosphi_ue=round(params["cosphi_ue"], DecimalDigits.COSPHI),
+            cosphi_oe=round(params["cosphi_oe"], DecimalDigits.COSPHI),
+            p_threshold_ue=round(params["p_threshold_ue"], DecimalDigits.POWER),
+            p_threshold_oe=round(params["p_threshold_oe"], DecimalDigits.POWER),
         )
