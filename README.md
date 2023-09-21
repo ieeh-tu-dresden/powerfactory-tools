@@ -37,11 +37,12 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 Please find below some important general remarks and assumptions to consider for the application:
 
-+ The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model/blob/main/README.md):
++ The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
   + The passive sign convention should be used for all types of loads (consumer as well as producer). 
   + The `Rated Power` is always defined positive (absolute value).
 + By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
-
++ Export of `loads`:
+  + Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
 + Export of `transformer`:
   + Impedances of all winding objects are referred to the high voltage side of the transformer.
   + Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
@@ -49,6 +50,8 @@ Please find below some important general remarks and assumptions to consider for
   + Branch like fuses are exported as switching state.
   + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
 + Export of `SteadyStateCase`:
+  + The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power.
+    + By default a consumer load has a CosPhiConst type controller, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory.
   + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator. 
   The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported q operating point is the same that set by the station controller.
 

@@ -468,6 +468,9 @@ class PowerFactoryTypes:
         loc_name: str
         fold_id: PowerFactoryTypes.DataObject | None
 
+        def GetClassName(self) -> str:  # noqa: N802
+            ...
+
         def GetContents(  # noqa: N802
             self,
             name: str,

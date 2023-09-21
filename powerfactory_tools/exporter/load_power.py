@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 
 import loguru
 from psdm.base import CosphiDir
+from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Phase
 from psdm.topology.load import PhaseConnectionType
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
         power_reactive: float
         cosphi: float
         cosphi_dir: CosphiDir
+        power_reactive_control_type: QControlStrategy
 
 
 COSPHI_DEFAULT = 1
@@ -124,6 +126,7 @@ class LoadPower:
     cosphi_b: float
     cosphi_c: float
     cosphi_dir: CosphiDir
+    pow_react_control_type: QControlStrategy
 
     @property
     def pow_app(self) -> float:
@@ -195,6 +198,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.Q_CONST,
         }
 
     @staticmethod
@@ -218,6 +222,7 @@ class LoadPower:
                 "power_reactive": 0,
                 "cosphi": COSPHI_DEFAULT,
                 "cosphi_dir": cosphi_dir,
+                "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
 
         fac = 1 if cosphi_dir == CosphiDir.UE else -1
@@ -228,6 +233,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -249,6 +255,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -269,6 +276,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -292,6 +300,7 @@ class LoadPower:
                 "power_reactive": 0,
                 "cosphi": COSPHI_DEFAULT,
                 "cosphi_dir": cosphi_dir,
+                "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
 
         pow_act = math.copysign(pow_app * cosphi, scaling)
@@ -301,6 +310,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -327,6 +337,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -352,6 +363,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -376,6 +388,7 @@ class LoadPower:
             "power_reactive": pow_react,
             "cosphi": cosphi,
             "cosphi_dir": cosphi_dir,
+            "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
 
     @staticmethod
@@ -547,6 +560,7 @@ class LoadPower:
             cosphi_b=power_dict["cosphi"] * fac_b,
             cosphi_c=power_dict["cosphi"] * fac_c,
             cosphi_dir=power_dict["cosphi_dir"],
+            pow_react_control_type=power_dict["power_reactive_control_type"],
         )
 
     @classmethod
@@ -583,6 +597,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -615,6 +630,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -666,6 +682,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -698,6 +715,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -734,6 +752,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -785,6 +804,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -817,6 +837,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     @classmethod
@@ -853,6 +874,7 @@ class LoadPower:
             cosphi_b=power_dict_b["cosphi"],
             cosphi_c=power_dict_c["cosphi"],
             cosphi_dir=cosphi_dir,
+            pow_react_control_type=power_dict_a["power_reactive_control_type"],
         )
 
     def as_active_power_ssc(self) -> PowerBase:

@@ -34,6 +34,7 @@ from psdm.steadystate_case.controller import ControlTanphiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import PController
 from psdm.steadystate_case.controller import QController
+from psdm.steadystate_case.controller import QControlStrategy
 from psdm.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from psdm.steadystate_case.load import Load as LoadSSC
 from psdm.steadystate_case.reactive_power import ReactivePower as ReactivePowerSSC
@@ -76,6 +77,7 @@ from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
+from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
@@ -1303,7 +1305,7 @@ class PowerFactoryExporter:
         system_type: SystemType,
         phase_connection_type: PhaseConnectionType,
         name_suffix: str = "",
-        load_model_default: t.Literal["U", "Z", "P"] = "P",
+        load_model_default: t.Literal["Z", "I", "P"] = "P",
     ) -> Load | None:
         l_name = self.pfi.create_name(load, grid_name=grid_name) + name_suffix
         loguru.logger.debug("Creating consumer {load_name}...", load_name=l_name)
@@ -1312,6 +1314,7 @@ class PowerFactoryExporter:
             loguru.logger.warning("Consumer {load_name} not set for export. Skipping.", load_name=l_name)
             return None
 
+        # get connected terminal
         bus = load.bus1
         if bus is None:
             loguru.logger.warning("Consumer {load_name} not connected to any bus. Skipping.", load_name=l_name)
@@ -1327,19 +1330,20 @@ class PowerFactoryExporter:
 
         terminal = bus.cterm
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
+        u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
-
+        # Rated power and load models for active and reactive power
         rated_power = power.as_rated_power()
         loguru.logger.debug(
-            "{load_name}: there is no real rated power, it is calculated based on actual power.",
+            "{load_name}: there is no real rated power, it is calculated based on current power.",
             load_name=l_name,
         )
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom)
 
-        load_model_p = self.load_model_of(load, specifier="p", default=load_model_default)
+        load_model_p = self.load_model_of(load, specifier="p", default=load_model_default, u_0=u_0)
         active_power = ActivePower(load_model=load_model_p)
 
-        load_model_q = self.load_model_of(load, specifier="q", default=load_model_default)
+        load_model_q = self.load_model_of(load, specifier="q", default=load_model_default, u_0=u_0)
         reactive_power = ReactivePower(load_model=load_model_q)
 
         connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
@@ -1353,7 +1357,6 @@ class PowerFactoryExporter:
             name=l_name,
             node=t_name,
             description=description,
-            u_n=u_n,
             rated_power=rated_power,
             active_power=active_power,
             reactive_power=reactive_power,
@@ -1365,12 +1368,29 @@ class PowerFactoryExporter:
         )
 
     @staticmethod
+    def reference_voltage_for_load_model_of(
+        load: PFTypes.LoadBase | PFTypes.LoadLVP | PFTypes.GeneratorBase,
+        u_nom: pydantic.confloat(ge=0),  # type: ignore[valid-type]
+    ) -> pydantic.confloat(ge=0):  # type: ignore[valid-type]
+        if load.GetClassName() == PFClassId.LOAD_LV.value:
+            load = t.cast("PFTypes.LoadLV", load)
+            return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
+        if type(load) == PFClassId.LOAD_LV_PART.value:
+            load = t.cast("PFTypes.LoadLVP", load)
+            return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
+        if load.GetClassName() == PFClassId.LOAD.value:
+            load = t.cast("PFTypes.Load", load)
+            return round(load.u0 * u_nom, DecimalDigits.VOLTAGE)
+        return u_nom
+
+    @staticmethod
     def load_model_of(
         load: PFTypes.LoadBase | PFTypes.GeneratorBase,
         /,
         *,
+        u_0: pydantic.confloat(ge=0),  # type: ignore[valid-type]
         specifier: t.Literal["p", "q"],
-        default: t.Literal["U", "P", "Z"] = "P",
+        default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
         load_type = load.typ_id if type(load) is PFTypes.LoadBase else None
         if load_type is not None:
@@ -1380,7 +1400,7 @@ class PowerFactoryExporter:
                     load_name=load.loc_name,
                 )
                 loguru.logger.info(
-                    "Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
+                    r"Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
                 )
 
             name = load_type.loc_name
@@ -1393,6 +1413,7 @@ class PowerFactoryExporter:
                     exp_p=load_type.kpu0,
                     exp_i=load_type.kpu1,
                     exp_z=load_type.kpu,
+                    u_0=u_0,
                 )
 
             if specifier == "q":
@@ -1403,18 +1424,19 @@ class PowerFactoryExporter:
                     exp_p=load_type.kqu0,
                     exp_i=load_type.kqu1,
                     exp_z=load_type.kqu,
+                    u_0=u_0,
                 )
 
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if default == "U":
-            return LoadModel(c_i=1, c_p=0)
+        if default == "I":
+            return LoadModel(c_i=1, c_p=0, u_0=u_0)
 
         if default == "P":
-            return LoadModel(c_i=0, c_p=1)
+            return LoadModel(c_i=0, c_p=1, u_0=u_0)
 
-        return LoadModel(c_i=0, c_p=0)
+        return LoadModel(c_i=0, c_p=0, u_0=u_0)
 
     def create_producers_normal(
         self,
@@ -1521,7 +1543,7 @@ class PowerFactoryExporter:
         system_type: SystemType,
         phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
         name_suffix: str = "",
-        load_model_default: t.Literal["U", "Z", "P"] = "P",
+        load_model_default: t.Literal["Z", "I", "P"] = "P",
     ) -> Load | None:
         gen_name = self.pfi.create_name(generator, grid_name=grid_name, element_name=gen_name) + name_suffix
         loguru.logger.debug("Creating producer {gen_name}...", gen_name=gen_name)
@@ -1533,6 +1555,7 @@ class PowerFactoryExporter:
             )
             return None
 
+        # get connected terminal
         bus = generator.bus1
         if bus is None:
             loguru.logger.warning("Generator {gen_name} not connected to any bus. Skipping.", gen_name=gen_name)
@@ -1540,15 +1563,17 @@ class PowerFactoryExporter:
 
         terminal = bus.cterm
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
-        # Rated Values of single unit
+        # Rated power and load models for active and reactive power
         rated_power = power.as_rated_power()
 
-        load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default)
+        u_0 = self.reference_voltage_for_load_model_of(generator, u_nom)
+
+        load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
         active_power = ActivePower(load_model=load_model_p)
 
-        load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default)
+        load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
         reactive_power = ReactivePower(load_model=load_model_q)
 
         phase_connection_type = PhaseConnectionType[phase_connection_type.name]
@@ -1558,7 +1583,7 @@ class PowerFactoryExporter:
             name=gen_name,
             node=t_name,
             description=description,
-            u_n=u_n,
+            u_n=u_nom,
             rated_power=rated_power,
             active_power=active_power,
             reactive_power=reactive_power,
@@ -2838,27 +2863,24 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-        power: LoadPower | None = None,
+        power: LoadPower,
     ) -> PController | None:
-        loguru.logger.debug("Creating load {load_name} internal P controller...", load_name=load.loc_name)
+        loguru.logger.debug("Creating consumer {load_name} internal P controller...", load_name=load.loc_name)
         if load.bus1 is not None:
             node_target_name = self.pfi.create_name(load.bus1.cterm, grid_name=grid_name)
         else:
             return None
 
         # at the moment there is only controller of type PConst
-        if power is not None:
-            active_power_ssc = power.as_active_power_ssc()
-            p_control_type = ControlPConst(
-                value=active_power_ssc.value,
-                value_a=active_power_ssc.value_a,
-                value_b=active_power_ssc.value_b,
-                value_c=active_power_ssc.value_c,
-                is_symmetrical=active_power_ssc.is_symmetrical,
-            )
-            return PController(node_target=node_target_name, control_type=p_control_type)
-
-        return None
+        active_power_ssc = power.as_active_power_ssc()
+        p_control_type = ControlPConst(
+            value=active_power_ssc.value,
+            value_a=active_power_ssc.value_a,
+            value_b=active_power_ssc.value_b,
+            value_c=active_power_ssc.value_c,
+            is_symmetrical=active_power_ssc.is_symmetrical,
+        )
+        return PController(node_target=node_target_name, control_type=p_control_type)
 
     def create_consumer_q_controller_builtin(
         self,
@@ -2866,7 +2888,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-        power: LoadPower | None = None,
+        power: LoadPower,
     ) -> QController | None:
         loguru.logger.debug("Creating consumer {load_name} internal Q controller...", load_name=load.loc_name)
         bus = load.bus1
@@ -2879,7 +2901,7 @@ class PowerFactoryExporter:
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
 
-        if power is not None:
+        if power.pow_react_control_type == QControlStrategy.Q_CONST:
             reactive_power_ssc = power.as_active_power_ssc()
             q_control_type = ControlQConst(
                 value=reactive_power_ssc.value,
@@ -2889,9 +2911,20 @@ class PowerFactoryExporter:
                 is_symmetrical=reactive_power_ssc.is_symmetrical,
             )
             return QController(node_target=node_target_name, control_type=q_control_type)
-        else:
-            # TODO 3 phasig cos_phi
-            return None
+
+        if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
+            q_control_type = ControlCosphiConst(
+                cosphi_dir=power.cosphi_dir,
+                cosphi=round(power.cosphi, DecimalDigits.COSPHI),
+                cosphi_a=round(power.cosphi_a, DecimalDigits.COSPHI),
+                cosphi_b=round(power.cosphi_b, DecimalDigits.COSPHI),
+                cosphi_c=round(power.cosphi_c, DecimalDigits.COSPHI),
+                is_symmetrical=power.is_symmetrical,
+            )
+            return QController(node_target=node_target_name, control_type=q_control_type)
+
+        msg = "unreachable"
+        raise RuntimeError(msg)
 
     def create_q_controller_builtin(  # noqa: PLR0911
         self,
@@ -2915,11 +2948,15 @@ class PowerFactoryExporter:
         av_mode = LocalQCtrlMode(gen.av_mode)
 
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
-            cosphi = gen.cosgini
+            cosphi = round(gen.cosgini, DecimalDigits.COSPHI)
             cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
             q_control_type = ControlCosphiConst(
-                cosphi=round(cosphi, DecimalDigits.COSPHI),
                 cosphi_dir=cosphi_dir,
+                cosphi=cosphi,
+                cosphi_a=cosphi,
+                cosphi_b=cosphi,
+                cosphi_c=cosphi,
+                is_symmetrical=True,
             )
             return QController(node_target=node_target_name, control_type=q_control_type)
 
@@ -2928,7 +2965,7 @@ class PowerFactoryExporter:
             phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
             power = LoadPower.from_pq_sym(
                 pow_act=0,
-                pow_react=q_set * Exponents.POWER * gen.ngnum,  # has to be negative as power is counted demand based
+                pow_react=q_set * gen.ngnum,  # has to be negative as power is counted demand based
                 scaling=gen.scale0,
                 phase_connection_type=phase_connection_type,
             )
@@ -3146,14 +3183,17 @@ class PowerFactoryExporter:
 
         if ctrl_mode == CtrlMode.COSPHI:  # cosphi control mode
             if controller.cosphi_char == CosphiChar.CONST:  # const. cosphi
-                cosphi = controller.pfsetp
+                cosphi = round(controller.pfsetp, DecimalDigits.COSPHI)
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-                q_dir = q_dir = -1 if controller.iQorient else 1
                 cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
                 q_control_type = ControlCosphiConst(
-                    cosphi=round(cosphi, DecimalDigits.COSPHI),
                     cosphi_dir=cosphi_dir,
+                    cosphi=cosphi,
+                    cosphi_a=cosphi,
+                    cosphi_b=cosphi,
+                    cosphi_c=cosphi,
+                    is_symmetrical=True,
                 )
                 return QController(
                     node_target=node_target_name,
