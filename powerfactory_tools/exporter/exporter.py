@@ -22,10 +22,11 @@ from psdm.meta import Meta
 from psdm.meta import SignConvention
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
+from psdm.steadystate_case.controller import ControlCosphiP
 from psdm.steadystate_case.controller import ControlCosphiU
 from psdm.steadystate_case.controller import ControlledVoltageRef
 from psdm.steadystate_case.controller import ControlQP
-from psdm.steadystate_case.controller import ControlTanphiConst
+from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import PController
 from psdm.steadystate_case.controller import QController
@@ -60,8 +61,6 @@ from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exporter.load_power import ControlCosphiPDict
-from powerfactory_tools.exporter.load_power import ControlQUDict
 from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
@@ -2954,9 +2953,14 @@ class PowerFactoryExporter:
             u_deadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
             u_deadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
             m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / gen.cosn * Exponents.VOLTAGE  # (% von Pr) / kV
-            m_tg_2018 = self.transform_qu_slope(slope=m_tg_2015, given_format="2015", target_format="2018", u_n=u_n)
+            m_tg_2018 = ControlType.transform_qu_slope(
+                value=m_tg_2015,
+                given_format="2015",
+                target_format="2018",
+                u_n=u_n,
+            )
 
-            q_u_params = ControlQUDict(
+            q_control_type = ControlQU(
                 q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
                 q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
                 u_q0=u_q0 * u_n,
@@ -2965,7 +2969,7 @@ class PowerFactoryExporter:
                 droop_tg_2015=m_tg_2015,
                 droop_tg_2018=m_tg_2018,
             )
-            q_control_type = ControlType.create_q_u(q_u_params)
+            q_control_type = ControlType.round_q_u_params(q_control_type)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_P:
@@ -2976,18 +2980,18 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            params = ControlCosphiPDict(
+            q_control_type = ControlCosphiP(
                 cosphi_ue=gen.pf_under,
                 cosphi_oe=gen.pf_over,
                 p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
                 p_threshold_oe=gen.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
             )
-            q_control_type = ControlType.create_cosphi_p(params)
+            q_control_type = ControlType.round_cosphi_p_params(q_control_type)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
-            u_set = gen.usetp
-            q_control_type = ControlUConst(u_set=round(u_set * u_n, DecimalDigits.VOLTAGE))
+            q_control_type = ControlUConst(u_set=gen.usetp * u_n)
+            q_control_type = ControlType.round_u_const_params(q_control_type)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
@@ -3038,12 +3042,11 @@ class PowerFactoryExporter:
         ctrl_mode = controller.i_ctrl
 
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
-            u_set = controller.usetp
-            u_meas_ref = ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name]
             q_control_type = ControlUConst(
-                u_set=round(u_set * u_n, DecimalDigits.VOLTAGE),
-                u_meas_ref=u_meas_ref,
+                u_set=controller.usetp * u_n,
+                u_meas_ref=ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name],
             )
+            q_control_type = ControlType.round_u_const_params(q_control_type)
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3085,8 +3088,8 @@ class PowerFactoryExporter:
 
                     # in default there should q_rated=s_r, but user could enter incorrectly
                     m_tg_2015 = m_tg_2015 * q_rated / gen.sgn
-                    m_tg_2018 = self.transform_qu_slope(
-                        slope=m_tg_2015,
+                    m_tg_2018 = ControlType.transform_qu_slope(
+                        value=m_tg_2015,
                         given_format="2015",
                         target_format="2018",
                         u_n=u_n,
@@ -3095,7 +3098,7 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_u_params = ControlQUDict(
+                q_control_type = ControlQU(
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                     u_q0=u_q0 * u_n,
@@ -3104,7 +3107,7 @@ class PowerFactoryExporter:
                     droop_tg_2015=m_tg_2015,
                     droop_tg_2018=m_tg_2018,
                 )
-                q_control_type = ControlType.create_q_u(q_u_params)
+                q_control_type = ControlType.round_q_u_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3112,15 +3115,13 @@ class PowerFactoryExporter:
                 )
 
             if controller.qu_char == QChar.P:  # Q(P)
-                q_p_char_name = controller.pQPcurve.loc_name
-                q_max_ue = abs(controller.Qmin)
-                q_max_oe = abs(controller.Qmax)
                 q_dir = q_dir = -1 if controller.iQorient else 1
                 q_control_type = ControlQP(
-                    q_p_characteristic_name=q_p_char_name,
-                    q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
-                    q_max_oe=round(q_max_oe * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
+                    q_p_characteristic_name=controller.pQPcurve.loc_name,
+                    q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
+                    q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                 )
+                q_control_type = ControlType.round_q_p_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3150,13 +3151,13 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosphiChar.P:  # cosphi(P)
-                params = ControlCosphiPDict(
+                q_control_type = ControlCosphiP(
                     cosphi_ue=controller.pf_under,
                     cosphi_oe=controller.pf_over,
                     p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
                     p_threshold_oe=controller.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
                 )
-                q_control_type = ControlType.create_cosphi_p(params)
+                q_control_type = ControlType.round_cosphi_p_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3164,16 +3165,13 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosphiChar.U:  # cosphi(U)
-                cosphi_ue = controller.pf_under
-                cosphi_oe = controller.pf_over
-                u_threshold_ue = controller.u_under  # U-threshold for cosphi_ue
-                u_threshold_oe = controller.u_over  # U-threshold for cosphi_oe
                 q_control_type = ControlCosphiU(
-                    cosphi_ue=round(cosphi_ue, DecimalDigits.COSPHI),
-                    cosphi_oe=round(cosphi_oe, DecimalDigits.COSPHI),
-                    u_threshold_ue=round(u_threshold_ue * u_n, DecimalDigits.VOLTAGE),
-                    u_threshold_oe=round(u_threshold_oe * u_n, DecimalDigits.VOLTAGE),
+                    cosphi_ue=controller.pf_under,
+                    cosphi_oe=controller.pf_over,
+                    u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
+                    u_threshold_oe=controller.u_over * u_n,  # U-threshold for cosphi_oe
                 )
+                q_control_type = ControlType.round_cosphi_u_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3186,10 +3184,14 @@ class PowerFactoryExporter:
         if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
             cosphi = math.cos(math.atan(controller.tansetp))
             cosphi_dir = CosphiDir.UE if controller.iQorient else CosphiDir.OE
-            q_control_type = ControlTanphiConst(
-                cosphi=round(cosphi, DecimalDigits.COSPHI),
+            power = LoadPower.from_pc_sym(
+                pow_act=0,
+                cosphi=cosphi,
                 cosphi_dir=cosphi_dir,
+                scaling=1,
+                phase_connection_type=phase_connection_type,
             )
+            q_control_type = ControlType.create_tanphi_const(power)
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3244,34 +3246,6 @@ class PowerFactoryExporter:
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    @staticmethod
-    def transform_qu_slope(
-        *,
-        slope: float,
-        given_format: t.Literal["2015", "2018"],
-        target_format: t.Literal["2015", "2018"],
-        u_n: float,
-    ) -> float:
-        """Transform slope of Q(U)-characteristic from given format type to another format type.
-
-        Arguments:
-            value {float} -- slope of Q(U)-characteristic
-            given_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
-            target_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
-            u_n {float} -- nominal voltage of the related controller, in V
-
-        Returns:
-            float -- transformed slope
-        """
-        if given_format == "2015" and target_format == "2018":
-            return slope / (1e3 / u_n * 100)  # 2018: (% von Pr) / (p.u. von Un)
-
-        if given_format == "2018" and target_format == "2015":
-            return slope * (1e3 / u_n * 100)  # 2015: (% von Pr) / kV
-
-        msg = "unreachable"
-        raise RuntimeError(msg)
-
 
 def export_powerfactory_data(  # noqa: PLR0913
     *,
@@ -3301,8 +3275,8 @@ def export_powerfactory_data(  # noqa: PLR0913
             powerfactory_user_profile {str} -- user profile for login in PowerFactory  (default: {""})
             powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
             powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
-            python_version {str} -- version number of Python
-            logging_level {int} -- flag for the level of logging criticality
+            python_version {str} -- version number of Python (hard-coded in interface.py)
+            logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
             log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
             topology_name {str} -- the chosen file name for 'topology' data (default: {None})
             topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})

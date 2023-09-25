@@ -6,16 +6,20 @@
 from __future__ import annotations
 
 import math
+import typing as t
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
 
 import loguru
 from psdm.base import CosphiDir
 from psdm.steadystate_case.controller import ControlCosphiConst
 from psdm.steadystate_case.controller import ControlCosphiP
+from psdm.steadystate_case.controller import ControlCosphiU
 from psdm.steadystate_case.controller import ControlPConst
 from psdm.steadystate_case.controller import ControlQConst
+from psdm.steadystate_case.controller import ControlQP
 from psdm.steadystate_case.controller import ControlQU
+from psdm.steadystate_case.controller import ControlTanphiConst
+from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Phase
@@ -29,7 +33,7 @@ from powerfactory_tools.constants import Exponents
 from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 
-if TYPE_CHECKING:
+if t.TYPE_CHECKING:
     from typing import TypedDict
 
     class PowerDict(TypedDict):
@@ -39,21 +43,6 @@ if TYPE_CHECKING:
         cosphi: float
         cosphi_dir: CosphiDir
         power_reactive_control_type: QControlStrategy
-
-    class ControlQUDict(TypedDict):
-        droop_tg_2015: float  # (% von Pr) / kV
-        droop_tg_2018: float  # (% von Pr) / pu
-        u_q0: float  # in V
-        u_deadband_up: float  # in V
-        u_deadband_low: float  # in V
-        q_max_ue: float  # in var
-        q_max_oe: float  # in var
-
-    class ControlCosphiPDict(TypedDict):
-        cosphi_ue: float
-        cosphi_oe: float
-        p_threshold_ue: float  # in W
-        p_threshold_oe: float  # in W
 
 
 COSPHI_DEFAULT = 1
@@ -967,22 +956,89 @@ class ControlType:
         )
 
     @staticmethod
-    def create_q_u(params: ControlQUDict) -> ControlQU:
-        return ControlQU(
-            droop_tg_2015=round(params["droop_tg_2015"], DecimalDigits.PU),
-            droop_tg_2018=round(params["droop_tg_2018"], DecimalDigits.PU),
-            u_q0=round(params["u_q0"], DecimalDigits.VOLTAGE),
-            u_deadband_low=round(params["u_deadband_low"], DecimalDigits.VOLTAGE),
-            u_deadband_up=round(params["u_deadband_up"], DecimalDigits.VOLTAGE),
-            q_max_ue=round(params["q_max_ue"], DecimalDigits.POWER),
-            q_max_oe=round(params["q_max_oe"], DecimalDigits.POWER),
+    def create_tanphi_const(power: LoadPower) -> ControlTanphiConst:
+        return ControlCosphiConst(
+            cosphi_dir=power.cosphi_dir,
+            cosphi=round(power.cosphi, DecimalDigits.COSPHI),
+            cosphi_a=round(power.cosphi_a, DecimalDigits.COSPHI),
+            cosphi_b=round(power.cosphi_b, DecimalDigits.COSPHI),
+            cosphi_c=round(power.cosphi_c, DecimalDigits.COSPHI),
+            is_symmetrical=power.is_symmetrical,
         )
 
     @staticmethod
-    def create_cosphi_p(params: ControlCosphiPDict) -> ControlCosphiP:
-        return ControlCosphiP(
-            cosphi_ue=round(params["cosphi_ue"], DecimalDigits.COSPHI),
-            cosphi_oe=round(params["cosphi_oe"], DecimalDigits.COSPHI),
-            p_threshold_ue=round(params["p_threshold_ue"], DecimalDigits.POWER),
-            p_threshold_oe=round(params["p_threshold_oe"], DecimalDigits.POWER),
+    def round_q_u_params(control: ControlQU) -> ControlQU:
+        return ControlQU(
+            droop_tg_2015=round(control.droop_tg_2015, DecimalDigits.PU),
+            droop_tg_2018=round(control.droop_tg_2018, DecimalDigits.PU),
+            u_q0=round(control.u_q0, DecimalDigits.VOLTAGE),
+            u_deadband_low=round(control.u_deadband_low, DecimalDigits.VOLTAGE),
+            u_deadband_up=round(control.u_deadband_up, DecimalDigits.VOLTAGE),
+            q_max_ue=round(control.q_max_ue, DecimalDigits.POWER),
+            q_max_oe=round(control.q_max_oe, DecimalDigits.POWER),
         )
+
+    @staticmethod
+    def round_cosphi_p_params(control: ControlCosphiP) -> ControlCosphiP:
+        return ControlCosphiP(
+            cosphi_ue=round(control.cosphi_ue, DecimalDigits.COSPHI),
+            cosphi_oe=round(control.cosphi_oe, DecimalDigits.COSPHI),
+            p_threshold_ue=round(control.p_threshold_ue, DecimalDigits.POWER),
+            p_threshold_oe=round(control.p_threshold_oe, DecimalDigits.POWER),
+        )
+
+    @staticmethod
+    def round_cosphi_u_params(control: ControlCosphiU) -> ControlCosphiU:
+        return ControlCosphiU(
+            cosphi_ue=round(control.cosphi_ue, DecimalDigits.COSPHI),
+            cosphi_oe=round(control.cosphi_oe, DecimalDigits.COSPHI),
+            u_threshold_ue=round(control.u_threshold_ue, DecimalDigits.VOLTAGE),
+            u_threshold_oe=round(control.u_threshold_oe, DecimalDigits.VOLTAGE),
+        )
+
+    @staticmethod
+    def round_q_p_params(control: ControlQP) -> ControlQP:
+        if control.q_max_ue is not None:
+            control.q_max_ue = round(control.q_max_ue, DecimalDigits.POWER)
+        if control.q_max_oe is not None:
+            control.q_max_oe = (round(control.q_max_oe, DecimalDigits.POWER),)
+        return ControlQP(
+            q_p_characteristic=control.q_p_characteristic,
+            q_max_ue=control.q_max_ue,
+            q_max_oe=control.q_max_oe,
+        )
+
+    @staticmethod
+    def round_u_const_params(control: ControlUConst) -> ControlUConst:
+        return ControlUConst(
+            u_set=round(control.u_set, DecimalDigits.VOLTAGE),
+            u_meas_ref=control.u_meas_ref,
+        )
+
+    @staticmethod
+    def transform_qu_slope(
+        *,
+        value: float,
+        given_format: t.Literal["2015", "2018"],
+        target_format: t.Literal["2015", "2018"],
+        u_n: float,
+    ) -> float:
+        """Transform slope of Q(U)-characteristic from given format type to another format type.
+
+        Arguments:
+            value {float} -- slope of Q(U)-characteristic
+            given_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
+            target_format {str} -- format specifier for related normative guideline (e.g. '2015' or '2018')
+            u_n {float} -- nominal voltage of the related controller, in V
+
+        Returns:
+            float -- transformed slope
+        """
+        if given_format == "2015" and target_format == "2018":
+            return value / (1e3 / u_n * 100)  # 2018: (% von Pr) / (p.u. von Un)
+
+        if given_format == "2018" and target_format == "2015":
+            return value * (1e3 / u_n * 100)  # 2015: (% von Pr) / kV
+
+        msg = "unreachable"
+        raise RuntimeError(msg)
