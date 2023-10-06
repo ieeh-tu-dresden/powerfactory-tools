@@ -33,73 +33,109 @@
   "external_grids": [],
   "loads": [
     {
-      "active_power": {
-        "characteristic": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 1.0,
-          "c_z": 0.0,
-          "exp_i": 1,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_const_power"
-        }
-      },
-      "connected_phases": {
-        "n_connected_phases": 3,
-        "phases_a": [
-          "A",
-          "B"
-        ],
-        "phases_b": [
-          "B",
-          "C"
-        ],
-        "phases_c": [
-          "C",
-          "A"
-        ]
+      "active_power_model": {
+        "c_i": 0.0,
+        "c_p": 1.0,
+        "c_z": 0.0,
+        "exp_i": 1,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": null,
+        "u_0": 20000.0
       },
       "description": "",
       "name": "Industry_Load",
       "node": "Industry_Node_2",
       "phase_connection_type": "THREE_PH_D",
-      "rated_power": {
-        "cosphi": 0.894427,
-        "cosphi_a": 0.894427,
-        "cosphi_b": 0.894427,
-        "cosphi_c": 0.894427,
-        "is_symmetrical": true,
-        "power_type": "AC_APPARENT",
-        "value": 2236068.0,
-        "value_a": 745355.99,
-        "value_b": 745355.99,
-        "value_c": 745355.99
+      "phase_connections": {
+        "n_phases": 3,
+        "values": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ]
       },
-      "reactive_power": {
-        "external_controller_name": null,
-        "load_model": {
-          "c_i": 0.0,
-          "c_p": 1.0,
-          "c_z": 0.0,
-          "exp_i": 1,
-          "exp_p": 0,
-          "exp_z": 2,
-          "name": "Load_const_power"
+      "rated_power": {
+        "active_power": {
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "power_type": "AC_ACTIVE",
+          "total": 1999999.56,
+          "values": [
+            666666.52,
+            666666.52,
+            666666.52
+          ]
+        },
+        "apparent_power": {
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "power_type": "AC_APPARENT",
+          "total": 2236067.97,
+          "values": [
+            745355.99,
+            745355.99,
+            745355.99
+          ]
+        },
+        "cos_phi": {
+          "average": 0.894427,
+          "direction": "ND",
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "values": [
+            0.894427,
+            0.894427,
+            0.894427
+          ]
+        },
+        "cos_phi_total": 0.894427,
+        "is_symmetrical": true,
+        "n_phases": 3,
+        "reactive_power": {
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "power_type": "AC_REACTIVE",
+          "total": 1000000.86,
+          "values": [
+            333333.62,
+            333333.62,
+            333333.62
+          ]
         }
+      },
+      "reactive_power_model": {
+        "c_i": 0.0,
+        "c_p": 1.0,
+        "c_z": 0.0,
+        "exp_i": 1,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": null,
+        "u_0": 20000.0
       },
       "system_type": "FIXED_CONSUMPTION",
       "type": "CONSUMER",
-      "u_n": 20000.0,
       "voltage_system_type": "AC"
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-20",
-    "id": "8aa5831e-1fc1-4060-862e-bd1d5b25172c",
+    "date": "2023-10-06",
+    "id": "272d96a0-6c8a-4ba9-bc58-4c9a590de2d6",
     "name": "MV_2_Bus",
-    "project": "PowerFactory-Tools"
+    "project": "PowerFactory-Tools",
+    "sign_convention": "PASSIVE",
+    "version": "1.8.1"
   },
   "nodes": [
     {

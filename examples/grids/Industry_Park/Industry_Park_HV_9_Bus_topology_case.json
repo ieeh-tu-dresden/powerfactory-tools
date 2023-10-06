@@ -2,32 +2,27 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_9/ISField_3.2",
+      "name": "Node_9/ISField_2.3",
       "open_switches": []
     },
     {
       "disabled": true,
-      "name": "Node_9/ISField_2.3",
+      "name": "Node_9/ISField_3.2",
       "open_switches": []
     },
     {
       "disabled": true,
       "name": "Node_9/IS1.2",
       "open_switches": []
-    },
-    {
-      "disabled": false,
-      "name": "Transformer_2w_20/0.4",
-      "open_switches": [
-        "Node_6_MV"
-      ]
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-20",
-    "id": "06ae9b8c-f1c8-4f60-9557-5dfe8e41f2fe",
+    "date": "2023-10-06",
+    "id": "6fda6344-00de-46d6-87bf-673ae4006620",
     "name": "HV_9_Bus",
-    "project": "PowerFactory-Tools"
+    "project": "PowerFactory-Tools",
+    "sign_convention": "PASSIVE",
+    "version": "1.8.1"
   }
 }

@@ -2,9 +2,11 @@
   "elements": [],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-20",
-    "id": "8aa5831e-1fc1-4060-862e-bd1d5b25172c",
+    "date": "2023-10-06",
+    "id": "272d96a0-6c8a-4ba9-bc58-4c9a590de2d6",
     "name": "MV_2_Bus",
-    "project": "PowerFactory-Tools"
+    "project": "PowerFactory-Tools",
+    "sign_convention": "PASSIVE",
+    "version": "1.8.1"
   }
 }
