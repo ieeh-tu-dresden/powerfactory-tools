@@ -282,7 +282,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
             )
             data = self.pfi.compile_powerfactory_data(grid)
-            meta = self.create_meta_data(data=data, case=study_case_name)
+            meta = self.create_meta_data(data=data, case_name=study_case_name)
 
             topology = self.create_topology(meta=meta, data=data)
             topology_case = self.create_topology_case(meta=meta, data=data)
@@ -406,14 +406,20 @@ class PowerFactoryExporter:
     def create_meta_data(
         *,
         data: PowerFactoryData,
-        case: str,
+        case_name: str,
     ) -> Meta:
         loguru.logger.debug("Creating meta data...")
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
 
-        return Meta(name=grid_name, date=date, project=project_name, case=case, sign_convention=SignConvention.PASSIVE)
+        return Meta(
+            grid=grid_name,
+            date=date,
+            project=project_name,
+            case=case_name,
+            sign_convention=SignConvention.PASSIVE,
+        )
 
     def create_topology(
         self,

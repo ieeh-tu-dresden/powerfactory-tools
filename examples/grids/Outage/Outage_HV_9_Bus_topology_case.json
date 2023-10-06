@@ -60,7 +60,7 @@
     "case": "Outage",
     "date": "2023-10-06",
     "id": "dfd47302-1acc-4e72-be90-d01930fc42fb",
-    "name": "HV_9_Bus",
+    "grid": "HV_9_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "1.8.1"

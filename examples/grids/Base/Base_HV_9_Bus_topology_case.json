@@ -20,7 +20,7 @@
     "case": "Base",
     "date": "2023-10-06",
     "id": "8d9ea35a-dfc8-4879-80bf-f66f8886262f",
-    "name": "HV_9_Bus",
+    "grid": "HV_9_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "1.8.1"
