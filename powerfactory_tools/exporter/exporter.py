@@ -16,18 +16,13 @@ import typing as t
 
 import loguru
 import pydantic
-from psdm.base import CosphiDir
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
-from psdm.steadystate_case.controller import ControlCosphiP
-from psdm.steadystate_case.controller import ControlCosphiU
 from psdm.steadystate_case.controller import ControlledVoltageRef
 from psdm.steadystate_case.controller import ControlQP
-from psdm.steadystate_case.controller import ControlQU
-from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import PController
 from psdm.steadystate_case.controller import QController
 from psdm.steadystate_case.controller import QControlStrategy
@@ -35,20 +30,19 @@ from psdm.steadystate_case.external_grid import ExternalGrid as ExternalGridSSC
 from psdm.steadystate_case.load import Load as LoadSSC
 from psdm.steadystate_case.reactive_power import ReactivePower as ReactivePowerSSC
 from psdm.steadystate_case.transformer import Transformer as TransformerSSC
-from psdm.topology.active_power import ActivePower
 from psdm.topology.branch import Branch
 from psdm.topology.branch import BranchType
 from psdm.topology.external_grid import ExternalGrid
 from psdm.topology.external_grid import GridType
-from psdm.topology.load import ConnectedPhases
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
 from psdm.topology.load import Phase
+from psdm.topology.load import PhaseConnections
 from psdm.topology.load import PhaseConnectionType
+from psdm.topology.load import PowerFactorDirection
 from psdm.topology.load import SystemType
 from psdm.topology.load_model import LoadModel
 from psdm.topology.node import Node
-from psdm.topology.reactive_power import ReactivePower
 from psdm.topology.topology import Topology
 from psdm.topology.transformer import TapSide
 from psdm.topology.transformer import Transformer
@@ -65,7 +59,7 @@ from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
-from powerfactory_tools.powerfactory_types import CosphiChar
+from powerfactory_tools.powerfactory_types import CosPhiChar
 from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
 from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
@@ -1335,15 +1329,12 @@ class PowerFactoryExporter:
             "{load_name}: there is no real rated power, it is calculated based on current power.",
             load_name=l_name,
         )
+
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom)
-
         load_model_p = self.load_model_of(load, specifier="p", default=load_model_default, u_0=u_0)
-        active_power = ActivePower(load_model=load_model_p)
-
         load_model_q = self.load_model_of(load, specifier="q", default=load_model_default, u_0=u_0)
-        reactive_power = ReactivePower(load_model=load_model_q)
 
-        connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
         voltage_system_type = (
             VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
             if load.typ_id is not None
@@ -1355,12 +1346,12 @@ class PowerFactoryExporter:
             node=t_name,
             description=description,
             rated_power=rated_power,
-            active_power=active_power,
-            reactive_power=reactive_power,
-            type=LoadType.CONSUMER,
-            connected_phases=connected_phases,
-            system_type=system_type,
+            active_power_model=load_model_p,
+            reactive_power_model=load_model_q,
+            phase_connections=phase_connections,
             phase_connection_type=phase_connection_type,
+            type=LoadType.CONSUMER,
+            system_type=system_type,
             voltage_system_type=voltage_system_type,
         )
 
@@ -1519,12 +1510,12 @@ class PowerFactoryExporter:
         pow_app = gen.sgn * gen.ngnum
         cosphi = gen.cosn
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir = CosphiDir.UE if gen.pf_recap else CosphiDir.OE
+        pow_fac_dir = PowerFactorDirection.UE if gen.pf_recap else PowerFactorDirection.OE
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         return LoadPower.from_sc_sym(
             pow_app=pow_app,
             cosphi=cosphi,
-            cosphi_dir=cosphi_dir,
+            pow_fac_dir=pow_fac_dir,
             scaling=gen.scale0,
             phase_connection_type=phase_connection_type,
         )
@@ -1566,28 +1557,23 @@ class PowerFactoryExporter:
         rated_power = power.as_rated_power()
 
         u_0 = self.reference_voltage_for_load_model_of(generator, u_nom)
-
         load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
-        active_power = ActivePower(load_model=load_model_p)
-
         load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
-        reactive_power = ReactivePower(load_model=load_model_q)
 
         phase_connection_type = PhaseConnectionType[phase_connection_type.name]
-        connected_phases = self.get_connected_phases(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
 
         return Load(
             name=gen_name,
             node=t_name,
             description=description,
-            u_n=u_nom,
             rated_power=rated_power,
-            active_power=active_power,
-            reactive_power=reactive_power,
-            type=LoadType.PRODUCER,
-            connected_phases=connected_phases,
-            system_type=system_type,
+            active_power_model=load_model_p,
+            reactive_power_model=load_model_q,
+            phase_connections=phase_connections,
             phase_connection_type=phase_connection_type,
+            type=LoadType.PRODUCER,
+            system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
         )
 
@@ -2115,7 +2101,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_sym(
@@ -2129,7 +2115,7 @@ class PowerFactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2140,7 +2126,7 @@ class PowerFactoryExporter:
                     voltage=load.u0 * u_nom,
                     current=load.ilini,
                     cosphi=load.coslini,
-                    cosphi_dir=cosphi_dir,
+                    pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                     phase_connection_type=phase_connection_type,
                 )
@@ -2155,7 +2141,7 @@ class PowerFactoryExporter:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2169,7 +2155,7 @@ class PowerFactoryExporter:
                     voltage=load.u0 * u_nom,
                     current=load.ilini,
                     pow_act=load.plini,
-                    cosphi_dir=cosphi_dir,
+                    pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                     phase_connection_type=phase_connection_type,
                 )
@@ -2183,7 +2169,7 @@ class PowerFactoryExporter:
             return LoadPower.from_sp_sym(
                 pow_app=load.slini,
                 pow_act=load.plini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2207,7 +2193,7 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_asym(
                 pow_act_a=load.plinir,
@@ -2227,7 +2213,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
@@ -2241,7 +2227,7 @@ class PowerFactoryExporter:
                     cosphi_a=load.coslinir,
                     cosphi_b=load.coslinis,
                     cosphi_c=load.coslinit,
-                    cosphi_dir=cosphi_dir,
+                    pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
             loguru.logger.warning(
@@ -2258,7 +2244,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
@@ -2283,7 +2269,7 @@ class PowerFactoryExporter:
                     pow_act_a=load.plinir,
                     pow_act_b=load.plinis,
                     pow_act_c=load.plinit,
-                    cosphi_dir=cosphi_dir,
+                    pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
             loguru.logger.warning(
@@ -2300,7 +2286,7 @@ class PowerFactoryExporter:
                 pow_act_a=load.plinir,
                 pow_act_b=load.plinis,
                 pow_act_c=load.plinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
@@ -2405,7 +2391,7 @@ class PowerFactoryExporter:
     ) -> LoadLV:
         loguru.logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         scaling = load.scale0
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         if not load.i_sym:
             power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=scaling)
         else:
@@ -2422,14 +2408,14 @@ class PowerFactoryExporter:
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
             cosphi=load.ccosphi,
-            cosphi_dir=cosphi_dir,
+            pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
         power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
-            cosphi_dir=cosphi_dir,
+            pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
@@ -2448,18 +2434,18 @@ class PowerFactoryExporter:
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
             cosphi=load.ccosphi,
-            cosphi_dir=cosphi_dir,
+            pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
         power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
             cosphi=load.ccosphi,
-            cosphi_dir=cosphi_dir,
+            pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
@@ -2473,13 +2459,13 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2488,7 +2474,7 @@ class PowerFactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2498,7 +2484,7 @@ class PowerFactoryExporter:
                 voltage=load.ulini,
                 current=load.ilini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2507,7 +2493,7 @@ class PowerFactoryExporter:
             return LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2523,7 +2509,7 @@ class PowerFactoryExporter:
         scaling: float,
     ) -> LoadPower:
         load_type = load.iopt_inp
-        cosphi_dir = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_asym(
                 pow_app_a=load.slinir,
@@ -2532,7 +2518,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
         if load_type == IOpt.P_COSPHI:
@@ -2543,7 +2529,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
         if load_type == IOpt.U_I_COSPHI:
@@ -2555,7 +2541,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
@@ -2616,22 +2602,22 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir_cons = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
+        pow_fac_dir_prod = PowerFactorDirection.UE if load.pfg_recap else PowerFactorDirection.OE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir_cons,
+                pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
                 cosphi=load.cosgini,
-                cosphi_dir=cosphi_dir_prod,
+                pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
@@ -2641,14 +2627,14 @@ class PowerFactoryExporter:
             power_consumer = LoadPower.from_sc_sym(
                 pow_app=load.slini,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir_cons,
+                pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_sc_sym(
                 pow_app=load.sgini,
                 cosphi=load.cosgini,
-                cosphi_dir=cosphi_dir_prod,
+                pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
@@ -2659,14 +2645,14 @@ class PowerFactoryExporter:
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
                 cosphi=load.coslini,
-                cosphi_dir=cosphi_dir_cons,
+                pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.pgini,
                 cosphi=load.cosgini,
-                cosphi_dir=cosphi_dir_prod,
+                pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
@@ -2684,9 +2670,9 @@ class PowerFactoryExporter:
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
         # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
-        cosphi_dir_cons = CosphiDir.OE if load.pf_recap else CosphiDir.UE
+        pow_fac_dir_cons = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-        cosphi_dir_prod = CosphiDir.UE if load.pfg_recap else CosphiDir.OE
+        pow_fac_dir_prod = PowerFactorDirection.UE if load.pfg_recap else PowerFactorDirection.OE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
                 pow_act_a=load.plinir,
@@ -2695,7 +2681,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir_cons,
+                pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_pc_asym(
@@ -2705,7 +2691,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.cosginir,
                 cosphi_b=load.cosginis,
                 cosphi_c=load.cosginit,
-                cosphi_dir=cosphi_dir_prod,
+                pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -2718,7 +2704,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.coslinir,
                 cosphi_b=load.coslinis,
                 cosphi_c=load.coslinit,
-                cosphi_dir=cosphi_dir_cons,
+                pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_sc_asym(
@@ -2728,7 +2714,7 @@ class PowerFactoryExporter:
                 cosphi_a=load.cosginir,
                 cosphi_b=load.cosginis,
                 cosphi_c=load.cosginit,
-                cosphi_dir=cosphi_dir_prod,
+                pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
             return LoadMV(consumer=power_consumer, producer=power_producer)
@@ -2896,7 +2882,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            q_control_type = ControlType.create_cosphi_const(power)
+            q_control_type = ControlType.create_cos_phi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         msg = "unreachable"
@@ -2920,7 +2906,7 @@ class PowerFactoryExporter:
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
 
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         scaling = gen.scale0
 
@@ -2930,17 +2916,17 @@ class PowerFactoryExporter:
             power = LoadPower.from_pc_sym(
                 pow_act=0,
                 cosphi=gen.cosgini,
-                cosphi_dir=CosphiDir.UE if gen.pf_recap else CosphiDir.OE,
+                pow_fac_dir=PowerFactorDirection.UE if gen.pf_recap else PowerFactorDirection.OE,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
-            q_control_type = ControlType.create_cosphi_const(power)
+            q_control_type = ControlType.create_cos_phi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_CONST:
             q_set = gen.qgini * -1  # has to be negative as power is now counted demand based
             power = LoadPower.from_pq_sym(
-                pow_act=0,
+                pow_act=1,
                 pow_react=q_set * gen.ngnum,  # has to be negative as power is counted demand based
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2960,16 +2946,15 @@ class PowerFactoryExporter:
                 u_n=u_n,
             )
 
-            q_control_type = ControlQU(
+            q_control_type = ControlType.create_q_u_sym(
                 q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
                 q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
                 u_q0=u_q0 * u_n,
                 u_deadband_low=u_deadband_low * u_n,
                 u_deadband_up=u_deadband_up * u_n,
-                droop_tg_2015=m_tg_2015,
-                droop_tg_2018=m_tg_2018,
+                droop_up=m_tg_2018,
+                droop_low=m_tg_2018,
             )
-            q_control_type = ControlType.round_q_u_params(q_control_type)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_P:
@@ -2980,18 +2965,16 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            q_control_type = ControlCosphiP(
-                cosphi_ue=gen.pf_under,
-                cosphi_oe=gen.pf_over,
+            q_control_type = ControlType.create_cos_phi_p_sym(
+                cos_phi_ue=gen.pf_under,
+                cos_phi_oe=gen.pf_over,
                 p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
                 p_threshold_oe=gen.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
             )
-            q_control_type = ControlType.round_cosphi_p_params(q_control_type)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
-            q_control_type = ControlUConst(u_set=gen.usetp * u_n)
-            q_control_type = ControlType.round_u_const_params(q_control_type)
+            q_control_type = ControlType.create_u_const_sym(u_set=gen.usetp * u_n)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
@@ -3036,17 +3019,16 @@ class PowerFactoryExporter:
             return None
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
 
         ctrl_mode = controller.i_ctrl
 
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
-            q_control_type = ControlUConst(
+            q_control_type = ControlType.create_u_const_sym(
                 u_set=controller.usetp * u_n,
                 u_meas_ref=ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name],
             )
-            q_control_type = ControlType.round_u_const_params(q_control_type)
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3098,16 +3080,15 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_control_type = ControlQU(
+                q_control_type = ControlType.create_q_u_sym(
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                     u_q0=u_q0 * u_n,
                     u_deadband_low=u_deadband_low * u_n,
                     u_deadband_up=u_deadband_up * u_n,
-                    droop_tg_2015=m_tg_2015,
-                    droop_tg_2018=m_tg_2018,
+                    droop_up=m_tg_2018,
+                    droop_low=m_tg_2018,
                 )
-                q_control_type = ControlType.round_q_u_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3116,12 +3097,11 @@ class PowerFactoryExporter:
 
             if controller.qu_char == QChar.P:  # Q(P)
                 q_dir = q_dir = -1 if controller.iQorient else 1
-                q_control_type = ControlQP(
+                q_control_type = ControlType.create_q_p_sym(
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                 )
-                q_control_type = ControlType.round_q_p_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3132,46 +3112,44 @@ class PowerFactoryExporter:
             raise RuntimeError(msg)
 
         if ctrl_mode == CtrlMode.COSPHI:  # cosphi control mode
-            if controller.cosphi_char == CosphiChar.CONST:  # const. cosphi
+            if controller.cosphi_char == CosPhiChar.CONST:  # const. cosphi
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-                cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
+                pow_fac_dir = PowerFactorDirection.UE if ue else PowerFactorDirection.OE
                 power = LoadPower.from_pc_sym(
                     pow_act=0,
                     cosphi=controller.pfsetp,
-                    cosphi_dir=cosphi_dir,
+                    pow_fac_dir=pow_fac_dir,
                     scaling=1,
                     phase_connection_type=phase_connection_type,
                 )
-                q_control_type = ControlType.create_cosphi_const(power)
+                q_control_type = ControlType.create_cos_phi_const(power)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
-            if controller.cosphi_char == CosphiChar.P:  # cosphi(P)
-                q_control_type = ControlCosphiP(
-                    cosphi_ue=controller.pf_under,
-                    cosphi_oe=controller.pf_over,
+            if controller.cosphi_char == CosPhiChar.P:  # cosphi(P)
+                q_control_type = ControlType.create_cos_phi_p_sym(
+                    cos_phi_ue=controller.pf_under,
+                    cos_phi_oe=controller.pf_over,
                     p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
                     p_threshold_oe=controller.p_over * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_oe
                 )
-                q_control_type = ControlType.round_cosphi_p_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
                     external_controller_name=controller_name,
                 )
 
-            if controller.cosphi_char == CosphiChar.U:  # cosphi(U)
-                q_control_type = ControlCosphiU(
-                    cosphi_ue=controller.pf_under,
-                    cosphi_oe=controller.pf_over,
+            if controller.cosphi_char == CosPhiChar.U:  # cosphi(U)
+                q_control_type = ControlType.create_cos_phi_u_sym(
+                    cos_phi_ue=controller.pf_under,
+                    cos_phi_oe=controller.pf_over,
                     u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
                     u_threshold_oe=controller.u_over * u_n,  # U-threshold for cosphi_oe
                 )
-                q_control_type = ControlType.round_cosphi_u_params(q_control_type)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3183,15 +3161,15 @@ class PowerFactoryExporter:
 
         if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
             cosphi = math.cos(math.atan(controller.tansetp))
-            cosphi_dir = CosphiDir.UE if controller.iQorient else CosphiDir.OE
+            pow_fac_dir = PowerFactorDirection.UE if controller.iQorient else PowerFactorDirection.OE
             power = LoadPower.from_pc_sym(
                 pow_act=0,
                 cosphi=cosphi,
-                cosphi_dir=cosphi_dir,
+                pow_fac_dir=pow_fac_dir,
                 scaling=1,
                 phase_connection_type=phase_connection_type,
             )
-            q_control_type = ControlType.create_tanphi_const(power)
+            q_control_type = ControlType.create_tan_phi_const(power)
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3201,46 +3179,56 @@ class PowerFactoryExporter:
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_connected_phases(
+    def get_phase_connections(
         self,
         *,
         phase_connection_type: PhaseConnectionType,
         bus: PFTypes.StationCubicle,
-    ) -> ConnectedPhases:
+    ) -> PhaseConnections:
         if phase_connection_type == PhaseConnectionType.THREE_PH_D:
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return ConnectedPhases(
-                phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
-                phases_b=[Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
-                phases_c=[Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    [Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
+                    [Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
+                ],
             )
         if phase_connection_type in (PhaseConnectionType.THREE_PH_PH_E, PhaseConnectionType.THREE_PH_YN):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return ConnectedPhases(
-                phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
-                phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
-                phases_c=[Phase[PFPhase(phases[2]).name], Phase.N],
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.N],
+                    [Phase[PFPhase(phases[1]).name], Phase.N],
+                    [Phase[PFPhase(phases[2]).name], Phase.N],
+                ],
             )
         if phase_connection_type in (PhaseConnectionType.TWO_PH_PH_E, PhaseConnectionType.TWO_PH_YN):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return ConnectedPhases(
-                phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
-                phases_b=[Phase[PFPhase(phases[1]).name], Phase.N],
-                phases_c=None,
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.N],
+                    [Phase[PFPhase(phases[1]).name], Phase.N],
+                    None,
+                ],
             )
         if phase_connection_type in (PhaseConnectionType.ONE_PH_PH_E, PhaseConnectionType.ONE_PH_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return ConnectedPhases(
-                phases_a=[Phase[PFPhase(phases[0]).name], Phase.N],
-                phases_b=None,
-                phases_c=None,
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.N],
+                    None,
+                    None,
+                ],
             )
         if phase_connection_type == PhaseConnectionType.ONE_PH_PH_PH:
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return ConnectedPhases(
-                phases_a=[Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
-                phases_b=None,
-                phases_c=None,
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
+                    None,
+                    None,
+                ],
             )
 
         msg = "unreachable"

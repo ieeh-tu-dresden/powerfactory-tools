@@ -27,7 +27,7 @@ class Exponents:
 
 
 class DecimalDigits:
-    COSPHI: int = 6
+    POWERFACTOR: int = 6
     VOLTAGE: int = 1
     CURRENT: int = 1
     POWER: int = 0

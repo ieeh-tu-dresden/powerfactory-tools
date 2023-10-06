@@ -111,7 +111,7 @@ class CtrlMode(enum.IntEnum):
     TANPHI = 3
 
 
-class CosphiChar(enum.IntEnum):
+class CosPhiChar(enum.IntEnum):
     CONST = 0
     P = 1
     U = 2
@@ -815,7 +815,7 @@ class PowerFactoryTypes:
         Qmax: float
         udeadblow: float
         udeadbup: float
-        cosphi_char: CosphiChar
+        cosphi_char: CosPhiChar
         pfsetp: float
         pf_recap: PFRecap
         tansetp: float
