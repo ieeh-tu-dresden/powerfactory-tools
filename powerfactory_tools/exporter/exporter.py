@@ -54,6 +54,7 @@ from psdm.topology.windings import Winding
 from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
+from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import ControlType
@@ -2093,9 +2094,15 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> LoadSSC | None:
+        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         power = self.calc_normal_load_power(load)
         if power is not None:
-            return self.create_consumer_ssc(load, power=power, grid_name=grid_name)
+            return self.create_consumer_ssc(
+                load,
+                power=power,
+                grid_name=grid_name,
+                phase_connection_type=phase_connection_type,
+            )
 
         return None
 
@@ -2353,11 +2360,13 @@ class PowerFactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[LoadSSC]:
+        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         consumer_fixed_ssc = (
             self.create_consumer_ssc(
                 load,
                 power=power.fixed,
                 grid_name=grid_name,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
@@ -2368,6 +2377,7 @@ class PowerFactoryExporter:
                 load,
                 power=power.night,
                 grid_name=grid_name,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
@@ -2378,6 +2388,7 @@ class PowerFactoryExporter:
                 load,
                 power=power.flexible_avg,
                 grid_name=grid_name,
+                phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
@@ -2567,17 +2578,20 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[LoadSSC | None]:
+        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         power = self.calc_load_mv_power(load)
         consumer_ssc = self.create_consumer_ssc(
             load,
             power=power.consumer,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
             name_suffix="_CONSUMER",
         )
         producer_ssc = self.create_consumer_ssc(
             load,
             power=power.producer,
             grid_name=grid_name,
+            phase_connection_type=phase_connection_type,
             name_suffix="_PRODUCER",
         )
         return [consumer_ssc, producer_ssc]
@@ -2713,17 +2727,30 @@ class PowerFactoryExporter:
         *,
         power: LoadPower,
         grid_name: str,
+        phase_connection_type: PhaseConnectionType,
         name_suffix: str = "",
     ) -> LoadSSC | None:
-        name = self.pfi.create_name(load, grid_name=grid_name) + name_suffix
-        loguru.logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=name)
+        consumer_name = self.pfi.create_name(load, grid_name=grid_name) + name_suffix
+        loguru.logger.debug("Creating consumer {consumer_name} steadystate case...", consumer_name=consumer_name)
         export, _ = self.get_description(load)
         if not export:
             loguru.logger.warning(
-                "External grid {consumer_ssc_name} not set for export. Skipping.",
-                consumer_ssc_name=name,
+                "External grid {consumer_name} not set for export. Skipping.",
+                consumer_name=consumer_name,
             )
             return None
+
+        bus = load.bus1
+        if bus is None:
+            loguru.logger.warning(
+                "Consumer {consumer_name} not connected to any bus. Skipping.",
+                consumer_name=consumer_name,
+            )
+            return None
+
+        # limit entries in case of non 3-phase load
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        power = power.limit_phases(n_phases=phase_connections.n_phases)
 
         # P-Controller
         p_controller = self.create_p_controller_builtin(
@@ -2743,7 +2770,7 @@ class PowerFactoryExporter:
         reactive_power = ReactivePowerSSC(controller=q_controller)
 
         return LoadSSC(
-            name=name,
+            name=consumer_name,
             active_power=active_power,
             reactive_power=reactive_power,
         )
@@ -2786,6 +2813,7 @@ class PowerFactoryExporter:
             return None
 
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
 
         power = LoadPower.from_pq_sym(
             pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
@@ -2793,6 +2821,8 @@ class PowerFactoryExporter:
             scaling=generator.scale0_a,
             phase_connection_type=phase_connection_type,
         )
+        # limit entries in case of non 3-phase load
+        power = power.limit_phases(n_phases=phase_connections.n_phases)
 
         # P-Controller
         p_controller = self.create_p_controller_builtin(
@@ -2880,6 +2910,9 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> QController | None:
         loguru.logger.debug("Creating Producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
+        scaling = gen.scale0
+
+        # Controlled node
         bus = gen.bus1
         if bus is None:
             loguru.logger.warning(
@@ -2889,13 +2922,18 @@ class PowerFactoryExporter:
             return None
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
-
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
+
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
-        scaling = gen.scale0
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
+            loguru.logger.warning(
+                "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
+                gen_name=gen.loc_name,
+            )
 
+        # Control mode
         av_mode = LocalQCtrlMode(gen.av_mode)
-
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             power = LoadPower.from_pc_sym(
                 pow_act=0,
@@ -2904,6 +2942,7 @@ class PowerFactoryExporter:
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
+            power = power.limit_phases(n_phases=phase_connections.n_phases)
             q_control_type = ControlType.create_cos_phi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
@@ -2915,6 +2954,7 @@ class PowerFactoryExporter:
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
+            power = power.limit_phases(n_phases=phase_connections.n_phases)
             q_control_type = ControlType.create_q_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
@@ -3004,10 +3044,17 @@ class PowerFactoryExporter:
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
+
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
+            loguru.logger.warning(
+                "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
+                gen_name=gen.loc_name,
+            )
 
+        # Control mode
         ctrl_mode = controller.i_ctrl
-
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
             q_control_type = ControlType.create_u_const_sym(
                 u_set=controller.usetp * u_n,
@@ -3031,6 +3078,7 @@ class PowerFactoryExporter:
                     scaling=1,
                     phase_connection_type=phase_connection_type,
                 )
+                power = power.limit_phases(n_phases=phase_connections.n_phases)
                 q_control_type = ControlType.create_q_const(power)
                 return QController(
                     node_target=node_target_name,
@@ -3107,6 +3155,7 @@ class PowerFactoryExporter:
                     scaling=1,
                     phase_connection_type=phase_connection_type,
                 )
+                power = power.limit_phases(n_phases=phase_connections.n_phases)
                 q_control_type = ControlType.create_cos_phi_const(power)
                 return QController(
                     node_target=node_target_name,
@@ -3153,6 +3202,7 @@ class PowerFactoryExporter:
                 scaling=1,
                 phase_connection_type=phase_connection_type,
             )
+            power = power.limit_phases(n_phases=phase_connections.n_phases)
             q_control_type = ControlType.create_tan_phi_const(power)
             return QController(
                 node_target=node_target_name,

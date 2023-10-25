@@ -15,6 +15,8 @@ if t.TYPE_CHECKING:
 
     UnitConversion = tuple[str, MetricPrefix, MetricPrefix]
 
+DEFAULT_PHASE_QUANTITY = 3
+
 
 class Exponents:
     CONDUCTANCE: float = 10**-6
