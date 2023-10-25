@@ -17,23 +17,24 @@ if t.TYPE_CHECKING:
 
 
 class Exponents:
-    VOLTAGE: float = 10**3
-    CURRENT: float = 10**3
-    RESISTANCE: float = 10**0
-    REACTANCE: float = 10**0
-    SUSCEPTANCE: float = 10**-6
     CONDUCTANCE: float = 10**-6
+    CURRENT: float = 10**3
     POWER: float = 10**6
+    REACTANCE: float = 10**0
+    RESISTANCE: float = 10**0
+    SUSCEPTANCE: float = 10**-6
+    VOLTAGE: float = 10**3
 
 
 class DecimalDigits:
-    POWERFACTOR: int = 6
-    VOLTAGE: int = 1
-    CURRENT: int = 1
-    POWER: int = 0
-    PU: int = 4
-    IMPEDANCE: int = 6
     ADMITTANCE: int = 12
+    ANGLE: int = 4
+    CURRENT: int = 1
+    IMPEDANCE: int = 6
+    POWER: int = 0
+    POWERFACTOR: int = 6
+    PU: int = 4
+    VOLTAGE: int = 1
 
 
 class BaseUnits:

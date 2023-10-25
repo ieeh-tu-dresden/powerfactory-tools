@@ -34,7 +34,6 @@ from psdm.topology.branch import Branch
 from psdm.topology.branch import BranchType
 from psdm.topology.external_grid import ExternalGrid
 from psdm.topology.external_grid import GridType
-from psdm.topology.load import Angle
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
 from psdm.topology.load import Phase
@@ -60,6 +59,7 @@ from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
+from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_reactive_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_voltage
 from powerfactory_tools.interface import PowerFactoryData
@@ -2033,7 +2033,7 @@ class PowerFactoryExporter:
             return ExternalGridSSC(
                 name=name,
                 u_0=create_sym_three_phase_voltage(u_0_ph),
-                phi_0=Angle(values=[ext_grid.phiini, ext_grid.phiini, ext_grid.phiini]),
+                phi_0=create_sym_three_phase_angle(ext_grid.phiini),
             )
 
         if g_type == GridType.PV:
