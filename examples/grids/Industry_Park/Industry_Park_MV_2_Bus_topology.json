@@ -130,12 +130,13 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-10-06",
-    "id": "272d96a0-6c8a-4ba9-bc58-4c9a590de2d6",
+    "date": "2023-10-25",
     "grid": "MV_2_Bus",
+    "id": "f61faacf-6071-404b-a66b-09d6d7bf0f3d",
+    "name": "MV_2_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "1.8.1"
+    "version": "1.9.0"
   },
   "nodes": [
     {

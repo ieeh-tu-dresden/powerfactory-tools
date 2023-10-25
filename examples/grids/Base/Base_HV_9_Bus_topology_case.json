@@ -18,11 +18,12 @@
   ],
   "meta": {
     "case": "Base",
-    "date": "2023-10-06",
-    "id": "8d9ea35a-dfc8-4879-80bf-f66f8886262f",
+    "date": "2023-10-25",
     "grid": "HV_9_Bus",
+    "id": "f2c65cc6-7579-4057-822d-171d3f564b3d",
+    "name": "HV_9_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "1.8.1"
+    "version": "1.9.0"
   }
 }
