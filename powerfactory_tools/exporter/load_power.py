@@ -48,7 +48,7 @@ if t.TYPE_CHECKING:
         power_apparent: float
         power_active: float
         power_reactive: float
-        cosphi: float
+        cos_phi: float
         power_factor_direction: PowerFactorDirection
         power_reactive_control_type: QControlStrategy
 
@@ -199,7 +199,8 @@ class LoadPower:
     pow_fac_dir: PowerFactorDirection
     pow_react_control_type: QControlStrategy
 
-    def _is_symmetrical(self, values: tuple[float, ...]) -> bool:
+    @staticmethod
+    def _is_symmetrical(values: tuple[float, ...]) -> bool:
         return len(list(itertools.groupby(values))) in (0, 1)
 
     @property
@@ -219,7 +220,7 @@ class LoadPower:
         return sum(self.pow_reacts)
 
     @property
-    def cosphi(self) -> float:
+    def cos_phi(self) -> float:
         pow_act = sum(pow_app * cos_phi for pow_app, cos_phi in zip(self.pow_apps, self.cos_phis, strict=True))
         try:
             return abs(pow_act / self.pow_app)
@@ -232,7 +233,7 @@ class LoadPower:
             self.is_symmetrical_app
             and self.is_symmetrical_act
             and self.is_symmetrical_react
-            and self.is_symmetrical_cosphi
+            and self.is_symmetrical_cos_phi
         )
 
     @property
@@ -248,7 +249,7 @@ class LoadPower:
         return self._is_symmetrical(self.pow_reacts)
 
     @property
-    def is_symmetrical_cosphi(self) -> bool:
+    def is_symmetrical_cos_phi(self) -> bool:
         return self._is_symmetrical(self.cos_phis)
 
     @property
@@ -267,15 +268,15 @@ class LoadPower:
         pow_fac_dir = PowerFactorDirection.OE if pow_react < 0 else PowerFactorDirection.UE
         pow_app = math.sqrt(pow_act**2 + pow_react**2)
         try:
-            cosphi = abs(pow_act / pow_app)
+            cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = COSPHI_DEFAULT
+            cos_phi = COSPHI_DEFAULT
 
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.Q_CONST,
         }
@@ -284,22 +285,22 @@ class LoadPower:
     def calc_pc(
         *,
         pow_act: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> PowerDict:
         pow_act = pow_act * scaling * Exponents.POWER
         try:
-            pow_app = abs(pow_act / cosphi)
+            pow_app = abs(pow_act / cos_phi)
         except ZeroDivisionError:
             loguru.logger.warning(
-                "`cosphi` is 0, but only active power is given. Actual state could not be determined.",
+                "`cos_phi` is 0, but only active power is given. Actual state could not be determined.",
             )
             return {
                 "power_apparent": 0,
                 "power_active": 0,
                 "power_reactive": 0,
-                "cosphi": COSPHI_DEFAULT,
+                "cos_phi": COSPHI_DEFAULT,
                 "power_factor_direction": pow_fac_dir,
                 "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
@@ -310,7 +311,7 @@ class LoadPower:
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -320,19 +321,19 @@ class LoadPower:
         *,
         voltage: float,
         current: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> PowerDict:
         pow_app = abs(voltage * current * scaling) * Exponents.POWER / math.sqrt(3)
-        pow_act = math.copysign(pow_app * cosphi, scaling)
+        pow_act = math.copysign(pow_app * cos_phi, scaling)
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -341,19 +342,19 @@ class LoadPower:
     def calc_sc(
         *,
         pow_app: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> PowerDict:
         pow_app = abs(pow_app * scaling) * Exponents.POWER
-        pow_act = math.copysign(pow_app * cosphi, scaling)
+        pow_act = math.copysign(pow_app * cos_phi, scaling)
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -362,32 +363,32 @@ class LoadPower:
     def calc_qc(
         *,
         pow_react: float,
-        cosphi: float,
+        cos_phi: float,
         scaling: float,
     ) -> PowerDict:
         pow_react = pow_react * scaling * Exponents.POWER
         pow_fac_dir = PowerFactorDirection.OE if pow_react < 0 else PowerFactorDirection.UE
         try:
-            pow_app = abs(pow_react / math.sin(math.acos(cosphi)))
+            pow_app = abs(pow_react / math.sin(math.acos(cos_phi)))
         except ZeroDivisionError:
             loguru.logger.warning(
-                "`cosphi` is 1, but only reactive power is given. Actual state could not be determined.",
+                "`cos_phi` is 1, but only reactive power is given. Actual state could not be determined.",
             )
             return {
                 "power_apparent": 0,
                 "power_active": 0,
                 "power_reactive": 0,
-                "cosphi": COSPHI_DEFAULT,
+                "cos_phi": COSPHI_DEFAULT,
                 "power_factor_direction": pow_fac_dir,
                 "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
 
-        pow_act = math.copysign(pow_app * cosphi, scaling)
+        pow_act = math.copysign(pow_app * cos_phi, scaling)
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -404,9 +405,9 @@ class LoadPower:
         pow_act = pow_act * scaling * Exponents.POWER
         pow_app = abs(voltage * current * scaling) * Exponents.POWER / math.sqrt(3)
         try:
-            cosphi = abs(pow_act / pow_app)
+            cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = COSPHI_DEFAULT
+            cos_phi = COSPHI_DEFAULT
 
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -414,7 +415,7 @@ class LoadPower:
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -430,9 +431,9 @@ class LoadPower:
         pow_app = abs(pow_app * scaling) * Exponents.POWER
         pow_act = pow_act * scaling * Exponents.POWER
         try:
-            cosphi = abs(pow_act / pow_app)
+            cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = COSPHI_DEFAULT
+            cos_phi = COSPHI_DEFAULT
 
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -440,7 +441,7 @@ class LoadPower:
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -456,16 +457,16 @@ class LoadPower:
         pow_react = pow_react * scaling * Exponents.POWER
         pow_act = math.copysign(math.sqrt(pow_app**2 - pow_react**2), scaling)
         try:
-            cosphi = abs(pow_act / pow_app)
+            cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cosphi = COSPHI_DEFAULT
+            cos_phi = COSPHI_DEFAULT
 
         pow_fac_dir = PowerFactorDirection.OE if pow_react < 0 else PowerFactorDirection.UE
         return {
             "power_apparent": pow_app,
             "power_active": pow_act,
             "power_reactive": pow_react,
-            "cosphi": cosphi,
+            "cos_phi": cos_phi,
             "power_factor_direction": pow_fac_dir,
             "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
         }
@@ -511,13 +512,13 @@ class LoadPower:
         cls,
         *,
         pow_act: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
-        power_dict = cls.calc_pc(pow_act=pow_act / quot, cosphi=cosphi, pow_fac_dir=pow_fac_dir, scaling=scaling)
+        power_dict = cls.calc_pc(pow_act=pow_act / quot, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
         return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
@@ -526,7 +527,7 @@ class LoadPower:
         *,
         voltage: float,
         current: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
         phase_connection_type: PhaseConnectionType,
@@ -535,7 +536,7 @@ class LoadPower:
         power_dict = cls.calc_ic(
             voltage=voltage,
             current=current,
-            cosphi=cosphi,
+            cos_phi=cos_phi,
             pow_fac_dir=pow_fac_dir,
             scaling=scaling,
         )
@@ -546,13 +547,13 @@ class LoadPower:
         cls,
         *,
         pow_app: float,
-        cosphi: float,
+        cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
-        power_dict = cls.calc_sc(pow_app=pow_app / quot, cosphi=cosphi, pow_fac_dir=pow_fac_dir, scaling=scaling)
+        power_dict = cls.calc_sc(pow_app=pow_app / quot, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
         return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
@@ -560,12 +561,12 @@ class LoadPower:
         cls,
         *,
         pow_react: float,
-        cosphi: float,
+        cos_phi: float,
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
-        power_dict = cls.calc_qc(pow_react=pow_react / quot, cosphi=cosphi, scaling=scaling)
+        power_dict = cls.calc_qc(pow_react=pow_react / quot, cos_phi=cos_phi, scaling=scaling)
         return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
@@ -632,7 +633,7 @@ class LoadPower:
             pow_apps=tuple(power_dict["power_apparent"] * e for e in factors),
             pow_acts=tuple(power_dict["power_active"] * e for e in factors),
             pow_reacts=tuple(power_dict["power_reactive"] * e for e in factors),
-            cos_phis=tuple(power_dict["cosphi"] * e for e in factors),
+            cos_phis=tuple(power_dict["cos_phi"] * e for e in factors),
             pow_fac_dir=power_dict["power_factor_direction"],
             pow_react_control_type=power_dict["power_reactive_control_type"],
         )
@@ -641,58 +642,50 @@ class LoadPower:
     def from_pq_asym(
         cls,
         *,
-        pow_act_a: float,
-        pow_act_b: float,
-        pow_act_c: float,
-        pow_react_a: float,
-        pow_react_b: float,
-        pow_react_c: float,
+        pow_acts: tuple[float, ...],
+        pow_reacts: tuple[float, ...],
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_pq(pow_act=pow_act_a, pow_react=pow_react_a, scaling=scaling)
-        power_dict_b = cls.calc_pq(pow_act=pow_act_b, pow_react=pow_react_b, scaling=scaling)
-        power_dict_c = cls.calc_pq(pow_act=pow_act_c, pow_react=pow_react_c, scaling=scaling)
-        if not (
-            power_dict_a["power_factor_direction"]
-            == power_dict_b["power_factor_direction"]
-            == power_dict_c["power_factor_direction"]
-        ):
-            msg = "Cosphi directions do not match."
+        power_dicts = tuple(
+            cls.calc_pq(pow_act=pow_act, pow_react=pow_react, scaling=scaling)
+            for pow_act, pow_react in zip(pow_acts, pow_reacts, strict=True)
+        )
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+            msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
-        pow_fac_dir = power_dict_a["power_factor_direction"]
+        pow_fac_dir = power_dicts[0]["power_factor_direction"]
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
     def from_pc_asym(
         cls,
         *,
-        pow_act_a: float,
-        pow_act_b: float,
-        pow_act_c: float,
-        cosphi_a: float,
-        cosphi_b: float,
-        cosphi_c: float,
+        pow_acts: tuple[float, ...],
+        cos_phis: tuple[float, ...],
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_pc(pow_act=pow_act_a, cosphi=cosphi_a, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_b = cls.calc_pc(pow_act=pow_act_b, cosphi=cosphi_b, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_c = cls.calc_pc(pow_act=pow_act_c, cosphi=cosphi_c, pow_fac_dir=pow_fac_dir, scaling=scaling)
+        power_dicts = tuple(
+            cls.calc_pc(pow_act=pow_act, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
+            for pow_act, cos_phi in zip(pow_acts, cos_phis, strict=True)
+        )
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
@@ -700,101 +693,73 @@ class LoadPower:
         cls,
         *,
         voltage: float,
-        current_a: float,
-        current_b: float,
-        current_c: float,
-        cosphi_a: float,
-        cosphi_b: float,
-        cosphi_c: float,
+        currents: tuple[float, ...],
+        cos_phis: tuple[float, ...],
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_ic(
-            voltage=voltage,
-            current=current_a,
-            cosphi=cosphi_a,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
+        power_dicts = tuple(
+            cls.calc_ic(voltage=voltage, current=current, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
+            for current, cos_phi in zip(currents, cos_phis, strict=True)
         )
-        power_dict_b = cls.calc_ic(
-            voltage=voltage,
-            current=current_b,
-            cosphi=cosphi_b,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
-        )
-        power_dict_c = cls.calc_ic(
-            voltage=voltage,
-            current=current_c,
-            cosphi=cosphi_c,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
-        )
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
     def from_sc_asym(
         cls,
         *,
-        pow_app_a: float,
-        pow_app_b: float,
-        pow_app_c: float,
-        cosphi_a: float,
-        cosphi_b: float,
-        cosphi_c: float,
+        pow_apps: tuple[float, ...],
+        cos_phis: tuple[float, ...],
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_sc(pow_app=pow_app_a, cosphi=cosphi_a, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_b = cls.calc_sc(pow_app=pow_app_b, cosphi=cosphi_b, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_c = cls.calc_sc(pow_app=pow_app_c, cosphi=cosphi_c, pow_fac_dir=pow_fac_dir, scaling=scaling)
+        power_dicts = tuple(
+            cls.calc_sc(pow_app=pow_app, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
+            for pow_app, cos_phi in zip(pow_apps, cos_phis, strict=True)
+        )
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
     def from_qc_asym(
         cls,
         *,
-        pow_react_a: float,
-        pow_react_b: float,
-        pow_react_c: float,
-        cosphi_a: float,
-        cosphi_b: float,
-        cosphi_c: float,
+        pow_reacts: tuple[float, ...],
+        cos_phis: tuple[float, ...],
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_qc(pow_react=pow_react_a, cosphi=cosphi_a, scaling=scaling)
-        power_dict_b = cls.calc_qc(pow_react=pow_react_b, cosphi=cosphi_b, scaling=scaling)
-        power_dict_c = cls.calc_qc(pow_react=pow_react_c, cosphi=cosphi_c, scaling=scaling)
-        if not (
-            power_dict_a["power_factor_direction"]
-            == power_dict_b["power_factor_direction"]
-            == power_dict_c["power_factor_direction"]
-        ):
-            msg = "Cosphi directions do not match."
+        power_dicts = tuple(
+            cls.calc_qc(pow_react=pow_react, cos_phi=cos_phi, scaling=scaling)
+            for pow_react, cos_phi in zip(pow_reacts, cos_phis, strict=True)
+        )
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+            msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
-        pow_fac_dir = power_dict_a["power_factor_direction"]
+        pow_fac_dir = power_dicts[0]["power_factor_direction"]
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
@@ -802,101 +767,73 @@ class LoadPower:
         cls,
         *,
         voltage: float,
-        current_a: float,
-        current_b: float,
-        current_c: float,
-        pow_act_a: float,
-        pow_act_b: float,
-        pow_act_c: float,
+        currents: tuple[float, ...],
+        pow_acts: tuple[float, ...],
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_ip(
-            voltage=voltage,
-            current=current_a,
-            pow_act=pow_act_a,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
+        power_dicts = tuple(
+            cls.calc_ip(voltage=voltage, current=current, pow_act=pow_act, pow_fac_dir=pow_fac_dir, scaling=scaling)
+            for current, pow_act in zip(currents, pow_acts, strict=True)
         )
-        power_dict_b = cls.calc_ip(
-            voltage=voltage,
-            current=current_b,
-            pow_act=pow_act_b,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
-        )
-        power_dict_c = cls.calc_ip(
-            voltage=voltage,
-            current=current_c,
-            pow_act=pow_act_c,
-            pow_fac_dir=pow_fac_dir,
-            scaling=scaling,
-        )
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
     def from_sp_asym(
         cls,
         *,
-        pow_app_a: float,
-        pow_app_b: float,
-        pow_app_c: float,
-        pow_act_a: float,
-        pow_act_b: float,
-        pow_act_c: float,
+        pow_apps: tuple[float, ...],
+        pow_acts: tuple[float, ...],
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_sp(pow_app=pow_app_a, pow_act=pow_act_a, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_b = cls.calc_sp(pow_app=pow_app_b, pow_act=pow_act_b, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        power_dict_c = cls.calc_sp(pow_app=pow_app_c, pow_act=pow_act_c, pow_fac_dir=pow_fac_dir, scaling=scaling)
+        power_dicts = tuple(
+            cls.calc_sp(pow_app=pow_app, pow_act=pow_act, pow_fac_dir=pow_fac_dir, scaling=scaling)
+            for pow_app, pow_act in zip(pow_apps, pow_acts, strict=True)
+        )
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     @classmethod
     def from_sq_asym(
         cls,
         *,
-        pow_app_a: float,
-        pow_app_b: float,
-        pow_app_c: float,
-        pow_react_a: float,
-        pow_react_b: float,
-        pow_react_c: float,
+        pow_apps: tuple[float, ...],
+        pow_reacts: tuple[float, ...],
         scaling: float,
     ) -> LoadPower:
-        power_dict_a = cls.calc_sq(pow_app=pow_app_a, pow_react=pow_react_a, scaling=scaling)
-        power_dict_b = cls.calc_sq(pow_app=pow_app_b, pow_react=pow_react_b, scaling=scaling)
-        power_dict_c = cls.calc_sq(pow_app=pow_app_c, pow_react=pow_react_c, scaling=scaling)
-        if not (
-            power_dict_a["power_factor_direction"]
-            == power_dict_b["power_factor_direction"]
-            == power_dict_c["power_factor_direction"]
-        ):
-            msg = "Cosphi directions do not match."
+        power_dicts = tuple(
+            cls.calc_sq(pow_app=pow_app, pow_react=pow_react, scaling=scaling)
+            for pow_app, pow_react in zip(pow_apps, pow_reacts, strict=True)
+        )
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+            msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
-        pow_fac_dir = power_dict_a["power_factor_direction"]
+        pow_fac_dir = power_dicts[0]["power_factor_direction"]
+        pow_react_control_type = power_dicts[0]["power_reactive_control_type"]
         return LoadPower(
-            pow_apps=(power_dict_a["power_apparent"], power_dict_b["power_apparent"], power_dict_c["power_apparent"]),
-            pow_acts=(power_dict_a["power_active"], power_dict_b["power_active"], power_dict_c["power_active"]),
-            pow_reacts=(power_dict_a["power_reactive"], power_dict_b["power_reactive"], power_dict_c["power_reactive"]),
-            cos_phis=(power_dict_a["cosphi"], power_dict_b["cosphi"], power_dict_c["cosphi"]),
+            pow_apps=tuple(e["power_apparent"] for e in power_dicts),
+            pow_acts=tuple(e["power_active"] for e in power_dicts),
+            pow_reacts=tuple(e["power_reactive"] for e in power_dicts),
+            cos_phis=tuple(e["cos_phi"] for e in power_dicts),
             pow_fac_dir=pow_fac_dir,
-            pow_react_control_type=power_dict_a["power_reactive_control_type"],
+            pow_react_control_type=pow_react_control_type,
         )
 
     def as_active_power_ssc(self) -> ActivePowerSet:
@@ -910,6 +847,16 @@ class LoadPower:
         pow_apps = ApparentPower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_apps))
         cos_phis = PowerFactor(values=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
+
+    def limit_phases(self, n_phases: int) -> LoadPower:
+        return LoadPower(
+            pow_apps=self.pow_apps[:n_phases],
+            pow_acts=self.pow_acts[:n_phases],
+            pow_reacts=self.pow_reacts[:n_phases],
+            cos_phis=self.cos_phis[:n_phases],
+            pow_fac_dir=self.pow_fac_dir,
+            pow_react_control_type=self.pow_react_control_type,
+        )
 
 
 @dataclass

@@ -1337,7 +1337,15 @@ class PowerFactoryExporter:
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
+        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        voltage_system_type = (
+            VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
+            if load.typ_id is not None
+            else VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
+        )
+
         # Rated power and load models for active and reactive power
+        power = power.limit_phases(n_phases=phase_connections.n_phases)
         rated_power = power.as_rated_power()
         loguru.logger.debug(
             "{load_name}: there is no real rated power, it is calculated based on current power.",
@@ -1347,13 +1355,6 @@ class PowerFactoryExporter:
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom)
         load_model_p = self.load_model_of(load, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(load, specifier="q", default=load_model_default, u_0=u_0)
-
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
-        voltage_system_type = (
-            VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
-            if load.typ_id is not None
-            else VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
-        )
 
         return Load(
             name=l_name,
@@ -1522,13 +1523,13 @@ class PowerFactoryExporter:
         /,
     ) -> LoadPower:
         pow_app = gen.sgn * gen.ngnum
-        cosphi = gen.cosn
-        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        cos_phi = gen.cosn
+        # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
         pow_fac_dir = PowerFactorDirection.UE if gen.pf_recap else PowerFactorDirection.OE
         phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         return LoadPower.from_sc_sym(
             pow_app=pow_app,
-            cosphi=cosphi,
+            cos_phi=cos_phi,
             pow_fac_dir=pow_fac_dir,
             scaling=gen.scale0,
             phase_connection_type=phase_connection_type,
@@ -2133,7 +2134,7 @@ class PowerFactoryExporter:
         if load_type == "PC":
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2144,14 +2145,14 @@ class PowerFactoryExporter:
                 return LoadPower.from_ic_sym(
                     voltage=load.u0 * u_nom,
                     current=load.ilini,
-                    cosphi=load.coslini,
+                    cos_phi=load.coslini,
                     pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                     phase_connection_type=phase_connection_type,
                 )
 
             loguru.logger.warning(
-                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cos_phi as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
             return None
@@ -2159,14 +2160,14 @@ class PowerFactoryExporter:
         if load_type == "SC":
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
 
         if load_type == "QC":
-            return LoadPower.from_qc_sym(pow_react=load.qlini, cosphi=load.coslini, scaling=scaling)
+            return LoadPower.from_qc_sym(pow_react=load.qlini, cos_phi=load.coslini, scaling=scaling)
 
         if load_type == "IP":
             if u_nom is not None:
@@ -2215,23 +2216,15 @@ class PowerFactoryExporter:
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_asym(
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
-                pow_react_a=load.qlinir,
-                pow_react_b=load.qlinis,
-                pow_react_c=load.qlinit,
+                pow_acts=(load.plinir, load.plinis, load.plinit),
+                pow_reacts=(load.qlinir, load.qlinis, load.qlinit),
                 scaling=scaling,
             )
 
         if load_type == "PC":
             return LoadPower.from_pc_asym(
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_acts=(load.plinir, load.plinis, load.plinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
@@ -2250,7 +2243,7 @@ class PowerFactoryExporter:
                     scaling=scaling,
                 )
             loguru.logger.warning(
-                "Load {load_name} is not connected to grid. Can not calculate power based on current and cosphi as voltage is missing. Skipping.",
+                "Load {load_name} is not connected to grid. Can not calculate power based on current and cos_phi as voltage is missing. Skipping.",
                 load_name=load.loc_name,
             )
             return None
@@ -2426,14 +2419,14 @@ class PowerFactoryExporter:
         )
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
-            cosphi=load.ccosphi,
+            cos_phi=load.ccosphi,
             pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
         power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
-            cosphi=load.ccosphi,
+            cos_phi=load.ccosphi,
             pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
@@ -2456,14 +2449,14 @@ class PowerFactoryExporter:
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         power_flexible = LoadPower.from_sc_sym(
             pow_app=load.cSmax,
-            cosphi=load.ccosphi,
+            cos_phi=load.ccosphi,
             pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
         power_flexible_avg = LoadPower.from_sc_sym(
             pow_app=load.cSav,
-            cosphi=load.ccosphi,
+            cos_phi=load.ccosphi,
             pow_fac_dir=pow_fac_dir,
             scaling=1,
             phase_connection_type=phase_connection_type,
@@ -2483,7 +2476,7 @@ class PowerFactoryExporter:
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2492,7 +2485,7 @@ class PowerFactoryExporter:
         if load_type == IOpt.P_COSPHI:
             return LoadPower.from_pc_sym(
                 pow_act=load.plini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2502,7 +2495,7 @@ class PowerFactoryExporter:
             return LoadPower.from_ic_sym(
                 voltage=load.ulini,
                 current=load.ilini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2511,7 +2504,7 @@ class PowerFactoryExporter:
         if load_type == IOpt.E_COSPHI:
             return LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -2531,35 +2524,23 @@ class PowerFactoryExporter:
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
         if load_type == IOpt.P_COSPHI:
             return LoadPower.from_pc_asym(
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_acts=(load.plinir, load.plinis, load.plinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
         if load_type == IOpt.U_I_COSPHI:
             return LoadPower.from_ic_asym(
                 voltage=load.ulini,
-                current_a=load.ilinir,
-                current_b=load.ilinis,
-                current_c=load.ilinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                currents=(load.ilinir, load.ilinis, load.ilinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
@@ -2620,22 +2601,22 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
-        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        # in PF for consumer: ind. cos_phi = under excited; cap. cos_phi = over excited
         pow_fac_dir_cons = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
-        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
         pow_fac_dir_prod = PowerFactorDirection.UE if load.pfg_recap else PowerFactorDirection.OE
         phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
-                cosphi=load.cosgini,
+                cos_phi=load.cosgini,
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
@@ -2645,14 +2626,14 @@ class PowerFactoryExporter:
         if load_type == "SC":
             power_consumer = LoadPower.from_sc_sym(
                 pow_app=load.slini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_sc_sym(
                 pow_app=load.sgini,
-                cosphi=load.cosgini,
+                cos_phi=load.cosgini,
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
@@ -2663,14 +2644,14 @@ class PowerFactoryExporter:
             loguru.logger.warning("Power from yearly demand is not implemented yet. Skipping.")
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.cplinia,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
                 phase_connection_type=phase_connection_type,
             )
             power_producer = LoadPower.from_pc_sym(
                 pow_act=load.pgini,
-                cosphi=load.cosgini,
+                cos_phi=load.cosgini,
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
@@ -2688,28 +2669,20 @@ class PowerFactoryExporter:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
-        # in PF for consumer: ind. cosphi = under excited; cap. cosphi = over excited
+        # in PF for consumer: ind. cos_phi = under excited; cap. cos_phi = over excited
         pow_fac_dir_cons = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
-        # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+        # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
         pow_fac_dir_prod = PowerFactorDirection.UE if load.pfg_recap else PowerFactorDirection.OE
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_asym(
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_acts=(load.plinir, load.plinis, load.plinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_pc_asym(
-                pow_act_a=load.pginir,
-                pow_act_b=load.pginis,
-                pow_act_c=load.pginit,
-                cosphi_a=load.cosginir,
-                cosphi_b=load.cosginis,
-                cosphi_c=load.cosginit,
+                pow_acts=(load.pginir, load.pginis, load.pginit),
+                cos_phis=(load.cosginir, load.cosginis, load.cosginit),
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
@@ -2717,22 +2690,14 @@ class PowerFactoryExporter:
 
         if load_type == "SC":
             power_consumer = LoadPower.from_sc_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir_cons,
                 scaling=scaling_cons,
             )
             power_producer = LoadPower.from_sc_asym(
-                pow_app_a=load.sginir,
-                pow_app_b=load.sginis,
-                pow_app_c=load.sginit,
-                cosphi_a=load.cosginir,
-                cosphi_b=load.cosginis,
-                cosphi_c=load.cosginit,
+                pow_apps=(load.sginir, load.sginis, load.sginit),
+                cos_phis=(load.cosginir, load.cosginis, load.cosginit),
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
@@ -2934,7 +2899,7 @@ class PowerFactoryExporter:
         if av_mode == LocalQCtrlMode.COSPHI_CONST:
             power = LoadPower.from_pc_sym(
                 pow_act=0,
-                cosphi=gen.cosgini,
+                cos_phi=gen.cosgini,
                 pow_fac_dir=PowerFactorDirection.UE if gen.pf_recap else PowerFactorDirection.OE,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
@@ -3130,14 +3095,14 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if ctrl_mode == CtrlMode.COSPHI:  # cosphi control mode
-            if controller.cosphi_char == CosPhiChar.CONST:  # const. cosphi
+        if ctrl_mode == CtrlMode.COSPHI:  # cos_phi control mode
+            if controller.cosphi_char == CosPhiChar.CONST:  # const. cos_phi
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
-                # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
+                # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
                 pow_fac_dir = PowerFactorDirection.UE if ue else PowerFactorDirection.OE
                 power = LoadPower.from_pc_sym(
                     pow_act=0,
-                    cosphi=controller.pfsetp,
+                    cos_phi=controller.pfsetp,
                     pow_fac_dir=pow_fac_dir,
                     scaling=1,
                     phase_connection_type=phase_connection_type,
@@ -3149,7 +3114,7 @@ class PowerFactoryExporter:
                     external_controller_name=controller_name,
                 )
 
-            if controller.cosphi_char == CosPhiChar.P:  # cosphi(P)
+            if controller.cosphi_char == CosPhiChar.P:  # cos_phi(P)
                 q_control_type = ControlType.create_cos_phi_p_sym(
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
@@ -3162,7 +3127,7 @@ class PowerFactoryExporter:
                     external_controller_name=controller_name,
                 )
 
-            if controller.cosphi_char == CosPhiChar.U:  # cosphi(U)
+            if controller.cosphi_char == CosPhiChar.U:  # cos_phi(U)
                 q_control_type = ControlType.create_cos_phi_u_sym(
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
@@ -3179,11 +3144,11 @@ class PowerFactoryExporter:
             raise RuntimeError(msg)
 
         if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
-            cosphi = math.cos(math.atan(controller.tansetp))
+            cos_phi = math.cos(math.atan(controller.tansetp))
             pow_fac_dir = PowerFactorDirection.UE if controller.iQorient else PowerFactorDirection.OE
             power = LoadPower.from_pc_sym(
                 pow_act=0,
-                cosphi=cosphi,
+                cos_phi=cos_phi,
                 pow_fac_dir=pow_fac_dir,
                 scaling=1,
                 phase_connection_type=phase_connection_type,
