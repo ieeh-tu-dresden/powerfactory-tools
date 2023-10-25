@@ -24,6 +24,7 @@ from psdm.steadystate_case.controller import ControlTanPhiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import ActivePower as ActivePowerSet
+from psdm.topology.load import Angle
 from psdm.topology.load import ApparentPower
 from psdm.topology.load import Droop
 from psdm.topology.load import Phase
@@ -41,7 +42,6 @@ from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 
 if t.TYPE_CHECKING:
-    import collections.abc as cabc
     from typing import TypedDict
 
     class PowerDict(TypedDict):
@@ -140,46 +140,53 @@ GENERATOR_PHASE_MAPPING = {
 }
 
 
-def sym_three_phase_no_power(value: float) -> cabc.Sequence[float]:
-    return [value, value, value]
+def _sym_three_phase_no_power(value: float) -> tuple[float, float, float]:
+    return (value, value, value)
 
 
-def sym_three_phase_power(value: float) -> cabc.Sequence[float]:
-    return [value / 3, value / 3, value / 3]
+def _sym_three_phase_power(value: float) -> tuple[float, float, float]:
+    return (value / 3, value / 3, value / 3)
 
 
-def create_sym_three_phase_voltage(value: float) -> Voltage:
-    values = sym_three_phase_no_power(value)
-    return Voltage(
-        values=[round(v, DecimalDigits.VOLTAGE) for v in values],
+def create_sym_three_phase_angle(value: float) -> Angle:
+    values = _sym_three_phase_no_power(value)
+    return Angle(
+        values=[round(v, DecimalDigits.ANGLE) for v in values],
+    )
+
+
+def create_sym_three_phase_active_power(value: float) -> ActivePowerSet:
+    values = _sym_three_phase_power(value)
+    return ActivePowerSet(
+        values=[round(v, DecimalDigits.POWER) for v in values],
     )
 
 
 def create_sym_three_phase_droop(value: float) -> Droop:
-    values = sym_three_phase_no_power(value)
+    values = _sym_three_phase_no_power(value)
     return Droop(
         values=[round(v, DecimalDigits.PU) for v in values],
     )
 
 
 def create_sym_three_phase_power_factor(value: float) -> PowerFactor:
-    values = sym_three_phase_no_power(value)
+    values = _sym_three_phase_no_power(value)
     return PowerFactor(
         values=[round(v, DecimalDigits.POWERFACTOR) for v in values],
     )
 
 
-def create_sym_three_phase_active_power(value: float) -> ActivePowerSet:
-    values = sym_three_phase_power(value)
-    return ActivePowerSet(
+def create_sym_three_phase_reactive_power(value: float) -> ReactivePowerSet:
+    values = _sym_three_phase_power(value)
+    return ReactivePowerSet(
         values=[round(v, DecimalDigits.POWER) for v in values],
     )
 
 
-def create_sym_three_phase_reactive_power(value: float) -> ReactivePowerSet:
-    values = sym_three_phase_power(value)
-    return ReactivePowerSet(
-        values=[round(v, DecimalDigits.POWER) for v in values],
+def create_sym_three_phase_voltage(value: float) -> Voltage:
+    values = _sym_three_phase_no_power(value)
+    return Voltage(
+        values=[round(v, DecimalDigits.VOLTAGE) for v in values],
     )
 
 
