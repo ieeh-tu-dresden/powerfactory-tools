@@ -1379,7 +1379,7 @@ class PowerFactoryExporter:
         if load.GetClassName() == PFClassId.LOAD_LV.value:
             load = t.cast("PFTypes.LoadLV", load)
             return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
-        if type(load) == PFClassId.LOAD_LV_PART.value:
+        if load.GetClassName() == PFClassId.LOAD_LV_PART.value:
             load = t.cast("PFTypes.LoadLVP", load)
             return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
         if load.GetClassName() == PFClassId.LOAD.value:
@@ -1396,7 +1396,14 @@ class PowerFactoryExporter:
         specifier: t.Literal["p", "q"],
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
-        load_type = load.typ_id if type(load) is PFTypes.LoadBase else None
+        load_type = (
+            t.cast("PFTypes.LoadBase", load).typ_id
+            if any(
+                load.GetClassName() == n
+                for n in [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_MV.value]
+            )
+            else None
+        )
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
                 loguru.logger.warning(
