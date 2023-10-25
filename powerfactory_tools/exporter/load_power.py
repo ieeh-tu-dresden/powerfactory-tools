@@ -464,24 +464,24 @@ class LoadPower:
         }
 
     @staticmethod
-    def get_factors_for_phases(phase_connection_type: PhaseConnectionType) -> tuple[int, int, int, int]:
+    def get_factors_for_phases(phase_connection_type: PhaseConnectionType) -> tuple[int, tuple[int, ...]]:
         if phase_connection_type in (
             PhaseConnectionType.THREE_PH_D,
             PhaseConnectionType.THREE_PH_PH_E,
             PhaseConnectionType.THREE_PH_YN,
         ):
-            return (3, 1, 1, 1)
+            return (3, (1, 1, 1))
         if phase_connection_type in (
             PhaseConnectionType.TWO_PH_PH_E,
             PhaseConnectionType.TWO_PH_YN,
         ):
-            return (2, 1, 1, 0)
+            return (2, (1, 1))
         if phase_connection_type in (
             PhaseConnectionType.ONE_PH_PH_E,
             PhaseConnectionType.ONE_PH_PH_N,
             PhaseConnectionType.ONE_PH_PH_PH,
         ):
-            return (1, 1, 0, 0)
+            return (1, (1,))
 
         msg = "unreachable"
         raise RuntimeError(msg)
@@ -495,9 +495,9 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_pq(pow_act=pow_act / quot, pow_react=pow_react / quot, scaling=scaling)
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_pc_sym(
@@ -509,9 +509,9 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_pc(pow_act=pow_act / quot, cosphi=cosphi, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_ic_sym(
@@ -524,7 +524,7 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        _, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        _, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_ic(
             voltage=voltage,
             current=current,
@@ -532,7 +532,7 @@ class LoadPower:
             pow_fac_dir=pow_fac_dir,
             scaling=scaling,
         )
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_sc_sym(
@@ -544,9 +544,9 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sc(pow_app=pow_app / quot, cosphi=cosphi, pow_fac_dir=pow_fac_dir, scaling=scaling)
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_qc_sym(
@@ -557,9 +557,9 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_qc(pow_react=pow_react / quot, cosphi=cosphi, scaling=scaling)
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_ip_sym(
@@ -572,7 +572,7 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_ip(
             voltage=voltage,
             current=current,
@@ -580,7 +580,7 @@ class LoadPower:
             pow_fac_dir=pow_fac_dir,
             scaling=scaling,
         )
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_sp_sym(
@@ -592,14 +592,14 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sp(
             pow_app=pow_app / quot,
             pow_act=pow_act / quot,
             pow_fac_dir=pow_fac_dir,
             scaling=scaling,
         )
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_sq_sym(
@@ -610,36 +610,22 @@ class LoadPower:
         scaling: float,
         phase_connection_type: PhaseConnectionType,
     ) -> LoadPower:
-        quot, fac_a, fac_b, fac_c = LoadPower.get_factors_for_phases(phase_connection_type)
+        quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sq(pow_app=pow_app / quot, pow_react=pow_react / quot, scaling=scaling)
-        return LoadPower.from_power_dict_sym(power_dict=power_dict, fac_a=fac_a, fac_b=fac_b, fac_c=fac_c)
+        return LoadPower.from_power_dict_sym(power_dict=power_dict, factors=factors)
 
     @classmethod
     def from_power_dict_sym(
         cls,
         *,
         power_dict: PowerDict,
-        fac_a: int,
-        fac_b: int,
-        fac_c: int,
+        factors: tuple[int, ...],
     ) -> LoadPower:
         return LoadPower(
-            pow_apps=(
-                power_dict["power_apparent"] * fac_a,
-                power_dict["power_apparent"] * fac_b,
-                power_dict["power_apparent"] * fac_c,
-            ),
-            pow_acts=(
-                power_dict["power_active"] * fac_a,
-                power_dict["power_active"] * fac_b,
-                power_dict["power_active"] * fac_c,
-            ),
-            pow_reacts=(
-                power_dict["power_reactive"] * fac_a,
-                power_dict["power_reactive"] * fac_b,
-                power_dict["power_reactive"] * fac_c,
-            ),
-            cos_phis=(power_dict["cosphi"] * fac_a, power_dict["cosphi"] * fac_b, power_dict["cosphi"] * fac_c),
+            pow_apps=tuple(power_dict["power_apparent"] * e for e in factors),
+            pow_acts=tuple(power_dict["power_active"] * e for e in factors),
+            pow_reacts=tuple(power_dict["power_reactive"] * e for e in factors),
+            cos_phis=tuple(power_dict["cosphi"] * e for e in factors),
             pow_fac_dir=power_dict["power_factor_direction"],
             pow_react_control_type=power_dict["power_reactive_control_type"],
         )
