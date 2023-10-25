@@ -81,35 +81,27 @@ LOAD_PHASE_MAPPING = {
         values=[
             (Phase.A, Phase.N),
             [Phase.B, Phase.N],
-            None,
         ],
     ),
     LoadPhaseConnectionType.TWO_PH_YN: PhaseConnections(
         values=[
             (Phase.A, Phase.N),
             [Phase.B, Phase.N],
-            None,
         ],
     ),
     LoadPhaseConnectionType.ONE_PH_PH_PH: PhaseConnections(
         values=[
             (Phase.A, Phase.B),
-            None,
-            None,
         ],
     ),
     LoadPhaseConnectionType.ONE_PH_PH_N: PhaseConnections(
         values=[
             (Phase.A, Phase.N),
-            None,
-            None,
         ],
     ),
     LoadPhaseConnectionType.ONE_PH_PH_E: PhaseConnections(
         values=[
             (Phase.A, Phase.N),
-            None,
-            None,
         ],
     ),
 }
@@ -132,22 +124,16 @@ GENERATOR_PHASE_MAPPING = {
     GeneratorPhaseConnectionType.ONE_PH_PH_PH: PhaseConnections(
         values=[
             (Phase.A, Phase.B),
-            None,
-            None,
         ],
     ),
     GeneratorPhaseConnectionType.ONE_PH_PH_N: PhaseConnections(
         values=[
             (Phase.A, Phase.N),
-            None,
-            None,
         ],
     ),
     GeneratorPhaseConnectionType.ONE_PH_PH_E: PhaseConnections(
         values=[
             (Phase.A, Phase.N),
-            None,
-            None,
         ],
     ),
 }
