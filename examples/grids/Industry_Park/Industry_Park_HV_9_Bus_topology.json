@@ -783,13 +783,13 @@
   "loads": [
     {
       "active_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
+        "c_i": 1.0,
+        "c_p": 0.0,
         "c_z": 0.0,
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_const_current",
         "u_0": 110000.0
       },
       "description": "",
@@ -863,13 +863,13 @@
         }
       },
       "reactive_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
+        "c_i": 1.0,
+        "c_p": 0.0,
         "c_z": 0.0,
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_const_current",
         "u_0": 110000.0
       },
       "system_type": "FIXED_CONSUMPTION",
@@ -879,12 +879,12 @@
     {
       "active_power_model": {
         "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
+        "c_p": 0.0,
+        "c_z": 1.0,
+        "exp_i": 0,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_general",
         "u_0": 110000.0
       },
       "description": "",
@@ -959,12 +959,12 @@
       },
       "reactive_power_model": {
         "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
+        "c_p": 0.0,
+        "c_z": 1.0,
+        "exp_i": 0,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_general",
         "u_0": 110000.0
       },
       "system_type": "FIXED_CONSUMPTION",
@@ -979,7 +979,7 @@
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_const_power",
         "u_0": 110000.0
       },
       "description": "",
@@ -1059,7 +1059,7 @@
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
+        "name": "Load_const_power",
         "u_0": 110000.0
       },
       "system_type": "FIXED_CONSUMPTION",
@@ -1069,13 +1069,100 @@
     {
       "active_power_model": {
         "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
+        "exp_i": 0,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": "Load_general_2ph",
+        "u_0": 400.0
+      },
+      "description": "",
+      "name": "Load_8",
+      "node": "Node_8_LV",
+      "phase_connection_type": "TWO_PH_PH_E",
+      "phase_connections": {
+        "n_phases": 2,
+        "values": [
+          [
+            "A",
+            "N"
+          ],
+          [
+            "B",
+            "N"
+          ]
+        ]
+      },
+      "rated_power": {
+        "active_power": {
+          "is_symmetrical": false,
+          "n_phases": 2,
+          "power_type": "AC_ACTIVE",
+          "total": 4000.0,
+          "values": [
+            1000.0,
+            3000.0
+          ]
+        },
+        "apparent_power": {
+          "is_symmetrical": false,
+          "n_phases": 2,
+          "power_type": "AC_APPARENT",
+          "total": 4000.0,
+          "values": [
+            1000.0,
+            3000.0
+          ]
+        },
+        "cos_phi": {
+          "average": 1.0,
+          "direction": "ND",
+          "is_symmetrical": true,
+          "n_phases": 2,
+          "values": [
+            1.0,
+            1.0
+          ]
+        },
+        "cos_phi_total": 1.0,
+        "is_symmetrical": false,
+        "n_phases": 2,
+        "reactive_power": {
+          "is_symmetrical": true,
+          "n_phases": 2,
+          "power_type": "AC_REACTIVE",
+          "total": 0.0,
+          "values": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "reactive_power_model": {
+        "c_i": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
+        "exp_i": 0,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": "Load_general_2ph",
+        "u_0": 400.0
+      },
+      "system_type": "FIXED_CONSUMPTION",
+      "type": "CONSUMER",
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power_model": {
+        "c_i": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
-        "u_0": 115500.0
+        "name": "Load_const_impedance",
+        "u_0": 110000.0
       },
       "description": "",
       "name": "Load_9",
@@ -1149,100 +1236,13 @@
       },
       "reactive_power_model": {
         "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
-        "name": null,
-        "u_0": 115500.0
-      },
-      "system_type": "FIXED_CONSUMPTION",
-      "type": "CONSUMER",
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
-        "name": null,
-        "u_0": 400.0
-      },
-      "description": "",
-      "name": "Load_8",
-      "node": "Node_8_LV",
-      "phase_connection_type": "TWO_PH_PH_E",
-      "phase_connections": {
-        "n_phases": 2,
-        "values": [
-          [
-            "A",
-            "N"
-          ],
-          [
-            "B",
-            "N"
-          ]
-        ]
-      },
-      "rated_power": {
-        "active_power": {
-          "is_symmetrical": false,
-          "n_phases": 2,
-          "power_type": "AC_ACTIVE",
-          "total": 4000.0,
-          "values": [
-            1000.0,
-            3000.0
-          ]
-        },
-        "apparent_power": {
-          "is_symmetrical": false,
-          "n_phases": 2,
-          "power_type": "AC_APPARENT",
-          "total": 4000.0,
-          "values": [
-            1000.0,
-            3000.0
-          ]
-        },
-        "cos_phi": {
-          "average": 1.0,
-          "direction": "ND",
-          "is_symmetrical": true,
-          "n_phases": 2,
-          "values": [
-            1.0,
-            1.0
-          ]
-        },
-        "cos_phi_total": 1.0,
-        "is_symmetrical": false,
-        "n_phases": 2,
-        "reactive_power": {
-          "is_symmetrical": true,
-          "n_phases": 2,
-          "power_type": "AC_REACTIVE",
-          "total": 0.0,
-          "values": [
-            0.0,
-            0.0
-          ]
-        }
-      },
-      "reactive_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
-        "name": null,
-        "u_0": 400.0
+        "name": "Load_const_impedance",
+        "u_0": 110000.0
       },
       "system_type": "FIXED_CONSUMPTION",
       "type": "CONSUMER",
@@ -2375,9 +2375,9 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-10-25",
+    "date": "2023-10-26",
     "grid": "HV_9_Bus",
-    "id": "543095f2-8402-433e-89ae-52728b8e11c3",
+    "id": "ff2faf6d-af83-4602-88b6-b3d357f41bf4",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",

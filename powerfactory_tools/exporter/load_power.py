@@ -30,6 +30,7 @@ from psdm.topology.load import Droop
 from psdm.topology.load import Phase
 from psdm.topology.load import PhaseConnections
 from psdm.topology.load import PhaseConnectionType
+from psdm.topology.load import Power
 from psdm.topology.load import PowerFactor
 from psdm.topology.load import PowerFactorDirection
 from psdm.topology.load import RatedPower
@@ -166,6 +167,13 @@ def create_sym_three_phase_droop(value: float) -> Droop:
     values = _sym_three_phase_no_power(value)
     return Droop(
         values=[round(v, DecimalDigits.PU) for v in values],
+    )
+
+
+def create_sym_three_phase_power(value: float) -> Power:
+    values = _sym_three_phase_power(value)
+    return Power(
+        values=[round(v, DecimalDigits.POWER) for v in values],
     )
 
 
