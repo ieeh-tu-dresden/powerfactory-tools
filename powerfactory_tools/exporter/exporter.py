@@ -39,7 +39,6 @@ from psdm.topology.load import LoadType
 from psdm.topology.load import Phase
 from psdm.topology.load import PhaseConnections
 from psdm.topology.load import PhaseConnectionType
-from psdm.topology.load import Power
 from psdm.topology.load import PowerFactorDirection
 from psdm.topology.load import SystemType
 from psdm.topology.load_model import LoadModel
@@ -61,6 +60,7 @@ from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
+from powerfactory_tools.exporter.load_power import create_sym_three_phase_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_reactive_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_voltage
 from powerfactory_tools.interface import PowerFactoryData
@@ -503,16 +503,16 @@ class PowerFactoryExporter:
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name=grid_name)
 
-        sc_power_max_ph = round(ext_grid.snss * Exponents.POWER / 3, DecimalDigits.POWER)
-        sc_power_min_ph = round(ext_grid.snssmin * Exponents.POWER / 3, DecimalDigits.POWER)
+        sc_power_max = create_sym_three_phase_power(ext_grid.snss * Exponents.POWER)
+        sc_power_min = create_sym_three_phase_power(ext_grid.snssmin * Exponents.POWER)
 
         return ExternalGrid(
             name=name,
             description=description,
             node=node_name,
             type=GridType(ext_grid.bustp),
-            short_circuit_power_max=Power(values=[sc_power_max_ph, sc_power_max_ph, sc_power_max_ph]),
-            short_circuit_power_min=Power(values=[sc_power_min_ph, sc_power_min_ph, sc_power_min_ph]),
+            short_circuit_power_max=sc_power_max,
+            short_circuit_power_min=sc_power_min,
         )
 
     def create_nodes(
@@ -2035,29 +2035,29 @@ class PowerFactoryExporter:
 
         g_type = GridType(ext_grid.bustp)
         if g_type == GridType.SL:
-            u_0_ph = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
+            u_0 = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
             return ExternalGridSSC(
                 name=name,
-                u_0=create_sym_three_phase_voltage(u_0_ph),
+                u_0=create_sym_three_phase_voltage(u_0),
                 phi_0=create_sym_three_phase_angle(ext_grid.phiini),
             )
 
         if g_type == GridType.PV:
-            u_0_ph = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
-            p_0_ph = ext_grid.pgini * Exponents.POWER / 3
+            u_0 = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
+            p_0 = ext_grid.pgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                u_0=create_sym_three_phase_voltage(u_0_ph),
-                p_0=create_sym_three_phase_active_power(p_0_ph),
+                u_0=create_sym_three_phase_voltage(u_0),
+                p_0=create_sym_three_phase_active_power(p_0),
             )
 
         if g_type == GridType.PQ:
-            p_0_ph = ext_grid.pgini * Exponents.POWER / 3
-            q_0_ph = ext_grid.qgini * Exponents.POWER / 3
+            p_0 = ext_grid.pgini * Exponents.POWER
+            q_0 = ext_grid.qgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                p_0=create_sym_three_phase_active_power(p_0_ph),
-                q_0=create_sym_three_phase_reactive_power(q_0_ph),
+                p_0=create_sym_three_phase_active_power(p_0),
+                q_0=create_sym_three_phase_reactive_power(q_0),
             )
 
         return ExternalGridSSC(name=name)
