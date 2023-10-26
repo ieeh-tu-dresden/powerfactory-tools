@@ -1,9 +1,10 @@
 [project]
 
   authors = [
-    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
+
+    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
     "ieeh-power-system-data-model==1.9.0",
@@ -21,8 +22,8 @@
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
 
 [build-system]
-  build-backend = "pdm.pep517.api"
-  requires      = ["pdm-pep517"]
+  build-backend = "pdm.backend"
+  requires      = ["pdm-backend"]
 
 [tool]
 
@@ -35,6 +36,11 @@
       prototype  = ["ipykernel"]
       test       = ["pytest", "pytest-cov", "pytest-xdist"]
       typing     = ["mypy"]
+
+    [tool.pdm.build]
+      includes        = ["powerfactory_tools"]
+      package-dir     = "powerfactory_tools"
+      source-includes = ["examples", "tests"]
 
 [tool.ruff]
   ignore = [
