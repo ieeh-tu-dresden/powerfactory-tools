@@ -104,6 +104,8 @@ FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 STRING_SEPARATOR = "; "
 
+LOAD_CLASSES = [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_MV.value]
+
 
 @pydantic.dataclasses.dataclass
 class LoadLV:
@@ -1353,7 +1355,7 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
-        u_0 = self.reference_voltage_for_load_model_of(load, u_nom)
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=u_nom)
         load_model_p = self.load_model_of(load, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(load, specifier="q", default=load_model_default, u_0=u_0)
 
@@ -1374,6 +1376,8 @@ class PowerFactoryExporter:
     @staticmethod
     def reference_voltage_for_load_model_of(
         load: PFTypes.LoadBase | PFTypes.LoadLVP | PFTypes.GeneratorBase,
+        /,
+        *,
         u_nom: pydantic.confloat(ge=0),  # type: ignore[valid-type]
     ) -> pydantic.confloat(ge=0):  # type: ignore[valid-type]
         if load.GetClassName() == PFClassId.LOAD_LV.value:
@@ -1396,14 +1400,7 @@ class PowerFactoryExporter:
         specifier: t.Literal["p", "q"],
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
-        load_type = (
-            t.cast("PFTypes.LoadBase", load).typ_id
-            if any(
-                load.GetClassName() == n
-                for n in [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_MV.value]
-            )
-            else None
-        )
+        load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
                 loguru.logger.warning(
@@ -1579,7 +1576,7 @@ class PowerFactoryExporter:
         # Rated power and load models for active and reactive power
         rated_power = power.as_rated_power()
 
-        u_0 = self.reference_voltage_for_load_model_of(generator, u_nom)
+        u_0 = self.reference_voltage_for_load_model_of(generator, u_nom=u_nom)
         load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
 
