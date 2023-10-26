@@ -2,11 +2,6 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
       "name": "Node_9/ISField_3.2",
       "open_switches": []
     },
@@ -14,13 +9,18 @@
       "disabled": true,
       "name": "Node_9/IS1.2",
       "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/ISField_2.3",
+      "open_switches": []
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-10-25",
+    "date": "2023-10-26",
     "grid": "HV_9_Bus",
-    "id": "543095f2-8402-433e-89ae-52728b8e11c3",
+    "id": "ff2faf6d-af83-4602-88b6-b3d357f41bf4",
     "name": "HV_9_Bus",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
