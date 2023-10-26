@@ -35,12 +35,6 @@
       linter     = ["ruff"]
       prototype  = ["ipykernel"]
       test       = ["pytest", "pytest-cov", "pytest-xdist"]
-      typing     = ["mypy"]
-
-    [tool.pdm.build]
-      includes        = ["powerfactory_tools"]
-      package-dir     = "powerfactory_tools"
-      source-includes = ["examples", "tests"]
 
 [tool.ruff]
   ignore = [
