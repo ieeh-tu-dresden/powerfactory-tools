@@ -29,14 +29,14 @@ class Exponents:
 
 
 class DecimalDigits:
-    ADMITTANCE: int = 12
-    ANGLE: int = 4
-    CURRENT: int = 1
-    IMPEDANCE: int = 6
-    POWER: int = 0
-    POWERFACTOR: int = 6
-    PU: int = 4
-    VOLTAGE: int = 1
+    ADMITTANCE: int = 13
+    ANGLE: int = 5
+    CURRENT: int = 2
+    IMPEDANCE: int = 7
+    POWER: int = 1
+    POWERFACTOR: int = 7
+    PU: int = 5
+    VOLTAGE: int = 2
 
 
 class BaseUnits:
