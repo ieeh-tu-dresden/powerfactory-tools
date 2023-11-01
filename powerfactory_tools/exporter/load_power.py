@@ -11,6 +11,16 @@ import typing as t
 from dataclasses import dataclass
 
 import loguru
+from psdm.quantities import ActivePower
+from psdm.quantities import Angle
+from psdm.quantities import ApparentPower
+from psdm.quantities import Droop
+from psdm.quantities import Phase
+from psdm.quantities import PhaseConnections
+from psdm.quantities import PowerFactor
+from psdm.quantities import PowerFactorDirection
+from psdm.quantities import ReactivePower
+from psdm.quantities import Voltage
 from psdm.steadystate_case.characteristic import Characteristic
 from psdm.steadystate_case.controller import ControlCosPhiConst
 from psdm.steadystate_case.controller import ControlCosPhiP
@@ -23,19 +33,8 @@ from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import ControlTanPhiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
-from psdm.topology.load import ActivePower as ActivePowerSet
-from psdm.topology.load import Angle
-from psdm.topology.load import ApparentPower
-from psdm.topology.load import Droop
-from psdm.topology.load import Phase
-from psdm.topology.load import PhaseConnections
 from psdm.topology.load import PhaseConnectionType
-from psdm.topology.load import Power
-from psdm.topology.load import PowerFactor
-from psdm.topology.load import PowerFactorDirection
 from psdm.topology.load import RatedPower
-from psdm.topology.load import ReactivePower as ReactivePowerSet
-from psdm.topology.load import Voltage
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
@@ -52,9 +51,6 @@ if t.TYPE_CHECKING:
         cos_phi: float
         power_factor_direction: PowerFactorDirection
         power_reactive_control_type: QControlStrategy
-
-
-COSPHI_DEFAULT = 1
 
 
 LOAD_PHASE_MAPPING = {
@@ -156,9 +152,16 @@ def create_sym_three_phase_angle(value: float) -> Angle:
     )
 
 
-def create_sym_three_phase_active_power(value: float) -> ActivePowerSet:
+def create_sym_three_phase_active_power(value: float) -> ActivePower:
     values = _sym_three_phase_power(value)
-    return ActivePowerSet(
+    return ActivePower(
+        values=[round(v, DecimalDigits.POWER) for v in values],
+    )
+
+
+def create_sym_three_phase_apparent_power(value: float) -> ApparentPower:
+    values = _sym_three_phase_power(value)
+    return ApparentPower(
         values=[round(v, DecimalDigits.POWER) for v in values],
     )
 
@@ -170,13 +173,6 @@ def create_sym_three_phase_droop(value: float) -> Droop:
     )
 
 
-def create_sym_three_phase_power(value: float) -> Power:
-    values = _sym_three_phase_power(value)
-    return Power(
-        values=[round(v, DecimalDigits.POWER) for v in values],
-    )
-
-
 def create_sym_three_phase_power_factor(value: float) -> PowerFactor:
     values = _sym_three_phase_no_power(value)
     return PowerFactor(
@@ -184,9 +180,9 @@ def create_sym_three_phase_power_factor(value: float) -> PowerFactor:
     )
 
 
-def create_sym_three_phase_reactive_power(value: float) -> ReactivePowerSet:
+def create_sym_three_phase_reactive_power(value: float) -> ReactivePower:
     values = _sym_three_phase_power(value)
-    return ReactivePowerSet(
+    return ReactivePower(
         values=[round(v, DecimalDigits.POWER) for v in values],
     )
 
@@ -233,7 +229,7 @@ class LoadPower:
         try:
             return abs(pow_act / self.pow_app)
         except ZeroDivisionError:
-            return COSPHI_DEFAULT
+            return float("nan")
 
     @property
     def is_symmetrical(self) -> bool:
@@ -278,7 +274,7 @@ class LoadPower:
         try:
             cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cos_phi = COSPHI_DEFAULT
+            cos_phi = float("nan")
 
         return {
             "power_apparent": pow_app,
@@ -308,7 +304,7 @@ class LoadPower:
                 "power_apparent": 0,
                 "power_active": 0,
                 "power_reactive": 0,
-                "cos_phi": COSPHI_DEFAULT,
+                "cos_phi": cos_phi,
                 "power_factor_direction": pow_fac_dir,
                 "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
@@ -386,7 +382,7 @@ class LoadPower:
                 "power_apparent": 0,
                 "power_active": 0,
                 "power_reactive": 0,
-                "cos_phi": COSPHI_DEFAULT,
+                "cos_phi": cos_phi,
                 "power_factor_direction": pow_fac_dir,
                 "power_reactive_control_type": QControlStrategy.COSPHI_CONST,
             }
@@ -415,7 +411,7 @@ class LoadPower:
         try:
             cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cos_phi = COSPHI_DEFAULT
+            cos_phi = float("nan")
 
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -441,7 +437,7 @@ class LoadPower:
         try:
             cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cos_phi = COSPHI_DEFAULT
+            cos_phi = float("nan")
 
         fac = 1 if pow_fac_dir == PowerFactorDirection.UE else -1
         pow_react = fac * math.sqrt(pow_app**2 - pow_act**2)
@@ -467,7 +463,7 @@ class LoadPower:
         try:
             cos_phi = abs(pow_act / pow_app)
         except ZeroDivisionError:
-            cos_phi = COSPHI_DEFAULT
+            cos_phi = float("nan")
 
         pow_fac_dir = PowerFactorDirection.OE if pow_react < 0 else PowerFactorDirection.UE
         return {
@@ -844,12 +840,12 @@ class LoadPower:
             pow_react_control_type=pow_react_control_type,
         )
 
-    def as_active_power_ssc(self) -> ActivePowerSet:
-        return ActivePowerSet(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_acts))
+    def as_active_power_ssc(self) -> ActivePower:
+        return ActivePower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_acts))
 
-    def as_reactive_power_ssc(self) -> ReactivePowerSet:
+    def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
-        return ReactivePowerSet(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_reacts))
+        return ReactivePower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_reacts))
 
     def as_rated_power(self) -> RatedPower:
         pow_apps = ApparentPower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_apps))

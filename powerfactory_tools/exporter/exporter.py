@@ -19,6 +19,8 @@ import pydantic
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
+from psdm.quantities import Phase
+from psdm.quantities import PowerFactorDirection
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlledVoltageRef
@@ -36,10 +38,8 @@ from psdm.topology.external_grid import ExternalGrid
 from psdm.topology.external_grid import GridType
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
-from psdm.topology.load import Phase
 from psdm.topology.load import PhaseConnections
 from psdm.topology.load import PhaseConnectionType
-from psdm.topology.load import PowerFactorDirection
 from psdm.topology.load import SystemType
 from psdm.topology.load_model import LoadModel
 from psdm.topology.node import Node
@@ -60,7 +60,7 @@ from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_power
+from powerfactory_tools.exporter.load_power import create_sym_three_phase_apparent_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_reactive_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_voltage
 from powerfactory_tools.interface import PowerFactoryData
@@ -503,8 +503,8 @@ class PowerFactoryExporter:
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name=grid_name)
 
-        sc_power_max = create_sym_three_phase_power(ext_grid.snss * Exponents.POWER)
-        sc_power_min = create_sym_three_phase_power(ext_grid.snssmin * Exponents.POWER)
+        sc_power_max = create_sym_three_phase_apparent_power(ext_grid.snss * Exponents.POWER)
+        sc_power_min = create_sym_three_phase_apparent_power(ext_grid.snssmin * Exponents.POWER)
 
         return ExternalGrid(
             name=name,
@@ -540,7 +540,7 @@ class PowerFactoryExporter:
             loguru.logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
-        u_n = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # voltage in V
+        u_n = create_sym_three_phase_voltage(terminal.uknom * Exponents.VOLTAGE)  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
             description = (
