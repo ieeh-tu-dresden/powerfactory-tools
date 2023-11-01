@@ -31,11 +31,11 @@
         "is_symmetrical": true,
         "n_phases": 3,
         "power_type": "AC_ACTIVE",
-        "total": 9999999.0,
+        "total": 9999999.9,
         "values": [
-          3333333.0,
-          3333333.0,
-          3333333.0
+          3333333.3,
+          3333333.3,
+          3333333.3
         ]
       },
       "phi_0": null,
@@ -105,11 +105,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 9999999.99,
+              "total": 9999999.9,
               "values": [
-                3333333.33,
-                3333333.33,
-                3333333.33
+                3333333.3,
+                3333333.3,
+                3333333.3
               ]
             }
           },
@@ -123,14 +123,14 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cos_phi_set": {
-              "average": 0.990309,
+              "average": 0.9903092,
               "direction": "UE",
               "is_symmetrical": true,
               "n_phases": 3,
               "values": [
-                0.990309,
-                0.990309,
-                0.990309
+                0.9903092,
+                0.9903092,
+                0.9903092
               ]
             }
           },
@@ -148,11 +148,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 49999997.49,
+              "total": 49999997.4,
               "values": [
-                16666665.83,
-                16666665.83,
-                16666665.83
+                16666665.8,
+                16666665.8,
+                16666665.8
               ]
             }
           },
@@ -166,14 +166,14 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cos_phi_set": {
-              "average": 0.980581,
+              "average": 0.9805806,
               "direction": "OE",
               "is_symmetrical": true,
               "n_phases": 3,
               "values": [
-                0.980581,
-                0.980581,
-                0.980581
+                0.9805806,
+                0.9805806,
+                0.9805806
               ]
             }
           },
@@ -232,11 +232,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 20000000.01,
+              "total": 20000000.1,
               "values": [
-                6666666.67,
-                6666666.67,
-                6666666.67
+                6666666.7,
+                6666666.7,
+                6666666.7
               ]
             }
           },
@@ -253,11 +253,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_REACTIVE",
-              "total": 9999999.99,
+              "total": 9999999.9,
               "values": [
-                3333333.33,
-                3333333.33,
-                3333333.33
+                3333333.3,
+                3333333.3,
+                3333333.3
               ]
             }
           },
@@ -275,11 +275,11 @@
               "is_symmetrical": false,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 8440.86,
+              "total": 8440.9,
               "values": [
-                2078.46,
-                3510.29,
-                2852.11
+                2078.5,
+                3510.3,
+                2852.1
               ]
             }
           },
@@ -318,11 +318,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 9999.99,
+              "total": 9999.9,
               "values": [
-                3333.33,
-                3333.33,
-                3333.33
+                3333.3,
+                3333.3,
+                3333.3
               ]
             }
           },
@@ -361,11 +361,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 2000.01,
+              "total": 2000.1,
               "values": [
-                666.67,
-                666.67,
-                666.67
+                666.7,
+                666.7,
+                666.7
               ]
             }
           },
@@ -447,11 +447,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": 9499999.89,
+              "total": 9499999.8,
               "values": [
-                3166666.63,
-                3166666.63,
-                3166666.63
+                3166666.6,
+                3166666.6,
+                3166666.6
               ]
             }
           },
@@ -533,11 +533,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -500000.01,
+              "total": -500000.1,
               "values": [
-                -166666.67,
-                -166666.67,
-                -166666.67
+                -166666.7,
+                -166666.7,
+                -166666.7
               ]
             }
           },
@@ -576,11 +576,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -500000.01,
+              "total": -500000.1,
               "values": [
-                -166666.67,
-                -166666.67,
-                -166666.67
+                -166666.7,
+                -166666.7,
+                -166666.7
               ]
             }
           },
@@ -619,11 +619,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -5000000.01,
+              "total": -5000000.1,
               "values": [
-                -1666666.67,
-                -1666666.67,
-                -1666666.67
+                -1666666.7,
+                -1666666.7,
+                -1666666.7
               ]
             }
           },
@@ -637,45 +637,45 @@
           "control_type": {
             "control_strategy": "Q_U",
             "droop_low": {
-              "average": 9.2593,
+              "average": 9.25926,
               "is_symmetrical": true,
               "n_phases": 3,
               "values": [
-                9.2593,
-                9.2593,
-                9.2593
+                9.25926,
+                9.25926,
+                9.25926
               ]
             },
             "droop_up": {
-              "average": 9.2593,
+              "average": 9.25926,
               "is_symmetrical": true,
               "n_phases": 3,
               "values": [
-                9.2593,
-                9.2593,
-                9.2593
+                9.25926,
+                9.25926,
+                9.25926
               ]
             },
             "q_max_oe": {
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_REACTIVE",
-              "total": 4800000.0,
+              "total": 4800000.3,
               "values": [
-                1600000.0,
-                1600000.0,
-                1600000.0
+                1600000.1,
+                1600000.1,
+                1600000.1
               ]
             },
             "q_max_ue": {
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_REACTIVE",
-              "total": 4800000.0,
+              "total": 4800000.3,
               "values": [
-                1600000.0,
-                1600000.0,
-                1600000.0
+                1600000.1,
+                1600000.1,
+                1600000.1
               ]
             },
             "u_deadband_low": {
@@ -762,11 +762,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -400000.02,
+              "total": -399999.9,
               "values": [
-                -133333.34,
-                -133333.34,
-                -133333.34
+                -133333.3,
+                -133333.3,
+                -133333.3
               ]
             }
           },
@@ -816,11 +816,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -800001.0,
+              "total": -800000.1,
               "values": [
-                -266667.0,
-                -266667.0,
-                -266667.0
+                -266666.7,
+                -266666.7,
+                -266666.7
               ]
             }
           },
@@ -838,11 +838,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
-              "total": -15999999.99,
+              "total": -15999999.9,
               "values": [
-                -5333333.33,
-                -5333333.33,
-                -5333333.33
+                -5333333.3,
+                -5333333.3,
+                -5333333.3
               ]
             }
           },
@@ -859,11 +859,11 @@
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_REACTIVE",
-              "total": -7749139.65,
+              "total": -7749139.5,
               "values": [
-                -2583046.55,
-                -2583046.55,
-                -2583046.55
+                -2583046.5,
+                -2583046.5,
+                -2583046.5
               ]
             }
           },
@@ -875,13 +875,12 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-10-26",
+    "date": "2023-11-01",
     "grid": "HV_9_Bus",
-    "id": "ff2faf6d-af83-4602-88b6-b3d357f41bf4",
-    "name": "HV_9_Bus",
+    "id": "e74d07a6-1ed2-40ce-9072-854521b2c206",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "1.9.0"
+    "version": "2.0.1"
   },
   "transformers": [
     {

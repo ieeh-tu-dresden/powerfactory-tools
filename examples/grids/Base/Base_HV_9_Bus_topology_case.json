@@ -2,6 +2,11 @@
   "elements": [
     {
       "disabled": true,
+      "name": "Node_9/ISField_2.3",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
       "name": "Node_9/ISField_3.2",
       "open_switches": []
     },
@@ -9,21 +14,15 @@
       "disabled": true,
       "name": "Node_9/IS1.2",
       "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
     }
   ],
   "meta": {
     "case": "Base",
-    "date": "2023-10-26",
+    "date": "2023-11-01",
     "grid": "HV_9_Bus",
-    "id": "a114d489-46ba-4023-858c-aae2fc3652a6",
-    "name": "HV_9_Bus",
+    "id": "be006355-fc7e-4757-a2f3-81f387af0df3",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "1.9.0"
+    "version": "2.0.1"
   }
 }
