@@ -46,7 +46,6 @@ from psdm.topology.external_grid import GridType
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
 from psdm.topology.load import PhaseConnections
-from psdm.topology.load import PhaseConnectionType
 from psdm.topology.load import SystemType
 from psdm.topology.load_model import LoadModel
 from psdm.topology.node import Node
@@ -63,11 +62,13 @@ from psdm.topology_case.element_state import ElementState
 from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exporter.load_power import ControlType, create_sym_three_phase_current
+from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_apparent_power
+from powerfactory_tools.exporter.load_power import create_sym_three_phase_current
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_reactive_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_voltage
 from powerfactory_tools.interface import PowerFactoryData
@@ -85,6 +86,7 @@ from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase as PFPhase
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
+from powerfactory_tools.powerfactory_types import TerminalPhaseConnectionType
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
 from powerfactory_tools.powerfactory_types import TrfNeutralConnectionType
 from powerfactory_tools.powerfactory_types import TrfNeutralPointState
@@ -429,10 +431,10 @@ class PowerFactoryExporter:
         date = data.date
 
         return Meta(
-            name=grid_name,
-            date=date,
-            project=project_name,
             case=case_name,
+            date=date,
+            grid=grid_name,
+            project=project_name,
             sign_convention=SignConvention.PASSIVE,
         )
 
@@ -509,6 +511,11 @@ class PowerFactoryExporter:
             return None
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name=grid_name)
+        phase_connection_type = TerminalPhaseConnectionType(ext_grid.bus1.cterm.phtech)
+        phase_connections = self.get_terminal_phase_connections(
+            phase_connection_type=phase_connection_type,  # default
+            bus=ext_grid.bus1,
+        )
 
         sc_power_max = create_sym_three_phase_apparent_power(ext_grid.snss * Exponents.POWER)
         sc_power_min = create_sym_three_phase_apparent_power(ext_grid.snssmin * Exponents.POWER)
@@ -517,6 +524,7 @@ class PowerFactoryExporter:
             name=name,
             description=description,
             node=node_name,
+            phase_connections=phase_connections,
             type=GridType(ext_grid.bustp),
             short_circuit_power_max=sc_power_max,
             short_circuit_power_min=sc_power_min,
@@ -1164,9 +1172,9 @@ class PowerFactoryExporter:
     ) -> Load | None:
         power = self.calc_normal_load_power(load)
         phase_connection_type = (
-            PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+            ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
             if load.typ_id is not None
-            else PhaseConnectionType.THREE_PH_D
+            else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
         )
         if power is not None:
             return self.create_consumer(
@@ -1222,7 +1230,7 @@ class PowerFactoryExporter:
             index=index,
             name=load.loc_name,
         )
-        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         consumer_fixed = (
             self.create_consumer(
                 load,
@@ -1286,9 +1294,9 @@ class PowerFactoryExporter:
         power = self.calc_load_mv_power(load)
         loguru.logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
         phase_connection_type = (
-            PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+            ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
             if load.typ_id is not None
-            else PhaseConnectionType.THREE_PH_D
+            else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
         )
         consumer = self.create_consumer(
             load,
@@ -1318,7 +1326,7 @@ class PowerFactoryExporter:
         power: LoadPower,
         grid_name: str,
         system_type: SystemType,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         name_suffix: str = "",
         load_model_default: t.Literal["Z", "I", "P"] = "P",
     ) -> Load | None:
@@ -1347,7 +1355,7 @@ class PowerFactoryExporter:
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
         voltage_system_type = (
             VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
             if load.typ_id is not None
@@ -1374,7 +1382,6 @@ class PowerFactoryExporter:
             active_power_model=load_model_p,
             reactive_power_model=load_model_q,
             phase_connections=phase_connections,
-            phase_connection_type=phase_connection_type,
             type=LoadType.CONSUMER,
             system_type=system_type,
             voltage_system_type=voltage_system_type,
@@ -1475,7 +1482,7 @@ class PowerFactoryExporter:
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
         system_type = SystemType[GeneratorSystemType(generator.aCategory).name]
-        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
 
         return self.create_producer(
             generator,
@@ -1507,7 +1514,7 @@ class PowerFactoryExporter:
     ) -> Load | None:
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
-        phase_connection_type = GeneratorPhaseConnectionType(generator.phtech)
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
         system_type = SystemType.PV
         return self.create_producer(
             generator,
@@ -1539,7 +1546,7 @@ class PowerFactoryExporter:
         cos_phi = gen.cosn
         # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
         pow_fac_dir = PowerFactorDirection.UE if gen.pf_recap else PowerFactorDirection.OE
-        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
         return LoadPower.from_sc_sym(
             pow_app=pow_app,
             cos_phi=cos_phi,
@@ -1557,7 +1564,7 @@ class PowerFactoryExporter:
         power: LoadPower,
         grid_name: str,
         system_type: SystemType,
-        phase_connection_type: GeneratorPhaseConnectionType | LoadPhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         name_suffix: str = "",
         load_model_default: t.Literal["Z", "I", "P"] = "P",
     ) -> Load | None:
@@ -1588,8 +1595,7 @@ class PowerFactoryExporter:
         load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
 
-        phase_connection_type = PhaseConnectionType[phase_connection_type.name]
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
 
         return Load(
             name=gen_name,
@@ -1599,7 +1605,6 @@ class PowerFactoryExporter:
             active_power_model=load_model_p,
             reactive_power_model=load_model_q,
             phase_connections=phase_connections,
-            phase_connection_type=phase_connection_type,
             type=LoadType.PRODUCER,
             system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
@@ -2106,7 +2111,7 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> LoadSSC | None:
-        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         power = self.calc_normal_load_power(load)
         if power is not None:
             return self.create_consumer_ssc(
@@ -2141,7 +2146,7 @@ class PowerFactoryExporter:
         scaling = load.scale0
         u_nom = None if load.bus1 is None else load.bus1.cterm.uknom
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
-        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type in ("DEF", "PQ"):
             return LoadPower.from_pq_sym(
                 pow_act=load.plini,
@@ -2372,7 +2377,7 @@ class PowerFactoryExporter:
         sfx_pre: str,
         index: int,
     ) -> Sequence[LoadSSC]:
-        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         consumer_fixed_ssc = (
             self.create_consumer_ssc(
                 load,
@@ -2432,7 +2437,7 @@ class PowerFactoryExporter:
         else:
             power_fixed = self.calc_load_lv_power_fixed_asym(load, scaling=scaling)
 
-        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
 
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -2461,7 +2466,7 @@ class PowerFactoryExporter:
         load: PFTypes.LoadLVP,
         /,
     ) -> LoadLV:
-        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
         power_night = LoadPower.from_pq_sym(
             pow_act=load.pnight,
@@ -2495,7 +2500,7 @@ class PowerFactoryExporter:
     ) -> LoadPower:
         load_type = load.iopt_inp
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
-        phase_connection_type = PhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         if load_type == IOpt.S_COSPHI:
             return LoadPower.from_sc_sym(
                 pow_app=load.slini,
@@ -2590,7 +2595,7 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[LoadSSC | None]:
-        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         power = self.calc_load_mv_power(load)
         consumer_ssc = self.create_consumer_ssc(
             load,
@@ -2631,7 +2636,7 @@ class PowerFactoryExporter:
         pow_fac_dir_cons = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
         # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
         pow_fac_dir_prod = PowerFactorDirection.UE if load.pfg_recap else PowerFactorDirection.OE
-        phase_connection_type = PhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
         if load_type == "PC":
             power_consumer = LoadPower.from_pc_sym(
                 pow_act=load.plini,
@@ -2739,7 +2744,7 @@ class PowerFactoryExporter:
         *,
         power: LoadPower,
         grid_name: str,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         name_suffix: str = "",
     ) -> LoadSSC | None:
         consumer_name = self.pfi.create_name(load, grid_name=grid_name) + name_suffix
@@ -2761,7 +2766,7 @@ class PowerFactoryExporter:
             return None
 
         # limit entries in case of non 3-phase load
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
         power = power.limit_phases(n_phases=phase_connections.n_phases)
 
         # P-Controller
@@ -2824,8 +2829,8 @@ class PowerFactoryExporter:
             )
             return None
 
-        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
 
         power = LoadPower.from_pq_sym(
             pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
@@ -2936,8 +2941,8 @@ class PowerFactoryExporter:
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
 
-        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
         if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
             loguru.logger.warning(
                 "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
@@ -3057,8 +3062,8 @@ class PowerFactoryExporter:
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
 
-        phase_connection_type = PhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
-        phase_connections = self.get_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
+        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
         if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
             loguru.logger.warning(
                 "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
@@ -3225,13 +3230,13 @@ class PowerFactoryExporter:
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_phase_connections(
+    def get_load_phase_connections(  # noqa: PLR0911
         self,
         *,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         bus: PFTypes.StationCubicle,
     ) -> PhaseConnections:
-        if phase_connection_type == PhaseConnectionType.THREE_PH_D:
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_D:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
                 values=[
@@ -3240,7 +3245,16 @@ class PowerFactoryExporter:
                     [Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
                 ],
             )
-        if phase_connection_type in (PhaseConnectionType.THREE_PH_PH_E, PhaseConnectionType.THREE_PH_YN):
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                    [Phase[PFPhase(phases[1]).name], Phase.E],
+                    [Phase[PFPhase(phases[2]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_YN:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
                 values=[
@@ -3249,7 +3263,15 @@ class PowerFactoryExporter:
                     [Phase[PFPhase(phases[2]).name], Phase.N],
                 ],
             )
-        if phase_connection_type in (PhaseConnectionType.TWO_PH_PH_E, PhaseConnectionType.TWO_PH_YN):
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                    [Phase[PFPhase(phases[1]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_YN:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
                 values=[
@@ -3257,21 +3279,69 @@ class PowerFactoryExporter:
                     [Phase[PFPhase(phases[1]).name], Phase.N],
                 ],
             )
-        if phase_connection_type in (PhaseConnectionType.ONE_PH_PH_E, PhaseConnectionType.ONE_PH_PH_N):
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.N],
-                ],
-            )
-        if phase_connection_type == PhaseConnectionType.ONE_PH_PH_PH:
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH:
             phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
                 values=[
                     [Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
                 ],
             )
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N:
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.N],
+                ],
+            )
 
+        msg = "unreachable"
+        raise RuntimeError(msg)
+
+    def get_terminal_phase_connections(
+        self,
+        *,
+        phase_connection_type: TerminalPhaseConnectionType,
+        bus: PFTypes.StationCubicle,
+    ) -> PhaseConnections:
+        if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                    [Phase[PFPhase(phases[1]).name], Phase.E],
+                    [Phase[PFPhase(phases[2]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                    [Phase[PFPhase(phases[1]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                ],
+            )
+        if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            return PhaseConnections(
+                values=[
+                    [Phase[PFPhase(phases[0]).name], Phase.E],
+                    [Phase[PFPhase(phases[1]).name], Phase.E],
+                ],
+            )
         msg = "unreachable"
         raise RuntimeError(msg)
 

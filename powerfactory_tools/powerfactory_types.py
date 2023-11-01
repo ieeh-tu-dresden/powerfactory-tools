@@ -141,6 +141,18 @@ class CtrlVoltageRef(enum.IntEnum):
     CA = 7
 
 
+class TerminalPhaseConnectionType(enum.IntEnum):
+    THREE_PH = 0
+    THREE_PH_N = 1
+    BI = 2
+    BI_N = 3
+    TWO_PH = 4
+    TWO_PH_N = 5
+    ONE_PH = 6
+    ONE_PH_N = 7
+    N = 8
+
+
 class GeneratorPhaseConnectionType(enum.IntEnum):
     THREE_PH_D = 0
     THREE_PH_PH_E = 1
@@ -762,7 +774,8 @@ class PowerFactoryTypes:
         cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
-        systype: TerminalVoltageSystemType
+        systype: Literal[0, 1, 2]  # TerminalVoltageSystemType
+        phtech: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8]  # TerminalPhaseConnectionType
 
     class StationCubicle(DataObject, Protocol):  # PFClassId.CUBICLE
         cterm: PowerFactoryTypes.Terminal
@@ -1080,7 +1093,7 @@ class PowerFactoryTypes:
             ...
 
     class CommandLoadFlow(CommandBase, Protocol):  # CalculationCommand.LOAD_FLOW
-        iopt_net: Literal[0, 1, 2]
+        iopt_net: Literal[0, 1, 2]  # NetworkExtendedCalcType
         iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
         iopt_plim: bool  # apply active power limits
         iopt_at: bool  # automatic step control of transformers

@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import enum
 import itertools
 import math
 import typing as t
@@ -16,8 +17,6 @@ from psdm.quantities import Angle
 from psdm.quantities import ApparentPower
 from psdm.quantities import Current
 from psdm.quantities import Droop
-from psdm.quantities import Phase
-from psdm.quantities import PhaseConnections
 from psdm.quantities import PowerFactor
 from psdm.quantities import PowerFactorDirection
 from psdm.quantities import ReactivePower
@@ -34,13 +33,10 @@ from psdm.steadystate_case.controller import ControlQU
 from psdm.steadystate_case.controller import ControlTanPhiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
-from psdm.topology.load import PhaseConnectionType
 from psdm.topology.load import RatedPower
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
-from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 
 if t.TYPE_CHECKING:
     from typing import TypedDict
@@ -52,90 +48,6 @@ if t.TYPE_CHECKING:
         cos_phi: float
         power_factor_direction: PowerFactorDirection
         power_reactive_control_type: QControlStrategy
-
-
-LOAD_PHASE_MAPPING = {
-    LoadPhaseConnectionType.THREE_PH_D: PhaseConnections(
-        values=[
-            (Phase.A, Phase.B),
-            [Phase.B, Phase.C],
-            [Phase.C, Phase.A],
-        ],
-    ),
-    LoadPhaseConnectionType.THREE_PH_PH_E: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-            [Phase.B, Phase.N],
-            [Phase.C, Phase.N],
-        ],
-    ),
-    LoadPhaseConnectionType.THREE_PH_YN: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-            [Phase.B, Phase.N],
-            [Phase.C, Phase.N],
-        ],
-    ),
-    LoadPhaseConnectionType.TWO_PH_PH_E: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-            [Phase.B, Phase.N],
-        ],
-    ),
-    LoadPhaseConnectionType.TWO_PH_YN: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-            [Phase.B, Phase.N],
-        ],
-    ),
-    LoadPhaseConnectionType.ONE_PH_PH_PH: PhaseConnections(
-        values=[
-            (Phase.A, Phase.B),
-        ],
-    ),
-    LoadPhaseConnectionType.ONE_PH_PH_N: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-        ],
-    ),
-    LoadPhaseConnectionType.ONE_PH_PH_E: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-        ],
-    ),
-}
-
-GENERATOR_PHASE_MAPPING = {
-    GeneratorPhaseConnectionType.THREE_PH_D: PhaseConnections(
-        values=[
-            (Phase.A, Phase.B),
-            [Phase.B, Phase.C],
-            [Phase.C, Phase.A],
-        ],
-    ),
-    GeneratorPhaseConnectionType.THREE_PH_PH_E: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-            [Phase.B, Phase.N],
-            [Phase.C, Phase.N],
-        ],
-    ),
-    GeneratorPhaseConnectionType.ONE_PH_PH_PH: PhaseConnections(
-        values=[
-            (Phase.A, Phase.B),
-        ],
-    ),
-    GeneratorPhaseConnectionType.ONE_PH_PH_N: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-        ],
-    ),
-    GeneratorPhaseConnectionType.ONE_PH_PH_E: PhaseConnections(
-        values=[
-            (Phase.A, Phase.N),
-        ],
-    ),
-}
 
 
 def _sym_three_phase_no_power(value: float) -> tuple[float, float, float]:
@@ -200,6 +112,17 @@ def create_sym_three_phase_voltage(value: float) -> Voltage:
     return Voltage(
         values=[round(v, DecimalDigits.VOLTAGE) for v in values],
     )
+
+
+class ConsolidatedLoadPhaseConnectionType(enum.Enum):
+    ONE_PH_PH_E = "ONE_PH_PH_E"
+    ONE_PH_PH_N = "ONE_PH_PH_N"
+    ONE_PH_PH_PH = "ONE_PH_PH_PH"
+    THREE_PH_D = "THREE_PH_D"
+    THREE_PH_PH_E = "THREE_PH_PH_E"
+    THREE_PH_YN = "THREE_PH_YN"
+    TWO_PH_PH_E = "TWO_PH_PH_E"
+    TWO_PH_YN = "TWO_PH_YN"
 
 
 @dataclass
@@ -484,22 +407,24 @@ class LoadPower:
         }
 
     @staticmethod
-    def get_factors_for_phases(phase_connection_type: PhaseConnectionType) -> tuple[int, tuple[int, ...]]:
+    def get_factors_for_phases(
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
+    ) -> tuple[int, tuple[int, ...]]:
         if phase_connection_type in (
-            PhaseConnectionType.THREE_PH_D,
-            PhaseConnectionType.THREE_PH_PH_E,
-            PhaseConnectionType.THREE_PH_YN,
+            ConsolidatedLoadPhaseConnectionType.THREE_PH_D,
+            ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E,
+            ConsolidatedLoadPhaseConnectionType.THREE_PH_YN,
         ):
             return (3, (1, 1, 1))
         if phase_connection_type in (
-            PhaseConnectionType.TWO_PH_PH_E,
-            PhaseConnectionType.TWO_PH_YN,
+            ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E,
+            ConsolidatedLoadPhaseConnectionType.TWO_PH_YN,
         ):
             return (2, (1, 1))
         if phase_connection_type in (
-            PhaseConnectionType.ONE_PH_PH_E,
-            PhaseConnectionType.ONE_PH_PH_N,
-            PhaseConnectionType.ONE_PH_PH_PH,
+            ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E,
+            ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N,
+            ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH,
         ):
             return (1, (1,))
 
@@ -513,7 +438,7 @@ class LoadPower:
         pow_act: float,
         pow_react: float,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_pq(pow_act=pow_act / quot, pow_react=pow_react / quot, scaling=scaling)
@@ -527,7 +452,7 @@ class LoadPower:
         cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_pc(pow_act=pow_act / quot, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
@@ -542,7 +467,7 @@ class LoadPower:
         cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         _, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_ic(
@@ -562,7 +487,7 @@ class LoadPower:
         cos_phi: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sc(pow_app=pow_app / quot, cos_phi=cos_phi, pow_fac_dir=pow_fac_dir, scaling=scaling)
@@ -575,7 +500,7 @@ class LoadPower:
         pow_react: float,
         cos_phi: float,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_qc(pow_react=pow_react / quot, cos_phi=cos_phi, scaling=scaling)
@@ -590,7 +515,7 @@ class LoadPower:
         pow_act: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_ip(
@@ -610,7 +535,7 @@ class LoadPower:
         pow_act: float,
         pow_fac_dir: PowerFactorDirection,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sp(
@@ -628,7 +553,7 @@ class LoadPower:
         pow_app: float,
         pow_react: float,
         scaling: float,
-        phase_connection_type: PhaseConnectionType,
+        phase_connection_type: ConsolidatedLoadPhaseConnectionType,
     ) -> LoadPower:
         quot, factors = LoadPower.get_factors_for_phases(phase_connection_type)
         power_dict = cls.calc_sq(pow_app=pow_app / quot, pow_react=pow_react / quot, scaling=scaling)
@@ -849,14 +774,14 @@ class LoadPower:
         )
 
     def as_active_power_ssc(self) -> ActivePower:
-        return ActivePower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_acts))
+        return ActivePower(values=(round(e, DecimalDigits.POWER) for e in self.pow_acts))
 
     def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
-        return ReactivePower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_reacts))
+        return ReactivePower(values=(round(e, DecimalDigits.POWER) for e in self.pow_reacts))
 
     def as_rated_power(self) -> RatedPower:
-        pow_apps = ApparentPower(values=(round(e, DecimalDigits.POWER + 2) for e in self.pow_apps))
+        pow_apps = ApparentPower(values=(round(e, DecimalDigits.POWER) for e in self.pow_apps))
         cos_phis = PowerFactor(values=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
 
