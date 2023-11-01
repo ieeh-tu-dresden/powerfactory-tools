@@ -963,7 +963,10 @@ class PowerFactoryExporter:
             p_fe = t_type.pfe  # kW
             i_0_pu = t_type.curmg  # %
             z_m_1 = 100 / i_0_pu * pu2abs  # Ohm
-            i_0 = u_ref_h / (math.sqrt(3) * z_m_1)  # Ampere
+            try:
+                i_0 = u_ref_h / (math.sqrt(3) * z_m_1)  # Ampere
+            except ZeroDivisionError:
+                i_0 = float("inf")
 
             z_k_0 = t_type.uk0tr * pu2abs  # Ohm
             z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
@@ -981,8 +984,9 @@ class PowerFactoryExporter:
             try:
                 # i_00_pu = 100 / z_m_0 * pu2abs  # %  # noqa: ERA001
                 i_00 = u_ref_h / (math.sqrt(3) * z_m_0)
+                i_00 = Current(values=[round(i_00, DecimalDigits.IMPEDANCE)])  # round with 7 digits
             except ZeroDivisionError:
-                i_00 = float("inf")
+                i_00 = None
 
             # Create Winding Objects
             # Leakage impedance
@@ -1073,7 +1077,7 @@ class PowerFactoryExporter:
                 number=t_number,
                 i_0=Current(values=[round(i_0, DecimalDigits.IMPEDANCE)]),  # round with 7 digits
                 p_fe=ActivePower(values=[round(p_fe * 1e3, DecimalDigits.POWER)]),
-                i_00=Current(values=[round(i_00, DecimalDigits.IMPEDANCE)]),  # round with 7 digits
+                i_00=i_00,
                 p_fe0=ActivePower(values=[round(p_fe0, DecimalDigits.POWER)]),
                 vector_group=vector_group,
                 tap_u_abs=tap_u_abs,
