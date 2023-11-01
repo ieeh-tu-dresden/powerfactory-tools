@@ -14,6 +14,7 @@ import loguru
 from psdm.quantities import ActivePower
 from psdm.quantities import Angle
 from psdm.quantities import ApparentPower
+from psdm.quantities import Current
 from psdm.quantities import Droop
 from psdm.quantities import Phase
 from psdm.quantities import PhaseConnections
@@ -163,6 +164,13 @@ def create_sym_three_phase_apparent_power(value: float) -> ApparentPower:
     values = _sym_three_phase_power(value)
     return ApparentPower(
         values=[round(v, DecimalDigits.POWER) for v in values],
+    )
+
+
+def create_sym_three_phase_current(value: float) -> Current:
+    values = _sym_three_phase_no_power(value)
+    return Current(
+        values=[round(v, DecimalDigits.CURRENT) for v in values],
     )
 
 

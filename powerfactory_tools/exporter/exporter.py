@@ -19,8 +19,15 @@ import pydantic
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
+from psdm.quantities import ActivePower
+from psdm.quantities import Admittance
+from psdm.quantities import Current
+from psdm.quantities import Frequency
+from psdm.quantities import Impedance
 from psdm.quantities import Phase
+from psdm.quantities import PhaseAngleClock
 from psdm.quantities import PowerFactorDirection
+from psdm.quantities import Voltage
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlledVoltageRef
@@ -56,7 +63,7 @@ from psdm.topology_case.element_state import ElementState
 from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exporter.load_power import ControlType
+from powerfactory_tools.exporter.load_power import ControlType, create_sym_three_phase_current
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
 from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
@@ -540,7 +547,7 @@ class PowerFactoryExporter:
             loguru.logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
-        u_n = create_sym_three_phase_voltage(terminal.uknom * Exponents.VOLTAGE)  # voltage in V
+        u_n = Voltage(values=[round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)])  # voltage in V
 
         if self.pfi.is_within_substation(terminal):
             description = (
@@ -610,7 +617,7 @@ class PowerFactoryExporter:
         u_nom = self.determine_line_voltage(u_nom_1=u_nom_1, u_nom_2=u_nom_2, l_type=l_type)
 
         i = l_type.InomAir if line.inAir else l_type.sline
-        i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
+        i_r = round(line.nlnum * line.fline * i * Exponents.CURRENT, 0)  # rated current (A)
 
         r1 = round(l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE)
         x1 = round(l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE)
@@ -623,28 +630,25 @@ class PowerFactoryExporter:
 
         if l_type.nneutral:
             l_type = t.cast("PFTypes.LineNType", l_type)
-            rn = round(
-                l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE,
-                DecimalDigits.IMPEDANCE,
+            rn = Impedance(
+                value=round(l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE),
             )
-            xn = round(l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE)
-            rpn = round(
-                l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE,
-                DecimalDigits.IMPEDANCE,
+            xn = Impedance(
+                value=round(l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE),
             )
-            xpn = round(
-                l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE,
-                DecimalDigits.IMPEDANCE,
+            rpn = Impedance(
+                value=round(l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE),
             )
-            gn = 0  # as attribute 'gnline' does not exist in PF model type
-            bn = round(
-                l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE,
-                DecimalDigits.ADMITTANCE,
+            xpn = Impedance(
+                value=round(l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE),
             )
-            gpn = 0  # as attribute 'gpnline' does not exist in PF model type
-            bpn = round(
-                l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE,
-                DecimalDigits.ADMITTANCE,
+            gn = Admittance(value=0)  # as attribute 'gnline' does not exist in PF model type
+            bn = Admittance(
+                value=round(l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE),
+            )
+            gpn = Admittance(value=0)  # as attribute 'gpnline' does not exist in PF model type
+            bpn = Admittance(
+                value=round(l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE),
             )
         else:
             rn = None
@@ -663,14 +667,14 @@ class PowerFactoryExporter:
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=r1,
-            x1=x1,
-            r0=r0,
-            x0=x0,
-            g1=g1,
-            b1=b1,
-            g0=g0,
-            b0=b0,
+            r1=Impedance(value=r1),
+            x1=Impedance(value=x1),
+            r0=Impedance(value=r0),
+            x0=Impedance(value=x0),
+            g1=Admittance(value=g1),
+            b1=Admittance(value=b1),
+            g0=Admittance(value=g0),
+            b0=Admittance(value=b0),
             rn=rn,
             xn=xn,
             rpn=rpn,
@@ -679,10 +683,10 @@ class PowerFactoryExporter:
             bn=bn,
             gpn=gpn,
             bpn=bpn,
-            i_r=i_r,
+            i_r=create_sym_three_phase_current(i_r),
             description=description,
-            u_n=u_nom,
-            f_n=f_nom,
+            u_n=Voltage(values=[u_nom]),
+            f_n=Frequency(value=f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
         )
@@ -694,10 +698,10 @@ class PowerFactoryExporter:
         u_nom_2: float,
         l_type: PFTypes.LineType,
     ) -> float:
-        if round(u_nom_1, 2) == round(u_nom_2, 2):
-            return u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
+        """Returns the nominal voltage in SI unit (V)."""
+        v = u_nom_1 if round(u_nom_1, 2) == round(u_nom_2, 2) else l_type.uline
 
-        return l_type.uline * Exponents.VOLTAGE  # nominal voltage (V)
+        return round(v * Exponents.VOLTAGE, 0)
 
     def create_coupler(
         self,
@@ -727,7 +731,7 @@ class PowerFactoryExporter:
         if coupler.typ_id is not None:
             r1 = coupler.typ_id.R_on
             x1 = coupler.typ_id.X_on
-            i_r = coupler.typ_id.Inom
+            i_r = create_sym_three_phase_current(round(coupler.typ_id.Inom * Exponents.CURRENT, 0))
         else:
             r1 = 0
             x1 = 0
@@ -740,7 +744,7 @@ class PowerFactoryExporter:
         u_nom_2 = t2.uknom
 
         if round(u_nom_1, 2) == round(u_nom_2, 2):
-            u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
+            u_nom = round(u_nom_1 * Exponents.VOLTAGE, 0)  # nominal voltage (V)
         else:
             loguru.logger.warning(
                 "Coupler {coupler_name} couples busbars with different voltage levels. Skipping.",
@@ -759,13 +763,13 @@ class PowerFactoryExporter:
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=r1,
-            x1=x1,
-            g1=g1,
-            b1=b1,
+            r1=Impedance(value=r1),
+            x1=Impedance(value=x1),
+            g1=Admittance(value=g1),
+            b1=Admittance(value=b1),
             i_r=i_r,
             description=description,
-            u_n=u_nom,
+            u_n=Voltage(values=[u_nom]),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
         )
@@ -796,7 +800,7 @@ class PowerFactoryExporter:
             return None
 
         if fuse.typ_id is not None:
-            i_r = fuse.typ_id.irat
+            i_r = create_sym_three_phase_current(round(fuse.typ_id.irat, 0))
             # save fuse typ in description tag
             description = (
                 "Type: " + fuse.typ_id.loc_name
@@ -815,7 +819,7 @@ class PowerFactoryExporter:
         u_nom_2 = t2.uknom
 
         if round(u_nom_1, 2) == round(u_nom_2, 2):
-            u_nom = u_nom_1 * Exponents.VOLTAGE  # nominal voltage (V)
+            u_nom = round(u_nom_1 * Exponents.VOLTAGE, 0)  # nominal voltage (V)
         else:
             loguru.logger.warning(
                 "Fuse {fuse_name} couples busbars with different voltage levels. Skipping.",
@@ -834,13 +838,13 @@ class PowerFactoryExporter:
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=r1,
-            x1=x1,
-            g1=g1,
-            b1=b1,
+            r1=Impedance(value=r1),
+            x1=Impedance(value=x1),
+            b1=Admittance(value=b1),
+            g1=Admittance(value=g1),
             i_r=i_r,
             description=description,
-            u_n=u_nom,
+            u_n=Voltage(values=[u_nom]),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
         )
@@ -949,7 +953,9 @@ class PowerFactoryExporter:
 
             # Magnetising impedance
             p_fe = t_type.pfe  # kW
-            i_0 = t_type.curmg  # %
+            i_0_pu = t_type.curmg  # %
+            z_m_1 = 100 / i_0_pu * pu2abs  # Ohm
+            i_0 = u_ref_h / (math.sqrt(3) * z_m_1)  # Ampere
 
             z_k_0 = t_type.uk0tr * pu2abs  # Ohm
             z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
@@ -965,7 +971,8 @@ class PowerFactoryExporter:
                 p_fe0 = 0
 
             try:
-                i_00 = 100 / z_m_0 * pu2abs  # %
+                # i_00_pu = 100 / z_m_0 * pu2abs  # %  # noqa: ERA001
+                i_00 = u_ref_h / (math.sqrt(3) * z_m_0)
             except ZeroDivisionError:
                 i_00 = float("inf")
 
@@ -1005,14 +1012,14 @@ class PowerFactoryExporter:
 
             # Neutral point earthing
             if "N" in vector_group_h.value and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
-                re_h = transformer_2w.re0tr_h
-                xe_h = transformer_2w.xe0tr_h
+                re_h = Impedance(value=round(transformer_2w.re0tr_h, DecimalDigits.IMPEDANCE))
+                xe_h = Impedance(value=round(transformer_2w.xe0tr_h, DecimalDigits.IMPEDANCE))
             else:
                 re_h = None
                 xe_h = None
             if "N" in vector_group_l.value and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
-                re_l = transformer_2w.re0tr_l
-                xe_l = transformer_2w.xe0tr_l
+                re_l = Impedance(value=round(transformer_2w.re0tr_l, DecimalDigits.IMPEDANCE))
+                xe_l = Impedance(value=round(transformer_2w.xe0tr_l, DecimalDigits.IMPEDANCE))
             else:
                 re_l = None
                 xe_l = None
@@ -1020,34 +1027,34 @@ class PowerFactoryExporter:
             # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
-                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                u_r=round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                u_n=round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=r_1_h,
-                r0=r_0_h,
-                x1=x_1_h,
-                x0=x_0_h,
+                s_r=create_sym_three_phase_apparent_power(s_r * Exponents.POWER),
+                u_r=Voltage(values=[round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
+                u_n=Voltage(values=[round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
+                r1=Impedance(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
+                r0=Impedance(value=round(r_0_h, DecimalDigits.IMPEDANCE)),
+                x1=Impedance(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
+                x0=Impedance(value=round(x_0_h, DecimalDigits.IMPEDANCE)),
                 re_h=re_h,
                 xe_h=xe_h,
                 vector_group=vector_group_h,
-                phase_angle_clock=0,
+                phase_angle_clock=PhaseAngleClock(value=0),
                 neutral_connected=neutral_connected_h,
             )
 
             # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
-                s_r=round(s_r * Exponents.POWER, DecimalDigits.POWER),
-                u_r=round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                u_n=round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE),
-                r1=r_1_l,
-                r0=r_0_l,
-                x1=x_1_l,
-                x0=x_0_l,
+                s_r=create_sym_three_phase_apparent_power(s_r * Exponents.POWER),
+                u_r=Voltage(values=[round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
+                u_n=Voltage(values=[round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
+                r1=Impedance(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
+                r0=Impedance(value=round(r_0_l, DecimalDigits.IMPEDANCE)),
+                x1=Impedance(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
+                x0=Impedance(value=round(x_0_l, DecimalDigits.IMPEDANCE)),
                 re_l=re_l,
                 xe_l=xe_l,
                 vector_group=vector_group_l,
-                phase_angle_clock=int(vector_phase_angle_clock),
+                phase_angle_clock=PhaseAngleClock(value=int(vector_phase_angle_clock)),
                 neutral_connected=neutral_connected_l,
             )
 
@@ -1056,10 +1063,10 @@ class PowerFactoryExporter:
                 node_2=t_low_name,
                 name=name,
                 number=t_number,
-                i_0=i_0,
-                p_fe=round(p_fe * 1e3, DecimalDigits.POWER),
-                i_00=i_00,
-                p_fe0=round(p_fe0, DecimalDigits.POWER),
+                i_0=Current(values=[round(i_0, DecimalDigits.IMPEDANCE)]),  # round with 7 digits
+                p_fe=ActivePower(values=[round(p_fe * 1e3, DecimalDigits.POWER)]),
+                i_00=Current(values=[round(i_00, DecimalDigits.IMPEDANCE)]),  # round with 7 digits
+                p_fe0=ActivePower(values=[round(p_fe0, DecimalDigits.POWER)]),
                 vector_group=vector_group,
                 tap_u_abs=tap_u_abs,
                 tap_u_phi=tap_u_phi,
@@ -1400,6 +1407,7 @@ class PowerFactoryExporter:
         specifier: t.Literal["p", "q"],
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
+        u_0 = create_sym_three_phase_voltage(u_0)
         load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
