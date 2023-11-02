@@ -35,6 +35,7 @@
       linter     = ["ruff"]
       prototype  = ["ipykernel"]
       test       = ["pytest", "pytest-cov", "pytest-xdist"]
+      typing     = ["mypy"]
 
 [tool.ruff]
   ignore = [
