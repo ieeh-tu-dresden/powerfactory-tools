@@ -37,19 +37,47 @@ Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 Please find below some important general remarks and assumptions to consider for the application:
 
+### General
+
+After successful connection to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/interface.py), a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
+During an active connection, the following units apply:
+  + power in MW
+  + voltage in kV
+  + current in kA
+  + length in km  
+
+### Exporter
 + The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
-  + The passive sign convention should be used for all types of loads (consumer as well as producer). 
+  + The passive sign convention is used for all types of loads (consumer as well as producer). 
   + The `Rated Power` is always defined positive (absolute value).
-+ By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
-+ Export of `loads`:
++ By default, all assests of all active grids within the selected study case are to be exported, see [example readme](./examples/README.md). 
++ The following type of elements are supported:
+  + `ElmLne` - a symmetrical overhead line / cable  
+  + `ElmTerm` - a network terminal / bus
+  + `ElmCoup` - a bus-bus switch (e.g. a circuit breaker in a detailed switching gear)
+  + `ElmTr2` - 2-winding transformers
+  + `ElmTr3` - 3-winding transformers (in future releases)
+  + `ElmLod` - a general load (asym. / sym.)
+  + `ElmLodMv` - a medium voltage load
+  + `ElmLodLv` - a low voltage load
+  + `ElmLodLvp` - a partial low voltage load
+  + `ElmPvsys` - a PV system (generator)
+  + `ElmGenstat` - a static generator
+  + `ElmIac` - a AC current source
+  + `ElmXNet` - an external grid representation
+  + `RelFuse` - a fuse (bus-bus or bus-load)
+
+
+
++ Remarks on export of `loads`:
   + Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-+ Export of `transformer`:
++ Remarks on export of `transformer`:
   + Impedances of all winding objects are referred to the high voltage side of the transformer.
   + Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-+ Export of `fuses`:
++ Remarks on export of `fuses`:
   + Branch like fuses are exported as switching state.
   + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
-+ Export of `SteadyStateCase`:
++ Remarks on export of `SteadyStateCase`:
   + The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power.
     + By default a consumer load has a CosPhiConst type controller, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory.
   + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator. 
