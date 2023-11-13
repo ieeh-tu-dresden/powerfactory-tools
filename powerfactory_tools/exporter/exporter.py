@@ -674,11 +674,13 @@ class PowerFactoryExporter:
             l_type=l_type,
             phase_connection_type=TerminalPhaseConnectionType(t1.phtech),
             bus=line.bus1,
+            grid_name=grid_name,
         )
         phases_2 = self.get_branch_phases(
             l_type=l_type,
             phase_connection_type=TerminalPhaseConnectionType(t2.phtech),
             bus=line.bus2,
+            grid_name=grid_name,
         )
 
         return Branch(
@@ -1523,7 +1525,11 @@ class PowerFactoryExporter:
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
         voltage_system_type = (
             VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
             if load.typ_id is not None
@@ -1763,7 +1769,11 @@ class PowerFactoryExporter:
         load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
 
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
 
         return Load(
             name=gen_name,
@@ -2934,7 +2944,11 @@ class PowerFactoryExporter:
             return None
 
         # limit entries in case of non 3-phase load
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
         power = power.limit_phases(n_phases=phase_connections.n_phases)
 
         # P-Controller
@@ -2998,7 +3012,11 @@ class PowerFactoryExporter:
             return None
 
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
 
         power = LoadPower.from_pq_sym(
             pow_act=generator.pgini_a * generator.ngnum * -1,  # has to be negative as power is counted demand based
@@ -3110,7 +3128,11 @@ class PowerFactoryExporter:
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
 
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
         if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
             loguru.logger.warning(
                 "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
@@ -3231,7 +3253,11 @@ class PowerFactoryExporter:
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
 
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(gen.phtech).name]
-        phase_connections = self.get_load_phase_connections(phase_connection_type=phase_connection_type, bus=bus)
+        phase_connections = self.get_load_phase_connections(
+            phase_connection_type=phase_connection_type,
+            bus=bus,
+            grid_name=grid_name,
+        )
         if phase_connections.n_phases != DEFAULT_PHASE_QUANTITY:
             loguru.logger.warning(
                 "Generator {gen_name}: Q-Controller is not connected to 3-phase terminal. Phase mismatch possible.",
@@ -3403,9 +3429,10 @@ class PowerFactoryExporter:
         *,
         phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         bus: PFTypes.StationCubicle,
+        grid_name: str,
     ) -> PhaseConnections:
         if not bus.cPhInfo:
-            msg = f"Mismatch of node and load phase technology at {bus.loc_name}."
+            msg = f"Mismatch of node and load phase technology at {self.pfi.create_name(bus, grid_name=grid_name)}."
             raise RuntimeError(msg)
         t_phase_connection_type = TerminalPhaseConnectionType(bus.cterm.phtech)
         if t_phase_connection_type in (
@@ -3513,9 +3540,10 @@ class PowerFactoryExporter:
         l_type: PFTypes.LineType,
         phase_connection_type: TerminalPhaseConnectionType,
         bus: PFTypes.StationCubicle,
+        grid_name: str,
     ) -> UniqueTuple[Phase]:
         if not bus.cPhInfo:
-            msg = f"Mismatch of node and branch phase technology at {bus.loc_name}."
+            msg = f"Mismatch of node and branch phase technology at {self.pfi.create_name(bus, grid_name=grid_name)}."
             raise RuntimeError(msg)
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Terminal phase technology implementation unclear. Please extend exporter by your own."
