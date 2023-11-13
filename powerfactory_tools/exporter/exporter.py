@@ -984,8 +984,8 @@ class PowerFactoryExporter:
             ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
             # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
-            u_ref_h = t_type.utrn_h * Exponents.VOLTAGE  # V
-            u_ref_l = t_type.utrn_l * Exponents.VOLTAGE
+            u_ref_h = round(t_type.utrn_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # V
+            u_ref_l = round(t_type.utrn_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
 
             # Nominal Voltage of connected nodes (CIM: BaseVoltage)
             u_nom_h = transformer_2w.bushv.cterm.uknom * Exponents.VOLTAGE  # V
@@ -1016,8 +1016,8 @@ class PowerFactoryExporter:
             phases_2 = self.get_transformer2w_3ph_phases(winding_vector_group=vector_group_l, bus=transformer_2w.buslv)
 
             # Rated values
-            s_r = t_type.strn * Exponents.POWER  # VA
-            pu2abs = u_ref_h**2 / s_r
+            s_r = round(t_type.strn * Exponents.POWER, DecimalDigits.POWER)  # VA
+            pu2abs = u_ref_h**2 / s_r  # do only compute with rounded values to prevent float uncertaincy errors
 
             r_fe_1, x_h_1, r_fe_0, x_h_0 = self.get_transformer2w_magnetising_impedance(
                 t_type=t_type,
@@ -1052,15 +1052,15 @@ class PowerFactoryExporter:
             # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
-                s_r=single_phase_apparent_power(s_r * Exponents.POWER),
-                u_r=single_phase_voltage(u_ref_h * Exponents.VOLTAGE),
-                u_n=single_phase_voltage(u_nom_h * Exponents.VOLTAGE),
+                s_r=single_phase_apparent_power(s_r),
+                u_r=single_phase_voltage(u_ref_h),
+                u_n=single_phase_voltage(u_nom_h),
                 r1=ImpedancePosSeq(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
                 r0=ImpedanceZerSeq(value=round(r_0_h, DecimalDigits.IMPEDANCE)) if r_0_h is not None else None,
                 x1=ImpedancePosSeq(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
                 x0=ImpedanceZerSeq(value=round(x_0_h, DecimalDigits.IMPEDANCE)) if x_0_h is not None else None,
-                re_h=ImpedanceNat(value=round(re_h, DecimalDigits.IMPEDANCE)) if re_h is not None else None,
-                xe_h=ImpedanceNat(value=round(xe_h, DecimalDigits.IMPEDANCE)) if xe_h is not None else None,
+                re=ImpedanceNat(value=round(re_h, DecimalDigits.IMPEDANCE)) if re_h is not None else None,
+                xe=ImpedanceNat(value=round(xe_h, DecimalDigits.IMPEDANCE)) if xe_h is not None else None,
                 vector_group=vector_group_h,
                 phase_angle_clock=PhaseAngleClock(value=0),
                 neutral_connected=neutral_connected_h,
@@ -1069,15 +1069,15 @@ class PowerFactoryExporter:
             # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
-                s_r=single_phase_apparent_power(s_r * Exponents.POWER),
-                u_r=single_phase_voltage(u_ref_l * Exponents.VOLTAGE),
-                u_n=single_phase_voltage(u_nom_l * Exponents.VOLTAGE),
+                s_r=single_phase_apparent_power(s_r),
+                u_r=single_phase_voltage(u_ref_l),
+                u_n=single_phase_voltage(u_nom_l),
                 r1=ImpedancePosSeq(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
                 r0=ImpedanceZerSeq(value=round(r_0_l, DecimalDigits.IMPEDANCE)) if r_0_l is not None else None,
                 x1=ImpedancePosSeq(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
                 x0=ImpedanceZerSeq(value=round(x_0_l, DecimalDigits.IMPEDANCE)) if x_0_l is not None else None,
-                re_l=ImpedanceNat(value=round(re_l, DecimalDigits.IMPEDANCE)) if re_l is not None else None,
-                xe_l=ImpedanceNat(value=round(xe_l, DecimalDigits.IMPEDANCE)) if xe_l is not None else None,
+                re=ImpedanceNat(value=round(re_l, DecimalDigits.IMPEDANCE)) if re_l is not None else None,
+                xe=ImpedanceNat(value=round(xe_l, DecimalDigits.IMPEDANCE)) if xe_l is not None else None,
                 vector_group=vector_group_l,
                 phase_angle_clock=PhaseAngleClock(value=int(vector_phase_angle_clock)),
                 neutral_connected=neutral_connected_l,
@@ -1164,13 +1164,13 @@ class PowerFactoryExporter:
         x_1_h = x_1 * t_type.itrdl
         x_1_l = x_1 * t_type.itrdl_lv
 
-        z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+        z_k_0 = t_type.uk0tr / 100 * pu2abs  # Ohm
         if vector_group_h is WVectorGroup.D and vector_group_l in [WVectorGroup.Y, WVectorGroup.YN]:  # Dy(n)
             r_0_h = None
             x_0_h = None
             if t_type.ur0tr > 0:
-                r_0_l = z_k_0 * t_type.ur0tr / 100
-                x_0_l = z_k_0 * math.sqrt(1 - (t_type.ur0tr / 100) ** 2)
+                r_0_l = t_type.ur0tr / 100 * pu2abs  # Ohm
+                x_0_l = math.sqrt(z_k_0**2 - r_0_l**2)
             else:
                 r_0_l = None
                 x_0_l = z_k_0
@@ -1178,8 +1178,8 @@ class PowerFactoryExporter:
             r_0_l = None
             x_0_l = None
             if t_type.ur0tr > 0:
-                r_0_h = z_k_0 * t_type.ur0tr / 100
-                x_0_h = z_k_0 * math.sqrt(1 - (t_type.ur0tr / 100) ** 2)
+                r_0_h = t_type.ur0tr / 100 * pu2abs  # Ohm
+                x_0_h = math.sqrt(z_k_0**2 - r_0_h**2)
             else:
                 r_0_h = None
                 x_0_h = z_k_0
@@ -1229,7 +1229,7 @@ class PowerFactoryExporter:
         pu2abs: float,
     ) -> tuple[float, float, float | None, float | None]:
         # Magnetising impedance - positive sequence
-        p_fe_1 = t_type.pfe * 1e3  # W
+        p_fe_1 = round(t_type.pfe * 1e3, DecimalDigits.POWER)  # W
         r_fe_1 = voltage_ref**2 / p_fe_1
         i_0_pu = t_type.curmg  # %
         z_m_1 = 100 / i_0_pu * pu2abs  # Ohm
@@ -1238,7 +1238,7 @@ class PowerFactoryExporter:
         # Magnetising impedance - zero sequence
         # -> only available as separate quantity if wiring group is Y(N)y(n)
         if vector_group_l and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:
-            z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+            z_k_0 = t_type.uk0tr / 100 * pu2abs  # Ohm
             z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
 
             r2x = t_type.rtox0_n
@@ -3646,7 +3646,7 @@ class PowerFactoryExporter:
             Phase[PFPhase3PH.B.name],
             Phase[PFPhase3PH.C.name],
         ]
-        if winding_vector_group in (WVectorGroup.Y, WVectorGroup.YN):
+        if winding_vector_group in (WVectorGroup.YN, WVectorGroup.ZN):
             phases_tuple = [*phases_tuple, Phase.N]
 
         return phases_tuple
