@@ -16,18 +16,21 @@ import typing as t
 
 import loguru
 import pydantic
+from psdm.base import UniqueTuple
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
-from psdm.quantities import ActivePower
-from psdm.quantities import Admittance
-from psdm.quantities import Current
-from psdm.quantities import Frequency
-from psdm.quantities import Impedance
-from psdm.quantities import Phase
-from psdm.quantities import PhaseAngleClock
-from psdm.quantities import PowerFactorDirection
-from psdm.quantities import Voltage
+from psdm.quantities.multi_phase import Phase
+from psdm.quantities.multi_phase import PowerFactorDirection
+from psdm.quantities.single_phase import AdmittanceNat
+from psdm.quantities.single_phase import AdmittancePosSeq
+from psdm.quantities.single_phase import AdmittanceZerSeq
+from psdm.quantities.single_phase import Angle as AngleSP
+from psdm.quantities.single_phase import ImpedanceNat
+from psdm.quantities.single_phase import ImpedancePosSeq
+from psdm.quantities.single_phase import ImpedanceZerSeq
+from psdm.quantities.single_phase import PhaseAngleClock
+from psdm.quantities.single_phase import Voltage as VoltageSP
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.controller import ControlledVoltageRef
@@ -65,12 +68,6 @@ from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
 from powerfactory_tools.exporter.load_power import ControlType
 from powerfactory_tools.exporter.load_power import LoadPower
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_active_power
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_angle
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_apparent_power
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_current
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_reactive_power
-from powerfactory_tools.exporter.load_power import create_sym_three_phase_voltage
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosPhiChar
@@ -83,7 +80,9 @@ from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import PFClassId
-from powerfactory_tools.powerfactory_types import Phase as PFPhase
+from powerfactory_tools.powerfactory_types import Phase1PH as PFPhase1PH
+from powerfactory_tools.powerfactory_types import Phase2PH as PFPhase2PH
+from powerfactory_tools.powerfactory_types import Phase3PH as PFPhase3PH
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalPhaseConnectionType
@@ -95,6 +94,15 @@ from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
+from powerfactory_tools.quantities import single_phase_angle
+from powerfactory_tools.quantities import single_phase_apparent_power
+from powerfactory_tools.quantities import single_phase_current
+from powerfactory_tools.quantities import single_phase_frequency
+from powerfactory_tools.quantities import single_phase_voltage
+from powerfactory_tools.quantities import sym_three_phase_active_power
+from powerfactory_tools.quantities import sym_three_phase_angle
+from powerfactory_tools.quantities import sym_three_phase_reactive_power
+from powerfactory_tools.quantities import sym_three_phase_voltage
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -512,22 +520,19 @@ class PowerFactoryExporter:
 
         node_name = self.pfi.create_name(ext_grid.bus1.cterm, grid_name=grid_name)
         phase_connection_type = TerminalPhaseConnectionType(ext_grid.bus1.cterm.phtech)
-        phase_connections = self.get_terminal_phase_connections(
+        phases = self.get_external_grid_phases(
             phase_connection_type=phase_connection_type,  # default
             bus=ext_grid.bus1,
         )
-
-        sc_power_max = create_sym_three_phase_apparent_power(ext_grid.snss * Exponents.POWER)
-        sc_power_min = create_sym_three_phase_apparent_power(ext_grid.snssmin * Exponents.POWER)
 
         return ExternalGrid(
             name=name,
             description=description,
             node=node_name,
-            phase_connections=phase_connections,
+            phases=phases,
             type=GridType(ext_grid.bustp),
-            short_circuit_power_max=sc_power_max,
-            short_circuit_power_min=sc_power_min,
+            short_circuit_power_max=single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
+            short_circuit_power_min=single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
         )
 
     def create_nodes(
@@ -555,14 +560,21 @@ class PowerFactoryExporter:
             loguru.logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
-        u_n = Voltage(values=[round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)])  # voltage in V
+        u_n = single_phase_voltage(terminal.uknom * Exponents.VOLTAGE)  # phase-phase voltage
 
         if self.pfi.is_within_substation(terminal):
             description = (
                 "substation internal" if not description else "substation internal" + STRING_SEPARATOR + description
             )
 
-        return Node(name=name, u_n=u_n, description=description)
+        phases = self.get_terminal_phases(TerminalPhaseConnectionType(terminal.phtech))
+
+        return Node(
+            name=name,
+            u_n=u_n,
+            phases=phases,
+            description=description,
+        )
 
     def create_branches(
         self,
@@ -583,7 +595,7 @@ class PowerFactoryExporter:
             self.pfi.filter_none(bfuses),
         )
 
-    def create_line(
+    def create_line(  # noqa: PLR0915
         self,
         line: PFTypes.Line,
         /,
@@ -625,39 +637,26 @@ class PowerFactoryExporter:
         u_nom = self.determine_line_voltage(u_nom_1=u_nom_1, u_nom_2=u_nom_2, l_type=l_type)
 
         i = l_type.InomAir if line.inAir else l_type.sline
-        i_r = round(line.nlnum * line.fline * i * Exponents.CURRENT, 0)  # rated current (A)
+        i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
-        r1 = round(l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE)
-        x1 = round(l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE)
-        r0 = round(l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE)
-        x0 = round(l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE)
-        g1 = round(l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE, DecimalDigits.ADMITTANCE)
-        b1 = round(l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE)
-        g0 = round(l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE, DecimalDigits.ADMITTANCE)
-        b0 = round(l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE)
-
+        r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
+        x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
+        r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
+        x0 = l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE
+        g1 = l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE
+        b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
+        b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
         if l_type.nneutral:
             l_type = t.cast("PFTypes.LineNType", l_type)
-            rn = Impedance(
-                value=round(l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE),
-            )
-            xn = Impedance(
-                value=round(l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE),
-            )
-            rpn = Impedance(
-                value=round(l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE, DecimalDigits.IMPEDANCE),
-            )
-            xpn = Impedance(
-                value=round(l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE, DecimalDigits.IMPEDANCE),
-            )
-            gn = Admittance(value=0)  # as attribute 'gnline' does not exist in PF model type
-            bn = Admittance(
-                value=round(l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE),
-            )
-            gpn = Admittance(value=0)  # as attribute 'gpnline' does not exist in PF model type
-            bpn = Admittance(
-                value=round(l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE, DecimalDigits.ADMITTANCE),
-            )
+            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            gn = 0  # as attribute 'gnline' does not exist in PF model type
+            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            gpn = 0  # as attribute 'gpnline' does not exist in PF model type
+            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
         else:
             rn = None
             xn = None
@@ -671,30 +670,43 @@ class PowerFactoryExporter:
         f_nom = l_type.frnom  # usually 50 Hertz
         u_system_type = VoltageSystemType[ElementVoltageSystemType(l_type.systp).name]
 
+        phases_1 = self.get_branch_phases(
+            l_type=l_type,
+            phase_connection_type=TerminalPhaseConnectionType(t1.phtech),
+            bus=line.bus1,
+        )
+        phases_2 = self.get_branch_phases(
+            l_type=l_type,
+            phase_connection_type=TerminalPhaseConnectionType(t2.phtech),
+            bus=line.bus2,
+        )
+
         return Branch(
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=Impedance(value=r1),
-            x1=Impedance(value=x1),
-            r0=Impedance(value=r0),
-            x0=Impedance(value=x0),
-            g1=Admittance(value=g1),
-            b1=Admittance(value=b1),
-            g0=Admittance(value=g0),
-            b0=Admittance(value=b0),
-            rn=rn,
-            xn=xn,
-            rpn=rpn,
-            xpn=xpn,
-            gn=gn,
-            bn=bn,
-            gpn=gpn,
-            bpn=bpn,
-            i_r=create_sym_three_phase_current(i_r),
+            phases_1=phases_1,
+            phases_2=phases_2,
+            r1=ImpedancePosSeq(value=round(r1, DecimalDigits.IMPEDANCE)),
+            x1=ImpedancePosSeq(value=round(x1, DecimalDigits.IMPEDANCE)),
+            r0=ImpedanceZerSeq(value=round(r0, DecimalDigits.IMPEDANCE)),
+            x0=ImpedanceZerSeq(value=round(x0, DecimalDigits.IMPEDANCE)),
+            g1=AdmittancePosSeq(value=round(g1, DecimalDigits.ADMITTANCE)),
+            b1=AdmittancePosSeq(value=round(b1, DecimalDigits.ADMITTANCE)),
+            g0=AdmittanceZerSeq(value=round(g0, DecimalDigits.ADMITTANCE)),
+            b0=AdmittanceZerSeq(value=round(b0, DecimalDigits.ADMITTANCE)),
+            rn=ImpedanceNat(value=round(rn, DecimalDigits.IMPEDANCE)) if rn is not None else None,
+            xn=ImpedanceNat(value=round(xn, DecimalDigits.IMPEDANCE)) if xn is not None else None,
+            rpn=ImpedanceNat(value=round(rpn, DecimalDigits.IMPEDANCE)) if rpn is not None else None,
+            xpn=ImpedanceNat(value=round(xpn, DecimalDigits.IMPEDANCE)) if xpn is not None else None,
+            gn=AdmittanceNat(value=round(gn, DecimalDigits.ADMITTANCE)) if gn is not None else None,
+            bn=AdmittanceNat(value=round(bn, DecimalDigits.ADMITTANCE)) if bn is not None else None,
+            gpn=AdmittanceNat(value=round(gpn, DecimalDigits.ADMITTANCE)) if gpn is not None else None,
+            bpn=AdmittanceNat(value=round(bpn, DecimalDigits.ADMITTANCE)) if bpn is not None else None,
+            i_r=single_phase_current(i_r),
             description=description,
-            u_n=Voltage(values=[u_nom]),
-            f_n=Frequency(value=f_nom),
+            u_n=single_phase_voltage(u_nom),
+            f_n=single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
         )
@@ -707,7 +719,7 @@ class PowerFactoryExporter:
         l_type: PFTypes.LineType,
     ) -> float:
         """Returns the nominal voltage in SI unit (V)."""
-        v = u_nom_1 if round(u_nom_1, 2) == round(u_nom_2, 2) else l_type.uline
+        v = u_nom_1 if round(u_nom_1, DecimalDigits.VOLTAGE) == round(u_nom_2, DecimalDigits.VOLTAGE) else l_type.uline
 
         return round(v * Exponents.VOLTAGE, 0)
 
@@ -739,7 +751,7 @@ class PowerFactoryExporter:
         if coupler.typ_id is not None:
             r1 = coupler.typ_id.R_on
             x1 = coupler.typ_id.X_on
-            i_r = create_sym_three_phase_current(round(coupler.typ_id.Inom * Exponents.CURRENT, 0))
+            i_r = coupler.typ_id.Inom * Exponents.CURRENT
         else:
             r1 = 0
             x1 = 0
@@ -767,17 +779,22 @@ class PowerFactoryExporter:
 
         voltage_system_type = VoltageSystemType[TerminalVoltageSystemType(t1.systype).name]
 
+        phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
+        phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
+
         return Branch(
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=Impedance(value=r1),
-            x1=Impedance(value=x1),
-            g1=Admittance(value=g1),
-            b1=Admittance(value=b1),
-            i_r=i_r,
+            phases_1=phases_1,
+            phases_2=phases_2,
+            r1=ImpedancePosSeq(value=r1),
+            x1=ImpedancePosSeq(value=x1),
+            g1=AdmittancePosSeq(value=g1),
+            b1=AdmittancePosSeq(value=b1),
+            i_r=single_phase_current(i_r) if i_r is not None else None,
             description=description,
-            u_n=Voltage(values=[u_nom]),
+            u_n=single_phase_voltage(u_nom),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
         )
@@ -808,7 +825,7 @@ class PowerFactoryExporter:
             return None
 
         if fuse.typ_id is not None:
-            i_r = create_sym_three_phase_current(round(fuse.typ_id.irat, 0))
+            i_r = fuse.typ_id.irat
             # save fuse typ in description tag
             description = (
                 "Type: " + fuse.typ_id.loc_name
@@ -842,17 +859,22 @@ class PowerFactoryExporter:
 
         voltage_system_type = VoltageSystemType[TerminalVoltageSystemType(t1.systype).name]
 
+        phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
+        phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
+
         return Branch(
             name=name,
             node_1=t1_name,
             node_2=t2_name,
-            r1=Impedance(value=r1),
-            x1=Impedance(value=x1),
-            b1=Admittance(value=b1),
-            g1=Admittance(value=g1),
-            i_r=i_r,
+            phases_1=phases_1,
+            phases_2=phases_2,
+            r1=ImpedancePosSeq(value=r1),
+            x1=ImpedancePosSeq(value=x1),
+            g1=AdmittancePosSeq(value=g1),
+            b1=AdmittancePosSeq(value=b1),
+            i_r=single_phase_current(i_r) if i_r is not None else None,
             description=description,
-            u_n=Voltage(values=[u_nom]),
+            u_n=single_phase_voltage(u_nom),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
         )
@@ -895,13 +917,42 @@ class PowerFactoryExporter:
         ]
         return self.pfi.filter_none(transformers)
 
-    def create_transformer_2w(  # noqa: PLR0915, PLR0912
+    def create_transformer_2w(
         self,
         transformer_2w: PFTypes.Transformer2W,
         /,
         *,
         grid_name: str,
     ) -> Transformer | None:
+        """Create a symmetrical 2-windung transformer.
+
+        The assignment of zero sequence quantities is depended from the wiring group as follows:
+        wiring group    |   Dy(n)   |   Y(N)d   |   Y(N)y(n)
+        __________________________Transformer________________
+        r_fe1           |   yes     |   yes     |   yes
+        x_h1            |   yes     |   yes     |   yes
+        r_fe0           |   none    |   none    |   yes
+        x_h0            |   none    |   none    |   yes
+        __________________________Winding HV_________________
+        r1              |   yes     |   yes     |   yes
+        x1              |   yes     |   yes     |   yes
+        r0              |   none    |   yes*    |   yes
+        x0              |   none    |   yes*    |   yes
+        __________________________Winding LV_________________
+        r1              |   yes     |   yes     |   yes
+        x1              |   yes     |   yes     |   yes
+        r0              |   yes*    |   none    |   yes
+        x0              |   yes*    |   none    |   yes
+
+        * Results from uk0 resp. Zk0 instead of Zm0 as magnetising impedance can not be separated from Zk0 due to delta wiring group.
+
+        Arguments:
+            transformer_2w  {PFTypes.Transformer2W} -- the powerfactory transformer data object
+            grid_name {str} -- the name of the grid the transformer is located
+
+        Returns:
+            a PSDM transformer object
+        """
         name = self.pfi.create_name(transformer_2w, grid_name=grid_name)
         loguru.logger.debug("Creating 2-winding transformer {transformer_name}...", transformer_name=name)
         export, description = self.get_description(transformer_2w)
@@ -932,77 +983,22 @@ class PowerFactoryExporter:
 
             ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
-            # Transformer Tap Changer
-            tap_u_abs = t_type.dutap
-            tap_u_phi = t_type.phitr
-            tap_min = t_type.ntpmn
-            tap_max = t_type.ntpmx
-            tap_neutral = t_type.nntap0
-            tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
-
-            if bool(t_type.itapch2) is True:
-                loguru.logger.warning(
-                    "2-winding transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
-                    transformer_name=name,
-                )
-                return None
-
             # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
-            u_ref_h = t_type.utrn_h
-            u_ref_l = t_type.utrn_l
+            u_ref_h = t_type.utrn_h * Exponents.VOLTAGE  # V
+            u_ref_l = t_type.utrn_l * Exponents.VOLTAGE
 
             # Nominal Voltage of connected nodes (CIM: BaseVoltage)
-            u_nom_h = transformer_2w.bushv.cterm.uknom
-            u_nom_l = transformer_2w.buslv.cterm.uknom
+            u_nom_h = transformer_2w.bushv.cterm.uknom * Exponents.VOLTAGE  # V
+            u_nom_l = transformer_2w.buslv.cterm.uknom * Exponents.VOLTAGE
 
-            # Rated values
-            s_r = t_type.strn  # MVA
-            pu2abs = u_ref_h**2 / s_r
-
-            # Magnetising impedance
-            p_fe = t_type.pfe  # kW
-            i_0_pu = t_type.curmg  # %
-            z_m_1 = 100 / i_0_pu * pu2abs  # Ohm
-            try:
-                i_0 = u_ref_h / (math.sqrt(3) * z_m_1)  # Ampere
-            except ZeroDivisionError:
-                i_0 = float("inf")
-
-            z_k_0 = t_type.uk0tr * pu2abs  # Ohm
-            z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
-            try:
-                x2r = 1 / t_type.rtox0_n
-            except ZeroDivisionError:
-                x2r = float("inf")
-
-            r_m_0 = z_m_0 / math.sqrt(1 + x2r**2)
-            try:
-                p_fe0 = u_ref_h**2 / r_m_0  # W
-            except ZeroDivisionError:
-                p_fe0 = 0
-
-            try:
-                # i_00_pu = 100 / z_m_0 * pu2abs  # %  # noqa: ERA001
-                i_00 = u_ref_h / (math.sqrt(3) * z_m_0)
-                i_00 = Current(values=[round(i_00, DecimalDigits.IMPEDANCE)])  # round with 7 digits
-            except ZeroDivisionError:
-                i_00 = None
-
-            # Create Winding Objects
-            # Leakage impedance
-            r_1 = t_type.r1pu * pu2abs
-            r_1_h = r_1 * t_type.itrdr
-            r_1_l = r_1 * t_type.itrdr_lv
-            x_1 = t_type.x1pu * pu2abs
-            x_1_h = x_1 * t_type.itrdl
-            x_1_l = x_1 * t_type.itrdl_lv
-
-            r_0 = t_type.r0pu * pu2abs
-            r_0_h = r_0 * t_type.zx0hl_h
-            r_0_l = r_0 * t_type.zx0hl_l
-            x_0 = t_type.x0pu * pu2abs
-            x_0_h = x_0 * t_type.zx0hl_h
-            x_0_l = x_0 * t_type.zx0hl_l
+            # Transformer Tap Changer
+            tap_side, tap_u_mag, tap_u_phi, tap_min, tap_max, tap_neutral = self.get_transformer_tap_changer(
+                t_type=t_type,
+                voltage_ref_hv=u_ref_h,
+                voltage_ref_lv=u_ref_l,
+                voltage_ref_ter=None,
+                name=name,
+            )
 
             # Wiring group
             try:
@@ -1016,6 +1012,30 @@ class PowerFactoryExporter:
             vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
 
+            phases_1 = self.get_transformer2w_3ph_phases(winding_vector_group=vector_group_h, bus=transformer_2w.bushv)
+            phases_2 = self.get_transformer2w_3ph_phases(winding_vector_group=vector_group_l, bus=transformer_2w.buslv)
+
+            # Rated values
+            s_r = t_type.strn * Exponents.POWER  # VA
+            pu2abs = u_ref_h**2 / s_r
+
+            r_fe_1, x_h_1, r_fe_0, x_h_0 = self.get_transformer2w_magnetising_impedance(
+                t_type=t_type,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+                voltage_ref=u_ref_h,
+                pu2abs=pu2abs,
+            )
+
+            # Create Winding Objects
+            # Leakage impedance
+            r_1_h, x_1_h, r_1_l, x_1_l, r_0_h, x_0_h, r_0_l, x_0_l = self.get_transformer2w_leakage_impedance(
+                t_type=t_type,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+                pu2abs=pu2abs,
+            )
+
             # Neutral point phase connection
             neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
                 transformer=transformer_2w,
@@ -1023,31 +1043,24 @@ class PowerFactoryExporter:
             )
 
             # Neutral point earthing
-            if "N" in vector_group_h.value and transformer_2w.cgnd_h == TrfNeutralPointState.EARTHED:
-                re_h = Impedance(value=round(transformer_2w.re0tr_h, DecimalDigits.IMPEDANCE))
-                xe_h = Impedance(value=round(transformer_2w.xe0tr_h, DecimalDigits.IMPEDANCE))
-            else:
-                re_h = None
-                xe_h = None
-            if "N" in vector_group_l.value and transformer_2w.cgnd_l == TrfNeutralPointState.EARTHED:
-                re_l = Impedance(value=round(transformer_2w.re0tr_l, DecimalDigits.IMPEDANCE))
-                xe_l = Impedance(value=round(transformer_2w.xe0tr_l, DecimalDigits.IMPEDANCE))
-            else:
-                re_l = None
-                xe_l = None
+            re_h, xe_h, re_l, xe_l = self.get_transformer2w_neutral_earthing_impedance(
+                transformer=transformer_2w,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+            )
 
             # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
-                s_r=create_sym_three_phase_apparent_power(s_r * Exponents.POWER),
-                u_r=Voltage(values=[round(u_ref_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
-                u_n=Voltage(values=[round(u_nom_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
-                r1=Impedance(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
-                r0=Impedance(value=round(r_0_h, DecimalDigits.IMPEDANCE)),
-                x1=Impedance(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
-                x0=Impedance(value=round(x_0_h, DecimalDigits.IMPEDANCE)),
-                re_h=re_h,
-                xe_h=xe_h,
+                s_r=single_phase_apparent_power(s_r * Exponents.POWER),
+                u_r=single_phase_voltage(u_ref_h * Exponents.VOLTAGE),
+                u_n=single_phase_voltage(u_nom_h * Exponents.VOLTAGE),
+                r1=ImpedancePosSeq(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
+                r0=ImpedanceZerSeq(value=round(r_0_h, DecimalDigits.IMPEDANCE)) if r_0_h is not None else None,
+                x1=ImpedancePosSeq(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
+                x0=ImpedanceZerSeq(value=round(x_0_h, DecimalDigits.IMPEDANCE)) if x_0_h is not None else None,
+                re_h=ImpedanceNat(value=round(re_h, DecimalDigits.IMPEDANCE)) if re_h is not None else None,
+                xe_h=ImpedanceNat(value=round(xe_h, DecimalDigits.IMPEDANCE)) if xe_h is not None else None,
                 vector_group=vector_group_h,
                 phase_angle_clock=PhaseAngleClock(value=0),
                 neutral_connected=neutral_connected_h,
@@ -1056,15 +1069,15 @@ class PowerFactoryExporter:
             # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
-                s_r=create_sym_three_phase_apparent_power(s_r * Exponents.POWER),
-                u_r=Voltage(values=[round(u_ref_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
-                u_n=Voltage(values=[round(u_nom_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)]),
-                r1=Impedance(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
-                r0=Impedance(value=round(r_0_l, DecimalDigits.IMPEDANCE)),
-                x1=Impedance(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
-                x0=Impedance(value=round(x_0_l, DecimalDigits.IMPEDANCE)),
-                re_l=re_l,
-                xe_l=xe_l,
+                s_r=single_phase_apparent_power(s_r * Exponents.POWER),
+                u_r=single_phase_voltage(u_ref_l * Exponents.VOLTAGE),
+                u_n=single_phase_voltage(u_nom_l * Exponents.VOLTAGE),
+                r1=ImpedancePosSeq(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
+                r0=ImpedanceZerSeq(value=round(r_0_l, DecimalDigits.IMPEDANCE)) if r_0_l is not None else None,
+                x1=ImpedancePosSeq(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
+                x0=ImpedanceZerSeq(value=round(x_0_l, DecimalDigits.IMPEDANCE)) if x_0_l is not None else None,
+                re_l=ImpedanceNat(value=round(re_l, DecimalDigits.IMPEDANCE)) if re_l is not None else None,
+                xe_l=ImpedanceNat(value=round(xe_l, DecimalDigits.IMPEDANCE)) if xe_l is not None else None,
                 vector_group=vector_group_l,
                 phase_angle_clock=PhaseAngleClock(value=int(vector_phase_angle_clock)),
                 neutral_connected=neutral_connected_l,
@@ -1073,15 +1086,17 @@ class PowerFactoryExporter:
             return Transformer(
                 node_1=t_high_name,
                 node_2=t_low_name,
+                phases_1=phases_1,
+                phases_2=phases_2,
                 name=name,
                 number=t_number,
-                i_0=Current(values=[round(i_0, DecimalDigits.IMPEDANCE)]),  # round with 7 digits
-                p_fe=ActivePower(values=[round(p_fe * 1e3, DecimalDigits.POWER)]),
-                i_00=i_00,
-                p_fe0=ActivePower(values=[round(p_fe0, DecimalDigits.POWER)]),
+                r_fe1=ImpedancePosSeq(value=round(r_fe_1, DecimalDigits.IMPEDANCE)),
+                x_h1=ImpedancePosSeq(value=round(x_h_1, DecimalDigits.IMPEDANCE)),
+                r_fe0=ImpedanceZerSeq(value=round(r_fe_0, DecimalDigits.IMPEDANCE)) if r_fe_0 is not None else None,
+                x_h0=ImpedanceZerSeq(value=round(x_h_0, DecimalDigits.IMPEDANCE)) if x_h_0 is not None else None,
                 vector_group=vector_group,
-                tap_u_abs=tap_u_abs,
-                tap_u_phi=tap_u_phi,
+                tap_u_mag=single_phase_voltage(tap_u_mag) if tap_u_mag is not None else None,
+                tap_u_phi=single_phase_angle(tap_u_phi) if tap_u_phi is not None else None,
                 tap_min=tap_min,
                 tap_max=tap_max,
                 tap_neutral=tap_neutral,
@@ -1096,6 +1111,155 @@ class PowerFactoryExporter:
             transformer_name=name,
         )
         return None
+
+    @staticmethod
+    def get_transformer_tap_changer(
+        *,
+        t_type: PFTypes.Transformer2WType,
+        voltage_ref_hv: float,
+        voltage_ref_lv: float,
+        voltage_ref_ter: float | None,  # tertiary reference voltage (only for 3w transformers)
+        name: str,
+    ) -> tuple[TapSide | None, VoltageSP | None, AngleSP | None, float | None, float | None, float | None]:
+        tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
+        tap_u_mag_perc = t_type.dutap
+        if tap_side is TapSide.HV:
+            tap_u_mag = tap_u_mag_perc / 100 * voltage_ref_hv
+            tap_u_phi = t_type.phitr
+        elif tap_side is TapSide.LV:
+            tap_u_mag = tap_u_mag_perc / 100 * voltage_ref_lv
+            tap_u_phi = t_type.phitr
+        elif tap_side is TapSide.MV and voltage_ref_ter is not None:
+            tap_u_mag = tap_u_mag_perc / 100 * voltage_ref_ter
+            tap_u_phi = t_type.phitr
+        elif tap_side is None:
+            tap_u_mag = None
+            tap_u_phi = None
+        else:
+            msg = "unreachable"
+            raise RuntimeError(msg)
+        tap_min = t_type.ntpmn
+        tap_max = t_type.ntpmx
+        tap_neutral = t_type.nntap0
+
+        if bool(t_type.itapch2) is True:
+            loguru.logger.warning(
+                "2-winding transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
+                transformer_name=name,
+            )
+        return (tap_side, tap_u_mag, tap_u_phi, tap_min, tap_max, tap_neutral)
+
+    @staticmethod
+    def get_transformer2w_leakage_impedance(
+        *,
+        t_type: PFTypes.Transformer2WType,
+        vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
+        pu2abs: float,
+    ) -> tuple[float, float, float, float, float | None, float | None, float | None, float | None]:
+        r_1 = t_type.r1pu * pu2abs
+        r_1_h = r_1 * t_type.itrdr
+        r_1_l = r_1 * t_type.itrdr_lv
+        x_1 = t_type.x1pu * pu2abs
+        x_1_h = x_1 * t_type.itrdl
+        x_1_l = x_1 * t_type.itrdl_lv
+
+        z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+        if vector_group_h is WVectorGroup.D and vector_group_l in [WVectorGroup.Y, WVectorGroup.YN]:  # Dy(n)
+            r_0_h = None
+            x_0_h = None
+            if t_type.ur0tr > 0:
+                r_0_l = z_k_0 * t_type.ur0tr / 100
+                x_0_l = z_k_0 * math.sqrt(1 - (t_type.ur0tr / 100) ** 2)
+            else:
+                r_0_l = None
+                x_0_l = z_k_0
+        elif vector_group_l is WVectorGroup.D and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:  # Y(N)d
+            r_0_l = None
+            x_0_l = None
+            if t_type.ur0tr > 0:
+                r_0_h = z_k_0 * t_type.ur0tr / 100
+                x_0_h = z_k_0 * math.sqrt(1 - (t_type.ur0tr / 100) ** 2)
+            else:
+                r_0_h = None
+                x_0_h = z_k_0
+        elif vector_group_l and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:
+            r_0 = t_type.r0pu * pu2abs
+            r_0_h = r_0 * t_type.zx0hl_h
+            r_0_l = r_0 * t_type.zx0hl_l
+            x_0 = t_type.x0pu * pu2abs
+            x_0_h = x_0 * t_type.zx0hl_h
+            x_0_l = x_0 * t_type.zx0hl_l
+        else:
+            loguru.logger.warning(
+                "Zero sequence leakage impedance for transformer with vector group 'Z' is not supported yet. Skipping.",
+            )
+
+        return (r_1_h, x_1_h, r_1_l, x_1_l, r_0_h, x_0_h, r_0_l, x_0_l)
+
+    @staticmethod
+    def get_transformer2w_neutral_earthing_impedance(
+        *,
+        transformer: PFTypes.Transformer2W,
+        vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
+    ) -> tuple[float | None, float | None, float | None, float | None]:
+        if "N" in vector_group_h.value and transformer.cgnd_h == TrfNeutralPointState.EARTHED:
+            re_h = transformer.re0tr_h
+            xe_h = transformer.xe0tr_h
+        else:
+            re_h = None
+            xe_h = None
+        if "N" in vector_group_l.value and transformer.cgnd_l == TrfNeutralPointState.EARTHED:
+            re_l = transformer.re0tr_l
+            xe_l = transformer.xe0tr_l
+        else:
+            re_l = None
+            xe_l = None
+
+        return (re_h, xe_h, re_l, xe_l)
+
+    @staticmethod
+    def get_transformer2w_magnetising_impedance(
+        *,
+        t_type: PFTypes.Transformer2WType,
+        vector_group_l: WVectorGroup,
+        vector_group_h: WVectorGroup,
+        voltage_ref: float,
+        pu2abs: float,
+    ) -> tuple[float, float, float | None, float | None]:
+        # Magnetising impedance - positive sequence
+        p_fe_1 = t_type.pfe * 1e3  # W
+        r_fe_1 = voltage_ref**2 / p_fe_1
+        i_0_pu = t_type.curmg  # %
+        z_m_1 = 100 / i_0_pu * pu2abs  # Ohm
+        x_h_1 = (z_m_1 * r_fe_1) / math.sqrt(r_fe_1**2 - z_m_1**2)
+
+        # Magnetising impedance - zero sequence
+        # -> only available as separate quantity if wiring group is Y(N)y(n)
+        if vector_group_l and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:
+            z_k_0 = t_type.uk0tr * pu2abs  # Ohm
+            z_m_0 = z_k_0 * t_type.zx0hl_n  # Ohm
+
+            r2x = t_type.rtox0_n
+            # the dedicated resistance in parallel to the reactance
+            if r2x > 0:
+                r_fe_0 = z_m_0 * math.sqrt(1 + r2x**2)
+                x_h_0 = (z_m_0 * r_fe_0) / math.sqrt(r_fe_0**2 - z_m_0**2)
+            else:
+                r_fe_0 = None
+                x_h_0 = z_m_0
+        else:
+            r_fe_0 = None
+            x_h_0 = None
+
+        # Excursus
+        # the real part of the complex magnetising impedance
+        # r_m_0 = z_m_0 / math.sqrt(1 + 1/r2x**2)  # noqa: ERA001
+
+        # i_00_pu = 100 / z_m_0 * pu2abs  # % # noqa: ERA001
+        # p_fe0 = u_ref_h**2 / r_m_0  # W # noqa: ERA001
+        return (r_fe_1, x_h_1, r_fe_0, x_h_0)
 
     @staticmethod
     def transformer_neutral_connection_hvlv(
@@ -1418,7 +1582,7 @@ class PowerFactoryExporter:
         specifier: t.Literal["p", "q"],
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
-        u_0 = create_sym_three_phase_voltage(u_0)
+        u_0 = sym_three_phase_voltage(u_0)
         load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
@@ -2055,8 +2219,8 @@ class PowerFactoryExporter:
             u_0 = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
             return ExternalGridSSC(
                 name=name,
-                u_0=create_sym_three_phase_voltage(u_0),
-                phi_0=create_sym_three_phase_angle(ext_grid.phiini),
+                u_0=sym_three_phase_voltage(u_0),
+                phi_0=sym_three_phase_angle(ext_grid.phiini),
             )
 
         if g_type == GridType.PV:
@@ -2064,8 +2228,8 @@ class PowerFactoryExporter:
             p_0 = ext_grid.pgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                u_0=create_sym_three_phase_voltage(u_0),
-                p_0=create_sym_three_phase_active_power(p_0),
+                u_0=sym_three_phase_voltage(u_0),
+                p_0=sym_three_phase_active_power(p_0),
             )
 
         if g_type == GridType.PQ:
@@ -2073,8 +2237,8 @@ class PowerFactoryExporter:
             q_0 = ext_grid.qgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                p_0=create_sym_three_phase_active_power(p_0),
-                q_0=create_sym_three_phase_reactive_power(q_0),
+                p_0=sym_three_phase_active_power(p_0),
+                q_0=sym_three_phase_reactive_power(q_0),
             )
 
         return ExternalGridSSC(name=name)
@@ -3234,120 +3398,258 @@ class PowerFactoryExporter:
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_load_phase_connections(  # noqa: PLR0911
+    def get_load_phase_connections(  # noqa: PLR0911, PLR0912
         self,
         *,
         phase_connection_type: ConsolidatedLoadPhaseConnectionType,
         bus: PFTypes.StationCubicle,
     ) -> PhaseConnections:
+        if not bus.cPhInfo:
+            msg = f"Mismatch of node and load phase technology at {bus.loc_name}."
+            raise RuntimeError(msg)
+        t_phase_connection_type = TerminalPhaseConnectionType(bus.cterm.phtech)
+        if t_phase_connection_type in (
+            TerminalPhaseConnectionType.THREE_PH,
+            TerminalPhaseConnectionType.THREE_PH_N,
+            TerminalPhaseConnectionType.ONE_PH,
+            TerminalPhaseConnectionType.ONE_PH_N,
+        ):
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+        elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+            phases = textwrap.wrap(bus.cPhInfo, 3)
+        elif t_phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
+            msg = "Terminal phase technology implementation unclear. Please extend exporter by your own."
+            raise RuntimeError(msg)
+        else:
+            msg = "unreachable"
+            raise RuntimeError(msg)
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_D:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
-                    [Phase[PFPhase(phases[1]).name], Phase[PFPhase(phases[2]).name]],
-                    [Phase[PFPhase(phases[2]).name], Phase[PFPhase(phases[0]).name]],
+                value=[
+                    [Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]],
+                    [Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]],
+                    [Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]],
                 ],
             )
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                    [Phase[PFPhase(phases[1]).name], Phase.E],
-                    [Phase[PFPhase(phases[2]).name], Phase.E],
+                value=[
+                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
+                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
+                    [Phase[PFPhase3PH(phases[2]).name], Phase.E],
                 ],
             )
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_YN:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
             return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.N],
-                    [Phase[PFPhase(phases[1]).name], Phase.N],
-                    [Phase[PFPhase(phases[2]).name], Phase.N],
+                value=[
+                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
+                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
+                    [Phase[PFPhase3PH(phases[2]).name], Phase.N],
                 ],
             )
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                    [Phase[PFPhase(phases[1]).name], Phase.E],
-                ],
-            )
+            if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                _phase_connections = [
+                    [Phase[PFPhase2PH(phases[0]).name], Phase.E],
+                    [Phase[PFPhase2PH(phases[1]).name], Phase.E],
+                ]
+            else:
+                _phase_connections = [
+                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
+                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
+                ]
+            return PhaseConnections(value=_phase_connections)
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_YN:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.N],
-                    [Phase[PFPhase(phases[1]).name], Phase.N],
-                ],
-            )
+            if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                _phase_connections = [
+                    [Phase[PFPhase2PH(phases[0]).name], Phase.N],
+                    [Phase[PFPhase2PH(phases[1]).name], Phase.N],
+                ]
+            else:
+                _phase_connections = [
+                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
+                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
+                ]
+            return PhaseConnections(value=_phase_connections)
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase[PFPhase(phases[1]).name]],
-                ],
-            )
+            if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
+                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]]]
+            elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]]]
+            else:
+                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]]]
+            return PhaseConnections(value=_phase_connections)
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                ],
-            )
+            if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
+                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.E]]
+            elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.E]]
+            else:
+                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.E]]
+            return PhaseConnections(value=_phase_connections)
+
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N:
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.N],
-                ],
-            )
+            if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
+                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.N]]
+            elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.N]]
+            else:
+                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.N]]
+            return PhaseConnections(value=_phase_connections)
 
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_terminal_phase_connections(
+    def get_branch_phases(
+        self,
+        *,
+        l_type: PFTypes.LineType,
+        phase_connection_type: TerminalPhaseConnectionType,
+        bus: PFTypes.StationCubicle,
+    ) -> UniqueTuple[Phase]:
+        if not bus.cPhInfo:
+            msg = f"Mismatch of node and branch phase technology at {bus.loc_name}."
+            raise RuntimeError(msg)
+        if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
+            msg = "Terminal phase technology implementation unclear. Please extend exporter by your own."
+            raise RuntimeError(msg)
+
+        if l_type.nlnph == 3:  # 3 phase conductors  # noqa: PLR2004
+            phases = textwrap.wrap(bus.cPhInfo, 2)
+            phases_tuple = [
+                Phase[PFPhase3PH(phases[0]).name],
+                Phase[PFPhase3PH(phases[1]).name],
+                Phase[PFPhase3PH(phases[2]).name],
+            ]
+        elif l_type.nlnph == 2:  # 2 phase conductors  # noqa: PLR2004
+            if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
+                phases = textwrap.wrap(bus.cPhInfo, 2)
+                phases_tuple = [
+                    Phase[PFPhase3PH(phases[0]).name],
+                    Phase[PFPhase3PH(phases[1]).name],
+                ]
+            if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                phases = textwrap.wrap(bus.cPhInfo, 3)
+                phases_tuple = [
+                    Phase[PFPhase2PH(phases[0]).name],
+                    Phase[PFPhase2PH(phases[1]).name],
+                ]
+        elif l_type.nlnph == 1:  # 1 phase conductors
+            if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
+                phases = textwrap.wrap(bus.cPhInfo, 2)
+                phases_tuple = [
+                    Phase[PFPhase3PH(phases[0]).name],
+                ]
+            if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
+                phases = textwrap.wrap(bus.cPhInfo, 3)
+                phases_tuple = [
+                    Phase[PFPhase2PH(phases[0]).name],
+                ]
+            elif phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
+                phases = textwrap.wrap(bus.cPhInfo, 2)
+                phases_tuple = [
+                    Phase[PFPhase1PH(phases[0]).name],
+                ]
+        else:
+            msg = "unreachable"
+            raise RuntimeError(msg)
+
+        if l_type.nneutral == 1:
+            phases_tuple = [*phases_tuple, Phase.N]
+        return phases_tuple
+
+    def get_terminal_phases(
+        self,
+        phase_connection_type: TerminalPhaseConnectionType,
+    ) -> UniqueTuple[Phase]:
+        if phase_connection_type is TerminalPhaseConnectionType.THREE_PH:
+            return [
+                Phase[PFPhase3PH.A.name],
+                Phase[PFPhase3PH.B.name],
+                Phase[PFPhase3PH.C.name],
+            ]
+        if phase_connection_type is TerminalPhaseConnectionType.THREE_PH_N:
+            return [
+                Phase[PFPhase3PH.A.name],
+                Phase[PFPhase3PH.B.name],
+                Phase[PFPhase3PH.C.name],
+                Phase[PFPhase3PH.N.name],
+            ]
+        if phase_connection_type is TerminalPhaseConnectionType.TWO_PH:
+            return [
+                Phase[PFPhase2PH.A.name],
+                Phase[PFPhase2PH.B.name],
+            ]
+        if phase_connection_type is TerminalPhaseConnectionType.TWO_PH_N:
+            return [
+                Phase[PFPhase2PH.A.name],
+                Phase[PFPhase2PH.B.name],
+                Phase[PFPhase2PH.N.name],
+            ]
+        if phase_connection_type is TerminalPhaseConnectionType.ONE_PH:
+            return [Phase[PFPhase1PH.A.name]]
+        if phase_connection_type is TerminalPhaseConnectionType.ONE_PH_N:
+            return [
+                Phase[PFPhase1PH.A.name],
+                Phase[PFPhase1PH.N.name],
+            ]
+        if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
+            msg = "Implementation unclear. Please extend exporter by your own."
+            raise RuntimeError(msg)
+        msg = "unreachable"
+        raise RuntimeError(msg)
+
+    def get_external_grid_phases(
         self,
         *,
         phase_connection_type: TerminalPhaseConnectionType,
         bus: PFTypes.StationCubicle,
-    ) -> PhaseConnections:
+    ) -> UniqueTuple[Phase]:
         if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                    [Phase[PFPhase(phases[1]).name], Phase.E],
-                    [Phase[PFPhase(phases[2]).name], Phase.E],
-                ],
-            )
+            return [
+                Phase[PFPhase3PH(phases[0]).name],
+                Phase[PFPhase3PH(phases[1]).name],
+                Phase[PFPhase3PH(phases[2]).name],
+            ]
+
         if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                    [Phase[PFPhase(phases[1]).name], Phase.E],
-                ],
-            )
+            phases = textwrap.wrap(bus.cPhInfo, 3)
+            return [
+                Phase[PFPhase2PH(phases[0]).name],
+                Phase[PFPhase2PH(phases[1]).name],
+            ]
         if phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                ],
-            )
+            return [Phase[PFPhase1PH(phases[0]).name]]
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
-            phases = textwrap.wrap(bus.cPhInfo, 2)
-            return PhaseConnections(
-                values=[
-                    [Phase[PFPhase(phases[0]).name], Phase.E],
-                    [Phase[PFPhase(phases[1]).name], Phase.E],
-                ],
-            )
+            msg = "Implementation unclear. Please extend exporter by your own."
+            raise RuntimeError(msg)
         msg = "unreachable"
         raise RuntimeError(msg)
+
+    def get_transformer2w_3ph_phases(  # may adapt in future
+        self,
+        *,
+        winding_vector_group: WVectorGroup,
+        bus: PFTypes.StationCubicle,  # noqa: ARG002
+    ) -> UniqueTuple[Phase]:
+        phases_tuple = [
+            Phase[PFPhase3PH.A.name],
+            Phase[PFPhase3PH.B.name],
+            Phase[PFPhase3PH.C.name],
+        ]
+        if winding_vector_group in (WVectorGroup.Y, WVectorGroup.YN):
+            phases_tuple = [*phases_tuple, Phase.N]
+
+        return phases_tuple
 
 
 def export_powerfactory_data(  # noqa: PLR0913

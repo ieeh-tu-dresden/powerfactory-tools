@@ -55,8 +55,8 @@ During an active connection, the following units apply:
   + `ElmLne` - a symmetrical overhead line / cable  
   + `ElmTerm` - a network terminal / bus
   + `ElmCoup` - a bus-bus switch (e.g. a circuit breaker in a detailed switching gear)
-  + `ElmTr2` - 2-winding transformers
-  + `ElmTr3` - 3-winding transformers (in future releases)
+  + `ElmTr2` - a symmetrical 2-winding transformers
+  + `ElmTr3` - a symmetrical 3-winding transformers (in future releases)
   + `ElmLod` - a general load (asym. / sym.)
   + `ElmLodMv` - a medium voltage load
   + `ElmLodLv` - a low voltage load

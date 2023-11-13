@@ -32,6 +32,7 @@ class DecimalDigits:
     ADMITTANCE: int = 13
     ANGLE: int = 5
     CURRENT: int = 2
+    FREQUENCY: int = 4
     IMPEDANCE: int = 7
     POWER: int = 1
     POWERFACTOR: int = 7

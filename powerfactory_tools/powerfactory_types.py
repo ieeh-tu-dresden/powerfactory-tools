@@ -401,10 +401,21 @@ class UnitSystem(enum.IntEnum):
     ENG_INDUSTRY = 2
 
 
-class Phase(enum.Enum):
+class Phase3PH(enum.Enum):
     A = "L1"
     B = "L2"
     C = "L3"
+    N = "N"
+
+
+class Phase2PH(enum.Enum):
+    A = "DP1"
+    B = "DP2"
+    N = "N"
+
+
+class Phase1PH(enum.Enum):
+    A = "SP"
     N = "N"
 
 
@@ -644,8 +655,8 @@ class PowerFactoryTypes:
 
     class LoadType(DataObject, Protocol):  # PFClassId.LOAD_TYPE_GENERAL
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
-        systp: VoltageSystemType
-        phtech: LoadPhaseConnectionType
+        systp: Literal[0, 1]  # VoltageSystemType
+        phtech: str  # LoadPhaseConnectionType
 
         aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
@@ -661,7 +672,7 @@ class PowerFactoryTypes:
         kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
         kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
 
-        i_crsc: HarmonicLoadModelType
+        i_crsc: Literal[0, 1, 2]  # HarmonicLoadModelType
         i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
@@ -679,9 +690,10 @@ class PowerFactoryTypes:
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
 
-        nneutral: bool  # no. of neutral conductors
+        nlnph: float  # no. of phase conducters
+        nneutral: float  # no. of neutral conductors
 
-        systp: VoltageSystemType
+        systp: Literal[0, 1]  # VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
     class LineNType(LineType, Protocol):
@@ -703,6 +715,7 @@ class PowerFactoryTypes:
         strn: float  # rated power
         uktr: float  # short-circuit voltage in percentage (pos. seq.)
         uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
+        ur0tr: float  # real part of uk0tr
         r1pu: float
         r0pu: float
         x1pu: float
@@ -717,12 +730,12 @@ class PowerFactoryTypes:
         zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
         x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
 
-        vecgrp: VectorGroup
+        vecgrp: str  # VectorGroup
         tr2cn_l: Vector  # vector at LV side
         tr2cn_h: Vector  # vector at HV side
         nt2ag: float
 
-        tap_side: TrfTapSide
+        tap_side: Literal[0, 1]  # TrfTapSide
         ntpmn: int
         ntpmx: int
         nntap0: int
@@ -731,7 +744,7 @@ class PowerFactoryTypes:
         itapch: int
         itapch2: int
 
-        nt2ph: TrfPhaseTechnology
+        nt2ph: Literal[1, 2, 3]  # TrfPhaseTechnology
 
     class Transformer3WType(DataObject, Protocol):  # PFClassId.TRANSFORMER_3W_TYPE
         ...
@@ -769,7 +782,7 @@ class PowerFactoryTypes:
         ciEnergized: bool  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: NodeType  # noqa: N815
+        iUsage: Literal[0, 1, 2]  # NodeType  # noqa: N815
         outserv: bool
         cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
@@ -790,9 +803,9 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.Transformer2WType | None
         nntap: int
 
-        cneutcon: TrfNeutralConnectionType
-        cgnd_h: TrfNeutralPointState
-        cgnd_l: TrfNeutralPointState
+        cneutcon: Literal[0, 1, 2, 3, 4]  # TrfNeutralConnectionType
+        cgnd_h: Literal[0, 1]  # TrfNeutralPointState
+        cgnd_l: Literal[0, 1]  # TrfNeutralPointState
         cpeter_h: bool
         cpeter_l: bool
         re0tr_h: float

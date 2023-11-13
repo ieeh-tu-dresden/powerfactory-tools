@@ -7,7 +7,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model==2.0.1",
+    "ieeh-power-system-data-model @ git+https://github.com/ieeh-tu-dresden/power-system-data-model.git@sasanjac/90-feat-specify-system-for-quantities",
     "loguru",
     "pydantic>=2.1.1",
   ]

@@ -12,15 +12,12 @@ import typing as t
 from dataclasses import dataclass
 
 import loguru
-from psdm.quantities import ActivePower
-from psdm.quantities import Angle
-from psdm.quantities import ApparentPower
-from psdm.quantities import Current
-from psdm.quantities import Droop
-from psdm.quantities import PowerFactor
-from psdm.quantities import PowerFactorDirection
-from psdm.quantities import ReactivePower
-from psdm.quantities import Voltage
+from psdm.quantities.multi_phase import ActivePower
+from psdm.quantities.multi_phase import ApparentPower
+from psdm.quantities.multi_phase import PowerFactor
+from psdm.quantities.multi_phase import ReactivePower
+from psdm.quantities.single_phase import PowerFactorDirection
+from psdm.quantities.single_phase import SystemType
 from psdm.steadystate_case.characteristic import Characteristic
 from psdm.steadystate_case.controller import ControlCosPhiConst
 from psdm.steadystate_case.controller import ControlCosPhiP
@@ -37,6 +34,11 @@ from psdm.topology.load import RatedPower
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
+from powerfactory_tools.quantities import sym_three_phase_active_power
+from powerfactory_tools.quantities import sym_three_phase_droop
+from powerfactory_tools.quantities import sym_three_phase_power_factor
+from powerfactory_tools.quantities import sym_three_phase_reactive_power
+from powerfactory_tools.quantities import sym_three_phase_voltage
 
 if t.TYPE_CHECKING:
     from typing import TypedDict
@@ -48,70 +50,6 @@ if t.TYPE_CHECKING:
         cos_phi: float
         power_factor_direction: PowerFactorDirection
         power_reactive_control_type: QControlStrategy
-
-
-def _sym_three_phase_no_power(value: float) -> tuple[float, float, float]:
-    return (value, value, value)
-
-
-def _sym_three_phase_power(value: float) -> tuple[float, float, float]:
-    return (value / 3, value / 3, value / 3)
-
-
-def create_sym_three_phase_angle(value: float) -> Angle:
-    values = _sym_three_phase_no_power(value)
-    return Angle(
-        values=[round(v, DecimalDigits.ANGLE) for v in values],
-    )
-
-
-def create_sym_three_phase_active_power(value: float) -> ActivePower:
-    values = _sym_three_phase_power(value)
-    return ActivePower(
-        values=[round(v, DecimalDigits.POWER) for v in values],
-    )
-
-
-def create_sym_three_phase_apparent_power(value: float) -> ApparentPower:
-    values = _sym_three_phase_power(value)
-    return ApparentPower(
-        values=[round(v, DecimalDigits.POWER) for v in values],
-    )
-
-
-def create_sym_three_phase_current(value: float) -> Current:
-    values = _sym_three_phase_no_power(value)
-    return Current(
-        values=[round(v, DecimalDigits.CURRENT) for v in values],
-    )
-
-
-def create_sym_three_phase_droop(value: float) -> Droop:
-    values = _sym_three_phase_no_power(value)
-    return Droop(
-        values=[round(v, DecimalDigits.PU) for v in values],
-    )
-
-
-def create_sym_three_phase_power_factor(value: float) -> PowerFactor:
-    values = _sym_three_phase_no_power(value)
-    return PowerFactor(
-        values=[round(v, DecimalDigits.POWERFACTOR) for v in values],
-    )
-
-
-def create_sym_three_phase_reactive_power(value: float) -> ReactivePower:
-    values = _sym_three_phase_power(value)
-    return ReactivePower(
-        values=[round(v, DecimalDigits.POWER) for v in values],
-    )
-
-
-def create_sym_three_phase_voltage(value: float) -> Voltage:
-    values = _sym_three_phase_no_power(value)
-    return Voltage(
-        values=[round(v, DecimalDigits.VOLTAGE) for v in values],
-    )
 
 
 class ConsolidatedLoadPhaseConnectionType(enum.Enum):
@@ -774,15 +712,24 @@ class LoadPower:
         )
 
     def as_active_power_ssc(self) -> ActivePower:
-        return ActivePower(values=(round(e, DecimalDigits.POWER) for e in self.pow_acts))
+        return ActivePower(
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_acts),
+            system_type=SystemType.NATURAL,
+        )
 
     def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
-        return ReactivePower(values=(round(e, DecimalDigits.POWER) for e in self.pow_reacts))
+        return ReactivePower(
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_reacts),
+            system_type=SystemType.NATURAL,
+        )
 
     def as_rated_power(self) -> RatedPower:
-        pow_apps = ApparentPower(values=(round(e, DecimalDigits.POWER) for e in self.pow_apps))
-        cos_phis = PowerFactor(values=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
+        pow_apps = ApparentPower(
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
+            system_type=SystemType.NATURAL,
+        )
+        cos_phis = PowerFactor(value=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
 
     def limit_phases(self, n_phases: int) -> LoadPower:
@@ -814,7 +761,7 @@ class ControlType:
     def create_cos_phi_const(power: LoadPower) -> ControlCosPhiConst:
         return ControlCosPhiConst(
             cos_phi_set=PowerFactor(
-                values=(round(e, DecimalDigits.POWERFACTOR) for e in power.cos_phis),
+                value=(round(e, DecimalDigits.POWERFACTOR) for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -823,7 +770,7 @@ class ControlType:
     def create_tan_phi_const(power: LoadPower) -> ControlTanPhiConst:
         return ControlTanPhiConst(
             tan_phi_set=PowerFactor(
-                values=(round(math.tan(math.acos(e)), DecimalDigits.POWERFACTOR) for e in power.cos_phis),
+                value=(round(math.tan(math.acos(e)), DecimalDigits.POWERFACTOR) for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -839,13 +786,13 @@ class ControlType:
         q_max_oe: float,
     ) -> ControlQU:
         return ControlQU(
-            droop_up=create_sym_three_phase_droop(droop_up),
-            droop_low=create_sym_three_phase_droop(droop_low),
-            u_q0=create_sym_three_phase_voltage(u_q0),
-            u_deadband_low=create_sym_three_phase_voltage(u_deadband_low),
-            u_deadband_up=create_sym_three_phase_voltage(u_deadband_up),
-            q_max_ue=create_sym_three_phase_reactive_power(q_max_ue),
-            q_max_oe=create_sym_three_phase_reactive_power(q_max_oe),
+            droop_up=sym_three_phase_droop(droop_up),
+            droop_low=sym_three_phase_droop(droop_low),
+            u_q0=sym_three_phase_voltage(u_q0),
+            u_deadband_low=sym_three_phase_voltage(u_deadband_low),
+            u_deadband_up=sym_three_phase_voltage(u_deadband_up),
+            q_max_ue=sym_three_phase_reactive_power(q_max_ue),
+            q_max_oe=sym_three_phase_reactive_power(q_max_oe),
         )
 
     @staticmethod
@@ -856,10 +803,10 @@ class ControlType:
         p_threshold_oe: float,
     ) -> ControlCosPhiP:
         return ControlCosPhiP(
-            cos_phi_ue=create_sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=create_sym_three_phase_power_factor(cos_phi_oe),
-            p_threshold_ue=create_sym_three_phase_active_power(p_threshold_ue),
-            p_threshold_oe=create_sym_three_phase_active_power(p_threshold_oe),
+            cos_phi_ue=sym_three_phase_power_factor(cos_phi_ue),
+            cos_phi_oe=sym_three_phase_power_factor(cos_phi_oe),
+            p_threshold_ue=sym_three_phase_active_power(p_threshold_ue),
+            p_threshold_oe=sym_three_phase_active_power(p_threshold_oe),
         )
 
     @staticmethod
@@ -870,10 +817,10 @@ class ControlType:
         u_threshold_oe: float,
     ) -> ControlCosPhiU:
         return ControlCosPhiU(
-            cos_phi_ue=create_sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=create_sym_three_phase_power_factor(cos_phi_oe),
-            u_threshold_ue=create_sym_three_phase_voltage(u_threshold_ue),
-            u_threshold_oe=create_sym_three_phase_voltage(u_threshold_oe),
+            cos_phi_ue=sym_three_phase_power_factor(cos_phi_ue),
+            cos_phi_oe=sym_three_phase_power_factor(cos_phi_oe),
+            u_threshold_ue=sym_three_phase_voltage(u_threshold_ue),
+            u_threshold_oe=sym_three_phase_voltage(u_threshold_oe),
         )
 
     @staticmethod
@@ -883,9 +830,9 @@ class ControlType:
         q_max_oe: float | None,
     ) -> ControlQP:
         if q_max_ue is not None:
-            q_max_ue = create_sym_three_phase_reactive_power(q_max_ue)
+            q_max_ue = sym_three_phase_reactive_power(q_max_ue)
         if q_max_oe is not None:
-            q_max_oe = create_sym_three_phase_reactive_power(q_max_oe)
+            q_max_oe = sym_three_phase_reactive_power(q_max_oe)
         return ControlQP(
             q_p_characteristic=Characteristic(name=q_p_characteristic_name),
             q_max_ue=q_max_ue,
@@ -899,10 +846,10 @@ class ControlType:
     ) -> ControlUConst:
         if u_meas_ref is not None:
             return ControlUConst(
-                u_set=create_sym_three_phase_voltage(u_set),
+                u_set=sym_three_phase_voltage(u_set),
                 u_meas_ref=u_meas_ref,
             )
-        return ControlUConst(u_set=create_sym_three_phase_voltage(u_set))
+        return ControlUConst(u_set=sym_three_phase_voltage(u_set))
 
     @staticmethod
     def transform_qu_slope(
