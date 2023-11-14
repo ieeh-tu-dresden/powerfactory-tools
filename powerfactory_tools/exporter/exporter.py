@@ -94,15 +94,7 @@ from powerfactory_tools.powerfactory_types import TrfTapSide
 from powerfactory_tools.powerfactory_types import Vector
 from powerfactory_tools.powerfactory_types import VectorGroup
 from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
-from powerfactory_tools.quantities import single_phase_angle
-from powerfactory_tools.quantities import single_phase_apparent_power
-from powerfactory_tools.quantities import single_phase_current
-from powerfactory_tools.quantities import single_phase_frequency
-from powerfactory_tools.quantities import single_phase_voltage
-from powerfactory_tools.quantities import sym_three_phase_active_power
-from powerfactory_tools.quantities import sym_three_phase_angle
-from powerfactory_tools.quantities import sym_three_phase_reactive_power
-from powerfactory_tools.quantities import sym_three_phase_voltage
+from powerfactory_tools.quantities import QuantityConverter as Qc
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -531,8 +523,8 @@ class PowerFactoryExporter:
             node=node_name,
             phases=phases,
             type=GridType(ext_grid.bustp),
-            short_circuit_power_max=single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
-            short_circuit_power_min=single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
+            short_circuit_power_max=Qc.single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
+            short_circuit_power_min=Qc.single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
         )
 
     def create_nodes(
@@ -560,7 +552,7 @@ class PowerFactoryExporter:
             loguru.logger.warning("Node {node_name} not set for export. Skipping.", node_name=name)
             return None
 
-        u_n = single_phase_voltage(terminal.uknom * Exponents.VOLTAGE)  # phase-phase voltage
+        u_n = Qc.single_phase_voltage(terminal.uknom * Exponents.VOLTAGE)  # phase-phase voltage
 
         if self.pfi.is_within_substation(terminal):
             description = (
@@ -705,10 +697,10 @@ class PowerFactoryExporter:
             bn=AdmittanceNat(value=round(bn, DecimalDigits.ADMITTANCE)) if bn is not None else None,
             gpn=AdmittanceNat(value=round(gpn, DecimalDigits.ADMITTANCE)) if gpn is not None else None,
             bpn=AdmittanceNat(value=round(bpn, DecimalDigits.ADMITTANCE)) if bpn is not None else None,
-            i_r=single_phase_current(i_r),
+            i_r=Qc.single_phase_current(i_r),
             description=description,
-            u_n=single_phase_voltage(u_nom),
-            f_n=single_phase_frequency(f_nom),
+            u_n=Qc.single_phase_voltage(u_nom),
+            f_n=Qc.single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
         )
@@ -794,9 +786,9 @@ class PowerFactoryExporter:
             x1=ImpedancePosSeq(value=x1),
             g1=AdmittancePosSeq(value=g1),
             b1=AdmittancePosSeq(value=b1),
-            i_r=single_phase_current(i_r) if i_r is not None else None,
+            i_r=Qc.single_phase_current(i_r) if i_r is not None else None,
             description=description,
-            u_n=single_phase_voltage(u_nom),
+            u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
         )
@@ -874,9 +866,9 @@ class PowerFactoryExporter:
             x1=ImpedancePosSeq(value=x1),
             g1=AdmittancePosSeq(value=g1),
             b1=AdmittancePosSeq(value=b1),
-            i_r=single_phase_current(i_r) if i_r is not None else None,
+            i_r=Qc.single_phase_current(i_r) if i_r is not None else None,
             description=description,
-            u_n=single_phase_voltage(u_nom),
+            u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
         )
@@ -1054,9 +1046,9 @@ class PowerFactoryExporter:
             # winding of high-voltage side
             wh = Winding(
                 node=t_high_name,
-                s_r=single_phase_apparent_power(s_r),
-                u_r=single_phase_voltage(u_ref_h),
-                u_n=single_phase_voltage(u_nom_h),
+                s_r=Qc.single_phase_apparent_power(s_r),
+                u_r=Qc.single_phase_voltage(u_ref_h),
+                u_n=Qc.single_phase_voltage(u_nom_h),
                 r1=ImpedancePosSeq(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
                 r0=ImpedanceZerSeq(value=round(r_0_h, DecimalDigits.IMPEDANCE)) if r_0_h is not None else None,
                 x1=ImpedancePosSeq(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
@@ -1071,9 +1063,9 @@ class PowerFactoryExporter:
             # winding of low-voltage side
             wl = Winding(
                 node=t_low_name,
-                s_r=single_phase_apparent_power(s_r),
-                u_r=single_phase_voltage(u_ref_l),
-                u_n=single_phase_voltage(u_nom_l),
+                s_r=Qc.single_phase_apparent_power(s_r),
+                u_r=Qc.single_phase_voltage(u_ref_l),
+                u_n=Qc.single_phase_voltage(u_nom_l),
                 r1=ImpedancePosSeq(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
                 r0=ImpedanceZerSeq(value=round(r_0_l, DecimalDigits.IMPEDANCE)) if r_0_l is not None else None,
                 x1=ImpedancePosSeq(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
@@ -1097,8 +1089,8 @@ class PowerFactoryExporter:
                 r_fe0=ImpedanceZerSeq(value=round(r_fe_0, DecimalDigits.IMPEDANCE)) if r_fe_0 is not None else None,
                 x_h0=ImpedanceZerSeq(value=round(x_h_0, DecimalDigits.IMPEDANCE)) if x_h_0 is not None else None,
                 vector_group=vector_group,
-                tap_u_mag=single_phase_voltage(tap_u_mag) if tap_u_mag is not None else None,
-                tap_u_phi=single_phase_angle(tap_u_phi) if tap_u_phi is not None else None,
+                tap_u_mag=Qc.single_phase_voltage(tap_u_mag) if tap_u_mag is not None else None,
+                tap_u_phi=Qc.single_phase_angle(tap_u_phi) if tap_u_phi is not None else None,
                 tap_min=tap_min,
                 tap_max=tap_max,
                 tap_neutral=tap_neutral,
@@ -1588,7 +1580,7 @@ class PowerFactoryExporter:
         specifier: t.Literal["p", "q"],
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
-        u_0 = sym_three_phase_voltage(u_0)
+        u_0 = Qc.sym_three_phase_voltage(u_0)
         load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
         if load_type is not None:
             if load_type.loddy != FULL_DYNAMIC:
@@ -2229,8 +2221,8 @@ class PowerFactoryExporter:
             u_0 = ext_grid.usetp * ext_grid.bus1.cterm.uknom * Exponents.VOLTAGE  # sym line-to-line voltage
             return ExternalGridSSC(
                 name=name,
-                u_0=sym_three_phase_voltage(u_0),
-                phi_0=sym_three_phase_angle(ext_grid.phiini),
+                u_0=Qc.sym_three_phase_voltage(u_0),
+                phi_0=Qc.sym_three_phase_angle(ext_grid.phiini),
             )
 
         if g_type == GridType.PV:
@@ -2238,8 +2230,8 @@ class PowerFactoryExporter:
             p_0 = ext_grid.pgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                u_0=sym_three_phase_voltage(u_0),
-                p_0=sym_three_phase_active_power(p_0),
+                u_0=Qc.sym_three_phase_voltage(u_0),
+                p_0=Qc.sym_three_phase_active_power(p_0),
             )
 
         if g_type == GridType.PQ:
@@ -2247,8 +2239,8 @@ class PowerFactoryExporter:
             q_0 = ext_grid.qgini * Exponents.POWER
             return ExternalGridSSC(
                 name=name,
-                p_0=sym_three_phase_active_power(p_0),
-                q_0=sym_three_phase_reactive_power(q_0),
+                p_0=Qc.sym_three_phase_active_power(p_0),
+                q_0=Qc.sym_three_phase_reactive_power(q_0),
             )
 
         return ExternalGridSSC(name=name)
@@ -3669,15 +3661,15 @@ class PowerFactoryExporter:
         winding_vector_group: WVectorGroup,
         bus: PFTypes.StationCubicle,  # noqa: ARG002
     ) -> UniqueTuple[Phase]:
-        phases_tuple = [
+        phases = [
             Phase[PFPhase3PH.A.name],
             Phase[PFPhase3PH.B.name],
             Phase[PFPhase3PH.C.name],
         ]
         if winding_vector_group in (WVectorGroup.YN, WVectorGroup.ZN):
-            phases_tuple = [*phases_tuple, Phase.N]
+            phases = [*phases, Phase.N]
 
-        return phases_tuple
+        return phases
 
 
 def export_powerfactory_data(  # noqa: PLR0913
