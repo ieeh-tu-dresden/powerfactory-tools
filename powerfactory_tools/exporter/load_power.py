@@ -34,11 +34,7 @@ from psdm.topology.load import RatedPower
 
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
-from powerfactory_tools.quantities import sym_three_phase_active_power
-from powerfactory_tools.quantities import sym_three_phase_droop
-from powerfactory_tools.quantities import sym_three_phase_power_factor
-from powerfactory_tools.quantities import sym_three_phase_reactive_power
-from powerfactory_tools.quantities import sym_three_phase_voltage
+from powerfactory_tools.quantities import QuantityConverter as Qc
 
 if t.TYPE_CHECKING:
     from typing import TypedDict
@@ -786,13 +782,13 @@ class ControlType:
         q_max_oe: float,
     ) -> ControlQU:
         return ControlQU(
-            droop_up=sym_three_phase_droop(droop_up),
-            droop_low=sym_three_phase_droop(droop_low),
-            u_q0=sym_three_phase_voltage(u_q0),
-            u_deadband_low=sym_three_phase_voltage(u_deadband_low),
-            u_deadband_up=sym_three_phase_voltage(u_deadband_up),
-            q_max_ue=sym_three_phase_reactive_power(q_max_ue),
-            q_max_oe=sym_three_phase_reactive_power(q_max_oe),
+            droop_up=Qc.sym_three_phase_droop(droop_up),
+            droop_low=Qc.sym_three_phase_droop(droop_low),
+            u_q0=Qc.sym_three_phase_voltage(u_q0),
+            u_deadband_low=Qc.sym_three_phase_voltage(u_deadband_low),
+            u_deadband_up=Qc.sym_three_phase_voltage(u_deadband_up),
+            q_max_ue=Qc.sym_three_phase_reactive_power(q_max_ue),
+            q_max_oe=Qc.sym_three_phase_reactive_power(q_max_oe),
         )
 
     @staticmethod
@@ -803,10 +799,10 @@ class ControlType:
         p_threshold_oe: float,
     ) -> ControlCosPhiP:
         return ControlCosPhiP(
-            cos_phi_ue=sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=sym_three_phase_power_factor(cos_phi_oe),
-            p_threshold_ue=sym_three_phase_active_power(p_threshold_ue),
-            p_threshold_oe=sym_three_phase_active_power(p_threshold_oe),
+            cos_phi_ue=Qc.sym_three_phase_power_factor(cos_phi_ue),
+            cos_phi_oe=Qc.sym_three_phase_power_factor(cos_phi_oe),
+            p_threshold_ue=Qc.sym_three_phase_active_power(p_threshold_ue),
+            p_threshold_oe=Qc.sym_three_phase_active_power(p_threshold_oe),
         )
 
     @staticmethod
@@ -817,10 +813,10 @@ class ControlType:
         u_threshold_oe: float,
     ) -> ControlCosPhiU:
         return ControlCosPhiU(
-            cos_phi_ue=sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=sym_three_phase_power_factor(cos_phi_oe),
-            u_threshold_ue=sym_three_phase_voltage(u_threshold_ue),
-            u_threshold_oe=sym_three_phase_voltage(u_threshold_oe),
+            cos_phi_ue=Qc.sym_three_phase_power_factor(cos_phi_ue),
+            cos_phi_oe=Qc.sym_three_phase_power_factor(cos_phi_oe),
+            u_threshold_ue=Qc.sym_three_phase_voltage(u_threshold_ue),
+            u_threshold_oe=Qc.sym_three_phase_voltage(u_threshold_oe),
         )
 
     @staticmethod
@@ -830,9 +826,9 @@ class ControlType:
         q_max_oe: float | None,
     ) -> ControlQP:
         if q_max_ue is not None:
-            q_max_ue = sym_three_phase_reactive_power(q_max_ue)
+            q_max_ue = Qc.sym_three_phase_reactive_power(q_max_ue)
         if q_max_oe is not None:
-            q_max_oe = sym_three_phase_reactive_power(q_max_oe)
+            q_max_oe = Qc.sym_three_phase_reactive_power(q_max_oe)
         return ControlQP(
             q_p_characteristic=Characteristic(name=q_p_characteristic_name),
             q_max_ue=q_max_ue,
@@ -846,10 +842,10 @@ class ControlType:
     ) -> ControlUConst:
         if u_meas_ref is not None:
             return ControlUConst(
-                u_set=sym_three_phase_voltage(u_set),
+                u_set=Qc.sym_three_phase_voltage(u_set),
                 u_meas_ref=u_meas_ref,
             )
-        return ControlUConst(u_set=sym_three_phase_voltage(u_set))
+        return ControlUConst(u_set=Qc.sym_three_phase_voltage(u_set))
 
     @staticmethod
     def transform_qu_slope(
