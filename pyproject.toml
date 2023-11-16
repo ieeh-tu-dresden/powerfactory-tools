@@ -4,10 +4,11 @@
     { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
 
+    { name = "Laura Fiedler", email = "laura.fiedler@tu-dresden.de" },
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model @ git+https://github.com/ieeh-tu-dresden/power-system-data-model.git@sasanjac/90-feat-specify-system-for-quantities",
+    "ieeh-power-system-data-model @ git+https://github.com/ieeh-tu-dresden/power-system-data-model.git@main",
     "loguru",
     "pydantic>=2.1.1",
   ]
