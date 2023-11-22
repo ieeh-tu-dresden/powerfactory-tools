@@ -66,7 +66,7 @@ from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
 from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.exporter.load_power import ControlType
+from powerfactory_tools.exporter.load_power import ControlTypeFactory
 from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
@@ -681,22 +681,22 @@ class PowerFactoryExporter:
             node_2=t2_name,
             phases_1=phases_1,
             phases_2=phases_2,
-            r1=ImpedancePosSeq(value=round(r1, DecimalDigits.IMPEDANCE)),
-            x1=ImpedancePosSeq(value=round(x1, DecimalDigits.IMPEDANCE)),
-            r0=ImpedanceZerSeq(value=round(r0, DecimalDigits.IMPEDANCE)),
-            x0=ImpedanceZerSeq(value=round(x0, DecimalDigits.IMPEDANCE)),
-            g1=AdmittancePosSeq(value=round(g1, DecimalDigits.ADMITTANCE)),
-            b1=AdmittancePosSeq(value=round(b1, DecimalDigits.ADMITTANCE)),
-            g0=AdmittanceZerSeq(value=round(g0, DecimalDigits.ADMITTANCE)),
-            b0=AdmittanceZerSeq(value=round(b0, DecimalDigits.ADMITTANCE)),
-            rn=ImpedanceNat(value=round(rn, DecimalDigits.IMPEDANCE)) if rn is not None else None,
-            xn=ImpedanceNat(value=round(xn, DecimalDigits.IMPEDANCE)) if xn is not None else None,
-            rpn=ImpedanceNat(value=round(rpn, DecimalDigits.IMPEDANCE)) if rpn is not None else None,
-            xpn=ImpedanceNat(value=round(xpn, DecimalDigits.IMPEDANCE)) if xpn is not None else None,
-            gn=AdmittanceNat(value=round(gn, DecimalDigits.ADMITTANCE)) if gn is not None else None,
-            bn=AdmittanceNat(value=round(bn, DecimalDigits.ADMITTANCE)) if bn is not None else None,
-            gpn=AdmittanceNat(value=round(gpn, DecimalDigits.ADMITTANCE)) if gpn is not None else None,
-            bpn=AdmittanceNat(value=round(bpn, DecimalDigits.ADMITTANCE)) if bpn is not None else None,
+            r1=ImpedancePosSeq(value=r1),
+            x1=ImpedancePosSeq(value=x1),
+            r0=ImpedanceZerSeq(value=r0),
+            x0=ImpedanceZerSeq(value=x0),
+            g1=AdmittancePosSeq(value=g1),
+            b1=AdmittancePosSeq(value=b1),
+            g0=AdmittanceZerSeq(value=g0),
+            b0=AdmittanceZerSeq(value=b0),
+            rn=ImpedanceNat(value=rn) if rn is not None else None,
+            xn=ImpedanceNat(value=xn) if xn is not None else None,
+            rpn=ImpedanceNat(value=rpn) if rpn is not None else None,
+            xpn=ImpedanceNat(value=xpn) if xpn is not None else None,
+            gn=AdmittanceNat(value=gn) if gn is not None else None,
+            bn=AdmittanceNat(value=bn) if bn is not None else None,
+            gpn=AdmittanceNat(value=gpn) if gpn is not None else None,
+            bpn=AdmittanceNat(value=bpn) if bpn is not None else None,
             i_r=Qc.single_phase_current(i_r),
             description=description,
             u_n=Qc.single_phase_voltage(u_nom),
@@ -978,8 +978,8 @@ class PowerFactoryExporter:
             ph_technology = TransformerPhaseTechnologyType[TrfPhaseTechnology(t_type.nt2ph).name]
 
             # Rated Voltage of the transformer_2w windings itself (CIM: ratedU)
-            u_ref_h = round(t_type.utrn_h * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # V
-            u_ref_l = round(t_type.utrn_l * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
+            u_ref_h = t_type.utrn_h * Exponents.VOLTAGE  # V
+            u_ref_l = t_type.utrn_l * Exponents.VOLTAGE
 
             # Nominal Voltage of connected nodes (CIM: BaseVoltage)
             u_nom_h = transformer_2w.bushv.cterm.uknom * Exponents.VOLTAGE  # V
@@ -1011,7 +1011,7 @@ class PowerFactoryExporter:
 
             # Rated values
             s_r = round(t_type.strn * Exponents.POWER, DecimalDigits.POWER)  # VA
-            pu2abs = u_ref_h**2 / s_r  # do only compute with rounded values to prevent float uncertaincy errors
+            pu2abs = u_ref_h**2 / s_r  # do only compute with rounded values to prevent float uncertainty errors
 
             r_fe_1, x_h_1, r_fe_0, x_h_0 = self.get_transformer2w_magnetising_impedance(
                 t_type=t_type,
@@ -1049,12 +1049,12 @@ class PowerFactoryExporter:
                 s_r=Qc.single_phase_apparent_power(s_r),
                 u_r=Qc.single_phase_voltage(u_ref_h),
                 u_n=Qc.single_phase_voltage(u_nom_h),
-                r1=ImpedancePosSeq(value=round(r_1_h, DecimalDigits.IMPEDANCE)),
-                r0=ImpedanceZerSeq(value=round(r_0_h, DecimalDigits.IMPEDANCE)) if r_0_h is not None else None,
-                x1=ImpedancePosSeq(value=round(x_1_h, DecimalDigits.IMPEDANCE)),
-                x0=ImpedanceZerSeq(value=round(x_0_h, DecimalDigits.IMPEDANCE)) if x_0_h is not None else None,
-                re=ImpedanceNat(value=round(re_h, DecimalDigits.IMPEDANCE)) if re_h is not None else None,
-                xe=ImpedanceNat(value=round(xe_h, DecimalDigits.IMPEDANCE)) if xe_h is not None else None,
+                r1=ImpedancePosSeq(value=r_1_h),
+                r0=ImpedanceZerSeq(value=r_0_h) if r_0_h is not None else None,
+                x1=ImpedancePosSeq(value=x_1_h),
+                x0=ImpedanceZerSeq(value=x_0_h) if x_0_h is not None else None,
+                re=ImpedanceNat(value=re_h) if re_h is not None else None,
+                xe=ImpedanceNat(value=xe_h) if xe_h is not None else None,
                 vector_group=vector_group_h,
                 phase_angle_clock=PhaseAngleClock(value=0),
                 neutral_connected=neutral_connected_h,
@@ -1066,12 +1066,12 @@ class PowerFactoryExporter:
                 s_r=Qc.single_phase_apparent_power(s_r),
                 u_r=Qc.single_phase_voltage(u_ref_l),
                 u_n=Qc.single_phase_voltage(u_nom_l),
-                r1=ImpedancePosSeq(value=round(r_1_l, DecimalDigits.IMPEDANCE)),
-                r0=ImpedanceZerSeq(value=round(r_0_l, DecimalDigits.IMPEDANCE)) if r_0_l is not None else None,
-                x1=ImpedancePosSeq(value=round(x_1_l, DecimalDigits.IMPEDANCE)),
-                x0=ImpedanceZerSeq(value=round(x_0_l, DecimalDigits.IMPEDANCE)) if x_0_l is not None else None,
-                re=ImpedanceNat(value=round(re_l, DecimalDigits.IMPEDANCE)) if re_l is not None else None,
-                xe=ImpedanceNat(value=round(xe_l, DecimalDigits.IMPEDANCE)) if xe_l is not None else None,
+                r1=ImpedancePosSeq(value=r_1_l),
+                r0=ImpedanceZerSeq(value=r_0_l) if r_0_l is not None else None,
+                x1=ImpedancePosSeq(value=x_1_l),
+                x0=ImpedanceZerSeq(value=x_0_l) if x_0_l is not None else None,
+                re=ImpedanceNat(value=re_l) if re_l is not None else None,
+                xe=ImpedanceNat(value=xe_l) if xe_l is not None else None,
                 vector_group=vector_group_l,
                 phase_angle_clock=PhaseAngleClock(value=int(vector_phase_angle_clock)),
                 neutral_connected=neutral_connected_l,
@@ -1084,10 +1084,10 @@ class PowerFactoryExporter:
                 phases_2=phases_2,
                 name=name,
                 number=t_number,
-                r_fe1=ImpedancePosSeq(value=round(r_fe_1, DecimalDigits.IMPEDANCE)),
-                x_h1=ImpedancePosSeq(value=round(x_h_1, DecimalDigits.IMPEDANCE)),
-                r_fe0=ImpedanceZerSeq(value=round(r_fe_0, DecimalDigits.IMPEDANCE)) if r_fe_0 is not None else None,
-                x_h0=ImpedanceZerSeq(value=round(x_h_0, DecimalDigits.IMPEDANCE)) if x_h_0 is not None else None,
+                r_fe1=ImpedancePosSeq(value=r_fe_1),
+                x_h1=ImpedancePosSeq(value=x_h_1),
+                r_fe0=ImpedanceZerSeq(value=r_fe_0) if r_fe_0 is not None else None,
+                x_h0=ImpedanceZerSeq(value=x_h_0) if x_h_0 is not None else None,
                 vector_group=vector_group,
                 tap_u_mag=Qc.single_phase_voltage(tap_u_mag) if tap_u_mag is not None else None,
                 tap_u_phi=Qc.single_phase_angle(tap_u_phi) if tap_u_phi is not None else None,
@@ -1115,6 +1115,9 @@ class PowerFactoryExporter:
         voltage_ref_ter: float | None,  # tertiary reference voltage (only for 3w transformers)
         name: str,
     ) -> tuple[TapSide | None, VoltageSP | None, AngleSP | None, float | None, float | None, float | None]:
+        voltage_ref_hv = round(voltage_ref_hv, DecimalDigits.VOLTAGE)
+        voltage_ref_lv = round(voltage_ref_lv, DecimalDigits.VOLTAGE)
+
         tap_side = TapSide[TrfTapSide(t_type.tap_side).name] if t_type.itapch else None
         tap_u_mag_perc = t_type.dutap
         if tap_side is TapSide.HV:
@@ -1223,6 +1226,7 @@ class PowerFactoryExporter:
         pu2abs: float,
     ) -> tuple[float, float, float | None, float | None]:
         # Magnetising impedance - positive sequence
+        # compute with rounded values to prevent float uncertainty errors
         p_fe_1 = round(t_type.pfe * 1e3, DecimalDigits.POWER)  # W
         r_fe_1 = voltage_ref**2 / p_fe_1
         i_0_pu = t_type.curmg  # %
@@ -1515,7 +1519,6 @@ class PowerFactoryExporter:
 
         terminal = bus.cterm
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
-        u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
         phase_connections = self.get_load_phase_connections(
             phase_connection_type=phase_connection_type,
@@ -1536,7 +1539,7 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
-        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=u_nom)
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
         load_model_p = self.load_model_of(load, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(load, specifier="q", default=load_model_default, u_0=u_0)
 
@@ -1562,13 +1565,13 @@ class PowerFactoryExporter:
     ) -> pydantic.confloat(ge=0):  # type: ignore[valid-type]
         if load.GetClassName() == PFClassId.LOAD_LV.value:
             load = t.cast("PFTypes.LoadLV", load)
-            return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
+            return load.ulini * Exponents.VOLTAGE
         if load.GetClassName() == PFClassId.LOAD_LV_PART.value:
             load = t.cast("PFTypes.LoadLVP", load)
-            return round(load.ulini * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)
+            return load.ulini * Exponents.VOLTAGE
         if load.GetClassName() == PFClassId.LOAD.value:
             load = t.cast("PFTypes.Load", load)
-            return round(load.u0 * u_nom, DecimalDigits.VOLTAGE)
+            return load.u0 * u_nom
         return u_nom
 
     @staticmethod
@@ -1752,12 +1755,11 @@ class PowerFactoryExporter:
 
         terminal = bus.cterm
         t_name = self.pfi.create_name(terminal, grid_name=grid_name)
-        u_nom = round(terminal.uknom * Exponents.VOLTAGE, DecimalDigits.VOLTAGE)  # nominal voltage in V
 
         # Rated power and load models for active and reactive power
         rated_power = power.as_rated_power()
 
-        u_0 = self.reference_voltage_for_load_model_of(generator, u_nom=u_nom)
+        u_0 = self.reference_voltage_for_load_model_of(generator, u_nom=terminal.uknom * Exponents.VOLTAGE)
         load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
         load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
 
@@ -3064,7 +3066,7 @@ class PowerFactoryExporter:
             return None
 
         # at the moment there is only controller of type PConst
-        p_control_type = ControlType.create_p_const(power)
+        p_control_type = ControlTypeFactory.create_p_const(power)
         return PController(node_target=node_target_name, control_type=p_control_type)
 
     def create_consumer_q_controller_builtin(
@@ -3087,11 +3089,11 @@ class PowerFactoryExporter:
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
 
         if power.pow_react_control_type == QControlStrategy.Q_CONST:
-            q_control_type = ControlType.create_q_const(power)
+            q_control_type = ControlTypeFactory.create_q_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            q_control_type = ControlType.create_cos_phi_const(power)
+            q_control_type = ControlTypeFactory.create_cos_phi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         msg = "unreachable"
@@ -3142,7 +3144,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlType.create_cos_phi_const(power)
+            q_control_type = ControlTypeFactory.create_cos_phi_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_CONST:
@@ -3154,7 +3156,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlType.create_q_const(power)
+            q_control_type = ControlTypeFactory.create_q_const(power)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_U:
@@ -3162,14 +3164,14 @@ class PowerFactoryExporter:
             u_deadband_low = abs(u_q0 - gen.udeadblow)  # delta in p.u.
             u_deadband_up = abs(u_q0 - gen.udeadbup)  # delta in p.u.
             m_tg_2015 = 100 / abs(gen.ddroop) * 100 / u_n / gen.cosn * Exponents.VOLTAGE  # (% von Pr) / kV
-            m_tg_2018 = ControlType.transform_qu_slope(
+            m_tg_2018 = ControlTypeFactory.transform_qu_slope(
                 value=m_tg_2015,
                 given_format="2015",
                 target_format="2018",
                 u_n=u_n,
             )
 
-            q_control_type = ControlType.create_q_u_sym(
+            q_control_type = ControlTypeFactory.create_q_u_sym(
                 q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
                 q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
                 u_q0=u_q0 * u_n,
@@ -3188,7 +3190,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            q_control_type = ControlType.create_cos_phi_p_sym(
+            q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
                 cos_phi_ue=gen.pf_under,
                 cos_phi_oe=gen.pf_over,
                 p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3197,7 +3199,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
-            q_control_type = ControlType.create_u_const_sym(u_set=gen.usetp * u_n)
+            q_control_type = ControlTypeFactory.create_u_const_sym(u_set=gen.usetp * u_n)
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
@@ -3259,7 +3261,7 @@ class PowerFactoryExporter:
         # Control mode
         ctrl_mode = controller.i_ctrl
         if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
-            q_control_type = ControlType.create_u_const_sym(
+            q_control_type = ControlTypeFactory.create_u_const_sym(
                 u_set=controller.usetp * u_n,
                 u_meas_ref=ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name],
             )
@@ -3282,7 +3284,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlType.create_q_const(power)
+                q_control_type = ControlTypeFactory.create_q_const(power)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3305,7 +3307,7 @@ class PowerFactoryExporter:
 
                     # in default there should q_rated=s_r, but user could enter incorrectly
                     m_tg_2015 = m_tg_2015 * q_rated / gen.sgn
-                    m_tg_2018 = ControlType.transform_qu_slope(
+                    m_tg_2018 = ControlTypeFactory.transform_qu_slope(
                         value=m_tg_2015,
                         given_format="2015",
                         target_format="2018",
@@ -3315,7 +3317,7 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_control_type = ControlType.create_q_u_sym(
+                q_control_type = ControlTypeFactory.create_q_u_sym(
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                     u_q0=u_q0 * u_n,
@@ -3332,7 +3334,7 @@ class PowerFactoryExporter:
 
             if controller.qu_char == QChar.P:  # Q(P)
                 q_dir = q_dir = -1 if controller.iQorient else 1
-                q_control_type = ControlType.create_q_p_sym(
+                q_control_type = ControlTypeFactory.create_q_p_sym(
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
@@ -3359,7 +3361,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlType.create_cos_phi_const(power)
+                q_control_type = ControlTypeFactory.create_cos_phi_const(power)
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3367,7 +3369,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.P:  # cos_phi(P)
-                q_control_type = ControlType.create_cos_phi_p_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3380,7 +3382,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.U:  # cos_phi(U)
-                q_control_type = ControlType.create_cos_phi_u_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_u_sym(
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
@@ -3406,7 +3408,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlType.create_tan_phi_const(power)
+            q_control_type = ControlTypeFactory.create_tan_phi_const(power)
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,

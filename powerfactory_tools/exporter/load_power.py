@@ -14,8 +14,9 @@ from dataclasses import dataclass
 import loguru
 from psdm.quantities.multi_phase import ActivePower
 from psdm.quantities.multi_phase import ApparentPower
-from psdm.quantities.multi_phase import PowerFactor
+from psdm.quantities.multi_phase import CosPhi
 from psdm.quantities.multi_phase import ReactivePower
+from psdm.quantities.multi_phase import TanPhi
 from psdm.quantities.single_phase import PowerFactorDirection
 from psdm.quantities.single_phase import SystemType
 from psdm.steadystate_case.characteristic import Characteristic
@@ -716,7 +717,7 @@ class LoadPower:
     def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
         return ReactivePower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_reacts),
+            value=(e for e in self.pow_reacts),
             system_type=SystemType.NATURAL,
         )
 
@@ -725,7 +726,7 @@ class LoadPower:
             value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
             system_type=SystemType.NATURAL,
         )
-        cos_phis = PowerFactor(value=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
+        cos_phis = CosPhi(value=(e for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
 
     def limit_phases(self, n_phases: int) -> LoadPower:
@@ -740,7 +741,7 @@ class LoadPower:
 
 
 @dataclass
-class ControlType:
+class ControlTypeFactory:
     @staticmethod
     def create_p_const(power: LoadPower) -> ControlPConst:
         return ControlPConst(
@@ -756,8 +757,8 @@ class ControlType:
     @staticmethod
     def create_cos_phi_const(power: LoadPower) -> ControlCosPhiConst:
         return ControlCosPhiConst(
-            cos_phi_set=PowerFactor(
-                value=(round(e, DecimalDigits.POWERFACTOR) for e in power.cos_phis),
+            cos_phi_set=CosPhi(
+                value=(e for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -765,8 +766,8 @@ class ControlType:
     @staticmethod
     def create_tan_phi_const(power: LoadPower) -> ControlTanPhiConst:
         return ControlTanPhiConst(
-            tan_phi_set=PowerFactor(
-                value=(round(math.tan(math.acos(e)), DecimalDigits.POWERFACTOR) for e in power.cos_phis),
+            tan_phi_set=TanPhi(
+                value=(math.tan(math.acos(e)) for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -799,8 +800,8 @@ class ControlType:
         p_threshold_oe: float,
     ) -> ControlCosPhiP:
         return ControlCosPhiP(
-            cos_phi_ue=Qc.sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=Qc.sym_three_phase_power_factor(cos_phi_oe),
+            cos_phi_ue=Qc.sym_three_phase_cos_phi(cos_phi_ue),
+            cos_phi_oe=Qc.sym_three_phase_cos_phi(cos_phi_oe),
             p_threshold_ue=Qc.sym_three_phase_active_power(p_threshold_ue),
             p_threshold_oe=Qc.sym_three_phase_active_power(p_threshold_oe),
         )
@@ -813,8 +814,8 @@ class ControlType:
         u_threshold_oe: float,
     ) -> ControlCosPhiU:
         return ControlCosPhiU(
-            cos_phi_ue=Qc.sym_three_phase_power_factor(cos_phi_ue),
-            cos_phi_oe=Qc.sym_three_phase_power_factor(cos_phi_oe),
+            cos_phi_ue=Qc.sym_three_phase_cos_phi(cos_phi_ue),
+            cos_phi_oe=Qc.sym_three_phase_cos_phi(cos_phi_oe),
             u_threshold_ue=Qc.sym_three_phase_voltage(u_threshold_ue),
             u_threshold_oe=Qc.sym_three_phase_voltage(u_threshold_oe),
         )

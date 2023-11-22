@@ -8,7 +8,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model @ git+https://github.com/ieeh-tu-dresden/power-system-data-model.git@main",
+    "ieeh-power-system-data-model @ git+https://github.com/ieeh-tu-dresden/power-system-data-model.git@sasanjac/89-feat-round-floats-on-model-dump",
     "loguru",
     "pydantic>=2.1.1",
   ]

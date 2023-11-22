@@ -329,9 +329,9 @@ class TrfTapSide(enum.IntEnum):
 class TrfNeutralConnectionType(enum.IntEnum):
     NO = 0
     ABC_N = 1
-    HV = 2  # separat at HV side
-    LV = 3  # separat at LV side
-    HV_LV = 4  # separat at HV and LV side
+    HV = 2  # separate at HV side
+    LV = 3  # separate at LV side
+    HV_LV = 4  # separate at HV and LV side
 
 
 class TrfNeutralPointState(enum.IntEnum):
