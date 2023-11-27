@@ -3085,16 +3085,17 @@ class PowerFactoryExporter:
                 load_name=load.loc_name,
             )
             return None
+
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
 
         if power.pow_react_control_type == QControlStrategy.Q_CONST:
-            q_control_type = ControlTypeFactory.create_q_const(power)
-            return QController(node_target=node_target_name, control_type=q_control_type)
+            control_type = ControlTypeFactory.create_q_const(power)
+            return QController(node_target=node_target_name, control_type=control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            q_control_type = ControlTypeFactory.create_cos_phi_const(power)
-            return QController(node_target=node_target_name, control_type=q_control_type)
+            control_type = ControlTypeFactory.create_cos_phi_const(power)
+            return QController(node_target=node_target_name, control_type=control_type)
 
         msg = "unreachable"
         raise RuntimeError(msg)
