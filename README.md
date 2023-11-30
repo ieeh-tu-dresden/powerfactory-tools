@@ -7,11 +7,13 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#-field-of-application)
   - [ Tutorials](#-tutorials)
+  - [ General Remarks](#-general-remarks)
   - [ Installation](#-installation)
   - [ Compatibility](#-compatibility)
   - [ Development](#-development)
   - [ Acknowledgement](#-acknowledgement)
   - [ Attribution](#-attribution)
+
 
 ## <div id="application" /> Field of Application
 
@@ -20,15 +22,36 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
 The following functionalities are provided:
 
-* export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
-* [intended in future release] import from external grid data into the PowerFactory environment
-* [intended in future release] basic control of PowerFactory
++ export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
++ basic control of PowerFactory
++ [intended in future release] import from external grid data into the PowerFactory environment
 
 ## <div id="tutorials" /> Tutorials
 
 Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
-* for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
++ for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
++ for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+
+## <div id="remarks" /> General Remarks
+
+Please find below some important general remarks and assumptions to consider for the application:
+
++ The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model/blob/main/README.md):
+  + The passive sign convention should be used for all types of loads (consumer as well as producer). 
+  + The `Rated Power` is always defined positive (absolute value).
++ By default, all assests of all active grids within the selected PowerFactory project are to be exported, see [example readme](./examples/README.md).  
+
++ Export of `transformer`:
+  + Impedances of all winding objects are referred to the high voltage side of the transformer.
+  + Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
++ Export of `fuses`:
+  + Branch like fuses are exported as switching state.
+  + Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
++ Export of `SteadyStateCase`:
+  + It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator. 
+  The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported q operating point is the same that set by the station controller.
+
 
 ## <div id="installation" /> Installation
 
@@ -58,11 +81,13 @@ Linux/Mac:
 curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
 ```
 
-Install [pdm-venv](https://github.com/pdm-project/pdm-venv)
+Or using pipx or pip:
 
 ```bash
-pdm plugin add pdm-venv
-pdm config venv.in_project true
+pipx install pdm
+```
+```bash
+pip install --user pdm
 ```
 
 Clone `powerfactory-tools`
@@ -89,7 +114,7 @@ pdm install
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
 
-* [flake8](https://github.com/PyCQA/flake8)
+* [ruff](https://github.com/astral-sh/ruff)
 * [black](https://github.com/psf/black)
 * [mypy](https://github.com/python/mypy)
 
@@ -97,7 +122,7 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 
 Please note that this work is part of research activities and is still under active development.
 
-This code was tested with `DIgSILENT PowerFactory 2021 SP5` and `DIgSILENT PowerFactory 2022 SP2`.
+This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4) and `DIgSILENT PowerFactory 2022 SP2`.
 
 ## <div id="attribution" /> Attribution
 

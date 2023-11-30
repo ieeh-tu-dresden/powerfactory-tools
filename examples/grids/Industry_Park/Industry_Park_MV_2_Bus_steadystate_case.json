@@ -1,0 +1,36 @@
+{
+  "external_grids": [],
+  "loads": [
+    {
+      "active_power": {
+        "is_symmetrical": true,
+        "value": 2000000.0,
+        "value_a": 666666.67,
+        "value_b": 666666.67,
+        "value_c": 666666.67
+      },
+      "name": "Industry_Load",
+      "reactive_power": {
+        "controller": null,
+        "is_symmetrical": true,
+        "value": 1000000.0,
+        "value_a": 333333.33,
+        "value_b": 333333.33,
+        "value_c": 333333.33
+      }
+    }
+  ],
+  "meta": {
+    "case": "Industry_Park",
+    "date": "2023-09-20",
+    "id": "8aa5831e-1fc1-4060-862e-bd1d5b25172c",
+    "name": "MV_2_Bus",
+    "project": "PowerFactory-Tools"
+  },
+  "transformers": [
+    {
+      "name": "Industry_Transformer_2w_110/20",
+      "tap_pos": 0
+    }
+  ]
+}

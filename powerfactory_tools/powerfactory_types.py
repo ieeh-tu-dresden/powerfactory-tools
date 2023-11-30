@@ -15,8 +15,77 @@ if TYPE_CHECKING:
 
 
 class PFClassId(enum.Enum):
+    AREA = "ElmArea"
+    COMPOSITE_GRID_ELEMENT = "ElmFolder"
+    COUPLER = "ElmCoup"
+    CUBICLE = "StaCubic"
+    CURRENT_SOURCE_AC = "ElmIac"
+    EXTERNAL_GRID = "ElmXNet"
+    FOLDER = "IntFolder"
+    FUSE = "RelFuse"
+    GENERATOR = "ElmGenstat"
+    GRID = "ElmNet"
+    GRID_GRAPHIC = "IntGrfnet"
+    LINE = "ElmLne"
+    LOAD = "ElmLod"
+    LOAD_LV = "ElmLodLv"
+    LOAD_LV_PART = "ElmLodlvp"
+    LOAD_MV = "ElmLodMv"
+    PROJECT_SETTINGS = "SetPrj"
+    PVSYSTEM = "ElmPvsys"
+    REFERENCE = "IntRef"
+    RESULT = "ElmRes"
+    SETTINGS_FOLDER = "SetFold"
+    SETTINGS_FOLDER_UNITS = "IntUnit"
+    SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STATION_CONTROLLER = "ElmStactrl"
+    STUDY_CASE = "IntCase"
+    SWITCH = "StaSwitch"
     TEMPLATE = "IntTemplate"
+    TERMINAL = "ElmTerm"
+    DATETIME = "SetTime"
+    TRANSFORMER_2W = "ElmTr2"
+    TRANSFORMER_3W = "ElmTr3"
+    UNIT_VARIABLE = "SetVariable"
+    VARIANT = "IntScheme"
+    VARIANT_CONFIG = "IntAcscheme"
+    VARIANT_STAGE = "IntSstage"
+    ZONE = "ElmZone"
+
+
+class FolderType(enum.Enum):
+    CB_RATINGS = "cbrat"
+    CIM_MODEL = "cim"
+    CHARACTERISTICS = "chars"
+    COMMON_MODE_FAILURES = "common"
+    DEMAND_TRANSFERS = "demand"
+    DIAGRAMS = "dia"
+    EQUIPMENT_TYPE_LIBRARY = "equip"
+    FAULTS = "fault"
+    GENERIC = "gen"
+    GENERATOR_COST_CURVES = "cstgen"
+    GENERATOR_EFFICIENCY_CURVES = "effgen"
+    LIBRARY = "lib"
+    MVAR_LIMIT_CURVES = "mvar"
+    NETWORK_DATA = "netdat"
+    NETWORK_MODEL = "netmod"
+    OPERATIONAL_LIBRARY = "oplib"
+    OPERATION_SCENARIOS = "scen"
+    OUTAGES = "outage"
+    QP_CURVES = "qpc"
+    PROBABILISTIC_ASSESSMENT = "rnd"
+    RUNNING_ARRANGEMENTS = "ra"
+    REMEDIAL_ACTION_SCHEMES = "ras"
+    SCRIPTS = "script"
+    STATION_WARE = "sw"
+    STUDY_CASES = "study"
+    TABLE_REPORTS = "report"
+    TARIFFS = "tariff"
+    TEMPLATES = "templ"
+    THERMAL_RATINGS = "therm"
+    USER_DEFINED_MODELS = "blk"
+    VARIATIONS = "scheme"
+    V_CONTROL_CURVES = "ucc"
 
 
 class LocalQCtrlMode(enum.Enum):
@@ -428,11 +497,26 @@ class PowerFactoryTypes:
 
         def AddCopy(  # noqa: N802
             self,
-            objectToCopy: PowerFactoryTypes.DataObject,  # noqa: N803
-            objectNameParts: str | int | None,  # noqa: N803
+            objectToCopy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],  # noqa: N803
+            concatNamePart: str | int = "",  # noqa: N803
             /,
-        ) -> PowerFactoryTypes.DataObject:
+        ) -> PowerFactoryTypes.DataObject | None:
             ...
+
+        def AddSelfCopy(  # noqa: N802
+            self,
+            object_to_copy: PowerFactoryTypes.DataObject,
+            concat_name_part: str | int = "",
+            /,
+        ) -> None:
+            self.AddCopy(object_to_copy, concat_name_part)
+
+        def AddCopies(  # noqa: N802
+            self,
+            objects_to_copy: Sequence[PowerFactoryTypes.DataObject],
+            /,
+        ) -> PowerFactoryTypes.DataObject | None:
+            return self.AddCopy(objects_to_copy)
 
         def GetContents(  # noqa: N802
             self,
@@ -461,6 +545,25 @@ class PowerFactoryTypes:
 
         def GetParent(self) -> PowerFactoryTypes.DataObject | None:  # noqa: N802
             ...
+
+        def IsCalcRelevant(self) -> int:  # noqa: N802
+            ...
+
+        def IsEarthed(self) -> int:  # noqa: N802
+            ...
+
+        def IsEnergized(self) -> int:  # noqa: N802
+            ...
+
+        def IsObjectActive(  # noqa: N802  # Check if an object is active for specific time.
+            self,
+            time: int,  # Time in seconds since 01.01.1970 00:00:00
+            /,
+        ) -> int:
+            ...
+
+    class DataDir(DataObject, Protocol):
+        ...
 
     class GridDiagram(DataObject, Protocol):
         ...
@@ -493,14 +596,63 @@ class PowerFactoryTypes:
             ...
 
     class StudyCase(DataObject, Protocol):
+        iStudyTime: int  # noqa: N815
+
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def ApplyNetworkState(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: grids, scenarios and network variations configuration
+        ) -> Literal[0, 1, 2, 3, 4, 5]:
+            ...
+
+        def ApplyStudyTime(  # noqa: N802
+            self,
+            other: PowerFactoryTypes.DataObject,  # the other study case to copy from: study time
+        ) -> Literal[0, 1, 2, 3, 4]:
+            ...
+
+        def Consolidate(self) -> bool:  # noqa: N802
+            ...
+
+        def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def SetStudyTime(  # noqa: N802
+            self,
+            dateTime: int,  # noqa: N803 # Seconds since 01.01.1970 00:00:00.
+        ) -> None:
+            ...
+
+    class GridVariant(DataObject, Protocol):
         def Activate(self) -> bool:  # noqa: N802
             ...
 
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
-    class ProjectSettings(DataObject, Protocol):
-        extDataDir: PowerFactoryTypes.DataDir  # noqa: N815
+        def NewStage(  # noqa: N802
+            self,
+            name: str,
+            activationTime: int,  # noqa: N803 # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
+            activate: int,  # bool: 1 - Activate (should be dafault); 0 - do not activate
+            /,
+        ) -> bool:
+            ...
+
+    class GridVariantStage(DataObject, Protocol):
+        tAcTime: str  # noqa: N815
+        iExclude: int  # noqa: N815
+
+        def Activate(self) -> bool:  # noqa: N802
+            ...
+
+        def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
+            ...
+
+    class ProjectSettings(DataObject, Protocol):  # SetPrj
+        extDataDir: str  # noqa: N815
         ilenunit: UnitSystem
         clenexp: MetricPrefix  # Lengths
         cspqexp: MetricPrefix  # Loads etc.
@@ -516,9 +668,6 @@ class PowerFactoryTypes:
         cuserexp: MetricPrefix
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
-
-    class DataDir(DataObject, Protocol):
-        ...
 
     class Substation(DataObject, Protocol):
         ...
@@ -582,13 +731,21 @@ class PowerFactoryTypes:
         curmg: float  # no-load current
         pcutr: float  # Cupper losses
         strn: float  # rated power
-        uktr: float  # short-circuit voltage in percentage
+        uktr: float  # short-circuit voltage in percentage (pos. seq.)
+        uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
         r1pu: float
         r0pu: float
         x1pu: float
         x0pu: float
-        zx0hl_n: float
-        rtox0_n: float
+        zx0hl_n: float  # Zero Sequence Magnetising Impedance: Mag. Impedance / uk0
+        rtox0_n: float  # Zero Sequence Magnetising R/X ratio: Mag. R/X
+        itrdr: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. HV-Side
+        itrdr_lv: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. LV-Side
+        itrdl: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. HV-Side
+        itrdl_lv: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. LV-Side
+        zx0hl_h: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. HV-Side
+        zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
+        x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
 
         vecgrp: VectorGroup
         tr2cn_l: Vector  # vector at LV side
@@ -1086,6 +1243,16 @@ class PowerFactoryTypes:
         def Execute(self) -> int:  # noqa: N802
             ...
 
+    class ProjectFolder(DataObject, Protocol):  # IntPrjfolder
+        desc: Sequence[str]
+        iopt_typ: FolderType
+
+        def GetProjectFolderType(self) -> str:  # noqa: N802
+            ...
+
+        def IsProjectFolderType(self, folder_type: str) -> int:  # noqa: N802
+            ...
+
     class Application(Protocol):
         def ActivateProject(self, name: str) -> int:  # noqa: N802
             ...
@@ -1097,6 +1264,16 @@ class PowerFactoryTypes:
             ...
 
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+            ...
+
+        def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
+            ...
+
+        def GetActiveStages(  # noqa: N802
+            self,
+            variedFolder: PowerFactoryTypes.DataObject,  # noqa: N803
+            /,
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1154,3 +1331,7 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application:
             ...
+
+
+ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
+ValidPFValue = ValidPFPrimitive | list[ValidPFPrimitive] | dict[str, ValidPFPrimitive]
