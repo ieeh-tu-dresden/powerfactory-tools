@@ -24,8 +24,8 @@
   [project.optional-dependencies]
 
 [build-system]
-  build-backend = "pdm.pep517.api"
-  requires      = ["pdm-pep517"]
+  build-backend = "pdm.backend"
+  requires      = ["pdm-backend"]
 
 [tool]
 
