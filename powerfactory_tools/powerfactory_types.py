@@ -503,21 +503,6 @@ class PowerFactoryTypes:
         ) -> PowerFactoryTypes.DataObject | None:
             ...
 
-        def AddSelfCopy(  # noqa: N802
-            self,
-            object_to_copy: PowerFactoryTypes.DataObject,
-            concat_name_part: str | int = "",
-            /,
-        ) -> None:
-            self.AddCopy(object_to_copy, concat_name_part)
-
-        def AddCopies(  # noqa: N802
-            self,
-            objects_to_copy: Sequence[PowerFactoryTypes.DataObject],
-            /,
-        ) -> PowerFactoryTypes.DataObject | None:
-            return self.AddCopy(objects_to_copy)
-
         def GetContents(  # noqa: N802
             self,
             name: str,
