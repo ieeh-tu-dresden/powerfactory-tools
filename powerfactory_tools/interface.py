@@ -1731,27 +1731,28 @@ class PowerFactoryInterface:
         """
         ldf_cmd = self.ldf_command()
         if ac:
-            if symmetrical:
-                ldf_cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
-            else:
-                ldf_cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value
+            ldf_cmd.iopt_net = (
+                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+                if symmetrical
+                else NetworkExtendedCalcType.AC_UNSYM_ABC.value
+            )
         else:
             ldf_cmd.iopt_net = NetworkExtendedCalcType.DC.value
 
-        error = ldf_cmd.Execute()
-        if error != 0:
+        if not ldf_cmd.Execute():
             msg = "Load flow execution failed."
             raise ValueError(msg)
 
         return self.result("All*")
 
-    def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> None:
+    def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
 
         Args:
             time (float): simualtion time in s
-            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). Defaults to True.
+            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
         """
+        # Setup simulation start command
         sim_start_cmd = t.cast(
             "PFTypes.CommandTimeSimulationStart",
             self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
@@ -1764,20 +1765,27 @@ class PowerFactoryInterface:
         )
         sim_start_cmd.Execute()
 
+        # Setup RMS simulation command
         time_sim_cmd = t.cast(
             "PFTypes.CommandTimeSimulation",
             self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
         )
         time_sim_cmd.tstop = time
-        time_sim_cmd.Execute()
 
-    def run_emt_simulation(self, time: float, *, symmetrical: bool = True) -> None:
+        if not time_sim_cmd.Execute():
+            msg = "RMS simulation execution failed."
+            raise ValueError(msg)
+
+        return sim_start_cmd.p_resvar
+
+    def run_emt_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
         """Wrapper to easily run EMT time simulation.
 
         Args:
             time (float): simualtion time in s
-            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). Defaults to True.
+            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
         """
+        # Setup simulation start command
         sim_start_cmd = t.cast(
             "PFTypes.CommandTimeSimulationStart",
             self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
@@ -1790,12 +1798,18 @@ class PowerFactoryInterface:
         )
         sim_start_cmd.Execute()
 
+        # Setup EMT simulation command
         time_sim_cmd = t.cast(
             "PFTypes.CommandTimeSimulation",
             self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
         )
         time_sim_cmd.tstop = time
-        time_sim_cmd.Execute()
+
+        if not time_sim_cmd.Execute():
+            msg = "EMT simulation execution failed."
+            raise ValueError(msg)
+
+        return sim_start_cmd.p_resvar
 
     @staticmethod
     def delete_object(
@@ -1911,6 +1925,7 @@ class PowerFactoryInterface:
         fuse: PFTypes.Fuse,
         /,
     ) -> bool:
+        """Return true if element fuse."""
         return not (fuse.bus1) and not (fuse.bus2)
 
     @staticmethod
@@ -1918,4 +1933,5 @@ class PowerFactoryInterface:
         fuse: PFTypes.Fuse,
         /,
     ) -> bool:
+        """Return true if branch fuse."""
         return fuse.bus1 is not None or fuse.bus2 is not None
