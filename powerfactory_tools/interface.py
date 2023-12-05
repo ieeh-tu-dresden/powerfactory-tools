@@ -1706,12 +1706,42 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
-    def calc_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
+    def create_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
         return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
 
-    def ldf_command(self) -> PFTypes.CommandLoadFlow:
-        cmd = self.calc_command(CalculationCommand.LOAD_FLOW)
-        return t.cast("PFTypes.CommandLoadFlow", cmd)
+    def create_ldf_command(self, /, *, ac: bool, symmetrical: bool) -> PFTypes.CommandLoadFlow:
+        cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
+        if ac:
+            cmd.iopt_net = (
+                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+                if symmetrical
+                else NetworkExtendedCalcType.AC_UNSYM_ABC.value
+            )
+        else:
+            cmd.iopt_net = NetworkExtendedCalcType.DC.value
+
+        return cmd
+
+    def create_time_sim_start_command(self, /,*,sim: TimeSimulationType, symmetrical: bool) -> PFTypes.CommandTimeSimulationStart:
+        cmd = t.cast(
+            "PFTypes.CommandTimeSimulationStart",
+            self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
+        )
+        cmd.iopt_sim = sim.value
+        cmd.iopt_net = (
+            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            if symmetrical
+            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
+        )
+        return cmd
+
+    def create_time_sim_command(self, /,*,  time: float) -> PFTypes.CommandTimeSimulation:
+        cmd = t.cast(
+            "PFTypes.CommandTimeSimulation",
+            self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
+        )
+        cmd.tstop = time
+        return cmd
 
     def run_ldf(
         self,
@@ -1724,20 +1754,12 @@ class PowerFactoryInterface:
 
         Keyword Arguments:
             ac {bool} -- The voltage system used for load flow calculation (default: {True}).
-            symmetrical {bool} -- Flag to indicate symmetrical (posivie sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
+            symmetrical {bool} -- Flag to indicate symmetrical (positive sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
 
         Returns:
             {PFTypes.Result | None} -- The default result object of load flow.
         """
-        ldf_cmd = self.ldf_command()
-        if ac:
-            ldf_cmd.iopt_net = (
-                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
-                if symmetrical
-                else NetworkExtendedCalcType.AC_UNSYM_ABC.value
-            )
-        else:
-            ldf_cmd.iopt_net = NetworkExtendedCalcType.DC.value
+        ldf_cmd = self.create_ldf_command(ac=ac, symmetrical=symmetrical)
 
         if not ldf_cmd.Execute():
             msg = "Load flow execution failed."
@@ -1750,27 +1772,14 @@ class PowerFactoryInterface:
 
         Args:
             time (float): simualtion time in s
-            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
+            symmetrical (bool, optional): positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
         """
         # Setup simulation start command
-        sim_start_cmd = t.cast(
-            "PFTypes.CommandTimeSimulationStart",
-            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
-        )
-        sim_start_cmd.iopt_sim = TimeSimulationType.RMS.value
-        sim_start_cmd.iopt_net = (
-            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
-            if symmetrical
-            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
-        )
+        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.RMS, symmetrical=symmetrical)
         sim_start_cmd.Execute()
 
         # Setup RMS simulation command
-        time_sim_cmd = t.cast(
-            "PFTypes.CommandTimeSimulation",
-            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
-        )
-        time_sim_cmd.tstop = time
+        time_sim_cmd = self.create_time_sim_command(time=time)
 
         if not time_sim_cmd.Execute():
             msg = "RMS simulation execution failed."
@@ -1783,27 +1792,14 @@ class PowerFactoryInterface:
 
         Args:
             time (float): simualtion time in s
-            symmetrical (bool, optional): posivie sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
+            symmetrical (bool, optional): positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
         """
         # Setup simulation start command
-        sim_start_cmd = t.cast(
-            "PFTypes.CommandTimeSimulationStart",
-            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
-        )
-        sim_start_cmd.iopt_sim = TimeSimulationType.EMT.value
-        sim_start_cmd.iopt_net = (
-            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
-            if symmetrical
-            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
-        )
+        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.EMT, symmetrical=symmetrical)
         sim_start_cmd.Execute()
 
         # Setup EMT simulation command
-        time_sim_cmd = t.cast(
-            "PFTypes.CommandTimeSimulation",
-            self.calc_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
-        )
-        time_sim_cmd.tstop = time
+        time_sim_cmd = self.create_time_sim_command(time=time)
 
         if not time_sim_cmd.Execute():
             msg = "EMT simulation execution failed."
