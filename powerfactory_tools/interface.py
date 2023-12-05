@@ -1722,7 +1722,13 @@ class PowerFactoryInterface:
 
         return cmd
 
-    def create_time_sim_start_command(self, /,*,sim: TimeSimulationType, symmetrical: bool) -> PFTypes.CommandTimeSimulationStart:
+    def create_time_sim_start_command(
+        self,
+        /,
+        *,
+        sim: TimeSimulationType,
+        symmetrical: bool,
+    ) -> PFTypes.CommandTimeSimulationStart:
         cmd = t.cast(
             "PFTypes.CommandTimeSimulationStart",
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
@@ -1735,7 +1741,7 @@ class PowerFactoryInterface:
         )
         return cmd
 
-    def create_time_sim_command(self, /,*,  time: float) -> PFTypes.CommandTimeSimulation:
+    def create_time_sim_command(self, /, *, time: float) -> PFTypes.CommandTimeSimulation:
         cmd = t.cast(
             "PFTypes.CommandTimeSimulation",
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION),
