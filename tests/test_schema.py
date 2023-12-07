@@ -36,8 +36,9 @@ def test_schema_import(case, schema_class, json_file_name) -> None:
     json_file_path = GRID_PATH / case / (case + "_HV_9_Bus_" + json_file_name)
 
     data = schema_class.from_file(json_file_path)
-    _json_str1 = data.model_dump()
-    json_str1 = json.dumps(_json_str1, sort_keys=True, default=str)
+    _json_str1 = data.model_dump_json()
+    _data = json.loads(_json_str1)
+    json_str1 = json.dumps(_data, sort_keys=True)
 
     with json_file_path.open(encoding="utf-8") as file_handle:
         data = json.load(file_handle)
