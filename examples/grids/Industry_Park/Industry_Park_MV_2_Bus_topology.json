@@ -2,9 +2,15 @@
   "branches": [
     {
       "b0": {
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
         "value": 0.0017146812439
       },
       "b1": {
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
         "value": 0.0017153096008
       },
       "bn": null,
@@ -12,52 +18,77 @@
       "description": "",
       "energized": null,
       "f_n": {
+        "precision": 4,
+        "system_type": "NATURAL",
+        "unit": "HERTZ",
         "value": 50.0
       },
       "g0": {
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
         "value": 0.0
       },
       "g1": {
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
         "value": 0.0
       },
       "gn": null,
       "gpn": null,
       "i_r": {
-        "average": 461.0,
-        "is_symmetrical": true,
-        "n_phases": 3,
-        "values": [
-          461.0,
-          461.0,
-          461.0
-        ]
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "AMPERE",
+        "value": 461.0
       },
       "length": null,
       "name": "Industry_Line",
       "node_1": "Industry_Node_1",
       "node_2": "Industry_Node_2",
+      "phases_1": [
+        "A",
+        "B",
+        "C"
+      ],
+      "phases_2": [
+        "A",
+        "B",
+        "C"
+      ],
       "r0": {
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
         "value": 8.2959998
       },
       "r1": {
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
         "value": 2.0739999
       },
       "rn": null,
       "rpn": null,
       "type": "LINE",
       "u_n": {
-        "average": 20000.0,
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "values": [
-          20000.0
-        ]
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 20000.0
       },
       "voltage_system_type": "AC",
       "x0": {
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
         "value": 9.4750398
       },
       "x1": {
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
         "value": 2.36876
       },
       "xn": null,
@@ -79,7 +110,10 @@
           "average": 20000.0,
           "is_symmetrical": true,
           "n_phases": 3,
-          "values": [
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
             20000.0,
             20000.0,
             20000.0
@@ -91,7 +125,7 @@
       "node": "Industry_Node_2",
       "phase_connections": {
         "n_phases": 3,
-        "values": [
+        "value": [
           [
             "A",
             "B"
@@ -108,22 +142,30 @@
       },
       "rated_power": {
         "active_power": {
+          "average": 666666.7,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_ACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
           "total": 2000000.1,
-          "values": [
+          "unit": "WATT",
+          "value": [
             666666.7,
             666666.7,
             666666.7
           ]
         },
         "apparent_power": {
+          "average": 745356.0,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_APPARENT",
+          "precision": 1,
+          "system_type": "NATURAL",
           "total": 2236068.0,
-          "values": [
+          "unit": "VA",
+          "value": [
             745356.0,
             745356.0,
             745356.0
@@ -134,21 +176,28 @@
           "direction": "ND",
           "is_symmetrical": true,
           "n_phases": 3,
-          "values": [
+          "precision": 7,
+          "system_type": "NATURAL",
+          "unit": "UNITLESS",
+          "value": [
             0.8944272,
             0.8944272,
             0.8944272
           ]
         },
-        "cos_phi_total": 0.8944272,
+        "cos_phi_average": 0.8944272,
         "is_symmetrical": true,
         "n_phases": 3,
         "reactive_power": {
+          "average": 333333.3,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_REACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
           "total": 999999.9,
-          "values": [
+          "unit": "VAR",
+          "value": [
             333333.3,
             333333.3,
             333333.3
@@ -167,7 +216,10 @@
           "average": 20000.0,
           "is_symmetrical": true,
           "n_phases": 3,
-          "values": [
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
             20000.0,
             20000.0,
             20000.0
@@ -181,80 +233,82 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-11-01",
+    "date": "2023-12-07",
     "grid": "MV_2_Bus",
-    "id": "2ff700c9-22e7-4d46-9bd2-581834a2993a",
+    "id": "18e921f6-0941-45e0-a470-eace958e75e5",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.0.1"
+    "version": "2.1.0"
   },
   "nodes": [
     {
       "description": "",
-      "name": "Industry_Node_2",
+      "name": "Industry_Node_1",
+      "phases": [
+        "A",
+        "B",
+        "C"
+      ],
       "u_n": {
-        "average": 20000.0,
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "values": [
-          20000.0
-        ]
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 20000.0
       }
     },
     {
       "description": "",
-      "name": "Industry_Node_1",
+      "name": "Industry_Node_2",
+      "phases": [
+        "A",
+        "B",
+        "C"
+      ],
       "u_n": {
-        "average": 20000.0,
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "values": [
-          20000.0
-        ]
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 20000.0
       }
     }
   ],
   "transformers": [
     {
       "description": "",
-      "i_0": {
-        "average": 0.0020995,
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "values": [
-          0.0020995
-        ]
-      },
-      "i_00": null,
       "name": "Industry_Transformer_2w_110/20",
       "node_1": "Node_9/Field_3",
       "node_2": "Industry_Node_1",
       "number": 1,
-      "p_fe": {
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "power_type": "AC_ACTIVE",
-        "total": 23000.0,
-        "values": [
-          23000.0
-        ]
-      },
-      "p_fe0": {
-        "is_symmetrical": true,
-        "n_phases": 1,
-        "power_type": "AC_ACTIVE",
-        "total": 0.0,
-        "values": [
-          0.0
-        ]
-      },
       "phase_technology_type": "THREE_PH",
+      "phases_1": [
+        "A",
+        "B",
+        "C"
+      ],
+      "phases_2": [
+        "A",
+        "B",
+        "C",
+        "N"
+      ],
+      "r_fe0": {
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 1817.2673339
+      },
+      "r_fe1": {
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 526086.9565217
+      },
       "tap_max": 15,
       "tap_min": 1,
       "tap_neutral": 7,
       "tap_side": null,
-      "tap_u_abs": 0.5,
-      "tap_u_phi": 0.0,
+      "tap_u_mag": null,
+      "tap_u_phi": null,
       "vector_group": "Yyn0",
       "windings": [
         {
@@ -265,44 +319,48 @@
             "value": 0.0
           },
           "r0": {
-            "value": 0.0
+            "precision": 7,
+            "system_type": "ZERO_SEQUENCE",
+            "unit": "OHM",
+            "value": 2.7224999
           },
           "r1": {
+            "precision": 7,
+            "system_type": "POSITIVE_SEQUENCE",
+            "unit": "OHM",
             "value": 0.5671875
           },
           "re": null,
           "s_r": {
-            "is_symmetrical": true,
-            "n_phases": 3,
             "power_type": "AC_APPARENT",
-            "total": 39999999.9,
-            "values": [
-              13333333.3,
-              13333333.3,
-              13333333.3
-            ]
+            "precision": 1,
+            "system_type": "NATURAL",
+            "unit": "VA",
+            "value": 40000000.0
           },
           "u_n": {
-            "average": 110000.0,
-            "is_symmetrical": true,
-            "n_phases": 1,
-            "values": [
-              110000.0
-            ]
+            "precision": 2,
+            "system_type": "NATURAL",
+            "unit": "VOLT",
+            "value": 110000.0
           },
           "u_r": {
-            "average": 110000.0,
-            "is_symmetrical": true,
-            "n_phases": 1,
-            "values": [
-              110000.0
-            ]
+            "precision": 2,
+            "system_type": "NATURAL",
+            "unit": "VOLT",
+            "value": 110000.0
           },
           "vector_group": "Y",
           "x0": {
-            "value": 0.0
+            "precision": 7,
+            "system_type": "ZERO_SEQUENCE",
+            "unit": "OHM",
+            "value": 16.106526
           },
           "x1": {
+            "precision": 7,
+            "system_type": "POSITIVE_SEQUENCE",
+            "unit": "OHM",
             "value": 18.1411354
           },
           "xe": null
@@ -315,49 +373,75 @@
             "value": 0.0
           },
           "r0": {
-            "value": 0.0
+            "precision": 7,
+            "system_type": "ZERO_SEQUENCE",
+            "unit": "OHM",
+            "value": 0.3025001
           },
           "r1": {
+            "precision": 7,
+            "system_type": "POSITIVE_SEQUENCE",
+            "unit": "OHM",
             "value": 0.5671875
           },
-          "re": null,
+          "re": {
+            "precision": 7,
+            "system_type": "NATURAL",
+            "unit": "OHM",
+            "value": 0.0
+          },
           "s_r": {
-            "is_symmetrical": true,
-            "n_phases": 3,
             "power_type": "AC_APPARENT",
-            "total": 39999999.9,
-            "values": [
-              13333333.3,
-              13333333.3,
-              13333333.3
-            ]
+            "precision": 1,
+            "system_type": "NATURAL",
+            "unit": "VA",
+            "value": 40000000.0
           },
           "u_n": {
-            "average": 20000.0,
-            "is_symmetrical": true,
-            "n_phases": 1,
-            "values": [
-              20000.0
-            ]
+            "precision": 2,
+            "system_type": "NATURAL",
+            "unit": "VOLT",
+            "value": 20000.0
           },
           "u_r": {
-            "average": 20000.0,
-            "is_symmetrical": true,
-            "n_phases": 1,
-            "values": [
-              20000.0
-            ]
+            "precision": 2,
+            "system_type": "NATURAL",
+            "unit": "VOLT",
+            "value": 20000.0
           },
           "vector_group": "YN",
           "x0": {
-            "value": 0.0
+            "precision": 7,
+            "system_type": "ZERO_SEQUENCE",
+            "unit": "OHM",
+            "value": 1.7896145
           },
           "x1": {
+            "precision": 7,
+            "system_type": "POSITIVE_SEQUENCE",
+            "unit": "OHM",
             "value": 18.1411354
           },
-          "xe": null
+          "xe": {
+            "precision": 7,
+            "system_type": "NATURAL",
+            "unit": "OHM",
+            "value": 0.0
+          }
         }
-      ]
+      ],
+      "x_h0": {
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 36345.3461358
+      },
+      "x_h1": {
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 30300.1313757
+      }
     }
   ]
 }

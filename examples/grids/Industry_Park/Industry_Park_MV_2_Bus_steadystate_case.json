@@ -7,11 +7,15 @@
           "control_type": {
             "control_strategy": "P_CONST",
             "p_set": {
+              "average": 666666.7,
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
               "total": 2000000.1,
-              "values": [
+              "unit": "WATT",
+              "value": [
                 666666.7,
                 666666.7,
                 666666.7
@@ -28,11 +32,15 @@
           "control_type": {
             "control_strategy": "Q_CONST",
             "q_set": {
+              "average": 333333.3,
               "is_symmetrical": true,
               "n_phases": 3,
               "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
               "total": 999999.9,
-              "values": [
+              "unit": "VAR",
+              "value": [
                 333333.3,
                 333333.3,
                 333333.3
@@ -47,12 +55,12 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-11-01",
+    "date": "2023-12-07",
     "grid": "MV_2_Bus",
-    "id": "2ff700c9-22e7-4d46-9bd2-581834a2993a",
+    "id": "18e921f6-0941-45e0-a470-eace958e75e5",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.0.1"
+    "version": "2.1.0"
   },
   "transformers": [
     {
