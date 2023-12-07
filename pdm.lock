@@ -5,7 +5,7 @@
 groups = ["default", "deployment", "formatting", "linter", "prototype", "test", "typing"]
 strategy = ["cross_platform"]
 lock_version = "4.4"
-content_hash = "sha256:400a289d4e7ffb4ed38d91e322521fabe8662a268d6599551bc00dc902873552"
+content_hash = "sha256:ce585b3dbc12fd053ab58839859b6fd111e1bbb4a48dbd491c55bd192a23a582"
 
 [[package]]
 name = "annotated-types"
@@ -309,15 +309,16 @@ files = [
 
 [[package]]
 name = "ieeh-power-system-data-model"
-version = "2.0.1"
+version = "2.1.0"
 requires_python = ">=3.10"
-git = "https://github.com/ieeh-tu-dresden/power-system-data-model.git"
-ref = "sasanjac/89-feat-round-floats-on-model-dump"
-revision = "7e9630db81b4ea9343e94fdd91dcb2dad4b08e91"
 summary = "A data model for describing power systems"
 dependencies = [
     "loguru",
     "pydantic>=2.0",
+]
+files = [
+    {file = "ieeh_power_system_data_model-2.1.0-py3-none-any.whl", hash = "sha256:70d9f11f3d1bf292b3478be7ee5f4946954b636548227bf425e882d07aa8e24b"},
+    {file = "ieeh_power_system_data_model-2.1.0.tar.gz", hash = "sha256:67b09d22c3f2659686ba552224c565f10073f8809b39982602bb40f5aead91f2"},
 ]
 
 [[package]]
