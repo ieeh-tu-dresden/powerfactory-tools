@@ -27,10 +27,12 @@ from powerfactory_tools.powerfactory_types import FolderType
 from powerfactory_tools.powerfactory_types import MetricPrefix
 from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
 from powerfactory_tools.powerfactory_types import PFClassId
+from powerfactory_tools.powerfactory_types import ResultExportMode
 from powerfactory_tools.powerfactory_types import TimeSimulationNetworkCalcType
 from powerfactory_tools.powerfactory_types import TimeSimulationType
 from powerfactory_tools.powerfactory_types import UnitSystem
 from powerfactory_tools.powerfactory_types import ValidPFValue
+from powerfactory_tools.utils.io import FileType
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -606,6 +608,29 @@ class PowerFactoryInterface:
             study_case_name=study_case_name,
         )
         return [t.cast("PFTypes.Result", element) for element in elements]
+
+    def result_export_command(
+        self,
+        name: str = "*",
+        /,
+        *,
+        study_case_name: str = "*",
+    ) -> PFTypes.CommandResultExport | None:
+        return self.first_of(self.result_export_commands(name, study_case_name=study_case_name))
+
+    def result_export_commands(
+        self,
+        name: str = "*",
+        /,
+        *,
+        study_case_name: str = "*",
+    ) -> Sequence[PFTypes.CommandResultExport]:
+        elements = self.study_case_elements(
+            class_name=CalculationCommand.RESULT_EXPORT.value,
+            name=name,
+            study_case_name=study_case_name,
+        )
+        return [t.cast("PFTypes.CommandResultExport", element) for element in elements]
 
     def study_case(
         self,
@@ -1555,6 +1580,7 @@ class PowerFactoryInterface:
         stage = self.create_grid_variant_stage(
             name=stage_name,
             grid_variant=variant,
+            force=force,
         )
 
         return variant if stage is not None else None
@@ -1749,6 +1775,81 @@ class PowerFactoryInterface:
         cmd.tstop = time
         return cmd
 
+    def create_result_export_command(
+        self,
+        /,
+        *,
+        result: PFTypes.Result,
+        export_path: pathlib.Path,
+        export_mode: ResultExportMode,
+        file_name: str | None = None,
+        name: str = "Result Export",
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.CommandResultExport | None:
+        loguru.logger.debug("Create result export command {name} ...", name=name)
+        active_study_case = self.app.GetActiveStudyCase()
+        if data is None:
+            data = {}
+        data["pResult"] = result
+        data["iopt_exp"] = export_mode.value
+
+        # specify file path if export mode requires a file
+        if export_mode in [
+            ResultExportMode.MEASUREMENT_DATA_FILE,
+            ResultExportMode.COMTRADE,
+            ResultExportMode.TEXT_FILE,
+            ResultExportMode.PSSPLT_VERSION_2,
+            ResultExportMode.CSV,
+        ]:
+            if export_mode in [ResultExportMode.MEASUREMENT_DATA_FILE, ResultExportMode.TEXT_FILE]:
+                file_type = FileType.TXT
+            elif export_mode is ResultExportMode.COMTRADE:
+                file_type = FileType.DAT
+            elif export_mode is ResultExportMode.PSSPLT_VERSION_2:
+                file_type = FileType.RAW
+            elif export_mode is ResultExportMode.CSV:
+                file_type = FileType.CSV
+            file_path = self.create_external_file_path(file_type=file_type, path=export_path, file_name=file_name)
+            data["f_name"] = str(file_path)
+
+        # create result export command within specified attribute data
+        element = self.create_object(
+            name=name,
+            class_name=CalculationCommand.RESULT_EXPORT.value,
+            location=active_study_case,
+            data=data,
+            force=force,
+            update=update,
+        )
+        return t.cast("PFTypes.CommandResultExport", element) if element is not None else None
+
+    def create_external_file_path(
+        self,
+        /,
+        *,
+        file_type: FileType,
+        path: pathlib.Path,
+        file_name: str | None = None,
+    ) -> pathlib.Path:
+        timestamp = dt.datetime.now().astimezone()
+        timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
+        filename = (
+            f"{self.project_name}_{self.app.GetActiveStudyCase().loc_name}_{timestamp_string}{file_type.value}"
+            if file_name is None
+            else f"{file_name}{file_type.value}"
+        )
+
+        file_path = path / filename
+        try:
+            file_path.resolve()
+        except OSError as e:
+            msg = f"File path {file_path} is not a valid path."
+            raise FileNotFoundError(msg) from e
+
+        return file_path
+
     def run_ldf(
         self,
         /,
@@ -1767,11 +1868,11 @@ class PowerFactoryInterface:
         """
         ldf_cmd = self.create_ldf_command(ac=ac, symmetrical=symmetrical)
 
-        if not ldf_cmd.Execute():
+        if ldf_cmd.Execute():
             msg = "Load flow execution failed."
             raise ValueError(msg)
 
-        return self.result("All*")
+        return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)
 
     def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
@@ -1782,12 +1883,14 @@ class PowerFactoryInterface:
         """
         # Setup simulation start command
         sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.RMS, symmetrical=symmetrical)
-        sim_start_cmd.Execute()
+        if sim_start_cmd.Execute():
+            msg = "Time domain simulation: Calculation of initial condition failed."
+            raise ValueError(msg)
 
         # Setup RMS simulation command
         time_sim_cmd = self.create_time_sim_command(time=time)
 
-        if not time_sim_cmd.Execute():
+        if time_sim_cmd.Execute():
             msg = "RMS simulation execution failed."
             raise ValueError(msg)
 
@@ -1802,16 +1905,30 @@ class PowerFactoryInterface:
         """
         # Setup simulation start command
         sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.EMT, symmetrical=symmetrical)
-        sim_start_cmd.Execute()
+        if sim_start_cmd.Execute():
+            msg = "Time domain simulation: Calculation of initial condition failed."
+            raise ValueError(msg)
 
         # Setup EMT simulation command
         time_sim_cmd = self.create_time_sim_command(time=time)
 
-        if not time_sim_cmd.Execute():
+        if time_sim_cmd.Execute():
             msg = "EMT simulation execution failed."
             raise ValueError(msg)
 
         return sim_start_cmd.p_resvar
+
+    @staticmethod
+    def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:
+        """Result export by executing predefined result export command.
+
+        Arguments:
+            result_export_command {PFTypes.CommandResultExport} -- predefined result export command
+        """
+        export_mode = result_export_command.iopt_exp
+        if result_export_command.Execute():
+            msg = f"Result export with export mode {export_mode} failed."
+            raise ValueError(msg)
 
     @staticmethod
     def delete_object(

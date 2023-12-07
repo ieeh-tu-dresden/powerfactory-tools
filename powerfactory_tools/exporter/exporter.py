@@ -2997,7 +2997,7 @@ class PowerFactoryExporter:
                 q_p_char_name = controller.pQPcurve.loc_name
                 q_max_ue = abs(controller.Qmin)
                 q_max_oe = abs(controller.Qmax)
-                q_dir = q_dir = -1 if controller.iQorient else 1
+                q_dir = -1 if controller.iQorient else 1
                 q_controller = ControlQP(
                     q_p_characteristic_name=q_p_char_name,
                     q_max_ue=round(q_max_ue * Exponents.POWER * gen.ngnum, DecimalDigits.POWER),
@@ -3017,7 +3017,7 @@ class PowerFactoryExporter:
                 cosphi = controller.pfsetp
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cosphi = over excited; cap. cosphi = under excited
-                q_dir = q_dir = -1 if controller.iQorient else 1
+                q_dir = -1 if controller.iQorient else 1
                 cosphi_dir = CosphiDir.UE if ue else CosphiDir.OE
                 q_controller = ControlCosphiConst(
                     cosphi=round(cosphi, DecimalDigits.COSPHI),

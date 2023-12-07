@@ -462,17 +462,18 @@ class CalculationType(enum.IntEnum):  # only excerpt
 
 
 class CalculationCommand(enum.Enum):  # only excerpt
-    LOAD_FLOW = "ComLdf"
     CONTINGENCY_ANALYSIS = "ComContingency"
     FLICKER = "ComFlickermeter"
-    SHORT_CIRCUIT_SWEEP = "ComShctrace"
+    FREQUENCY_SWEEP = "ComFsweep"
+    HARMONICS = "ComHldf"
+    LOAD_FLOW = "ComLdf"
+    MODAL_ANALYSIS = "ComMod"
+    RESULT_EXPORT = "ComRes"
+    SENSITIVITY_ANALYSIS = "ComVstab"
     SHORT_CIRCUIT = "ComShc"
+    SHORT_CIRCUIT_SWEEP = "ComShctrace"
     TIME_DOMAIN_SIMULATION = "ComSim"
     TIME_DOMAIN_SIMULATION_START = "ComInc"
-    MODAL_ANALYSIS = "ComMod"
-    SENSITIVITY_ANALYSIS = "ComVstab"
-    HARMONICS = "ComHldf"
-    FREQUENCY_SWEEP = "ComFsweep"
 
 
 class SelectionTarget(enum.IntEnum):  # only excerpt
@@ -488,6 +489,39 @@ class SelectionType(enum.IntEnum):
     GRIDS = 1
     FEEDERS = 2
     INTERCHANGE_NEIGHBORHOOD = 3
+
+
+class ResultExportMode(enum.IntEnum):
+    INTERNAL_OUTPUT_WINDOW = 0
+    WINDOWS_CLIPBOARD = 1
+    MEASUREMENT_DATA_FILE = 2  # ElmFile
+    COMTRADE = 3
+    TEXT_FILE = 4
+    PSSPLT_VERSION_2 = 5
+    CSV = 6
+    DATABSE = 7
+
+
+class ResultExportColumnHeadingElement(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_PATH_AND_NAME = 2
+    PATH_AND_NAME = 3
+    FOREIGN_KEY = 4
+
+
+class ResultExportColumnHeadingVariable(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_DESCRIPTION = 2
+    FULL_DESCRIPTION = 3
+
+
+class ResultExportIntervalFilter(enum.IntEnum):
+    NONE = 0
+    UNDERSAMPLING = 1
+    SYMMETRIC_MEAN_VALUE = 2
+    FLOATING_SYMMETRIC_MEAN_VALUE = 3
 
 
 class PowerFactoryTypes:
@@ -1135,7 +1169,7 @@ class PowerFactoryTypes:
         def Execute(self) -> int:  # noqa: N802
             ...
 
-    class CommandLoadFlow(CommandBase, Protocol):
+    class CommandLoadFlow(CommandBase, Protocol):  # CalculationCommand.LOAD_FLOW
         iopt_net: Literal[0, 1, 2]  # NetworkExtendedCalcType
         iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
         iopt_plim: bool  # apply active power limits
@@ -1163,7 +1197,7 @@ class PowerFactoryTypes:
         def IsBalanced(self) -> int:  # noqa: N802
             ...
 
-    class CommandHarmonicCalculation(CommandBase, Protocol):  # ComHldf
+    class CommandHarmonicCalculation(CommandBase, Protocol):  # CalculationCommand.HARMONIC_LOADFLOW
         iopt_sweep: int
         iopt_allfrq: int
         iopt_flicker: bool
@@ -1180,7 +1214,7 @@ class PowerFactoryTypes:
         ninc: float
         iopt_thd: int
 
-    class CommandFrequencySweep(CommandBase, Protocol):  # ComFsweep
+    class CommandFrequencySweep(CommandBase, Protocol):  # CalculationCommand.FREQUENCY_SWEEP
         iopt_net: Literal[0, 1]  # NetworkCalcType
         ildfinit: bool  # load flow initialisation
         fstart: float
@@ -1196,7 +1230,7 @@ class PowerFactoryTypes:
         neighborhoodSize: int  # noqa: N815
         neighborStartElems: PowerFactoryTypes.Selection  # noqa: N815
 
-    class CommandTimeSimulationStart(CommandBase, Protocol):  # ComInc
+    class CommandTimeSimulationStart(CommandBase, Protocol):  # CalculationCommand.TIME_DOMAIN_SIMULATION_START
         iopt_sim: str  # TimeSimulationType
         iopt_net: str  # TimeSimulationNetworkCalcType
         iopt_show: int
@@ -1209,12 +1243,31 @@ class PowerFactoryTypes:
         dtgrd: float  # step size electro-mechanical
         tstart: float  # start time related to 0 seconds
 
-    class CommandTimeSimulation(CommandBase, Protocol):  # ComSim
+    class CommandTimeSimulation(CommandBase, Protocol):  # CalculationCommand.TIME_DOMAIN_SIMULATION
         tstop: float  # final simulation time
         cominc: PowerFactoryTypes.CommandTimeSimulationStart
 
         def GetSimulationTime(self) -> int:  # noqa: N802
             ...
+
+    class CommandResultExport(CommandBase, Protocol):  # CalculationCommand.RESULT_EXPORT
+        f_name: str  # only specific ResultExportMode (2, 3, 4, 5, 6)
+        col_Sep: str  # for csv: colunm separator  # noqa: N815
+        dec_Sep: str  # for csv: decimal separator  # noqa: N815
+        filtered: Literal[0, 1, 2, 3]  # ResultExportFilter
+        # from: float  # only when using specific interval: start time in seconds
+        iopt_csel: bool  # 0: all variables; 1: selected variables
+        iopt_exp: Literal[0, 1, 2, 3, 4, 5, 6, 7]  # ResultExportMode
+        iopt_rscl: bool  # move time scale
+        iopt_sep: bool  # True if system separator should be used
+        iopt_tsel: bool  # use specific interval
+        iopt_vars: Literal[0, 1, 2]
+        nsteps: int  # only when filtered is not 0
+        numberFormat: bool  # 0: decimal;  1: scientific  # noqa: N815
+        numberPrecisionFixed: int  # number of digits after decimal point  # noqa: N815
+        pResult: PowerFactoryTypes.Result  # noqa: N815
+        scl_start: float  # only when iopt_rscl is True: new start time in seconds
+        to: float  # only when using specific interval: end time in seconds
 
     class Script(Protocol):
         def SetExternalObject(  # noqa: N802
