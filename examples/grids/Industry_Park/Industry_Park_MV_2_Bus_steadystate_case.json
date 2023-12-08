@@ -3,29 +3,64 @@
   "loads": [
     {
       "active_power": {
-        "is_symmetrical": true,
-        "value": 2000000.0,
-        "value_a": 666666.67,
-        "value_b": 666666.67,
-        "value_c": 666666.67
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": 666666.7,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 2000000.1,
+              "unit": "WATT",
+              "value": [
+                666666.7,
+                666666.7,
+                666666.7
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Industry_Node_2"
+        }
       },
       "name": "Industry_Load",
       "reactive_power": {
-        "controller": null,
-        "is_symmetrical": true,
-        "value": 1000000.0,
-        "value_a": 333333.33,
-        "value_b": 333333.33,
-        "value_c": 333333.33
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 333333.3,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 999999.9,
+              "unit": "VAR",
+              "value": [
+                333333.3,
+                333333.3,
+                333333.3
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Industry_Node_2"
+        }
       }
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-09-20",
-    "id": "8aa5831e-1fc1-4060-862e-bd1d5b25172c",
-    "name": "MV_2_Bus",
-    "project": "PowerFactory-Tools"
+    "date": "2023-12-07",
+    "grid": "MV_2_Bus",
+    "id": "18e921f6-0941-45e0-a470-eace958e75e5",
+    "project": "PowerFactory-Tools",
+    "sign_convention": "PASSIVE",
+    "version": "2.1.0"
   },
   "transformers": [
     {
