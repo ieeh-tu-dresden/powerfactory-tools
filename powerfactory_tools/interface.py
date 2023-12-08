@@ -32,6 +32,7 @@ from powerfactory_tools.powerfactory_types import TimeSimulationNetworkCalcType
 from powerfactory_tools.powerfactory_types import TimeSimulationType
 from powerfactory_tools.powerfactory_types import UnitSystem
 from powerfactory_tools.powerfactory_types import ValidPFValue
+from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
 
 if t.TYPE_CHECKING:
@@ -313,13 +314,14 @@ class PowerFactoryInterface:
         )
         return project
 
-    def switch_study_case(self, study_case_name: str) -> None:
+    def switch_study_case(self, study_case_name: str) -> PFTypes.StudyCase:
         study_case = self.study_case(study_case_name)
         if study_case is not None:
             self.activate_study_case(study_case)
         else:
             msg = f"Study case {study_case_name} does not exist."
             raise RuntimeError(msg)
+        return self.study_case(study_case_name)  # type: ignore [return-value]
 
     def switch_scenario(self, scenario_name: str) -> None:
         scenario = self.scenario(scenario_name)
@@ -369,7 +371,7 @@ class PowerFactoryInterface:
             ac_current_sources=self.ac_current_sources(grid_name=grid_name, calc_relevant=True),
         )
 
-    def set_result_variables(
+    def add_result_variables(
         self,
         *,
         result: PFTypes.Result,
@@ -380,6 +382,19 @@ class PowerFactoryInterface:
         for elm in elements:
             for variable in variables:
                 result.AddVariable(elm, variable)
+
+    def write_variable_monitors_for_result(self, result: PFTypes.Result) -> None:
+        loguru.logger.debug(
+            f"For a given result object {result.loc_name}, write all related variable monitors (IntMon) as result variables ...",
+        )
+        result.InitialiseWriting()
+        if result.Write():
+            msg = f"Could not write result {result.loc_name}."
+            raise RuntimeError(msg)
+        result.FinishWriting()
+
+        result.Flush()
+        time.sleep(1)
 
     def activate_grid(
         self,
@@ -441,9 +456,11 @@ class PowerFactoryInterface:
             "Activating study_case {study_case_name} application...",
             study_case_name=study_case.loc_name,
         )
-        if study_case.loc_name != self.app.GetActiveStudyCase().loc_name and study_case.Activate():
-            msg = "Could not activate case study."
-            raise RuntimeError(msg)
+        act_sc = self.app.GetActiveStudyCase()
+        if act_sc is not None and study_case.loc_name != act_sc.loc_name:  # noqa: SIM102
+            if study_case.Activate():
+                msg = "Could not activate case study."
+                raise RuntimeError(msg)
 
     def deactivate_study_case(
         self,
@@ -586,6 +603,29 @@ class PowerFactoryInterface:
         elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
         return [t.cast("PFTypes.LoadLVP", element) for element in elements]
 
+    def variable_monitor(
+        self,
+        name: str = "*",
+        /,
+        *,
+        result_name: str = "*",
+    ) -> PFTypes.VariableMonitor | None:
+        return self.first_of(self.variable_monitors(name, result_name=result_name))
+
+    def variable_monitors(
+        self,
+        name: str = "*",
+        /,
+        *,
+        result_name: str = "*",
+    ) -> Sequence[PFTypes.VariableMonitor]:
+        elements = self.result_elements(
+            class_name=PFClassId.VARIABLE_MONITOR.value,
+            name=name,
+            result_name=result_name,
+        )
+        return [t.cast("PFTypes.VariableMonitor", element) for element in elements]
+
     def result(
         self,
         name: str = "*",
@@ -602,6 +642,9 @@ class PowerFactoryInterface:
         *,
         study_case_name: str = "*",
     ) -> Sequence[PFTypes.Result]:
+        act_sc = self.app.GetActiveStudyCase()
+        if study_case_name == "*" and act_sc is not None:
+            study_case_name = act_sc.loc_name
         elements = self.study_case_elements(
             class_name=PFClassId.RESULT.value,
             name=name,
@@ -1385,6 +1428,32 @@ class PowerFactoryInterface:
         rv = [self.elements_of(sc, pattern=name + "." + class_name) for sc in self.study_cases(study_case_name)]
         return self.list_from_sequences(*rv)
 
+    def result_element(
+        self,
+        *,
+        class_name: str,
+        name: str = "*",
+        result_name: str = "*",
+    ) -> PFTypes.DataObject | None:
+        elements = self.result_elements(class_name=class_name, name=name, result_name=result_name)
+        if len(elements) == 0:
+            return None
+
+        if len(elements) > 1:
+            loguru.logger.warning("Found more then one element, returning only the first one.")
+
+        return elements[0]
+
+    def result_elements(
+        self,
+        *,
+        class_name: str,
+        name: str = "*",
+        result_name: str = "*",
+    ) -> Sequence[PFTypes.DataObject]:
+        rv = [self.elements_of(res, pattern=name + "." + class_name) for res in self.results(result_name)]
+        return self.list_from_sequences(*rv)
+
     def first_of(
         self,
         elements: Sequence[T],
@@ -1436,6 +1505,35 @@ class PowerFactoryInterface:
             return [t.cast("PFTypes.UnitConversionSetting", element) for element in elements]
 
         return []
+
+    def create_variable_monitor(
+        self,
+        *,
+        element: PFTypes.DataObject,
+        result: PFTypes.Result,
+        variables: Sequence[str] | None = None,
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.VariableMonitor | None:
+        loguru.logger.debug("Create variable monitor object {name} ...", name=element.loc_name)
+        obj = self.create_object(
+            name=element.loc_name,
+            class_name=PFClassId.VARIABLE_MONITOR.value,
+            location=result,
+            data=data,
+            force=force,
+            update=update,
+        )
+        variable_monitor = t.cast("PFTypes.VariableMonitor", obj) if obj is not None else None
+        # add variables to monitor
+        if variable_monitor is not None:
+            # specify the elment to monitor
+            variable_monitor.obj_id = element
+            if variables is not None:
+                for var in variables:
+                    variable_monitor.AddVar(var)
+        return variable_monitor
 
     def create_result(
         self,
@@ -1528,7 +1626,10 @@ class PowerFactoryInterface:
         if scenario is not None:
             self.activate_scenario(scenario)
 
-        self.switch_study_case(current_study_case.loc_name)
+        if current_study_case is not None:
+            self.switch_study_case(current_study_case.loc_name)
+        else:
+            self.deactivate_study_case(study_case)
 
         return study_case
 
@@ -1623,7 +1724,6 @@ class PowerFactoryInterface:
                     force=force,
                     update=update,
                 )
-                stage = t.cast("PFTypes.GridVariantStage", elm) if elm else None
             else:
                 loguru.logger.warning(
                     "{object_name}.{class_name} already exists. Use force=True to create it anyway.",
@@ -1641,8 +1741,9 @@ class PowerFactoryInterface:
                     class_name=PFClassId.VARIANT_STAGE.value,
                 )
                 return None
+            elm = self.grid_variant_stage(name, grid_variant=grid_variant)
 
-        return stage
+        return t.cast("PFTypes.GridVariantStage", elm) if elm else None
 
     def create_folder(
         self,
@@ -1780,6 +1881,7 @@ class PowerFactoryInterface:
         /,
         *,
         result: PFTypes.Result,
+        study_case: PFTypes.StudyCase,
         export_path: pathlib.Path,
         export_mode: ResultExportMode,
         file_name: str | None = None,
@@ -1789,10 +1891,8 @@ class PowerFactoryInterface:
         update: bool = True,
     ) -> PFTypes.CommandResultExport | None:
         loguru.logger.debug("Create result export command {name} ...", name=name)
-        active_study_case = self.app.GetActiveStudyCase()
         if data is None:
             data = {}
-        data["pResult"] = result
         data["iopt_exp"] = export_mode.value
 
         # specify file path if export mode requires a file
@@ -1818,12 +1918,16 @@ class PowerFactoryInterface:
         element = self.create_object(
             name=name,
             class_name=CalculationCommand.RESULT_EXPORT.value,
-            location=active_study_case,
+            location=study_case,
             data=data,
             force=force,
             update=update,
         )
-        return t.cast("PFTypes.CommandResultExport", element) if element is not None else None
+        res_exp_cmd = t.cast("PFTypes.CommandResultExport", element) if element is not None else None
+        # Need to explicitly set the result object of the command as not doable in create/update_object()
+        if res_exp_cmd is not None and update is True:
+            res_exp_cmd.pResult = result
+        return res_exp_cmd
 
     def create_external_file_path(
         self,
@@ -1835,18 +1939,23 @@ class PowerFactoryInterface:
     ) -> pathlib.Path:
         timestamp = dt.datetime.now().astimezone()
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
+        act_sc = self.app.GetActiveStudyCase()
+        study_case_name = act_sc.loc_name if act_sc is not None else ""
         filename = (
-            f"{self.project_name}_{self.app.GetActiveStudyCase().loc_name}_{timestamp_string}{file_type.value}"
+            f"{self.project_name}_{study_case_name}_{timestamp_string}{file_type.value}"
             if file_name is None
             else f"{file_name}{file_type.value}"
         )
 
         file_path = path / filename
+        # Formal validation of path
         try:
             file_path.resolve()
         except OSError as e:
             msg = f"File path {file_path} is not a valid path."
             raise FileNotFoundError(msg) from e
+        # Create (sub)direcotries if not existing
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
         return file_path
 
@@ -1872,7 +1981,7 @@ class PowerFactoryInterface:
             msg = "Load flow execution failed."
             raise ValueError(msg)
 
-        return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)
+        return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)  # type: ignore [union-attr]
 
     def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
@@ -1918,6 +2027,41 @@ class PowerFactoryInterface:
 
         return sim_start_cmd.p_resvar
 
+    def export_data(
+        self,
+        data: dict,
+        export_path: pathlib.Path,
+        file_type: FileType,
+        export_data_name: str | None = None,
+    ) -> None:
+        """Export data to json file.
+
+        Arguments:
+            data {dict} -- data to export
+            export_path {pathlib.Path} -- the directory where the exported json file is saved
+            file_type {FileType} -- the chosen file type for data export
+            export_data_name {str | None} -- the chosen file name for data export. (default: {None})
+        """
+        loguru.logger.debug(
+            "Export data to {export_path} as {file_type} ...",
+            file_type=file_type,
+            export_path=str(export_path),
+        )
+        if file_type not in [FileType.JSON, FileType.CSV]:
+            msg = f"File type {file_type} is not supported."
+            raise ValueError(msg)
+        full_file_path = self.create_external_file_path(
+            file_type=file_type,
+            path=export_path,
+            file_name=export_data_name,
+        )
+
+        ce = CustomEncoder(data=data, parent_path=full_file_path.parent)
+        if file_type is FileType.CSV:
+            ce.to_csv(full_file_path)
+        elif file_type is FileType.JSON:
+            ce.to_json(full_file_path)
+
     @staticmethod
     def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:
         """Result export by executing predefined result export command.
@@ -1925,9 +2069,9 @@ class PowerFactoryInterface:
         Arguments:
             result_export_command {PFTypes.CommandResultExport} -- predefined result export command
         """
-        export_mode = result_export_command.iopt_exp
+        export_mode_name = ResultExportMode(result_export_command.iopt_exp).name
         if result_export_command.Execute():
-            msg = f"Result export with export mode {export_mode} failed."
+            msg = f"Result export with export mode {export_mode_name} failed."
             raise ValueError(msg)
 
     @staticmethod

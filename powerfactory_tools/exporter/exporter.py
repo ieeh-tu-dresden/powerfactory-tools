@@ -220,7 +220,6 @@ class PowerFactoryExporter:
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
             study_case_names {list[str]} -- a list of study cases to export (default: {None})
         """
-
         if study_case_names is not None:
             self.export_study_cases(
                 export_path=export_path,
@@ -230,14 +229,18 @@ class PowerFactoryExporter:
                 steadystate_case_name=steadystate_case_name,
             )
         else:
-            active_study_case = self.pfi.app.GetActiveStudyCase()
-            self.export_active_study_case(
-                export_path=export_path,
-                study_case_name=active_study_case.loc_name,
-                topology_name=topology_name,
-                topology_case_name=topology_case_name,
-                steadystate_case_name=steadystate_case_name,
-            )
+            act_sc = self.pfi.app.GetActiveStudyCase()
+            if act_sc is not None:
+                self.export_active_study_case(
+                    export_path=export_path,
+                    study_case_name=act_sc.loc_name,
+                    topology_name=topology_name,
+                    topology_case_name=topology_case_name,
+                    steadystate_case_name=steadystate_case_name,
+                )
+            else:
+                msg = "Could not export. There is neither a study case defined nor is one activated"
+                raise ValueError(msg)
 
     def export_study_cases(
         self,

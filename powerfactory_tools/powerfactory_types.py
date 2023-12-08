@@ -47,6 +47,7 @@ class PFClassId(enum.Enum):
     TRANSFORMER_2W = "ElmTr2"
     TRANSFORMER_3W = "ElmTr3"
     UNIT_VARIABLE = "SetVariable"
+    VARIABLE_MONITOR = "IntMon"  # Variable monitor definition
     VARIANT = "IntScheme"
     VARIANT_CONFIG = "IntAcscheme"
     VARIANT_STAGE = "IntSstage"
@@ -531,8 +532,8 @@ class PowerFactoryTypes:
 
         def AddCopy(  # noqa: N802
             self,
-            objectToCopy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],  # noqa: N803
-            concatNamePart: str | int = "",  # noqa: N803
+            object_to_copy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            concat_name_part: str | int = "",
             /,
         ) -> PowerFactoryTypes.DataObject | None:
             ...
@@ -640,7 +641,7 @@ class PowerFactoryTypes:
 
         def SetStudyTime(  # noqa: N802
             self,
-            dateTime: int,  # noqa: N803 # Seconds since 01.01.1970 00:00:00.
+            date_time: int,  # Seconds since 01.01.1970 00:00:00.
         ) -> None:
             ...
 
@@ -654,7 +655,7 @@ class PowerFactoryTypes:
         def NewStage(  # noqa: N802
             self,
             name: str,
-            activationTime: int,  # noqa: N803 # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
+            activation_time: int,  # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
             activate: int,  # bool: 1 - Activate (should be dafault); 0 - do not activate
             /,
         ) -> bool:
@@ -1112,13 +1113,65 @@ class PowerFactoryTypes:
         def All(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
             ...
 
-        def GetAll(self, className: str, /) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802, N803
+        def GetAll(  # noqa: N802
+            self,
+            class_name: str,
+            /,
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
 
         def AllElm(self) -> Sequence[PowerFactoryTypes.Element]:  # noqa: N802
             ...
 
         def Clear(self) -> None:  # noqa: N802
+            ...
+
+    class VariableMonitor(DataObject, Protocol):
+        obj_id: PowerFactoryTypes.DataObject
+
+        def AddVar(  # noqa: N802
+            self,
+            var_name: str,
+            /,
+        ) -> None:
+            ...
+
+        def AddVars(  # noqa: N802
+            self,
+            var_filter: str,  # e.g.: "e:*"
+            /,
+        ) -> None:
+            ...
+
+        def ClearVars(self) -> None:  # noqa: N802
+            ...
+
+        def GetVar(  # noqa: N802
+            self,
+            row: int,  # the row number of the attribute in the defined list of the variable monitor
+            /,
+        ) -> str:  # the variable name in line row
+            ...
+
+        def NVars(self) -> int:  # noqa: N802
+            """Returns the number of selected variables.
+
+            More exact, the number of lines in the variable selection text on the second page
+            of the IntMon dialogue, which usually contains one variable name per line.
+            """
+            ...
+
+        def RemoveVar(  # noqa: N802
+            self,
+            var_name: str,
+            /,
+        ) -> bool:
+            ...
+
+        def PrintAllValues(self) -> None:  # noqa: N802
+            ...
+
+        def PrintVal(self) -> None:  # noqa: N802
             ...
 
     class Result(DataObject, Protocol):
@@ -1128,7 +1181,7 @@ class PowerFactoryTypes:
         def AddVariable(  # noqa: N802
             self,
             element: PowerFactoryTypes.DataObject,
-            varname: str,
+            var_name: str,
             /,
         ) -> int:
             ...
@@ -1139,11 +1192,23 @@ class PowerFactoryTypes:
         def FindColumn(  # noqa: N802
             self,
             obj: PowerFactoryTypes.DataObject,
-            varName: str,  # noqa: N803
-            startCol: int,  # noqa: N803
+            var_name: str,
+            start_col: int,
             /,
         ) -> int:
             ...
+
+        def FinishWriting(self) -> None:  # noqa: N802
+            """Closes the result object after writing."""
+            ...
+
+        def Flush(self) -> int:  # noqa: N802
+            """This function is required in scripts which perform both file writing and reading operations.
+
+            All data must be written to the disk before attempting to read the file.
+            'Flush' copies all data buffered in memory to the disk.
+            After calling 'Flush'all data is available to be read from the file.
+            """
 
         def GetNumberOfColumns(self) -> None:  # noqa: N802
             ...
@@ -1151,18 +1216,39 @@ class PowerFactoryTypes:
         def GetNumberOfRows(self) -> None:  # noqa: N802
             ...
 
-        def GetValue(  # noqa: N802  # Returns a value from a result object for row iX of curve col.
-            self,
-            iX: int,  # noqa: N803
-            col: int,
-            /,
-        ) -> int:
+        def GetUnit(self, column: int, /) -> str:  # noqa: N802
             ...
 
+        def GetValue(  # noqa: N802
+            self,
+            row: int,
+            col: int,
+            /,
+        ) -> tuple[int, float]:  # first: error code; second: retrieved value
+            """Returns a value from a result object for row of curve col."""
+            ...
+
+        def GetVariable(self, column: int, /) -> str:  # noqa: N802
+            ...
+
+        def InitialiseWriting(self) -> int:  # noqa: N802
+            """Opens the result object for writing."""
+            ...  # Always 0 and can be ignored
+
         def Load(self) -> None:  # noqa: N802
+            """Loads the data of a result object (ElmRes) in memory for reading."""
             ...
 
         def Release(self) -> None:  # noqa: N802
+            """Releases the data loaded to memory."""
+            ...
+
+        def Write(  # noqa: N802
+            self,
+            default_value: float = float("nan"),  # optional default value
+            /,
+        ) -> int:
+            """Writes the current results (specified by VariableMonitor) to the result object."""
             ...
 
     class CommandBase(DataObject, Protocol):
@@ -1269,6 +1355,9 @@ class PowerFactoryTypes:
         scl_start: float  # only when iopt_rscl is True: new start time in seconds
         to: float  # only when using specific interval: end time in seconds
 
+        def ExportFullRange(self) -> None:  # noqa: N802
+            ...
+
     class Script(Protocol):
         def SetExternalObject(  # noqa: N802
             self,
@@ -1295,23 +1384,23 @@ class PowerFactoryTypes:
         def ActivateProject(self, name: str) -> int:  # noqa: N802
             ...
 
-        def GetActiveProject(self) -> PowerFactoryTypes.Project:  # noqa: N802
+        def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
 
         def GetActiveScenario(self) -> PowerFactoryTypes.Scenario | None:  # noqa: N802
             ...
 
-        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+        def GetActiveStages(  # noqa: N802
+            self,
+            varied_folder: PowerFactoryTypes.DataObject,
+            /,
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
             ...
 
         def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
             ...
 
-        def GetActiveStages(  # noqa: N802
-            self,
-            variedFolder: PowerFactoryTypes.DataObject,  # noqa: N803
-            /,
-        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
+        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase | None:  # noqa: N802
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1323,7 +1412,7 @@ class PowerFactoryTypes:
 
         def GetFromStudyCase(  # noqa: N802
             self,
-            className: str,  # noqa: N803
+            class_name: str,
             /,
         ) -> PowerFactoryTypes.DataObject:
             ...
@@ -1350,10 +1439,10 @@ class PowerFactoryTypes:
 
         def GetCalcRelevantObjects(  # noqa: N802
             self,
-            nameFilter: str,  # noqa: N803
-            includeOutOfService: int,  # noqa: N803
-            topoElementsOnly: int = 0,  # noqa: N803
-            bAcSchemes: int = 0,  # noqa: N803
+            name_filter: str,
+            include_out_of_service: int,
+            topo_elements_only: int = 0,
+            b_ac_schemes: int = 0,
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
@@ -1365,7 +1454,7 @@ class PowerFactoryTypes:
             self,
             username: str | None = None,
             password: str | None = None,
-            commandLineArguments: str | None = None,  # noqa: N803
+            command_line_arguments: str | None = None,
             /,
         ) -> PowerFactoryTypes.Application:
             ...
