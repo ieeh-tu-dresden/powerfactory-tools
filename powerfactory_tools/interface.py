@@ -344,6 +344,14 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def compile_powerfactory_data(self, grid: PFTypes.Grid) -> PowerFactoryData:
+        """Read out all relevant data from PowerFactory for a given grid and store as typed dataclass PowerFactroyData.
+
+        Args:
+            grid (PFTypes.Grid): the grid object to be read out
+
+        Returns:
+            PowerFactoryData: a dataclass containing typed lists with all relevant data from PowerFactory
+        """
         grid_name = grid.loc_name
         loguru.logger.debug("Compiling data from PowerFactory for grid {grid_name}...", grid_name=grid_name)
 
@@ -378,14 +386,33 @@ class PowerFactoryInterface:
         elements: Sequence[PFTypes.DataObject],
         variables: Sequence[str],
     ) -> None:
+        """Adds variables to a result object for a given list of elements.
+
+        Args:
+            result (PFTypes.Result): the result object to be written to
+            elements (Sequence[PFTypes.DataObject]): list of elements for which variables has to be added to the result object
+            variables (Sequence[str]): list of variables (string identifiers) to be added for each element
+        """
         loguru.logger.debug("Set Variables for result object {result_name} ...", result_name=result.loc_name)
         for elm in elements:
             for variable in variables:
                 result.AddVariable(elm, variable)
 
     def write_variable_monitors_for_result(self, result: PFTypes.Result) -> None:
+        """For each variable monitor in the result object, write the variable monitor as result variable.
+
+        A result object (ElmRes) contains variable monitors (IntMon).
+        In case of load flow calculation, these variable monitors can be written (kind of making visible)
+        as result variables to the result itself.
+
+        Args:
+            result (PFTypes.Result): the result object to be written
+
+        Raises:
+            RuntimeError: if the writing of the variable monitors fails
+        """
         loguru.logger.debug(
-            f"For a given result object {result.loc_name}, write all related variable monitors (IntMon) as result variables ...",
+            f"Write all in the result object {result.loc_name} containing variable monitors (IntMon) as result variables ...",
         )
         result.InitialiseWriting()
         if result.Write():
@@ -1571,9 +1598,9 @@ class PowerFactoryInterface:
 
         Keyword Arguments:
             name -- the name of the new study case
-            grids -- list of grids to be related to the study case (default: {None})
-            grid_variants -- list of grid variants to be related to the study case (default: {None})
-            scenario -- scenario to be related to the study case (default: {None})
+            grids -- preset of grids to be related to the study case (default: {None})
+            grid_variants -- preset of grid variants to be related to / activated in the study case (default: {None})
+            scenario -- preset scenario to be related to the study case (default: {None})
             target_datetime -- datetime basis to be related to the study case (default: {None})
             location -- the folder where the study case should be created in (default: {None})
             force -- flag to force the creation, nonetheless if variant already exits (default: {False})
@@ -1708,10 +1735,7 @@ class PowerFactoryInterface:
             {PFTypes.GridVariantStage | None} -- The created grid variant stage if successful.
         """
         # try to catch possibly existing variant stage
-        stage = self.grid_variant_stage(
-            name,
-            grid_variant=grid_variant,
-        )
+        stage = self.grid_variant_stage(name, grid_variant=grid_variant)
 
         if stage is not None:
             # if stage already exists and creation is forced, override existing stage
@@ -1730,6 +1754,7 @@ class PowerFactoryInterface:
                     object_name=name,
                     class_name=PFClassId.VARIANT_STAGE.value,
                 )
+                return stage
         else:
             # if stage does not exist, try to create a new one
             activation_time = 0 if data is None else t.cast("int", data.get("tAcTime", 0))
@@ -1743,7 +1768,7 @@ class PowerFactoryInterface:
                 return None
             elm = self.grid_variant_stage(name, grid_variant=grid_variant)
 
-        return t.cast("PFTypes.GridVariantStage", elm) if elm else None
+        return t.cast("PFTypes.GridVariantStage", elm) if elm is not None else None
 
     def create_folder(
         self,
@@ -1836,7 +1861,7 @@ class PowerFactoryInterface:
     def create_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
         return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
 
-    def create_ldf_command(self, /, *, ac: bool, symmetrical: bool) -> PFTypes.CommandLoadFlow:
+    def create_ldf_command(self, /, *, ac: bool = True, symmetrical: bool = True) -> PFTypes.CommandLoadFlow:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
             cmd.iopt_net = (
@@ -1856,16 +1881,21 @@ class PowerFactoryInterface:
         sim: TimeSimulationType,
         symmetrical: bool,
     ) -> PFTypes.CommandTimeSimulationStart:
+        # Set type of network representation for the load flow calculation in beforehand (Workaround as cmd.c_butldf is not accessible)
+        self.create_ldf_command(symmetrical=symmetrical)
         cmd = t.cast(
             "PFTypes.CommandTimeSimulationStart",
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
+        # Set type of simulation (RMS, EMT)
         cmd.iopt_sim = sim.value
+        # Set type of network representation (symmetrical, unsymmetrical)
         cmd.iopt_net = (
             TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
             if symmetrical
             else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
         )
+
         return cmd
 
     def create_time_sim_command(self, /, *, time: float) -> PFTypes.CommandTimeSimulation:
@@ -1942,11 +1972,10 @@ class PowerFactoryInterface:
         act_sc = self.app.GetActiveStudyCase()
         study_case_name = act_sc.loc_name if act_sc is not None else ""
         filename = (
-            f"{self.project_name}_{study_case_name}_{timestamp_string}{file_type.value}"
+            f"{study_case_name}_{timestamp_string}{file_type.value}"
             if file_name is None
             else f"{file_name}{file_type.value}"
         )
-
         file_path = path / filename
         # Formal validation of path
         try:
@@ -1983,7 +2012,7 @@ class PowerFactoryInterface:
 
         return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)  # type: ignore [union-attr]
 
-    def run_rms_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
+    def run_rms_simulation(self, time: float, /, *, symmetrical: bool = True) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
 
         Args:
@@ -2005,15 +2034,15 @@ class PowerFactoryInterface:
 
         return sim_start_cmd.p_resvar
 
-    def run_emt_simulation(self, time: float, *, symmetrical: bool = True) -> PFTypes.Result | None:
+    def run_emt_simulation(self, time: float, /) -> PFTypes.Result | None:
         """Wrapper to easily run EMT time simulation.
 
         Args:
             time (float): simualtion time in s
-            symmetrical (bool, optional): positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
         """
         # Setup simulation start command
-        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.EMT, symmetrical=symmetrical)
+        # Unsymmetric is set by PowerFactory!
+        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.EMT, symmetrical=False)
         if sim_start_cmd.Execute():
             msg = "Time domain simulation: Calculation of initial condition failed."
             raise ValueError(msg)
@@ -2032,7 +2061,7 @@ class PowerFactoryInterface:
         data: dict,
         export_path: pathlib.Path,
         file_type: FileType,
-        export_data_name: str | None = None,
+        file_name: str | None = None,
     ) -> None:
         """Export data to json file.
 
@@ -2040,7 +2069,7 @@ class PowerFactoryInterface:
             data {dict} -- data to export
             export_path {pathlib.Path} -- the directory where the exported json file is saved
             file_type {FileType} -- the chosen file type for data export
-            export_data_name {str | None} -- the chosen file name for data export. (default: {None})
+            file_name {str | None} -- the chosen file name for data export. (default: {None})
         """
         loguru.logger.debug(
             "Export data to {export_path} as {file_type} ...",
@@ -2053,7 +2082,7 @@ class PowerFactoryInterface:
         full_file_path = self.create_external_file_path(
             file_type=file_type,
             path=export_path,
-            file_name=export_data_name,
+            file_name=file_name,
         )
 
         ce = CustomEncoder(data=data, parent_path=full_file_path.parent)

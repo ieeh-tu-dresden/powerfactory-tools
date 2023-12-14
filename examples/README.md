@@ -45,8 +45,10 @@ The example includes:
 + General request of elements
 + Selection of user defined elements (e.g. based on name or voltage level)
 + Change of object's attribute values
-+ Run load flow - symmetrical / unsymmetrical
-+ Export of user defined data to json
++ Definition of variable monitors and result objects
++ Execution of load flow - symmetrical / unsymmetrical
++ Preparation and execution of RMS/EMT simulations
++ Export of results objects as well as user defined data to json or csv
 + Request and change study cases, operation scenarios and network variations
 
 ## <div id="example project" /> PowerFactory Example Project

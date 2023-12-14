@@ -28,12 +28,12 @@ The following functionalities are provided:
 
 ## <div id="tutorials" /> Tutorials
 
-Jupyter notebooks are provided to get in touch with the usage of this toolbox:
+Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
 + for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
 + for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
 
-## <div id="remarks" /> General Remarks
+## <div id="remarks" /> General Remarks on Export
 
 Please find below some important general remarks and assumptions to consider for the application:
 
