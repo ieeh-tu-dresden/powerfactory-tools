@@ -33,7 +33,6 @@ from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import RatedPower
 
-from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.quantities import QuantityConverter as Qc
 
@@ -710,7 +709,7 @@ class LoadPower:
 
     def as_active_power_ssc(self) -> ActivePower:
         return ActivePower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_acts),
+            value=(e for e in self.pow_acts),
             system_type=SystemType.NATURAL,
         )
 
@@ -723,7 +722,7 @@ class LoadPower:
 
     def as_rated_power(self) -> RatedPower:
         pow_apps = ApparentPower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
+            value=(e for e in self.pow_apps),
             system_type=SystemType.NATURAL,
         )
         cos_phis = CosPhi(value=(e for e in self.cos_phis))
