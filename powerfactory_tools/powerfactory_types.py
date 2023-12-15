@@ -36,6 +36,7 @@ class PFClassId(enum.Enum):
     LOAD_MV = "ElmLodMv"
     LOAD_TYPE_GENERAL = "TypLod"
     LOAD_TYPE_HARMONIC = "TypHmccur"
+    PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
     REFERENCE = "IntRef"
@@ -43,7 +44,6 @@ class PFClassId(enum.Enum):
     SCENARIO = "IntScenario"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
-    SPECIALIZED_PROJECT_FOLDER = "IntPrjfolder"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
@@ -824,7 +824,7 @@ class PowerFactoryTypes:
         R_on: float
         X_on: float
 
-    class HarmonicSourceType(DataObject, Protocol):
+    class HarmonicSourceType(DataObject, Protocol):  # PFClassId.LOAD_TYPE_HARMONIC
         i_usym: Literal[0, 1, 2]  # HarmonicSourceSystemType
 
     class Coupler(DataObject, Protocol):  # PFClassId.COUPLER
@@ -1003,13 +1003,13 @@ class PowerFactoryTypes:
         outserv: bool
         typ_id: PowerFactoryTypes.LoadType | None
 
-    class Load(LoadBase, Protocol):
+    class Load(LoadBase, Protocol):    # PFClassId.LOAD
         mode_inp: str  # ModeInpLoad
         i_sym: bool  # ISym
         u0: float
         phtech: str  # LoadPhaseConnectionType
 
-    class LoadLVP(DataObject, Protocol):
+    class LoadLVP(DataObject, Protocol):  # PFClassId.LOAD_LV_PART
         iopt_inp: Literal[0, 1, 2, 3]  # IOpt
         elini: float
         cplinia: float
@@ -1026,12 +1026,12 @@ class PowerFactoryTypes:
         pf_recap: bool  # PFRecap
         phtech: Literal[0, 2, 3, 4, 5, 7, 8, 9]  # LoadLVPhaseConnectionType
 
-    class LoadLV(LoadBase, LoadLVP, Protocol):
+    class LoadLV(LoadBase, LoadLVP, Protocol):  # PFClassId.LOAD_LV
         i_sym: bool  # ISym
         lodparts: Sequence[PowerFactoryTypes.LoadLVP]
         phtech: Literal[0, 2, 3, 4, 5, 7, 8, 9]  # LoadLVPhaseConnectionType
 
-    class LoadMV(LoadBase, Protocol):
+    class LoadMV(LoadBase, Protocol):  # PFClassId.LOAD_MV
         mode_inp: Literal["PC", "SC", "EC"]  # ModeInpMV
         ci_sym: bool  # ISym
         elini: float
@@ -1091,7 +1091,7 @@ class PowerFactoryTypes:
         bus1: None
         bus2: None
 
-    class ExternalGrid(DataObject, Protocol):
+    class ExternalGrid(DataObject, Protocol):  # PFClassId.EXTERNAL_GRID
         bustp: Literal["SL", "PV", "PQ"]  # BusType
         bus1: PowerFactoryTypes.StationCubicle | None
         desc: Sequence[str]
@@ -1208,7 +1208,7 @@ class PowerFactoryTypes:
         def PrintVal(self) -> None:  # noqa: N802
             ...
 
-    class Result(DataObject, Protocol):
+    class Result(DataObject, Protocol):  # PFClassId.RESULT
         desc: Sequence[str]
         calTp: int  # noqa: N815  # CalculationType
 
