@@ -2126,7 +2126,12 @@ class PowerFactoryExporter:
             )
 
         if load_type == "QC":
-            return LoadPower.from_qc_sym(pow_react=load.qlini, cosphi=load.coslini, scaling=scaling)
+            return LoadPower.from_qc_sym(
+                pow_react=load.qlini,
+                cosphi=load.coslini,
+                scaling=scaling,
+                phase_connection_type=phase_connection_type,
+            )
 
         if load_type == "IP":
             if u_nom is not None:
