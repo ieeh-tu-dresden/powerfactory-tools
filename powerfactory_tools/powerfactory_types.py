@@ -1003,7 +1003,7 @@ class PowerFactoryTypes:
         outserv: bool
         typ_id: PowerFactoryTypes.LoadType | None
 
-    class Load(LoadBase, Protocol):    # PFClassId.LOAD
+    class Load(LoadBase, Protocol):  # PFClassId.LOAD
         mode_inp: str  # ModeInpLoad
         i_sym: bool  # ISym
         u0: float
