@@ -15,25 +15,29 @@ if t.TYPE_CHECKING:
 
     UnitConversion = tuple[str, MetricPrefix, MetricPrefix]
 
+DEFAULT_PHASE_QUANTITY = 3
+
 
 class Exponents:
-    VOLTAGE: float = 10**3
-    CURRENT: float = 10**3
-    RESISTANCE: float = 10**0
-    REACTANCE: float = 10**0
-    SUSCEPTANCE: float = 10**-6
     CONDUCTANCE: float = 10**-6
+    CURRENT: float = 10**3
     POWER: float = 10**6
+    REACTANCE: float = 10**0
+    RESISTANCE: float = 10**0
+    SUSCEPTANCE: float = 10**-6
+    VOLTAGE: float = 10**3
 
 
 class DecimalDigits:
-    COSPHI: int = 6
-    VOLTAGE: int = 1
-    CURRENT: int = 1
-    POWER: int = 0
-    PU: int = 4
-    IMPEDANCE: int = 6
-    ADMITTANCE: int = 12
+    ADMITTANCE: int = 13
+    ANGLE: int = 5
+    CURRENT: int = 2
+    FREQUENCY: int = 4
+    IMPEDANCE: int = 7
+    POWER: int = 1
+    POWERFACTOR: int = 7
+    PU: int = 5
+    VOLTAGE: int = 2
 
 
 class BaseUnits:

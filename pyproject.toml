@@ -2,12 +2,13 @@
 
   authors = [
     { name = "Sasan Jacob Rasti", email = "sasan_jacob.rasti@tu-dresden.de" },
-
-    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
+
+    { name = "Laura Fiedler", email = "laura.fiedler@tu-dresden.de" },
+    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model==1.7.0",
+    "ieeh-power-system-data-model==2.1.0",
     "loguru",
     "pydantic>=2.1.1",
   ]
@@ -20,8 +21,6 @@
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
-
-  [project.optional-dependencies]
 
 [build-system]
   build-backend = "pdm.backend"
