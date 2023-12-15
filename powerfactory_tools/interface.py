@@ -170,6 +170,7 @@ class PowerFactoryInterface:
         self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
 
     def load_project_folders_from_pf_db(self) -> None:
+        loguru.logger.debug("Loading all project folders...")
         self.load_project_setting_folders_from_pf_db()
 
         self.chars_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.CHARACTERISTICS.value))
@@ -190,6 +191,7 @@ class PowerFactoryInterface:
         )
 
         self.ext_data_dir = self.project_settings.extDataDir
+        loguru.logger.debug("Loading all project folders... Done")
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         loguru.logger.debug("Loading PowerFactory Python module...")
@@ -511,7 +513,13 @@ class PowerFactoryInterface:
             "Activating grid variant {variant_name} application...",
             variant_name=grid_variant.loc_name,
         )
-        if grid_variant.Activate():
+        variants = self.app.GetActiveNetworkVariations()
+        if grid_variant in variants:
+            loguru.logger.warning(
+                "Grid variant {variant_name} is already active.",
+                variant_name=grid_variant.loc_name,
+            )
+        elif grid_variant.Activate():
             msg = "Could not activate grid variant."
             raise RuntimeError(msg)
 
@@ -1709,6 +1717,7 @@ class PowerFactoryInterface:
             name=stage_name,
             grid_variant=variant,
             force=force,
+            update=update,
         )
 
         return variant if stage is not None else None
@@ -1739,22 +1748,14 @@ class PowerFactoryInterface:
 
         if stage is not None:
             # if stage already exists and creation is forced, override existing stage
-            if force:
-                elm = self.create_object(
-                    name=name,
-                    class_name=PFClassId.VARIANT_STAGE.value,
-                    location=grid_variant,
-                    data=data,
-                    force=force,
-                    update=update,
-                )
-            else:
-                loguru.logger.warning(
-                    "{object_name}.{class_name} already exists. Use force=True to create it anyway.",
-                    object_name=name,
-                    class_name=PFClassId.VARIANT_STAGE.value,
-                )
-                return stage
+            elm = self.create_object(
+                name=name,
+                class_name=PFClassId.VARIANT_STAGE.value,
+                location=grid_variant,
+                data=data,
+                force=force,
+                update=update,
+            )
         else:
             # if stage does not exist, try to create a new one
             activation_time = 0 if data is None else t.cast("int", data.get("tAcTime", 0))
@@ -1827,8 +1828,8 @@ class PowerFactoryInterface:
 
         _elements = self.elements_of(location, pattern=f"{name}.{class_name}")
         element = self.first_of(_elements)
-        if element is not None and force is False:
-            if update is False:
+        if element is not None and not force:
+            if not update:
                 loguru.logger.warning(
                     "{object_name}.{class_name} already exists. Use force=True to create it anyway or update=True to update it.",
                     object_name=name,
@@ -1838,10 +1839,11 @@ class PowerFactoryInterface:
             element = location.CreateObject(class_name, name)
             update = True
 
-        if element is not None and data is not None and update is True:
+        if element is not None and data is not None and update:
             return self.update_object(element, data=data)
-
-        self.load_project_folders_from_pf_db()
+        # Update project folders if (new) object is not a VARIABLE_MONITOR
+        if class_name != PFClassId.VARIABLE_MONITOR.value:
+            self.load_project_folders_from_pf_db()
         return element
 
     def update_object(
@@ -1880,6 +1882,7 @@ class PowerFactoryInterface:
         *,
         sim: TimeSimulationType,
         symmetrical: bool,
+        result: PFTypes.Result | None = None,
     ) -> PFTypes.CommandTimeSimulationStart:
         # Set type of network representation for the load flow calculation in beforehand (Workaround as cmd.c_butldf is not accessible)
         self.create_ldf_command(symmetrical=symmetrical)
@@ -1895,6 +1898,9 @@ class PowerFactoryInterface:
             if symmetrical
             else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
         )
+        # Set result object to be used for simulation
+        if result is not None:
+            cmd.p_resvar = result
 
         return cmd
 
@@ -2012,15 +2018,31 @@ class PowerFactoryInterface:
 
         return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)  # type: ignore [union-attr]
 
-    def run_rms_simulation(self, time: float, /, *, symmetrical: bool = True) -> PFTypes.Result | None:
+    def run_rms_simulation(
+        self,
+        time: float,
+        /,
+        *,
+        symmetrical: bool = True,
+        result: PFTypes.Result | None = None,
+    ) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
 
-        Args:
+        Arguments:
             time (float): simualtion time in s
+        Keyword Arguments:
             symmetrical (bool, optional): positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
+            result (PFTypes.Result | None, optional): result object to be used for simulation. (default: {None})
+
+        Returns:
+        {PFTypes.Result | None} -- The result object related to the RMS simualtion.
         """
         # Setup simulation start command
-        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.RMS, symmetrical=symmetrical)
+        sim_start_cmd = self.create_time_sim_start_command(
+            sim=TimeSimulationType.RMS,
+            symmetrical=symmetrical,
+            result=result,
+        )
         if sim_start_cmd.Execute():
             msg = "Time domain simulation: Calculation of initial condition failed."
             raise ValueError(msg)
@@ -2034,15 +2056,30 @@ class PowerFactoryInterface:
 
         return sim_start_cmd.p_resvar
 
-    def run_emt_simulation(self, time: float, /) -> PFTypes.Result | None:
+    def run_emt_simulation(
+        self,
+        time: float,
+        /,
+        *,
+        result: PFTypes.Result | None = None,
+    ) -> PFTypes.Result | None:
         """Wrapper to easily run EMT time simulation.
 
-        Args:
+        Arguments:
             time (float): simualtion time in s
+        Keyword Arguments:
+            result (PFTypes.Result | None, optional): result object to be used for simulation. (default: {None})
+
+        Returns:
+        {PFTypes.Result | None} -- The result object related to the EMT simualtion.
         """
         # Setup simulation start command
         # Unsymmetric is set by PowerFactory!
-        sim_start_cmd = self.create_time_sim_start_command(sim=TimeSimulationType.EMT, symmetrical=False)
+        sim_start_cmd = self.create_time_sim_start_command(
+            sim=TimeSimulationType.EMT,
+            symmetrical=False,
+            result=result,
+        )
         if sim_start_cmd.Execute():
             msg = "Time domain simulation: Calculation of initial condition failed."
             raise ValueError(msg)
