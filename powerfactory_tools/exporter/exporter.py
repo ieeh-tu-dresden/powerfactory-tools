@@ -2368,7 +2368,7 @@ class PowerFactoryExporter:
         if load_type == "QC":
             return LoadPower.from_qc_sym(
                 pow_react=load.qlini,
-                cosphi=load.coslini,
+                cos_phi=load.coslini,
                 scaling=scaling,
                 phase_connection_type=phase_connection_type,
             )
@@ -2437,12 +2437,8 @@ class PowerFactoryExporter:
             if u_nom is not None:
                 return LoadPower.from_ic_asym(
                     voltage=load.u0 * u_nom,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
+                    currents=(load.ilinir, load.ilinis, load.ilinit),
+                    cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                     pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
@@ -2454,24 +2450,16 @@ class PowerFactoryExporter:
 
         if load_type == "SC":
             return LoadPower.from_sc_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
         if load_type == "QC":
             return LoadPower.from_qc_asym(
-                pow_react_a=load.qlinir,
-                pow_react_b=load.qlinis,
-                pow_react_c=load.qlinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_reacts=(load.qlinir, load.qlinis, load.qlinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 scaling=scaling,
             )
 
@@ -2479,12 +2467,8 @@ class PowerFactoryExporter:
             if u_nom is not None:
                 return LoadPower.from_ip_asym(
                     voltage=load.u0 * u_nom,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    pow_act_a=load.plinir,
-                    pow_act_b=load.plinis,
-                    pow_act_c=load.plinit,
+                    currents=(load.ilinir, load.ilinis, load.ilinit),
+                    pow_acts=(load.plinir, load.plinis, load.plinit),
                     pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
@@ -2496,24 +2480,16 @@ class PowerFactoryExporter:
 
         if load_type == "SP":
             return LoadPower.from_sp_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                pow_acts=(load.plinir, load.plinis, load.plinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
         if load_type == "SQ":
             return LoadPower.from_sq_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                pow_react_a=load.qlinir,
-                pow_react_b=load.qlinis,
-                pow_react_c=load.qlinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                pow_reacts=(load.qlinir, load.qlinis, load.qlinit),
                 scaling=scaling,
             )
 
@@ -3342,7 +3318,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.qu_char == QChar.P:  # Q(P)
-                q_dir = q_dir = -1 if controller.iQorient else 1
+                q_dir = -1 if controller.iQorient else 1
                 q_control_type = ControlTypeFactory.create_q_p_sym(
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
