@@ -33,6 +33,7 @@ from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import RatedPower
 
+from powerfactory_tools.constants import DecimalDigits
 from powerfactory_tools.constants import Exponents
 from powerfactory_tools.quantities import QuantityConverter as Qc
 
@@ -709,23 +710,23 @@ class LoadPower:
 
     def as_active_power_ssc(self) -> ActivePower:
         return ActivePower(
-            value=(e for e in self.pow_acts),
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_acts),
             system_type=SystemType.NATURAL,
         )
 
     def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
         return ReactivePower(
-            value=(e for e in self.pow_reacts),
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_reacts),
             system_type=SystemType.NATURAL,
         )
 
     def as_rated_power(self) -> RatedPower:
         pow_apps = ApparentPower(
-            value=(e for e in self.pow_apps),
+            value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
             system_type=SystemType.NATURAL,
         )
-        cos_phis = CosPhi(value=(e for e in self.cos_phis))
+        cos_phis = CosPhi(value=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
 
     def limit_phases(self, n_phases: int) -> LoadPower:
