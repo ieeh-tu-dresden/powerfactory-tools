@@ -1867,12 +1867,12 @@ class PowerFactoryInterface:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
             cmd.iopt_net = (
-                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
                 if symmetrical
                 else NetworkExtendedCalcType.AC_UNSYM_ABC.value
             )
         else:
-            cmd.iopt_net = NetworkExtendedCalcType.DC.value
+            cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
 
         return cmd
 
@@ -1891,10 +1891,10 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        cmd.iopt_sim = sim.value
+        cmd.iopt_sim = sim.value  # type: ignore[assignment]
         # Set type of network representation (symmetrical, unsymmetrical)
         cmd.iopt_net = (
-            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
             if symmetrical
             else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
         )
