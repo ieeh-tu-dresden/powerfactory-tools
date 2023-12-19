@@ -92,7 +92,14 @@ pip install ieeh-powerfactory-tools
 
 ## <div id="compatibility" /> Compatibility
 
-Due to very useful features in `python 3.10+` - which is supported by `PowerFactory 2022`, we decided to drop `python 3.9` starting from version `1.4`. Users that use an older `PowerFactory` version, please use version `1.3`.
+| Tools Version | PSDM Version | PowerFactory Version | Python Version |
+|---------------|:------------:|:--------------------:|:--------------:|
+| <= 1.3.1      | 1.1.0        | 2022                 | 3.9, 3.10      |
+| 1.4.x         | 1.1.0        | 2022                 | 3.10           |
+| 1.5.1         | 1.3.0        | 2022                 | 3.10           |
+| 2.0.0         | 2.1.1        | 2022                 | 3.10           |
+
+Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed. Also `Python 3.11` can be used. Related adjustments are on schedule for the next mayor release 3.x
 
 ## <div id="development" /> Development
 
