@@ -291,7 +291,7 @@
           "node_target": "Node_8_LV"
         }
       },
-      "name": "Load_8",
+      "name": "Load_8a",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -306,6 +306,57 @@
               "total": 0.0,
               "unit": "VAR",
               "value": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        }
+      }
+    },
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "WATT",
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        }
+      },
+      "name": "Load_8b_zero",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "VAR",
+              "value": [
+                0.0,
                 0.0,
                 0.0
               ]
@@ -921,12 +972,12 @@
   ],
   "meta": {
     "case": "Base",
-    "date": "2023-12-07",
+    "date": "2023-12-19",
     "grid": "HV_9_Bus",
-    "id": "ab2f655c-0d4e-4281-ade8-c12e979ab4d0",
+    "id": "b9c1bdd3-2780-4acf-a392-1db3d939c9c8",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.0"
+    "version": "2.1.1"
   },
   "transformers": [
     {

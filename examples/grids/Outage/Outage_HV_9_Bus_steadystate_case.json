@@ -291,7 +291,7 @@
           "node_target": "Node_8_LV"
         }
       },
-      "name": "Load_8",
+      "name": "Load_8a",
       "reactive_power": {
         "controller": {
           "control_type": {
@@ -306,6 +306,57 @@
               "total": 0.0,
               "unit": "VAR",
               "value": [
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        }
+      }
+    },
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "WATT",
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_8_LV"
+        }
+      },
+      "name": "Load_8b_zero",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "VAR",
+              "value": [
+                0.0,
                 0.0,
                 0.0
               ]
@@ -1044,12 +1095,12 @@
   ],
   "meta": {
     "case": "Outage",
-    "date": "2023-12-07",
+    "date": "2023-12-19",
     "grid": "HV_9_Bus",
-    "id": "ada39981-7289-4534-b5cd-95820ca02437",
+    "id": "ac09362d-f436-45f9-98f0-1a1af84fb926",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.0"
+    "version": "2.1.1"
   },
   "transformers": [
     {
