@@ -8,6 +8,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import datetime as dt
+import enum
 import importlib.util
 import itertools
 import logging
@@ -1862,19 +1863,36 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
+    def update_value(
+        self,
+        element: str | float | bool | enum.Enum,
+        /,
+        *,
+        value: str | float | bool | enum.Enum,
+    ) -> str | float | bool | enum.Enum:
+        match value:
+            case str() | int() | float() | bool():
+                element = value
+            case enum.Enum():
+                element = value.value
+            case _:
+                msg = f"Value type {value.__class__} not supported."
+                raise ValueError(msg)
+
+        return element
+
     def create_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
         return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
 
     def create_ldf_command(self, /, *, ac: bool = True, symmetrical: bool = True) -> PFTypes.CommandLoadFlow:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
-            cmd.iopt_net = (
-                NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
-                if symmetrical
-                else NetworkExtendedCalcType.AC_UNSYM_ABC.value
-            )
+            if symmetrical:
+                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE)
+            else:
+                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_UNSYM_ABC)
         else:
-            cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
+            self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.DC)
 
         return cmd
 
@@ -1893,13 +1911,12 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        cmd.iopt_sim = sim.value  # type: ignore[assignment]
+        self.update_value(cmd.iopt_sim, value=sim)
         # Set type of network representation (symmetrical, unsymmetrical)
-        cmd.iopt_net = (
-            TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
-            if symmetrical
-            else TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
-        )
+        if symmetrical:
+            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE)
+        else:
+            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_UNSYM_ABC)
         # Set result object to be used for simulation
         if result is not None:
             cmd.p_resvar = result
