@@ -1563,7 +1563,7 @@ class PowerFactoryInterface:
         variable_monitor = t.cast("PFTypes.VariableMonitor", obj) if obj is not None else None
         # add variables to monitor
         if variable_monitor is not None:
-            # specify the elment to monitor
+            # specify the element to monitor
             variable_monitor.obj_id = element
             if variables is not None:
                 for var in variables:
@@ -1647,6 +1647,7 @@ class PowerFactoryInterface:
                 loguru.logger.warning("Requested study time could not be set.")
                 return None
 
+        # Switch to the newly created study case to activate grids, variants and scenarios
         current_study_case = self.app.GetActiveStudyCase()
         self.switch_study_case(study_case.loc_name)
 
@@ -1661,6 +1662,7 @@ class PowerFactoryInterface:
         if scenario is not None:
             self.activate_scenario(scenario)
 
+        # Switch back to the previous study case
         if current_study_case is not None:
             self.switch_study_case(current_study_case.loc_name)
         else:
