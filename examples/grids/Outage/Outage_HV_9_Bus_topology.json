@@ -2018,18 +2018,18 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 666666.7,
+          "average": 666666.5,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 2000000.1,
+          "total": 1999999.5,
           "unit": "WATT",
           "value": [
-            666666.7,
-            666666.7,
-            666666.7
+            666666.5,
+            666666.5,
+            666666.5
           ]
         },
         "apparent_power": {
@@ -2284,18 +2284,18 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 666666.7,
+          "average": 666666.6,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 2000000.1,
+          "total": 1999999.8,
           "unit": "WATT",
           "value": [
-            666666.7,
-            666666.7,
-            666666.7
+            666666.6,
+            666666.6,
+            666666.6
           ]
         },
         "apparent_power": {
@@ -2417,18 +2417,18 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 666666.7,
+          "average": 666666.5,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 2000000.1,
+          "total": 1999999.5,
           "unit": "WATT",
           "value": [
-            666666.7,
-            666666.7,
-            666666.7
+            666666.5,
+            666666.5,
+            666666.5
           ]
         },
         "apparent_power": {
@@ -2529,7 +2529,7 @@
         }
       },
       "description": "",
-      "name": "Load_8",
+      "name": "Load_8a",
       "node": "Node_8_LV",
       "phase_connections": {
         "n_phases": 2,
@@ -2635,6 +2635,139 @@
         "c_i": 0.0,
         "c_p": 0.0,
         "c_z": 1.0,
+        "exp_i": 0,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": "Load_general",
+        "u_0": {
+          "average": 400.0,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
+            400.0,
+            400.0,
+            400.0
+          ]
+        }
+      },
+      "description": "",
+      "name": "Load_8b_zero",
+      "node": "Node_8_LV",
+      "phase_connections": {
+        "n_phases": 3,
+        "value": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ]
+      },
+      "rated_power": {
+        "active_power": {
+          "average": NaN,
+          "is_symmetrical": false,
+          "n_phases": 3,
+          "power_type": "AC_ACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": NaN,
+          "unit": "WATT",
+          "value": [
+            NaN,
+            NaN,
+            NaN
+          ]
+        },
+        "apparent_power": {
+          "average": 0.0,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "power_type": "AC_APPARENT",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": 0.0,
+          "unit": "VA",
+          "value": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        },
+        "cos_phi": {
+          "average": NaN,
+          "direction": "ND",
+          "is_symmetrical": false,
+          "n_phases": 3,
+          "precision": 7,
+          "system_type": "NATURAL",
+          "unit": "UNITLESS",
+          "value": [
+            NaN,
+            NaN,
+            NaN
+          ]
+        },
+        "cos_phi_average": NaN,
+        "is_symmetrical": false,
+        "n_phases": 3,
+        "reactive_power": {
+          "average": NaN,
+          "is_symmetrical": false,
+          "n_phases": 3,
+          "power_type": "AC_REACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": NaN,
+          "unit": "VAR",
+          "value": [
+            NaN,
+            NaN,
+            NaN
+          ]
+        }
+      },
+      "reactive_power_model": {
+        "c_i": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
+        "exp_i": 0,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": "Load_general",
+        "u_0": {
+          "average": 400.0,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
+            400.0,
+            400.0,
+            400.0
+          ]
+        }
+      },
+      "system_type": "FIXED_CONSUMPTION",
+      "type": "CONSUMER",
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power_model": {
+        "c_i": 0.0,
+        "c_p": 0.0,
+        "c_z": 1.0,
         "exp_i": 1,
         "exp_p": 0,
         "exp_z": 2,
@@ -2705,7 +2838,7 @@
           ]
         },
         "cos_phi": {
-          "average": null,
+          "average": NaN,
           "direction": "ND",
           "is_symmetrical": false,
           "n_phases": 3,
@@ -3254,18 +3387,18 @@
         "is_symmetrical": true,
         "n_phases": 3,
         "reactive_power": {
-          "average": 1040833.1,
+          "average": 1040833.0,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 3122499.3,
+          "total": 3122499.0,
           "unit": "VAR",
           "value": [
-            1040833.1,
-            1040833.1,
-            1040833.1
+            1040833.0,
+            1040833.0,
+            1040833.0
           ]
         }
       },
@@ -3856,18 +3989,18 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 3332999.8,
+          "average": 3332999.9,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 9998999.4,
+          "total": 9998999.7,
           "unit": "WATT",
           "value": [
-            3332999.8,
-            3332999.8,
-            3332999.8
+            3332999.9,
+            3332999.9,
+            3332999.9
           ]
         },
         "apparent_power": {
@@ -3903,18 +4036,18 @@
         "is_symmetrical": true,
         "n_phases": 3,
         "reactive_power": {
-          "average": 1614245.7,
+          "average": 1614245.5,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 4842737.1,
+          "total": 4842736.5,
           "unit": "VAR",
           "value": [
-            1614245.7,
-            1614245.7,
-            1614245.7
+            1614245.5,
+            1614245.5,
+            1614245.5
           ]
         }
       },
@@ -4169,18 +4302,18 @@
         "is_symmetrical": true,
         "n_phases": 3,
         "reactive_power": {
-          "average": 3999999.9,
+          "average": 4000000.0,
           "is_symmetrical": true,
           "n_phases": 3,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 11999999.7,
+          "total": 12000000.0,
           "unit": "VAR",
           "value": [
-            3999999.9,
-            3999999.9,
-            3999999.9
+            4000000.0,
+            4000000.0,
+            4000000.0
           ]
         }
       },
@@ -4213,12 +4346,12 @@
   ],
   "meta": {
     "case": "Outage",
-    "date": "2023-12-07",
+    "date": "2023-12-19",
     "grid": "HV_9_Bus",
-    "id": "ada39981-7289-4534-b5cd-95820ca02437",
+    "id": "ac09362d-f436-45f9-98f0-1a1af84fb926",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.0"
+    "version": "2.1.1"
   },
   "nodes": [
     {

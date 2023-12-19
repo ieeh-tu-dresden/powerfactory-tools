@@ -3334,7 +3334,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.qu_char == QChar.P:  # Q(P)
-                q_dir = q_dir = -1 if controller.iQorient else 1
+                q_dir = -1 if controller.iQorient else 1
                 q_control_type = ControlTypeFactory.create_q_p_sym(
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
