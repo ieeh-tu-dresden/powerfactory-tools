@@ -1,3 +1,31 @@
+## 2.0.0 (2023-12-21)
+
+### BREAKING CHANGE
+
+- add RMS and EMT simulation control (contributors: @SebastianDD)
+
+### Feat
+
+- update exporter to psdm 2.1 (@contributors: @SebastianDD)
+- support export of multi-grid projects (contributors: @sasanjac, @SebastianDD)
+- add support for RelFuse objects
+- load components have individually assignable phases
+- API for PowerFactory calculations (contributors: @sasanjac)
+
+### Fix
+
+- wrong reactive power for producer when external and internal controller settings are different (contributors: @SebastianDD)
+- transformer data export incomplete (contributors: @SebastianDD, @sasanjac)
+- check if assignment of power factor is correct (contributors: @SebastianDD, @sasanjac)
+- handling of possibly infeasible vectorgroups (contributors: @sasanjac, @SebastianDD)
+- use proper load models for LV and MV loads
+- precise handling of floats
+- export max power as `RatedPower`
+- automatically update project dirs after creation or deletion of elements
+- export neutral line conductance as 0.0 (contributors: @SebastianDD)
+- unit settings dir doesn't exist in default PF project (contributors: @SebastianDD)
+- controller example (contributors: @SebastianDD)
+
 ## 1.5.1 (2023-05-10)
 
 ### Fix
