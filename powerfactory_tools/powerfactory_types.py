@@ -21,6 +21,7 @@ class PFClassId(enum.Enum):
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
     EXTERNAL_GRID = "ElmXNet"
+    DATETIME = "SetTime"
     FOLDER = "IntFolder"
     FUSE = "RelFuse"
     FUSE_TYPE = "TypFuse"
@@ -35,6 +36,7 @@ class PFClassId(enum.Enum):
     LOAD_MV = "ElmLodMv"
     LOAD_TYPE_GENERAL = "TypLod"
     LOAD_TYPE_HARMONIC = "TypHmccur"
+    PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
     REFERENCE = "IntRef"
@@ -42,16 +44,17 @@ class PFClassId(enum.Enum):
     SCENARIO = "IntScenario"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
-    PROJECT_FOLDER = "IntPrjfolder"  # Specialized Folder
+    STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
+    TEMPLATE = "IntTemplate"
     TERMINAL = "ElmTerm"
-    DATETIME = "SetTime"
     TRANSFORMER_2W = "ElmTr2"
     TRANSFORMER_2W_TYPE = "TypTr2"
     TRANSFORMER_3W = "ElmTr3"
     TRANSFORMER_3W_TYPE = "TypTr3"
     UNIT_VARIABLE = "SetVariable"
+    VARIABLE_MONITOR = "IntMon"  # Variable monitor definition
     VARIANT = "IntScheme"
     VARIANT_CONFIG = "IntAcscheme"
     VARIANT_STAGE = "IntSstage"
@@ -455,6 +458,16 @@ class TemperatureDependencyType(enum.IntEnum):
     USER_TEMP = 3
 
 
+class TimeSimulationType(enum.Enum):
+    RMS = "rms"
+    EMT = "ins"
+
+
+class TimeSimulationNetworkCalcType(enum.Enum):
+    AC_SYM_POSITIVE_SEQUENCE = "sym"
+    AC_UNSYM_ABC = "rst"  # unsym. 3-Phase(abc)
+
+
 class CalculationType(enum.IntEnum):  # only excerpt
     ALL_CALCULATIONS = 0
     RELIABILITY_MONTE_CARLO = 1
@@ -480,23 +493,105 @@ class CalculationType(enum.IntEnum):  # only excerpt
 
 
 class CalculationCommand(enum.Enum):  # only excerpt
-    LOAD_FLOW = "ComLdf"
     CONTINGENCY_ANALYSIS = "ComContingency"
     FLICKER = "ComFlickermeter"
-    SHORT_CIRCUIT_SWEEP = "ComShctrace"
+    FREQUENCY_SWEEP = "ComFsweep"
+    GRAPHIC_LAYOUT_TOOL = "ComSgllayout"
+    HARMONICS = "ComHldf"
+    LOAD_FLOW = "ComLdf"
+    MODAL_ANALYSIS = "ComMod"
+    RESULT_EXPORT = "ComRes"
+    SENSITIVITY_ANALYSIS = "ComVstab"
     SHORT_CIRCUIT = "ComShc"
+    SHORT_CIRCUIT_SWEEP = "ComShctrace"
     TIME_DOMAIN_SIMULATION = "ComSim"
     TIME_DOMAIN_SIMULATION_START = "ComInc"
-    MODAL_ANALYSIS = "ComMod"
-    SENSITIVITY_ANALYSIS = "ComVstab"
-    HARMONICS = "ComHldf"
-    FREQUENCY_SWEEP = "ComFsweep"
+
+
+class SelectionTarget(enum.IntEnum):  # only excerpt
+    CONTINGENCY_ANALYSIS = 0
+    SHORT_CIRCUIT = 1
+    OUTPUTS = 2
+    GENERAL = 5
+    SGL_LAYOUT = 23
+
+
+class SelectionType(enum.IntEnum):
+    K_NEIGHBORHOOD = 0
+    GRIDS = 1
+    FEEDERS = 2
+    INTERCHANGE_NEIGHBORHOOD = 3
+
+
+class ResultExportMode(enum.IntEnum):
+    INTERNAL_OUTPUT_WINDOW = 0
+    WINDOWS_CLIPBOARD = 1
+    MEASUREMENT_DATA_FILE = 2  # ElmFile
+    COMTRADE = 3
+    TEXT_FILE = 4
+    PSSPLT_VERSION_2 = 5
+    CSV = 6
+    DATABSE = 7
+
+
+class ResultExportVariableSelection(enum.IntEnum):
+    ALL = 0
+    SELECTED = 1
+
+
+class ResultExportColumnHeadingElement(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_PATH_AND_NAME = 2
+    PATH_AND_NAME = 3
+    FOREIGN_KEY = 4
+
+
+class ResultExportColumnHeadingVariable(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_DESCRIPTION = 2
+    FULL_DESCRIPTION = 3
+
+
+class ResultExportIntervalFilter(enum.IntEnum):
+    NONE = 0
+    UNDERSAMPLING = 1
+    SYMMETRIC_MEAN_VALUE = 2
+    FLOATING_SYMMETRIC_MEAN_VALUE = 3
+
+
+class ResultExportNumberFormat(enum.IntEnum):
+    DECIMAL = 0
+    SCIENTIFIC = 1
 
 
 class PowerFactoryTypes:
     class DataObject(Protocol):
         loc_name: str
         fold_id: PowerFactoryTypes.DataObject | None
+
+        def AddCopy(  # noqa: N802
+            self,
+            object_to_copy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            concat_name_part: str | int = "",
+            /,
+        ) -> PowerFactoryTypes.DataObject | None:
+            ...
+
+        def CreateObject(  # noqa: N802
+            self,
+            class_name: str,
+            name: str | int | None,
+            /,
+        ) -> PowerFactoryTypes.DataObject | None:
+            ...
+
+        def CopyData(self, source: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
+            ...
+
+        def Delete(self) -> int:  # noqa: N802
+            ...
 
         def GetClassName(self) -> str:  # noqa: N802
             ...
@@ -509,15 +604,7 @@ class PowerFactoryTypes:
         ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
 
-        def CreateObject(  # noqa: N802
-            self,
-            class_name: str,
-            name: str | int | None,
-            /,
-        ) -> PowerFactoryTypes.DataObject | None:
-            ...
-
-        def Delete(self) -> int:  # noqa: N802
+        def GetParent(self) -> PowerFactoryTypes.DataObject | None:  # noqa: N802
             ...
 
         def IsCalcRelevant(self) -> int:  # noqa: N802
@@ -534,13 +621,6 @@ class PowerFactoryTypes:
             time: int,  # Time in seconds since 01.01.1970 00:00:00
             /,
         ) -> int:
-            ...
-
-        def AddCopy(  # noqa: N802
-            self,
-            data_object: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
-            /,
-        ) -> None:
             ...
 
     class DataDir(DataObject, Protocol):
@@ -602,7 +682,7 @@ class PowerFactoryTypes:
 
         def SetStudyTime(  # noqa: N802
             self,
-            dateTime: int,  # noqa: N803 # Seconds since 01.01.1970 00:00:00.
+            date_time: int,  # Seconds since 01.01.1970 00:00:00.
         ) -> None:
             ...
 
@@ -616,8 +696,8 @@ class PowerFactoryTypes:
         def NewStage(  # noqa: N802
             self,
             name: str,
-            activationTime: int,  # noqa: N803 # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
-            activate: int,  # bool: 1 - Activate (should be dafault); 0 - do not activate
+            activation_time: int,  # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
+            activate: int,  # 1 - Activate (should be dafault); 0 - do not activate
             /,
         ) -> bool:
             ...
@@ -655,8 +735,8 @@ class PowerFactoryTypes:
 
     class LoadType(DataObject, Protocol):  # PFClassId.LOAD_TYPE_GENERAL
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
-        systp: Literal[0, 1]  # VoltageSystemType
-        phtech: str  # LoadPhaseConnectionType
+        systp: VoltageSystemType
+        phtech: LoadPhaseConnectionType
 
         aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
@@ -672,7 +752,7 @@ class PowerFactoryTypes:
         kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
         kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
 
-        i_crsc: Literal[0, 1, 2]  # HarmonicLoadModelType
+        i_crsc: HarmonicLoadModelType
         i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
@@ -693,7 +773,7 @@ class PowerFactoryTypes:
         nlnph: float  # no. of phase conducters
         nneutral: float  # no. of neutral conductors
 
-        systp: Literal[0, 1]  # VoltageSystemType
+        systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
 
     class LineNType(LineType, Protocol):
@@ -730,12 +810,12 @@ class PowerFactoryTypes:
         zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
         x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
 
-        vecgrp: str  # VectorGroup
+        vecgrp: VectorGroup
         tr2cn_l: Vector  # vector at LV side
         tr2cn_h: Vector  # vector at HV side
         nt2ag: float
 
-        tap_side: Literal[0, 1]  # TrfTapSide
+        tap_side: TrfTapSide
         ntpmn: int
         ntpmx: int
         nntap0: int
@@ -744,7 +824,7 @@ class PowerFactoryTypes:
         itapch: int
         itapch2: int
 
-        nt2ph: Literal[1, 2, 3]  # TrfPhaseTechnology
+        nt2ph: TrfPhaseTechnology
 
     class Transformer3WType(DataObject, Protocol):  # PFClassId.TRANSFORMER_3W_TYPE
         ...
@@ -782,13 +862,13 @@ class PowerFactoryTypes:
         ciEnergized: bool  # noqa: N815
         desc: Sequence[str]
         uknom: float
-        iUsage: Literal[0, 1, 2]  # NodeType  # noqa: N815
+        iUsage: NodeType  # noqa: N815
         outserv: bool
         cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
-        systype: Literal[0, 1, 2]  # TerminalVoltageSystemType
-        phtech: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8]  # TerminalPhaseConnectionType
+        systype: TerminalVoltageSystemType
+        phtech: TerminalPhaseConnectionType
 
     class StationCubicle(DataObject, Protocol):  # PFClassId.CUBICLE
         cterm: PowerFactoryTypes.Terminal
@@ -803,9 +883,9 @@ class PowerFactoryTypes:
         typ_id: PowerFactoryTypes.Transformer2WType | None
         nntap: int
 
-        cneutcon: Literal[0, 1, 2, 3, 4]  # TrfNeutralConnectionType
-        cgnd_h: Literal[0, 1]  # TrfNeutralPointState
-        cgnd_l: Literal[0, 1]  # TrfNeutralPointState
+        cneutcon: TrfNeutralConnectionType
+        cgnd_h: TrfNeutralPointState
+        cgnd_l: TrfNeutralPointState
         cpeter_h: bool
         cpeter_l: bool
         re0tr_h: float
@@ -899,7 +979,7 @@ class PowerFactoryTypes:
         phtech: GeneratorPhaseConnectionType
 
     class QPCharacteristic(DataObject, Protocol):
-        inputmod: Literal[0, 1]
+        inputmod: bool
 
     class Generator(GeneratorBase, Protocol):  # PFClassId.GENERATOR
         aCategory: GeneratorSystemType  # noqa: N815
@@ -1057,6 +1137,87 @@ class PowerFactoryTypes:
         B0: float
         phmc: PowerFactoryTypes.HarmonicSourceType | None
 
+    class Template(DataObject, Protocol):
+        ...
+
+    class Events(DataObject, Protocol):
+        ...
+
+    class Selection(DataObject, Protocol):  # SetSelect
+        iused: SelectionTarget
+        iusedSub: SelectionType  # noqa: N815
+
+        def AddRef(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.DataObject | list[PowerFactoryTypes.DataObject],
+            /,
+        ) -> None:
+            ...
+
+        def All(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
+            ...
+
+        def GetAll(  # noqa: N802
+            self,
+            class_name: str,
+            /,
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
+
+        def AllElm(self) -> Sequence[PowerFactoryTypes.Element]:  # noqa: N802
+            ...
+
+        def Clear(self) -> None:  # noqa: N802
+            ...
+
+    class VariableMonitor(DataObject, Protocol):
+        obj_id: PowerFactoryTypes.DataObject
+
+        def AddVar(  # noqa: N802
+            self,
+            var_name: str,
+            /,
+        ) -> None:
+            ...
+
+        def AddVars(  # noqa: N802
+            self,
+            var_filter: str,  # e.g.: "e:*"
+            /,
+        ) -> None:
+            ...
+
+        def ClearVars(self) -> None:  # noqa: N802
+            ...
+
+        def GetVar(  # noqa: N802
+            self,
+            row: int,  # the row number of the attribute in the defined list of the variable monitor
+            /,
+        ) -> str:  # the variable name in line row
+            ...
+
+        def NVars(self) -> int:  # noqa: N802
+            """Returns the number of selected variables.
+
+            More exact, the number of lines in the variable selection text on the second page
+            of the IntMon dialogue, which usually contains one variable name per line.
+            """
+            ...
+
+        def RemoveVar(  # noqa: N802
+            self,
+            var_name: str,
+            /,
+        ) -> bool:
+            ...
+
+        def PrintAllValues(self) -> None:  # noqa: N802
+            ...
+
+        def PrintVal(self) -> None:  # noqa: N802
+            ...
+
     class Result(DataObject, Protocol):  # PFClassId.RESULT
         desc: Sequence[str]
         calTp: CalculationType  # noqa: N815
@@ -1064,7 +1225,7 @@ class PowerFactoryTypes:
         def AddVariable(  # noqa: N802
             self,
             element: PowerFactoryTypes.DataObject,
-            varname: str,
+            var_name: str,
             /,
         ) -> int:
             ...
@@ -1075,11 +1236,23 @@ class PowerFactoryTypes:
         def FindColumn(  # noqa: N802
             self,
             obj: PowerFactoryTypes.DataObject,
-            varName: str,  # noqa: N803
-            startCol: int,  # noqa: N803
+            var_name: str,
+            start_col: int,
             /,
         ) -> int:
             ...
+
+        def FinishWriting(self) -> None:  # noqa: N802
+            """Closes the result object after writing."""
+            ...
+
+        def Flush(self) -> int:  # noqa: N802
+            """This function is required in scripts which perform both file writing and reading operations.
+
+            All data must be written to the disk before attempting to read the file.
+            'Flush' copies all data buffered in memory to the disk.
+            After calling 'Flush'all data is available to be read from the file.
+            """
 
         def GetNumberOfColumns(self) -> None:  # noqa: N802
             ...
@@ -1087,18 +1260,39 @@ class PowerFactoryTypes:
         def GetNumberOfRows(self) -> None:  # noqa: N802
             ...
 
-        def GetValue(  # noqa: N802  # Returns a value from a result object for row iX of curve col.
-            self,
-            iX: int,  # noqa: N803
-            col: int,
-            /,
-        ) -> int:
+        def GetUnit(self, column: int, /) -> str:  # noqa: N802
             ...
 
+        def GetValue(  # noqa: N802
+            self,
+            row: int,
+            col: int,
+            /,
+        ) -> tuple[int, float]:  # first: error code; second: retrieved value
+            """Returns a value from a result object for row of curve col."""
+            ...
+
+        def GetVariable(self, column: int, /) -> str:  # noqa: N802
+            ...
+
+        def InitialiseWriting(self) -> int:  # noqa: N802
+            """Opens the result object for writing."""
+            ...  # Always 0 and can be ignored
+
         def Load(self) -> None:  # noqa: N802
+            """Loads the data of a result object (ElmRes) in memory for reading."""
             ...
 
         def Release(self) -> None:  # noqa: N802
+            """Releases the data loaded to memory."""
+            ...
+
+        def Write(  # noqa: N802
+            self,
+            default_value: float = float("nan"),  # optional default value
+            /,
+        ) -> int:
+            """Writes the current results (specified by VariableMonitor) to the result object."""
             ...
 
     class CommandBase(DataObject, Protocol):
@@ -1106,7 +1300,7 @@ class PowerFactoryTypes:
             ...
 
     class CommandLoadFlow(CommandBase, Protocol):  # CalculationCommand.LOAD_FLOW
-        iopt_net: Literal[0, 1, 2]  # NetworkExtendedCalcType
+        iopt_net: NetworkExtendedCalcType
         iPST_at: bool  # noqa: N815  # automatic step control of phase shifting transformers
         iopt_plim: bool  # apply active power limits
         iopt_at: bool  # automatic step control of transformers
@@ -1124,7 +1318,16 @@ class PowerFactoryTypes:
         scMotFac: float  # noqa: N815  # motor scaling factor in percentage
         zoneScale: int  # noqa: N815  # zone scaling; 0 - apply for all loads; 1 - apply only for scalable loads
 
-    class CommandHarmonicCalculation(CommandBase, Protocol):  # CalculationCommand.HARMONICS
+        def IsAC(self) -> int:  # noqa: N802
+            ...
+
+        def IsDC(self) -> int:  # noqa: N802
+            ...
+
+        def IsBalanced(self) -> int:  # noqa: N802
+            ...
+
+    class CommandHarmonicCalculation(CommandBase, Protocol):  # CalculationCommand.HARMONIC_LOADFLOW
         iopt_sweep: int
         iopt_allfrq: int
         iopt_flicker: bool
@@ -1148,6 +1351,59 @@ class PowerFactoryTypes:
         fstep: float
         fstop: float
         i_adapt: bool  # automatic step size adaption
+
+    class CommandSglLayout(CommandBase, Protocol):  # CalculationCommand.GRAPHIC_LAYOUT_TOOL
+        iAction: int  # noqa: N815
+        orthoType: int  # noqa: N815
+        insertionMode: int  # noqa: N815
+        nodeDispersion: int  # noqa: N815
+        neighborhoodSize: int  # noqa: N815
+        neighborStartElems: PowerFactoryTypes.Selection  # noqa: N815
+
+    class CommandTimeSimulationStart(CommandBase, Protocol):  # CalculationCommand.TIME_DOMAIN_SIMULATION_START
+        iopt_sim: TimeSimulationType
+        iopt_net: TimeSimulationNetworkCalcType
+        iopt_show: int
+        iopt_adapt: int  # automatic step size adaption
+        iReuseLdf: int  # re-use load flow results # noqa: N815
+        p_event: PowerFactoryTypes.Events  # collection of events to be used
+        p_resvar: PowerFactoryTypes.Result  # result object to be used for savings
+        c_butldf: PowerFactoryTypes.CommandLoadFlow  # related load flow object if used
+
+        dtgrd: float  # step size electro-mechanical
+        dtemt: float  # step size electro-magnetic
+        tstart: float  # start time related to 0 seconds
+
+    class CommandTimeSimulation(CommandBase, Protocol):  # CalculationCommand.TIME_DOMAIN_SIMULATION
+        tstop: float  # final simulation time
+        cominc: PowerFactoryTypes.CommandTimeSimulationStart
+
+        def GetSimulationTime(self) -> int:  # noqa: N802
+            ...
+
+    class CommandResultExport(CommandBase, Protocol):  # CalculationCommand.RESULT_EXPORT
+        f_name: str  # only for specific ResultExportMode (2, 3, 4, 5, 6)
+        ciopt_head: ResultExportColumnHeadingVariable
+        col_Sep: str  # for csv: colunm separator  # noqa: N815
+        dec_Sep: str  # for csv: decimal separator  # noqa: N815
+        filtered: ResultExportIntervalFilter
+        # from: float  # only when using specific interval: start time in seconds
+        iopt_csel: ResultExportVariableSelection
+        iopt_exp: ResultExportMode
+        iopt_locn: ResultExportColumnHeadingElement
+        iopt_rscl: bool  # move time scale
+        iopt_sep: bool  # True if system separator should be used
+        iopt_tsel: bool  # use specific interval
+        iopt_vars: Literal[0, 1, 2]
+        nsteps: int  # only when filtered is not 0
+        numberFormat: ResultExportNumberFormat  # noqa: N815
+        numberPrecisionFixed: int  # number of digits after decimal point  # noqa: N815
+        pResult: PowerFactoryTypes.Result  # noqa: N815
+        scl_start: float  # only when iopt_rscl is True: new start time in seconds
+        to: float  # only when using specific interval: end time in seconds
+
+        def ExportFullRange(self) -> None:  # noqa: N802
+            ...
 
     class Script(Protocol):
         def SetExternalObject(  # noqa: N802
@@ -1175,23 +1431,23 @@ class PowerFactoryTypes:
         def ActivateProject(self, name: str) -> int:  # noqa: N802
             ...
 
-        def GetActiveProject(self) -> PowerFactoryTypes.Project:  # noqa: N802
+        def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
 
         def GetActiveScenario(self) -> PowerFactoryTypes.Scenario | None:  # noqa: N802
             ...
 
-        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase:  # noqa: N802
+        def GetActiveStages(  # noqa: N802
+            self,
+            varied_folder: PowerFactoryTypes.DataObject,
+            /,
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
             ...
 
         def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
             ...
 
-        def GetActiveStages(  # noqa: N802
-            self,
-            variedFolder: PowerFactoryTypes.DataObject,  # noqa: N803
-            /,
-        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
+        def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase | None:  # noqa: N802
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1203,7 +1459,7 @@ class PowerFactoryTypes:
 
         def GetFromStudyCase(  # noqa: N802
             self,
-            className: str,  # noqa: N803
+            class_name: str,
             /,
         ) -> PowerFactoryTypes.DataObject:
             ...
@@ -1230,10 +1486,10 @@ class PowerFactoryTypes:
 
         def GetCalcRelevantObjects(  # noqa: N802
             self,
-            nameFilter: str,  # noqa: N803
-            includeOutOfService: int,  # noqa: N803
-            topoElementsOnly: int = 0,  # noqa: N803
-            bAcSchemes: int = 0,  # noqa: N803
+            name_filter: str,
+            include_out_of_service: int,
+            topo_elements_only: int = 0,
+            b_ac_schemes: int = 0,
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]:
             ...
@@ -1245,7 +1501,7 @@ class PowerFactoryTypes:
             self,
             username: str | None = None,
             password: str | None = None,
-            commandLineArguments: str | None = None,  # noqa: N803
+            command_line_arguments: str | None = None,
             /,
         ) -> PowerFactoryTypes.Application:
             ...

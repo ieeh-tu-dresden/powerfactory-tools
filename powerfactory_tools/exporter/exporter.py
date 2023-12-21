@@ -234,7 +234,6 @@ class PowerFactoryExporter:
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
             study_case_names {list[str]} -- a list of study cases to export (default: {None})
         """
-
         if study_case_names is not None:
             self.export_study_cases(
                 export_path=export_path,
@@ -244,14 +243,18 @@ class PowerFactoryExporter:
                 steadystate_case_name=steadystate_case_name,
             )
         else:
-            active_study_case = self.pfi.app.GetActiveStudyCase()
-            self.export_active_study_case(
-                export_path=export_path,
-                study_case_name=active_study_case.loc_name,
-                topology_name=topology_name,
-                topology_case_name=topology_case_name,
-                steadystate_case_name=steadystate_case_name,
-            )
+            act_sc = self.pfi.app.GetActiveStudyCase()
+            if act_sc is not None:
+                self.export_active_study_case(
+                    export_path=export_path,
+                    study_case_name=act_sc.loc_name,
+                    topology_name=topology_name,
+                    topology_case_name=topology_case_name,
+                    steadystate_case_name=steadystate_case_name,
+                )
+            else:
+                msg = "Could not export. There is neither a study case defined nor is one activated"
+                raise ValueError(msg)
 
     def export_study_cases(
         self,
@@ -2363,7 +2366,12 @@ class PowerFactoryExporter:
             )
 
         if load_type == "QC":
-            return LoadPower.from_qc_sym(pow_react=load.qlini, cos_phi=load.coslini, scaling=scaling)
+            return LoadPower.from_qc_sym(
+                pow_react=load.qlini,
+                cos_phi=load.coslini,
+                scaling=scaling,
+                phase_connection_type=phase_connection_type,
+            )
 
         if load_type == "IP":
             if u_nom is not None:
@@ -2429,12 +2437,8 @@ class PowerFactoryExporter:
             if u_nom is not None:
                 return LoadPower.from_ic_asym(
                     voltage=load.u0 * u_nom,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    cosphi_a=load.coslinir,
-                    cosphi_b=load.coslinis,
-                    cosphi_c=load.coslinit,
+                    currents=(load.ilinir, load.ilinis, load.ilinit),
+                    cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                     pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
@@ -2446,24 +2450,16 @@ class PowerFactoryExporter:
 
         if load_type == "SC":
             return LoadPower.from_sc_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
         if load_type == "QC":
             return LoadPower.from_qc_asym(
-                pow_react_a=load.qlinir,
-                pow_react_b=load.qlinis,
-                pow_react_c=load.qlinit,
-                cosphi_a=load.coslinir,
-                cosphi_b=load.coslinis,
-                cosphi_c=load.coslinit,
+                pow_reacts=(load.qlinir, load.qlinis, load.qlinit),
+                cos_phis=(load.coslinir, load.coslinis, load.coslinit),
                 scaling=scaling,
             )
 
@@ -2471,12 +2467,8 @@ class PowerFactoryExporter:
             if u_nom is not None:
                 return LoadPower.from_ip_asym(
                     voltage=load.u0 * u_nom,
-                    current_a=load.ilinir,
-                    current_b=load.ilinis,
-                    current_c=load.ilinit,
-                    pow_act_a=load.plinir,
-                    pow_act_b=load.plinis,
-                    pow_act_c=load.plinit,
+                    currents=(load.ilinir, load.ilinis, load.ilinit),
+                    pow_acts=(load.plinir, load.plinis, load.plinit),
                     pow_fac_dir=pow_fac_dir,
                     scaling=scaling,
                 )
@@ -2488,24 +2480,16 @@ class PowerFactoryExporter:
 
         if load_type == "SP":
             return LoadPower.from_sp_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                pow_act_a=load.plinir,
-                pow_act_b=load.plinis,
-                pow_act_c=load.plinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                pow_acts=(load.plinir, load.plinis, load.plinit),
                 pow_fac_dir=pow_fac_dir,
                 scaling=scaling,
             )
 
         if load_type == "SQ":
             return LoadPower.from_sq_asym(
-                pow_app_a=load.slinir,
-                pow_app_b=load.slinis,
-                pow_app_c=load.slinit,
-                pow_react_a=load.qlinir,
-                pow_react_b=load.qlinis,
-                pow_react_c=load.qlinit,
+                pow_apps=(load.slinir, load.slinis, load.slinit),
+                pow_reacts=(load.qlinir, load.qlinis, load.qlinit),
                 scaling=scaling,
             )
 
