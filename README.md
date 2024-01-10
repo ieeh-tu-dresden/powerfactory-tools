@@ -70,9 +70,11 @@ During an active connection, the following units apply:
 
 - Remarks on export of `loads`:
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower - as_rated_power()](./powerfactory_tools/exporter/load_power.py).
 - Remarks on export of `transformer`:
   - Impedances of all winding objects are referred to the high voltage side of the transformer.
   - Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
+  - Zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./powerfactory_tools/exporter/exporter.py).
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
