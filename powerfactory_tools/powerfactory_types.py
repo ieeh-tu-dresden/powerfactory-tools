@@ -839,6 +839,9 @@ class PowerFactoryTypes:
         desc: Sequence[str]
 
     class Grid(DataObject, Protocol):  # PFClassId.GRID
+        pDiagram: PowerFactoryTypes.GridDiagram | None  # noqa: N815
+        frnom: float  # nominal frequency
+
         def Activate(self) -> bool:  # noqa: N802
             ...
 
@@ -1136,7 +1139,7 @@ class PowerFactoryTypes:
     class Events(DataObject, Protocol):
         ...
 
-    class Selection(DataObject, Protocol):  # SetSelect
+    class Selection(DataObject, Protocol):  # PFClassId.SELECTION
         iused: SelectionTarget
         iusedSub: SelectionType  # noqa: N815
 
