@@ -100,17 +100,17 @@ class FolderType(enum.Enum):
 
 
 class LocalQCtrlMode(enum.Enum):
-    U_CONST = "constv"
     COSPHI_CONST = "constc"
-    Q_CONST = "constq"
-    Q_U = "qvchar"
-    Q_P = "qpchar"
     COSPHI_P = "cpchar"
-    U_Q_DROOP = "vdroop"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
+    U_CONST = "constv"
     U_I_DROOP = "idroop"
+    U_Q_DROOP = "vdroop"
 
 
-class CtrlMode(enum.IntEnum):
+class ExternalQCtrlMode(enum.IntEnum):
     U = 0
     Q = 1
     COSPHI = 2
@@ -203,17 +203,6 @@ class NodeType(enum.IntEnum):
     BUS_BAR = 0
     JUNCTION_NODE = 1
     INTERNAL_NODE = 2
-
-
-class QCtrlTypes(enum.Enum):
-    U_CONST = "constv"
-    VDROOP = "vdroop"
-    IDROOP = "idroop"
-    Q_CONST = "constq"
-    Q_P = "qpchar"
-    Q_U = "qvchar"
-    COSPHI_CONST = "constc"
-    COSPHI_P = "cpchar"
 
 
 class ModeInpLoad(enum.Enum):
@@ -914,7 +903,7 @@ class PowerFactoryTypes:
         ...
 
     class StationController(ControllerBase, Protocol):
-        i_ctrl: CtrlMode
+        i_ctrl: ExternalQCtrlMode
         qu_char: QChar
         qsetp: float
         iQorient: QOrient  # noqa: N815
@@ -964,7 +953,7 @@ class PowerFactoryTypes:
         udeadblow: float
         udeadbup: float
         outserv: bool
-        av_mode: QCtrlTypes
+        av_mode: LocalQCtrlMode
         mode_inp: ModeInpGen
         sgini_a: float
         pgini_a: float

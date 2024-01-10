@@ -71,8 +71,8 @@ from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosPhiChar
-from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
+from powerfactory_tools.powerfactory_types import ExternalQCtrlMode
 from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
 from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
@@ -3245,7 +3245,7 @@ class PowerFactoryExporter:
 
         # Control mode
         ctrl_mode = controller.i_ctrl
-        if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
+        if ctrl_mode == ExternalQCtrlMode.U:  # voltage control mode -> const. U
             q_control_type = ControlTypeFactory.create_u_const_sym(
                 u_set=controller.usetp * u_n,
                 u_meas_ref=ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name],
@@ -3256,7 +3256,7 @@ class PowerFactoryExporter:
                 external_controller_name=controller_name,
             )
 
-        if ctrl_mode == CtrlMode.Q:  # reactive power control mode
+        if ctrl_mode == ExternalQCtrlMode.Q:  # reactive power control mode
             if controller.qu_char == QChar.CONST:  # const. Q
                 q_dir = -1 if controller.iQorient else 1
                 q_set = controller.qsetp * q_dir * -1  # has to be negative as power is now counted demand based
@@ -3333,7 +3333,7 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if ctrl_mode == CtrlMode.COSPHI:  # cos_phi control mode
+        if ctrl_mode == ExternalQCtrlMode.COSPHI:  # cos_phi control mode
             if controller.cosphi_char == CosPhiChar.CONST:  # const. cos_phi
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
@@ -3382,7 +3382,7 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
+        if ctrl_mode == ExternalQCtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
             cos_phi = math.cos(math.atan(controller.tansetp))
             pow_fac_dir = PowerFactorDirection.UE if controller.iQorient else PowerFactorDirection.OE
             power = LoadPower.from_pc_sym(
