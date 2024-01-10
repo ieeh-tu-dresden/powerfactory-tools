@@ -16,7 +16,8 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOSITE_GRID_ELEMENT = "ElmFolder"
+    COMPOSITE_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
+    COMPOSITE_MODEL = "ElmComp"  # e.g. a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
@@ -36,12 +37,14 @@ class PFClassId(enum.Enum):
     LOAD_MV = "ElmLodMv"
     LOAD_TYPE_GENERAL = "TypLod"
     LOAD_TYPE_HARMONIC = "TypHmccur"
+    MEASUREMENT_FILE = "ElmFile"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
     SCENARIO = "IntScenario"
+    SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
     STATION_CONTROLLER = "ElmStactrl"
@@ -500,6 +503,7 @@ class CalculationCommand(enum.Enum):  # only excerpt
     HARMONICS = "ComHldf"
     LOAD_FLOW = "ComLdf"
     MODAL_ANALYSIS = "ComMod"
+    QUASI_DYNAMIC_SIMULATION = "ComStatsim"
     RESULT_EXPORT = "ComRes"
     SENSITIVITY_ANALYSIS = "ComVstab"
     SHORT_CIRCUIT = "ComShc"
