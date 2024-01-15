@@ -1034,9 +1034,12 @@ class PowerFactoryExporter:
             )
 
             # Neutral point phase connection
-            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+            neutral_connected_h, neutral_connected_l = self.get_transformer2w_neutral_connection(
                 transformer=transformer_2w,
-                vector_group=vector_group,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+                terminal_h=t_high,
+                terminal_l=t_low,
             )
 
             # Neutral point earthing
@@ -1223,8 +1226,8 @@ class PowerFactoryExporter:
     def get_transformer2w_magnetising_impedance(
         *,
         t_type: PFTypes.Transformer2WType,
-        vector_group_l: WVectorGroup,
         vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
         voltage_ref: float,
         pu2abs: float,
     ) -> tuple[float, float, float | None, float | None]:
@@ -1263,21 +1266,45 @@ class PowerFactoryExporter:
         return (r_fe_1, x_h_1, r_fe_0, x_h_0)
 
     @staticmethod
-    def transformer_neutral_connection_hvlv(
+    def get_transformer2w_neutral_connection(
         *,
         transformer: PFTypes.Transformer2W,
-        vector_group: VectorGroup,
+        vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
+        terminal_h: PFTypes.Terminal,
+        terminal_l: PFTypes.Terminal,
     ) -> tuple[bool, bool]:
-        if "n" in vector_group.name.lower():
+        # Default values correspond to TrfNeutralConnectionType.NO as well as vectorgroup without "N"
+        neutral_connected_h = False
+        neutral_connected_l = False
+        # HV side
+        if "n" in vector_group_h.name.lower():
             if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
-                return True, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV:
-                return True, False
-            if transformer.cneutcon == TrfNeutralConnectionType.LV:
-                return False, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV_LV:
-                return True, True
-        return False, False  # corresponds to TrfNeutralConnectionType.NO
+                if terminal_h.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_h = True
+                else:
+                    neutral_connected_h = False
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} HV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.HV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_h = True
+        # LV side
+        if "n" in vector_group_l.name.lower():
+            if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
+                if terminal_l.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_l = True
+                else:
+                    neutral_connected_l = True
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} LV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.LV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_l = True
+
+        return neutral_connected_h, neutral_connected_l
 
     @staticmethod
     def get_description(

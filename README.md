@@ -71,8 +71,9 @@ During an active connection, the following units apply:
 - Remarks on export of `loads`:
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
 - Remarks on export of `transformer`:
-  - Impedances of all winding objects are referred to the high voltage side of the transformer.
-  - Zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
+  - The impedances of all winding objects are referred to the high voltage side of the transformer.
+  - The impedance of transformer earthing is an absolute natural value.
+  - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
