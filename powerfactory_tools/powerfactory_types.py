@@ -866,6 +866,25 @@ class PowerFactoryTypes:
         systype: TerminalVoltageSystemType
         phtech: TerminalPhaseConnectionType
 
+        def GetCalcRelevantCubicles(self) -> Sequence[PowerFactoryTypes.StationCubicle]:  # noqa: N802
+            ...
+
+        def GetConnectedMainBuses(  # noqa: N802
+            self,
+            consider_switches: bool = True,  # noqa: FBT001, FBT002
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
+
+        def GetEquivalentTerminals(self) -> Sequence[PowerFactoryTypes.Terminal]:  # noqa: N802
+            # Euqivalent means that those terminals are topologically connected only by
+            # - closed switching devices (ElmCoup, RelFuse) or
+            # - lines of zero length (line droppers).
+            # Returns all terminals that are equivalent to current one. Current one is also included so the set is never empty.
+            ...
+
+        def IsInternalNodeInStation(self) -> bool:  # noqa: N802
+            ...
+
     class StationCubicle(DataObject, Protocol):  # PFClassId.CUBICLE
         cterm: PowerFactoryTypes.Terminal
         obj_id: PowerFactoryTypes.Line | PowerFactoryTypes.Element | None
@@ -1427,6 +1446,19 @@ class PowerFactoryTypes:
         def ActivateProject(self, name: str) -> int:  # noqa: N802
             ...
 
+        def EchoOff(self) -> None:  # noqa: N802
+            ...
+
+        def EchoOn(self) -> None:  # noqa: N802
+            ...
+
+        def ExecuteCmd(  # noqa: N802
+            self,
+            command: str,
+            /,
+        ) -> None:
+            ...
+
         def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
 
@@ -1444,6 +1476,34 @@ class PowerFactoryTypes:
             ...
 
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase | None:  # noqa: N802
+            ...
+
+        def GetAttributeUnit(  # noqa: N802
+            self,
+            class_name: str,
+            attribute_name: str,
+            /,
+        ) -> str:
+            ...
+
+        def GetBorderCubicles(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.Element,  # element from which the search for border cubicles starts
+            /,
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
+
+        def GetCalcRelevantObjects(  # noqa: N802
+            self,
+            name_filter: str,
+            include_out_of_service: int,
+            topo_elements_only: int = 0,
+            b_ac_schemes: int = 0,
+            /,
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
+
+        def GetCurrentScript(self) -> PowerFactoryTypes.Script | None:  # noqa: N802
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1467,27 +1527,7 @@ class PowerFactoryTypes:
         ) -> None:
             ...
 
-        def ExecuteCmd(  # noqa: N802
-            self,
-            command: str,
-            /,
-        ) -> None:
-            ...
-
-        def EchoOff(self) -> None:  # noqa: N802
-            ...
-
-        def EchoOn(self) -> None:  # noqa: N802
-            ...
-
-        def GetCalcRelevantObjects(  # noqa: N802
-            self,
-            name_filter: str,
-            include_out_of_service: int,
-            topo_elements_only: int = 0,
-            b_ac_schemes: int = 0,
-            /,
-        ) -> Sequence[PowerFactoryTypes.DataObject]:
+        def ResetCalculation(self) -> None:  # noqa: N802
             ...
 
     class PowerFactoryModule(Protocol):
