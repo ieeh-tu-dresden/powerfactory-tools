@@ -16,13 +16,14 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOSITE_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
-    COMPOSITE_MODEL = "ElmComp"  # e.g. a template model
+    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
+    COMPOUND_MODEL = "ElmComp"  # e.g. a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
     EXTERNAL_GRID = "ElmXNet"
     DATETIME = "SetTime"
+    DSL_MODEL = "ElmDsl"
     FOLDER = "IntFolder"
     FUSE = "RelFuse"
     FUSE_TYPE = "TypFuse"
@@ -44,6 +45,8 @@ class PFClassId(enum.Enum):
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
     SCENARIO = "IntScenario"
+    SCRIPT_DPL = "ComDpl"
+    SCRIPT_PYTHON = "ComPython"
     SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
@@ -924,7 +927,7 @@ class PowerFactoryTypes:
     class SecondaryController(ControllerBase, Protocol):
         ...
 
-    class StationController(ControllerBase, Protocol):
+    class StationController(ControllerBase, Protocol):  # PFClassId.STATION_CONTROLLER
         i_ctrl: ExternalQCtrlMode
         qu_char: QChar
         qsetp: float
@@ -950,9 +953,6 @@ class PowerFactoryTypes:
         p_under: float
         p_over: float
         i_phase: CtrlVoltageRef
-
-    class CompoundModel(DataObject, Protocol):
-        ...
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
@@ -1152,7 +1152,13 @@ class PowerFactoryTypes:
         B0: float
         phmc: PowerFactoryTypes.HarmonicSourceType | None
 
-    class Template(DataObject, Protocol):
+    class Template(DataObject, Protocol):  # PFClassId.TEMPLATE
+        ...
+
+    class CompoundModel(DataObject, Protocol):  # PFClassId.COMPOUND_MODEL
+        ...
+
+    class DslModel(DataObject, Protocol):  # PFClassId.DSL_MODEL
         ...
 
     class Events(DataObject, Protocol):
@@ -1431,6 +1437,12 @@ class PowerFactoryTypes:
 
         def Execute(self) -> int:  # noqa: N802
             ...
+
+    class DplScript(Script, Protocol):  # PFClassId.SCRIPT_DPL
+        ...
+
+    class PythonScript(Script, Protocol):  # PFClassId.SCRIPT_PYTHON
+        ...
 
     class ProjectFolder(DataObject, Protocol):  # PFClassId.FOLDER
         desc: Sequence[str]
