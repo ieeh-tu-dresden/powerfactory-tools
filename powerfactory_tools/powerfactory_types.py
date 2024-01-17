@@ -23,6 +23,7 @@ class PFClassId(enum.Enum):
     CURRENT_SOURCE_AC = "ElmIac"
     EXTERNAL_GRID = "ElmXNet"
     DATETIME = "SetTime"
+    DESKTOP = "SetDesktop"
     DSL_MODEL = "ElmDsl"
     FOLDER = "IntFolder"
     FUSE = "RelFuse"
@@ -1314,6 +1315,22 @@ class PowerFactoryTypes:
             /,
         ) -> int:
             """Writes the current results (specified by VariableMonitor) to the result object."""
+            ...
+
+    class Desktop(DataObject, Protocol):  # PFClassId.DESKTOP
+        def Close(self) -> bool:  # noqa: N802
+            ...
+
+        def Freeze(self) -> bool:  # noqa: N802
+            ...
+
+        def GetActivePage(self) -> PowerFactoryTypes.DataObject:  # noqa: N802
+            ...
+
+        def IsFrozen(self) -> bool:  # noqa: N802
+            ...
+
+        def Unfreeze(self) -> bool:  # noqa: N802
             ...
 
     class CommandBase(DataObject, Protocol):
