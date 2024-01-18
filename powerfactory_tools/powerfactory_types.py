@@ -1231,6 +1231,10 @@ class PowerFactoryTypes:
             ...
 
         def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
+            """Clears all data (calculation results) written to the result file.
+
+            The Variable definitions stored in the contents of ElmRes are not modified.
+            """
             ...
 
         def FindColumn(  # noqa: N802
@@ -1285,6 +1289,13 @@ class PowerFactoryTypes:
 
         def Release(self) -> None:  # noqa: N802
             """Releases the data loaded to memory."""
+            ...
+
+        def SetAsDefault(self) -> None:  # noqa: N802
+            """Sets this results object as the default results object.
+
+            Plots using the default result file will use this file for displaying data.
+            """
             ...
 
         def Write(  # noqa: N802
