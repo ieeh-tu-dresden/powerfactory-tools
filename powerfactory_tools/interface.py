@@ -1863,6 +1863,7 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
+    # WARNING: does not work properly for now
     def update_value(
         self,
         element: str | float | bool | enum.Enum,
@@ -1888,11 +1889,11 @@ class PowerFactoryInterface:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
             if symmetrical:
-                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE)
+                cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
             else:
-                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_UNSYM_ABC)
+                cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         else:
-            self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.DC)
+            cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
 
         return cmd
 
@@ -1911,12 +1912,12 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        self.update_value(cmd.iopt_sim, value=sim)
+        cmd.iopt_sim = sim.value  # type: ignore[assignment]
         # Set type of network representation (symmetrical, unsymmetrical)
         if symmetrical:
-            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE)
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
         else:
-            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_UNSYM_ABC)
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         # Set result object to be used for simulation
         if result is not None:
             cmd.p_resvar = result
