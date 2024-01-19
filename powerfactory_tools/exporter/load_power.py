@@ -722,6 +722,10 @@ class LoadPower:
         )
 
     def as_rated_power(self) -> RatedPower:
+        # remark: power factor direction is not set in CosPhi in RatedPower:
+        # * as generators are usually able to provide reactive power over and under excited
+        # * as loads don't have rated power in a classic way
+        # An adaption may be necessary in the future if inductive coils or capacitor banks are considered.
         pow_apps = ApparentPower(
             value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
             system_type=SystemType.NATURAL,

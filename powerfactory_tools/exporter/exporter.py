@@ -941,7 +941,7 @@ class PowerFactoryExporter:
         r0              |   yes*    |   none    |   yes
         x0              |   yes*    |   none    |   yes
 
-        * Results from uk0 resp. Zk0 instead of Zm0 as magnetising impedance can not be separated from Zk0 due to delta wiring group.
+        * Results from uk0 resp. Zk0 instead of Zm0, as the magnetising impedance Zm0 cannot be separated from Zk0 due to delta wiring group.
 
         Arguments:
             transformer_2w  {PFTypes.Transformer2W} -- the powerfactory transformer data object
