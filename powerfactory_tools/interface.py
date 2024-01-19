@@ -751,13 +751,6 @@ class PowerFactoryInterface:
         elements = self.elements_of(self.scenario_dir, pattern=name)
         return [t.cast("PFTypes.Scenario", element) for element in elements]
 
-    def template(self, name: str = "*") -> PFTypes.Template | None:
-        return self.first_of(self.templates(name=name))
-
-    def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
-        elements = self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
-        return [t.cast("PFTypes.Template", element) for element in elements]
-
     def grid_variant(
         self,
         name: str = "*",
@@ -850,6 +843,34 @@ class PowerFactoryInterface:
             return [stage for stage in active_stages if stage in elements]
 
         return [t.cast("PFTypes.GridVariantStage", element) for element in elements]
+
+    def template(self, name: str = "*") -> PFTypes.Template | None:
+        return self.first_of(self.templates(name=name))
+
+    def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
+        elements = self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
+        return [t.cast("PFTypes.Template", element) for element in elements]
+
+    def dsl_model(
+        self,
+        name: str = "*",
+        /,
+        *,
+        location: PFTypes.Grid | PFTypes.CompoundModel | None = None,
+    ) -> PFTypes.DslModel | None:
+        return self.first_of(self.dsl_models(name, location=location))
+
+    def dsl_models(
+        self,
+        name: str = "*",
+        /,
+        *,
+        location: PFTypes.Grid | PFTypes.CompoundModel | None = None,
+    ) -> Sequence[PFTypes.DslModel]:
+        if location is None:
+            location = self.grid_data_dir
+        elements = self.elements_of(location, pattern=name + "." + PFClassId.DSL_MODEL.value)
+        return [t.cast("PFTypes.DslModel", element) for element in elements]
 
     def line_type(
         self,
