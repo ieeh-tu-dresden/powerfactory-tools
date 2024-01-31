@@ -16,12 +16,15 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOSITE_GRID_ELEMENT = "ElmFolder"
+    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
+    COMPOUND_MODEL = "ElmComp"  # e.g. a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
     EXTERNAL_GRID = "ElmXNet"
     DATETIME = "SetTime"
+    DESKTOP = "SetDesktop"
+    DSL_MODEL = "ElmDsl"
     FOLDER = "IntFolder"
     FUSE = "RelFuse"
     FUSE_TYPE = "TypFuse"
@@ -36,12 +39,16 @@ class PFClassId(enum.Enum):
     LOAD_MV = "ElmLodMv"
     LOAD_TYPE_GENERAL = "TypLod"
     LOAD_TYPE_HARMONIC = "TypHmccur"
+    MEASUREMENT_FILE = "ElmFile"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
     SCENARIO = "IntScenario"
+    SCRIPT_DPL = "ComDpl"
+    SCRIPT_PYTHON = "ComPython"
+    SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
     STATION_CONTROLLER = "ElmStactrl"
@@ -97,17 +104,17 @@ class FolderType(enum.Enum):
 
 
 class LocalQCtrlMode(enum.Enum):
-    U_CONST = "constv"
     COSPHI_CONST = "constc"
-    Q_CONST = "constq"
-    Q_U = "qvchar"
-    Q_P = "qpchar"
     COSPHI_P = "cpchar"
-    U_Q_DROOP = "vdroop"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
+    U_CONST = "constv"
     U_I_DROOP = "idroop"
+    U_Q_DROOP = "vdroop"
 
 
-class CtrlMode(enum.IntEnum):
+class ExternalQCtrlMode(enum.IntEnum):
     U = 0
     Q = 1
     COSPHI = 2
@@ -200,17 +207,6 @@ class NodeType(enum.IntEnum):
     BUS_BAR = 0
     JUNCTION_NODE = 1
     INTERNAL_NODE = 2
-
-
-class QCtrlTypes(enum.Enum):
-    U_CONST = "constv"
-    VDROOP = "vdroop"
-    IDROOP = "idroop"
-    Q_CONST = "constq"
-    Q_P = "qpchar"
-    Q_U = "qvchar"
-    COSPHI_CONST = "constc"
-    COSPHI_P = "cpchar"
 
 
 class ModeInpLoad(enum.Enum):
@@ -500,6 +496,7 @@ class CalculationCommand(enum.Enum):  # only excerpt
     HARMONICS = "ComHldf"
     LOAD_FLOW = "ComLdf"
     MODAL_ANALYSIS = "ComMod"
+    QUASI_DYNAMIC_SIMULATION = "ComStatsim"
     RESULT_EXPORT = "ComRes"
     SENSITIVITY_ANALYSIS = "ComVstab"
     SHORT_CIRCUIT = "ComShc"
@@ -846,6 +843,9 @@ class PowerFactoryTypes:
         desc: Sequence[str]
 
     class Grid(DataObject, Protocol):  # PFClassId.GRID
+        pDiagram: PowerFactoryTypes.GridDiagram | None  # noqa: N815
+        frnom: float  # nominal frequency
+
         def Activate(self) -> bool:  # noqa: N802
             ...
 
@@ -869,6 +869,25 @@ class PowerFactoryTypes:
         cubics: Sequence[PowerFactoryTypes.StationCubicle]
         systype: TerminalVoltageSystemType
         phtech: TerminalPhaseConnectionType
+
+        def GetCalcRelevantCubicles(self) -> Sequence[PowerFactoryTypes.StationCubicle]:  # noqa: N802
+            ...
+
+        def GetConnectedMainBuses(  # noqa: N802
+            self,
+            consider_switches: bool = True,  # noqa: FBT001, FBT002
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
+
+        def GetEquivalentTerminals(self) -> Sequence[PowerFactoryTypes.Terminal]:  # noqa: N802
+            # Euqivalent means that those terminals are topologically connected only by
+            # - closed switching devices (ElmCoup, RelFuse) or
+            # - lines of zero length (line droppers).
+            # Returns all terminals that are equivalent to current one. Current one is also included so the set is never empty.
+            ...
+
+        def IsInternalNodeInStation(self) -> bool:  # noqa: N802
+            ...
 
     class StationCubicle(DataObject, Protocol):  # PFClassId.CUBICLE
         cterm: PowerFactoryTypes.Terminal
@@ -909,8 +928,8 @@ class PowerFactoryTypes:
     class SecondaryController(ControllerBase, Protocol):
         ...
 
-    class StationController(ControllerBase, Protocol):
-        i_ctrl: CtrlMode
+    class StationController(ControllerBase, Protocol):  # PFClassId.STATION_CONTROLLER
+        i_ctrl: ExternalQCtrlMode
         qu_char: QChar
         qsetp: float
         iQorient: QOrient  # noqa: N815
@@ -936,9 +955,6 @@ class PowerFactoryTypes:
         p_over: float
         i_phase: CtrlVoltageRef
 
-    class CompoundModel(DataObject, Protocol):
-        ...
-
     class Element(DataObject, Protocol):
         desc: Sequence[str]
         pf_recap: PFRecap
@@ -960,7 +976,7 @@ class PowerFactoryTypes:
         udeadblow: float
         udeadbup: float
         outserv: bool
-        av_mode: QCtrlTypes
+        av_mode: LocalQCtrlMode
         mode_inp: ModeInpGen
         sgini_a: float
         pgini_a: float
@@ -1137,13 +1153,19 @@ class PowerFactoryTypes:
         B0: float
         phmc: PowerFactoryTypes.HarmonicSourceType | None
 
-    class Template(DataObject, Protocol):
+    class Template(DataObject, Protocol):  # PFClassId.TEMPLATE
+        ...
+
+    class CompoundModel(DataObject, Protocol):  # PFClassId.COMPOUND_MODEL
+        ...
+
+    class DslModel(DataObject, Protocol):  # PFClassId.DSL_MODEL
         ...
 
     class Events(DataObject, Protocol):
         ...
 
-    class Selection(DataObject, Protocol):  # SetSelect
+    class Selection(DataObject, Protocol):  # PFClassId.SELECTION
         iused: SelectionTarget
         iusedSub: SelectionType  # noqa: N815
 
@@ -1231,6 +1253,10 @@ class PowerFactoryTypes:
             ...
 
         def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
+            """Clears all data (calculation results) written to the result file.
+
+            The Variable definitions stored in the contents of ElmRes are not modified.
+            """
             ...
 
         def FindColumn(  # noqa: N802
@@ -1287,12 +1313,35 @@ class PowerFactoryTypes:
             """Releases the data loaded to memory."""
             ...
 
+        def SetAsDefault(self) -> None:  # noqa: N802
+            """Sets this results object as the default results object.
+
+            Plots using the default result file will use this file for displaying data.
+            """
+            ...
+
         def Write(  # noqa: N802
             self,
             default_value: float = float("nan"),  # optional default value
             /,
         ) -> int:
             """Writes the current results (specified by VariableMonitor) to the result object."""
+            ...
+
+    class Desktop(DataObject, Protocol):  # PFClassId.DESKTOP
+        def Close(self) -> bool:  # noqa: N802
+            ...
+
+        def Freeze(self) -> bool:  # noqa: N802
+            ...
+
+        def GetActivePage(self) -> PowerFactoryTypes.DataObject:  # noqa: N802
+            ...
+
+        def IsFrozen(self) -> bool:  # noqa: N802
+            ...
+
+        def Unfreeze(self) -> bool:  # noqa: N802
             ...
 
     class CommandBase(DataObject, Protocol):
@@ -1417,6 +1466,12 @@ class PowerFactoryTypes:
         def Execute(self) -> int:  # noqa: N802
             ...
 
+    class DplScript(Script, Protocol):  # PFClassId.SCRIPT_DPL
+        ...
+
+    class PythonScript(Script, Protocol):  # PFClassId.SCRIPT_PYTHON
+        ...
+
     class ProjectFolder(DataObject, Protocol):  # PFClassId.FOLDER
         desc: Sequence[str]
         iopt_typ: FolderType
@@ -1429,6 +1484,19 @@ class PowerFactoryTypes:
 
     class Application(Protocol):
         def ActivateProject(self, name: str) -> int:  # noqa: N802
+            ...
+
+        def EchoOff(self) -> None:  # noqa: N802
+            ...
+
+        def EchoOn(self) -> None:  # noqa: N802
+            ...
+
+        def ExecuteCmd(  # noqa: N802
+            self,
+            command: str,
+            /,
+        ) -> None:
             ...
 
         def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
@@ -1448,6 +1516,34 @@ class PowerFactoryTypes:
             ...
 
         def GetActiveStudyCase(self) -> PowerFactoryTypes.StudyCase | None:  # noqa: N802
+            ...
+
+        def GetAttributeUnit(  # noqa: N802
+            self,
+            class_name: str,
+            attribute_name: str,
+            /,
+        ) -> str:
+            ...
+
+        def GetBorderCubicles(  # noqa: N802
+            self,
+            element: PowerFactoryTypes.Element,  # element from which the search for border cubicles starts
+            /,
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
+
+        def GetCalcRelevantObjects(  # noqa: N802
+            self,
+            name_filter: str,
+            include_out_of_service: int,
+            topo_elements_only: int = 0,
+            b_ac_schemes: int = 0,
+            /,
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
+
+        def GetCurrentScript(self) -> PowerFactoryTypes.Script | None:  # noqa: N802
             ...
 
         def GetProjectFolder(  # noqa: N802
@@ -1471,27 +1567,7 @@ class PowerFactoryTypes:
         ) -> None:
             ...
 
-        def ExecuteCmd(  # noqa: N802
-            self,
-            command: str,
-            /,
-        ) -> None:
-            ...
-
-        def EchoOff(self) -> None:  # noqa: N802
-            ...
-
-        def EchoOn(self) -> None:  # noqa: N802
-            ...
-
-        def GetCalcRelevantObjects(  # noqa: N802
-            self,
-            name_filter: str,
-            include_out_of_service: int,
-            topo_elements_only: int = 0,
-            b_ac_schemes: int = 0,
-            /,
-        ) -> Sequence[PowerFactoryTypes.DataObject]:
+        def ResetCalculation(self) -> None:  # noqa: N802
             ...
 
     class PowerFactoryModule(Protocol):

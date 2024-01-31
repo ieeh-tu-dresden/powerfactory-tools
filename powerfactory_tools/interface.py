@@ -751,13 +751,6 @@ class PowerFactoryInterface:
         elements = self.elements_of(self.scenario_dir, pattern=name)
         return [t.cast("PFTypes.Scenario", element) for element in elements]
 
-    def template(self, name: str = "*") -> PFTypes.Template | None:
-        return self.first_of(self.templates(name=name))
-
-    def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
-        elements = self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
-        return [t.cast("PFTypes.Template", element) for element in elements]
-
     def grid_variant(
         self,
         name: str = "*",
@@ -850,6 +843,34 @@ class PowerFactoryInterface:
             return [stage for stage in active_stages if stage in elements]
 
         return [t.cast("PFTypes.GridVariantStage", element) for element in elements]
+
+    def template(self, name: str = "*") -> PFTypes.Template | None:
+        return self.first_of(self.templates(name=name))
+
+    def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
+        elements = self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
+        return [t.cast("PFTypes.Template", element) for element in elements]
+
+    def dsl_model(
+        self,
+        name: str = "*",
+        /,
+        *,
+        location: PFTypes.Grid | PFTypes.CompoundModel | None = None,
+    ) -> PFTypes.DslModel | None:
+        return self.first_of(self.dsl_models(name, location=location))
+
+    def dsl_models(
+        self,
+        name: str = "*",
+        /,
+        *,
+        location: PFTypes.Grid | PFTypes.CompoundModel | None = None,
+    ) -> Sequence[PFTypes.DslModel]:
+        if location is None:
+            location = self.grid_data_dir
+        elements = self.elements_of(location, pattern=name + "." + PFClassId.DSL_MODEL.value)
+        return [t.cast("PFTypes.DslModel", element) for element in elements]
 
     def line_type(
         self,
@@ -1863,6 +1884,7 @@ class PowerFactoryInterface:
         self.load_project_folders_from_pf_db()
         return element
 
+    # WARNING: does not work properly for now
     def update_value(
         self,
         element: str | float | bool | enum.Enum,
@@ -1888,11 +1910,11 @@ class PowerFactoryInterface:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
             if symmetrical:
-                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE)
+                cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
             else:
-                self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.AC_UNSYM_ABC)
+                cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         else:
-            self.update_value(cmd.iopt_net, value=NetworkExtendedCalcType.DC)
+            cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
 
         return cmd
 
@@ -1911,12 +1933,12 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        self.update_value(cmd.iopt_sim, value=sim)
+        cmd.iopt_sim = sim.value  # type: ignore[assignment]
         # Set type of network representation (symmetrical, unsymmetrical)
         if symmetrical:
-            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE)
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
         else:
-            self.update_value(cmd.iopt_net, value=TimeSimulationNetworkCalcType.AC_UNSYM_ABC)
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         # Set result object to be used for simulation
         if result is not None:
             cmd.p_resvar = result

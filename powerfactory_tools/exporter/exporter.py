@@ -71,8 +71,8 @@ from powerfactory_tools.exporter.load_power import LoadPower
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosPhiChar
-from powerfactory_tools.powerfactory_types import CtrlMode
 from powerfactory_tools.powerfactory_types import CtrlVoltageRef
+from powerfactory_tools.powerfactory_types import ExternalQCtrlMode
 from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
 from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
@@ -924,6 +924,7 @@ class PowerFactoryExporter:
         """Create a symmetrical 2-windung transformer.
 
         The assignment of zero sequence quantities is depended from the wiring group as follows:
+
         wiring group    |   Dy(n)  |   Y(N)d  | Yy or YNyn |   YNy   |   Yyn   |
         ________________|_______________________Transformer_____________________
         r_fe1           |   yes    |   yes    |    yes     |   yes   |   yes   |
@@ -942,9 +943,10 @@ class PowerFactoryExporter:
         x0              |   yes*   |   none   |    yes     |   None  |   yes°  |
 
         * Results from uk0 resp. uk0r.
-          Since the magnetising impedance Zm0 cannot be separated from Zk0 due to delta winding, it is assumed that Zm0 is included in Zk0.
+          As the magnetising impedance Zm0 cannot be separated from Zk0 due to delta winding, it is assumed that Zm0 is included in Zk0.
           Thus, only the results from uk0 resp. uk0r, which represent the total zero sequence loop impedance, are stored in r0 and x0.
         ° Total leakage impedance from uk0 and uk0r (zero sequence) is assigned to the side where the transformer star point terminal is available.
+
         Arguments:
             transformer_2w  {PFTypes.Transformer2W} -- the powerfactory transformer data object
             grid_name {str} -- the name of the grid the transformer is located
@@ -3293,7 +3295,7 @@ class PowerFactoryExporter:
 
         # Control mode
         ctrl_mode = controller.i_ctrl
-        if ctrl_mode == CtrlMode.U:  # voltage control mode -> const. U
+        if ctrl_mode == ExternalQCtrlMode.U:  # voltage control mode -> const. U
             q_control_type = ControlTypeFactory.create_u_const_sym(
                 u_set=controller.usetp * u_n,
                 u_meas_ref=ControlledVoltageRef[CtrlVoltageRef(controller.i_phase).name],
@@ -3304,7 +3306,7 @@ class PowerFactoryExporter:
                 external_controller_name=controller_name,
             )
 
-        if ctrl_mode == CtrlMode.Q:  # reactive power control mode
+        if ctrl_mode == ExternalQCtrlMode.Q:  # reactive power control mode
             if controller.qu_char == QChar.CONST:  # const. Q
                 q_dir = -1 if controller.iQorient else 1
                 q_set = controller.qsetp * q_dir * -1  # has to be negative as power is now counted demand based
@@ -3381,7 +3383,7 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if ctrl_mode == CtrlMode.COSPHI:  # cos_phi control mode
+        if ctrl_mode == ExternalQCtrlMode.COSPHI:  # cos_phi control mode
             if controller.cosphi_char == CosPhiChar.CONST:  # const. cos_phi
                 ue = controller.pf_recap ^ controller.iQorient  # OE/UE XOR +Q/-Q
                 # in PF for producer: ind. cos_phi = over excited; cap. cos_phi = under excited
@@ -3430,7 +3432,7 @@ class PowerFactoryExporter:
             msg = "unreachable"
             raise RuntimeError(msg)
 
-        if ctrl_mode == CtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
+        if ctrl_mode == ExternalQCtrlMode.TANPHI:  # tanphi control mode --> const. tanphi
             cos_phi = math.cos(math.atan(controller.tansetp))
             pow_fac_dir = PowerFactorDirection.UE if controller.iQorient else PowerFactorDirection.OE
             power = LoadPower.from_pc_sym(
