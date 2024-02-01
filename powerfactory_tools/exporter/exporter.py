@@ -29,6 +29,7 @@ from psdm.quantities.single_phase import Angle as AngleSP
 from psdm.quantities.single_phase import ImpedanceNat
 from psdm.quantities.single_phase import ImpedancePosSeq
 from psdm.quantities.single_phase import ImpedanceZerSeq
+from psdm.quantities.single_phase import Length
 from psdm.quantities.single_phase import PhaseAngleClock
 from psdm.quantities.single_phase import Voltage as VoltageSP
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
@@ -634,24 +635,25 @@ class PowerFactoryExporter:
         i = l_type.InomAir if line.inAir else l_type.sline
         i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
-        r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
-        x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
-        r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
-        x0 = l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE
-        g1 = l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
-        g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        line_len = line.dline
+        r1 = l_type.rline * line_len / line.nlnum * Exponents.RESISTANCE
+        x1 = l_type.xline * line_len / line.nlnum * Exponents.REACTANCE
+        r0 = l_type.rline0 * line_len / line.nlnum * Exponents.RESISTANCE
+        x0 = l_type.xline0 * line_len / line.nlnum * Exponents.REACTANCE
+        g1 = l_type.gline * line_len * line.nlnum * Exponents.CONDUCTANCE
+        b1 = l_type.bline * line_len * line.nlnum * Exponents.SUSCEPTANCE
+        g0 = l_type.gline0 * line_len * line.nlnum * Exponents.CONDUCTANCE
+        b0 = l_type.bline0 * line_len * line.nlnum * Exponents.SUSCEPTANCE
         if l_type.nneutral:
             l_type = t.cast("PFTypes.LineNType", l_type)
-            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
-            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rn = l_type.rnline * line_len / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line_len / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line_len / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line_len / line.nlnum * Exponents.REACTANCE
             gn = 0  # as attribute 'gnline' does not exist in PF model type
-            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bn = l_type.bnline * line_len * line.nlnum * Exponents.SUSCEPTANCE
             gpn = 0  # as attribute 'gpnline' does not exist in PF model type
-            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bpn = l_type.bpnline * line_len * line.nlnum * Exponents.SUSCEPTANCE
         else:
             rn = None
             xn = None
@@ -706,6 +708,7 @@ class PowerFactoryExporter:
             f_n=Qc.single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
+            length=Length(value=line_len),
         )
 
     @staticmethod
