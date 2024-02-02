@@ -573,14 +573,16 @@ class PowerFactoryTypes:
             object_to_copy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
             concat_name_part: str | int = "",
             /,
-        ) -> PowerFactoryTypes.DataObject | None: ...
+        ) -> PowerFactoryTypes.DataObject | None:
+            ...
 
         def CreateObject(  # noqa: N802
             self,
             class_name: str,
             name: str | int | None,
             /,
-        ) -> PowerFactoryTypes.DataObject | None: ...
+        ) -> PowerFactoryTypes.DataObject | None:
+            ...
 
         def CopyData(self, source: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
             ...
@@ -596,7 +598,8 @@ class PowerFactoryTypes:
             name: str,
             recursive: bool = False,  # noqa: FBT001, FBT002
             /,
-        ) -> Sequence[PowerFactoryTypes.DataObject]: ...
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
 
         def GetParent(self) -> PowerFactoryTypes.DataObject | None:  # noqa: N802
             ...
@@ -614,9 +617,11 @@ class PowerFactoryTypes:
             self,
             time: int,  # Time in seconds since 01.01.1970 00:00:00
             /,
-        ) -> int: ...
+        ) -> int:
+            ...
 
-    class DataDir(DataObject, Protocol): ...
+    class DataDir(DataObject, Protocol):
+        ...
 
     class GridDiagram(DataObject, Protocol):  # PFClassId.GRID_GRAPHIC
         ...
@@ -657,12 +662,14 @@ class PowerFactoryTypes:
         def ApplyNetworkState(  # noqa: N802
             self,
             other: PowerFactoryTypes.DataObject,  # the other study case to copy from: grids, scenarios and network variations configuration
-        ) -> Literal[0, 1, 2, 3, 4, 5]: ...
+        ) -> Literal[0, 1, 2, 3, 4, 5]:
+            ...
 
         def ApplyStudyTime(  # noqa: N802
             self,
             other: PowerFactoryTypes.DataObject,  # the other study case to copy from: study time
-        ) -> Literal[0, 1, 2, 3, 4]: ...
+        ) -> Literal[0, 1, 2, 3, 4]:
+            ...
 
         def Consolidate(self) -> bool:  # noqa: N802
             ...
@@ -673,7 +680,8 @@ class PowerFactoryTypes:
         def SetStudyTime(  # noqa: N802
             self,
             date_time: int,  # Seconds since 01.01.1970 00:00:00.
-        ) -> None: ...
+        ) -> None:
+            ...
 
     class GridVariant(DataObject, Protocol):  # PFClassId.VARIANT
         def Activate(self) -> bool:  # noqa: N802
@@ -688,7 +696,8 @@ class PowerFactoryTypes:
             activation_time: int,  # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
             activate: int,  # 1 - Activate (should be dafault); 0 - do not activate
             /,
-        ) -> bool: ...
+        ) -> bool:
+            ...
 
     class GridVariantStage(DataObject, Protocol):  # PFClassId.VARIANT_STAGE
         tAcTime: str  # noqa: N815
@@ -718,7 +727,8 @@ class PowerFactoryTypes:
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
 
-    class Substation(DataObject, Protocol): ...
+    class Substation(DataObject, Protocol):
+        ...
 
     class LoadType(DataObject, Protocol):  # PFClassId.LOAD_TYPE_GENERAL
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
@@ -866,7 +876,8 @@ class PowerFactoryTypes:
         def GetConnectedMainBuses(  # noqa: N802
             self,
             consider_switches: bool = True,  # noqa: FBT001, FBT002
-        ) -> Sequence[PowerFactoryTypes.StationCubicle]: ...
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
 
         def GetEquivalentTerminals(self) -> Sequence[PowerFactoryTypes.Terminal]:  # noqa: N802
             # Euqivalent means that those terminals are topologically connected only by
@@ -914,7 +925,8 @@ class PowerFactoryTypes:
     class ControllerBase(DataObject, Protocol):
         c_pmod: PowerFactoryTypes.CompoundModel | None
 
-    class SecondaryController(ControllerBase, Protocol): ...
+    class SecondaryController(ControllerBase, Protocol):
+        ...
 
     class StationController(ControllerBase, Protocol):  # PFClassId.STATION_CONTROLLER
         i_ctrl: ExternalQCtrlMode
@@ -1095,7 +1107,8 @@ class PowerFactoryTypes:
         bus1: PowerFactoryTypes.StationCubicle | None
         bus2: PowerFactoryTypes.StationCubicle | None
 
-    class BFuse(Fuse, Protocol): ...
+    class BFuse(Fuse, Protocol):
+        ...
 
     class EFuse(Fuse, Protocol):
         fold_id: PowerFactoryTypes.StationCubicle
@@ -1149,7 +1162,8 @@ class PowerFactoryTypes:
     class DslModel(DataObject, Protocol):  # PFClassId.DSL_MODEL
         ...
 
-    class Events(DataObject, Protocol): ...
+    class Events(DataObject, Protocol):
+        ...
 
     class Selection(DataObject, Protocol):  # PFClassId.SELECTION
         iused: SelectionTarget
@@ -1159,7 +1173,8 @@ class PowerFactoryTypes:
             self,
             element: PowerFactoryTypes.DataObject | list[PowerFactoryTypes.DataObject],
             /,
-        ) -> None: ...
+        ) -> None:
+            ...
 
         def All(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
             ...
@@ -1168,7 +1183,8 @@ class PowerFactoryTypes:
             self,
             class_name: str,
             /,
-        ) -> Sequence[PowerFactoryTypes.DataObject]: ...
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
 
         def AllElm(self) -> Sequence[PowerFactoryTypes.Element]:  # noqa: N802
             ...
@@ -1183,13 +1199,15 @@ class PowerFactoryTypes:
             self,
             var_name: str,
             /,
-        ) -> None: ...
+        ) -> None:
+            ...
 
         def AddVars(  # noqa: N802
             self,
             var_filter: str,  # e.g.: "e:*"
             /,
-        ) -> None: ...
+        ) -> None:
+            ...
 
         def ClearVars(self) -> None:  # noqa: N802
             ...
@@ -1213,7 +1231,8 @@ class PowerFactoryTypes:
             self,
             var_name: str,
             /,
-        ) -> bool: ...
+        ) -> bool:
+            ...
 
         def PrintAllValues(self) -> None:  # noqa: N802
             ...
@@ -1230,7 +1249,8 @@ class PowerFactoryTypes:
             element: PowerFactoryTypes.DataObject,
             var_name: str,
             /,
-        ) -> int: ...
+        ) -> int:
+            ...
 
         def Clear(self) -> int:  # noqa: N802  # Always 0 and can be ignored
             """Clears all data (calculation results) written to the result file.
@@ -1245,7 +1265,8 @@ class PowerFactoryTypes:
             var_name: str,
             start_col: int,
             /,
-        ) -> int: ...
+        ) -> int:
+            ...
 
         def FinishWriting(self) -> None:  # noqa: N802
             """Closes the result object after writing."""
@@ -1439,7 +1460,8 @@ class PowerFactoryTypes:
             name: str,
             value: PowerFactoryTypes.DataObject,
             /,
-        ) -> int: ...
+        ) -> int:
+            ...
 
         def Execute(self) -> int:  # noqa: N802
             ...
@@ -1474,7 +1496,8 @@ class PowerFactoryTypes:
             self,
             command: str,
             /,
-        ) -> None: ...
+        ) -> None:
+            ...
 
         def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
@@ -1486,7 +1509,8 @@ class PowerFactoryTypes:
             self,
             varied_folder: PowerFactoryTypes.DataObject,
             /,
-        ) -> Sequence[PowerFactoryTypes.GridVariantStage]: ...
+        ) -> Sequence[PowerFactoryTypes.GridVariantStage]:
+            ...
 
         def GetActiveNetworkVariations(self) -> Sequence[PowerFactoryTypes.GridVariant]:  # noqa: N802
             ...
@@ -1499,13 +1523,15 @@ class PowerFactoryTypes:
             class_name: str,
             attribute_name: str,
             /,
-        ) -> str: ...
+        ) -> str:
+            ...
 
         def GetBorderCubicles(  # noqa: N802
             self,
             element: PowerFactoryTypes.Element,  # element from which the search for border cubicles starts
             /,
-        ) -> Sequence[PowerFactoryTypes.StationCubicle]: ...
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]:
+            ...
 
         def GetCalcRelevantObjects(  # noqa: N802
             self,
@@ -1514,7 +1540,8 @@ class PowerFactoryTypes:
             topo_elements_only: int = 0,
             b_ac_schemes: int = 0,
             /,
-        ) -> Sequence[PowerFactoryTypes.DataObject]: ...
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            ...
 
         def GetCurrentScript(self) -> PowerFactoryTypes.Script | None:  # noqa: N802
             ...
@@ -1523,19 +1550,22 @@ class PowerFactoryTypes:
             self,
             name: str,
             /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        ) -> PowerFactoryTypes.DataObject:
+            ...
 
         def GetFromStudyCase(  # noqa: N802
             self,
             class_name: str,
             /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        ) -> PowerFactoryTypes.DataObject:
+            ...
 
         def PostCommand(  # noqa: N802
             self,
             command: Literal["exit"],
             /,
-        ) -> None: ...
+        ) -> None:
+            ...
 
         def ResetCalculation(self) -> None:  # noqa: N802
             ...
@@ -1549,7 +1579,8 @@ class PowerFactoryTypes:
             password: str | None = None,
             command_line_arguments: str | None = None,
             /,
-        ) -> PowerFactoryTypes.Application: ...
+        ) -> PowerFactoryTypes.Application:
+            ...
 
 
 ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
