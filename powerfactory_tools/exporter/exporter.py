@@ -1281,12 +1281,14 @@ class PowerFactoryExporter:
 
     @staticmethod
     def get_description(
-        element: PFTypes.Terminal
-        | PFTypes.LineBase
-        | PFTypes.Element
-        | PFTypes.Coupler
-        | PFTypes.ExternalGrid
-        | PFTypes.Fuse,
+        element: (
+            PFTypes.Terminal
+            | PFTypes.LineBase
+            | PFTypes.Element
+            | PFTypes.Coupler
+            | PFTypes.ExternalGrid
+            | PFTypes.Fuse
+        ),
     ) -> tuple[bool, str]:
         desc = element.desc
         if desc:
@@ -1375,13 +1377,20 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> Sequence[Load]:
         loguru.logger.debug("Creating subconsumers for low voltage consumer {name}...", name=load.loc_name)
-        powers = self.calc_load_lv_powers(load)
-        sfx_pre = "" if len(powers) == 1 else "_({})"
+        powers, subload_names = self.calc_load_lv_powers(load)
+        sfx_pre = "" if len(powers) == 1 else "__{}"
 
         consumer_lv_parts = [
-            self.create_consumer_lv_parts(load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
+            self.create_consumer_lv_parts(
+                load,
+                grid_name=grid_name,
+                power=power,
+                subload_name=subload_names[i],
+                sfx_pre=sfx_pre,
+            )
             for i, power in enumerate(powers)
         ]
+
         return self.pfi.list_from_sequences(*consumer_lv_parts)
 
     def create_consumer_lv_parts(
@@ -1391,12 +1400,12 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadLV,
+        subload_name: str,
         sfx_pre: str,
-        index: int,
     ) -> Sequence[Load]:
         loguru.logger.debug(
-            "Creating partial consumers for subconsumer {index} of low voltage consumer {name}...",
-            index=index,
+            "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {name}...",
+            subload_name=subload_name,
             name=load.loc_name,
         )
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
@@ -1407,7 +1416,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
                 load_model_default="Z",
             )
             if power.fixed.pow_app_abs != 0
@@ -1420,7 +1429,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
                 load_model_default="Z",
             )
             if power.night.pow_app_abs != 0
@@ -1433,7 +1442,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
                 load_model_default="Z",
             )
             if power.flexible.pow_app_abs != 0
@@ -2514,11 +2523,17 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        powers = self.calc_load_lv_powers(load)
-        sfx_pre = "" if len(powers) == 1 else "_({})"
+        powers, subload_names = self.calc_load_lv_powers(load)
+        sfx_pre = "" if len(powers) == 1 else "__{}"
 
         consumer_ssc_lv_parts = [
-            self.create_consumer_ssc_lv_parts(load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
+            self.create_consumer_ssc_lv_parts(
+                load,
+                grid_name=grid_name,
+                power=power,
+                subload_name=subload_names[i],
+                sfx_pre=sfx_pre,
+            )
             for i, power in enumerate(powers)
         ]
         return list(itertools.chain.from_iterable(consumer_ssc_lv_parts))
@@ -2530,9 +2545,14 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadLV,
+        subload_name: str,
         sfx_pre: str,
-        index: int,
     ) -> Sequence[LoadSSC]:
+        loguru.logger.debug(
+            "Creating partial consumer SSCs for subconsumer {subload_name} of low voltage consumer {name}...",
+            subload_name=subload_name,
+            name=load.loc_name,
+        )
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         consumer_fixed_ssc = (
             self.create_consumer_ssc(
@@ -2540,7 +2560,7 @@ class PowerFactoryExporter:
                 power=power.fixed,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -2551,7 +2571,7 @@ class PowerFactoryExporter:
                 power=power.night,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -2562,7 +2582,7 @@ class PowerFactoryExporter:
                 power=power.flexible_avg,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -2573,12 +2593,14 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadLV,
         /,
-    ) -> Sequence[LoadLV]:
+    ) -> tuple[Sequence[LoadLV], Sequence[str]]:
         subloads = self.pfi.subloads_of(load)
         if not subloads:
-            return [self.calc_load_lv_power(load)]
+            return [self.calc_load_lv_power(load)], [""]
 
-        return [self.calc_load_lv_power_sym(sl) for sl in subloads]
+        powers = [self.calc_load_lv_power_sym(sl) for sl in subloads]
+        subload_names = [sl.loc_name for sl in subloads]
+        return powers, subload_names
 
     def calc_load_lv_power(
         self,
