@@ -435,6 +435,11 @@ class PowerFactoryInterface:
         if not grid.IsCalcRelevant() and grid.Activate():
             msg = "Could not activate grid."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Grid {grid_name} is already active.",
+                grid_name=grid.loc_name,
+            )
 
     def deactivate_grids(self) -> None:
         for grid in self.independent_grids(calc_relevant=True):
@@ -449,6 +454,11 @@ class PowerFactoryInterface:
         if grid.IsCalcRelevant() and grid.Deactivate():
             msg = "Could not deactivate grid."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Grid {grid_name} is already inactive.",
+                grid_name=grid.loc_name,
+            )
 
     def activate_scenario(
         self,
@@ -459,10 +469,15 @@ class PowerFactoryInterface:
             "Activating scenario {scenario_name} application...",
             scenario_name=scenario.loc_name,
         )
-        active_scen = self.app.GetActiveScenario()
-        if active_scen != scenario and scenario.Activate():
+        active_scenario = self.app.GetActiveScenario()
+        if active_scenario != scenario and scenario.Activate():
             msg = "Could not activate scenario."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Scenario {scenario_name} is already active.",
+                scenario_name=scenario.loc_name,
+            )
 
     def deactivate_scenario(
         self,
@@ -473,9 +488,15 @@ class PowerFactoryInterface:
             "Deactivating scenario {scenario_name} application...",
             scenario_name=scenario.loc_name,
         )
-        if scenario.Deactivate():
+        active_scenario = self.app.GetActiveScenario()
+        if active_scenario == scenario and scenario.Deactivate():
             msg = "Could not deactivate scenario."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Scenario {scenario_name} is already inactive.",
+                scenario_name=scenario.loc_name,
+            )
 
     def activate_study_case(
         self,
@@ -486,11 +507,15 @@ class PowerFactoryInterface:
             "Activating study_case {study_case_name} application...",
             study_case_name=study_case.loc_name,
         )
-        act_sc = self.app.GetActiveStudyCase()
-        if act_sc is not None and study_case.loc_name != act_sc.loc_name:  # noqa: SIM102
-            if study_case.Activate():
-                msg = "Could not activate case study."
-                raise RuntimeError(msg)
+        active_study_case = self.app.GetActiveStudyCase()
+        if active_study_case != study_case and study_case.Activate():
+            msg = "Could not activate case study."
+            raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Study_case {study_case_name} is already inactive.",
+                study_case_name=study_case.loc_name,
+            )
 
     def deactivate_study_case(
         self,
@@ -501,9 +526,15 @@ class PowerFactoryInterface:
             "Deactivating study_case {study_case_name} application...",
             study_case_name=study_case.loc_name,
         )
-        if study_case.Deactivate():
+        active_study_case = self.app.GetActiveStudyCase()
+        if active_study_case == study_case and study_case.Deactivate():
             msg = "Could not deactivate case study."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Study_case {study_case_name} is already inactive.",
+                study_case_name=study_case.loc_name,
+            )
 
     def activate_grid_variant(
         self,
@@ -514,15 +545,15 @@ class PowerFactoryInterface:
             "Activating grid variant {variant_name} application...",
             variant_name=grid_variant.loc_name,
         )
-        variants = self.app.GetActiveNetworkVariations()
-        if grid_variant in variants:
+        active_variants = self.app.GetActiveNetworkVariations()
+        if grid_variant not in active_variants and grid_variant.Activate():
+            msg = "Could not activate grid variant."
+            raise RuntimeError(msg)
+        else:  # noqa: RET506
             loguru.logger.warning(
                 "Grid variant {variant_name} is already active.",
                 variant_name=grid_variant.loc_name,
             )
-        elif grid_variant.Activate():
-            msg = "Could not activate grid variant."
-            raise RuntimeError(msg)
 
     def deactivate_grid_variant(
         self,
@@ -533,9 +564,20 @@ class PowerFactoryInterface:
             "Deactivating grid variant {variant_name} application...",
             variant_name=grid_variant.loc_name,
         )
-        if grid_variant.Deactivate():
+        active_variants = self.app.GetActiveNetworkVariations()
+        if grid_variant in active_variants and grid_variant.Deactivate():
             msg = "Could not deactivate grid variant."
             raise RuntimeError(msg)
+        else:  # noqa: RET506
+            loguru.logger.warning(
+                "Grid variant {variant_name} is already inactive.",
+                variant_name=grid_variant.loc_name,
+            )
+
+    def deactivate_grid_variants(self) -> None:
+        active_variants = self.app.GetActiveNetworkVariations()
+        for variant in active_variants:
+            self.deactivate_grid_variant(variant)
 
     def set_default_unit_conversion(self) -> None:
         loguru.logger.debug("Applying exporter default unit conversion settings...")
