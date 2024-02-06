@@ -1922,10 +1922,22 @@ class PowerFactoryInterface:
         self,
         /,
         *,
-        sim: TimeSimulationType,
+        sim_type: TimeSimulationType,
         symmetrical: bool,
         result: PFTypes.Result | None = None,
+        data: dict[str, ValidPFValue] | None = None,
     ) -> PFTypes.CommandTimeSimulationStart:
+        """Creates a new command object of type ComInc.
+
+        Keyword Arguments:
+            sim (TimeSimulationType) -- flag to choose between RMS and EMT.
+            symmetrical (bool) -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical).
+            result (PFTypes.Result | None, optional) -- the result object to write simulation results to. (default: {None})
+            data (dict[str, ValidPFValue] | None, optional) -- a dictionary with name-value-pairs of object attributes. (default: {None})
+
+        Returns:
+            PFTypes.CommandTimeSimulationStart -- The new created command object.
+        """
         # Set type of network representation for the load flow calculation in beforehand (Workaround as cmd.c_butldf is not accessible)
         self.create_ldf_command(symmetrical=symmetrical)
         cmd = t.cast(
@@ -1933,7 +1945,7 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        cmd.iopt_sim = sim.value  # type: ignore[assignment]
+        cmd.iopt_sim = sim_type.value  # type: ignore[assignment]
         # Set type of network representation (symmetrical, unsymmetrical)
         if symmetrical:
             cmd.iopt_net = TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
@@ -1942,6 +1954,10 @@ class PowerFactoryInterface:
         # Set result object to be used for simulation
         if result is not None:
             cmd.p_resvar = result
+
+        # update further attributes if needed
+        if data is not None:
+            self.update_object(cmd, data=data)
 
         return cmd
 
@@ -1967,6 +1983,22 @@ class PowerFactoryInterface:
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.CommandResultExport | None:
+        """Creates a new result export command object.
+
+        Args:
+            result (PFTypes.Result) -- the result to be exported
+            study_case (PFTypes.StudyCase) -- the study case this export command is related to (resp. the loaction)
+            export_path (pathlib.Path) -- relative or absolute path for export
+            export_mode (ResultExportMode) -- the export mode to be used (eg. CSV or COMTRADE)
+            file_name (str | None, optional) -- name of the export file. (defaults: {None}).
+            name (str, optional) -- the name of the command itself.  (defaults: {"Result Export"}).
+            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
+
+        Returns:
+            PFTypes.CommandResultExport | None
+        """
         loguru.logger.debug("Create result export command {name} ...", name=name)
         if data is None:
             data = {}
@@ -1989,7 +2021,7 @@ class PowerFactoryInterface:
             elif export_mode is ResultExportMode.CSV:
                 file_type = FileType.CSV
             file_path = self.create_external_file_path(file_type=file_type, path=export_path, file_name=file_name)
-            data["f_name"] = str(file_path)
+            data["f_name"] = str(file_path.resolve())
 
         # create result export command within specified attribute data
         element = self.create_object(
@@ -2045,8 +2077,8 @@ class PowerFactoryInterface:
         """Run load flow calculation.
 
         Keyword Arguments:
-            ac {bool} -- The voltage system used for load flow calculation (default: {True}).
-            symmetrical {bool} -- Flag to indicate symmetrical (positive sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
+            ac {bool} -- the voltage system used for load flow calculation (default: {True}).
+            symmetrical {bool} -- flag to indicate symmetrical (positive sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
 
         Returns:
             {PFTypes.Result | None} -- The default result object of load flow.
@@ -2066,23 +2098,26 @@ class PowerFactoryInterface:
         *,
         symmetrical: bool = True,
         result: PFTypes.Result | None = None,
+        data: dict[str, ValidPFValue] | None = None,
     ) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
 
         Arguments:
             time (float): simualtion time in s
-        Keyword Arguments:
-            symmetrical (bool, optional): positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
-            result (PFTypes.Result | None, optional): result object to be used for simulation. (default: {None})
+        eyword Arguments:
+            symmetrical (bool, optional) -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
+            result (PFTypes.Result | None, optional) -- the result object to write simulation results to. (default: {None})
+            data (dict[str, ValidPFValue] | None, optional) -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
         {PFTypes.Result | None} -- The result object related to the RMS simualtion.
         """
         # Setup simulation start command
         sim_start_cmd = self.create_time_sim_start_command(
-            sim=TimeSimulationType.RMS,
+            sim_type=TimeSimulationType.RMS,
             symmetrical=symmetrical,
             result=result,
+            data=data,
         )
         if sim_start_cmd.Execute():
             msg = "Time domain simulation: Calculation of initial condition failed."
@@ -2103,13 +2138,15 @@ class PowerFactoryInterface:
         /,
         *,
         result: PFTypes.Result | None = None,
+        data: dict[str, ValidPFValue] | None = None,
     ) -> PFTypes.Result | None:
         """Wrapper to easily run EMT time simulation.
 
         Arguments:
             time (float): simualtion time in s
         Keyword Arguments:
-            result (PFTypes.Result | None, optional): result object to be used for simulation. (default: {None})
+            result (PFTypes.Result | None, optional) -- The result object to write simulation results to. (default: {None})
+            data (dict[str, ValidPFValue] | None, optional) -- A dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
         {PFTypes.Result | None} -- The result object related to the EMT simualtion.
@@ -2117,9 +2154,10 @@ class PowerFactoryInterface:
         # Setup simulation start command
         # Unsymmetric is set by PowerFactory!
         sim_start_cmd = self.create_time_sim_start_command(
-            sim=TimeSimulationType.EMT,
+            sim_type=TimeSimulationType.EMT,
             symmetrical=False,
             result=result,
+            data=data,
         )
         if sim_start_cmd.Execute():
             msg = "Time domain simulation: Calculation of initial condition failed."
