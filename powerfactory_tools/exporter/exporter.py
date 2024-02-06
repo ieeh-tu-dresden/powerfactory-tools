@@ -924,24 +924,28 @@ class PowerFactoryExporter:
         """Create a symmetrical 2-windung transformer.
 
         The assignment of zero sequence quantities is depended from the wiring group as follows:
-        wiring group    |   Dy(n)   |   Y(N)d   |   Y(N)y(n)
-        __________________________Transformer________________
-        r_fe1           |   yes     |   yes     |   yes
-        x_h1            |   yes     |   yes     |   yes
-        r_fe0           |   none    |   none    |   yes
-        x_h0            |   none    |   none    |   yes
-        __________________________Winding HV_________________
-        r1              |   yes     |   yes     |   yes
-        x1              |   yes     |   yes     |   yes
-        r0              |   none    |   yes*    |   yes
-        x0              |   none    |   yes*    |   yes
-        __________________________Winding LV_________________
-        r1              |   yes     |   yes     |   yes
-        x1              |   yes     |   yes     |   yes
-        r0              |   yes*    |   none    |   yes
-        x0              |   yes*    |   none    |   yes
 
-        * Results from uk0 resp. Zk0 instead of Zm0, as the magnetising impedance Zm0 cannot be separated from Zk0 due to delta wiring group.
+        wiring group    |   Dy(n)  |   Y(N)d  | Yy or YNyn |   YNy   |   Yyn   |
+        ________________|_______________________Transformer_____________________
+        r_fe1           |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x_h1            |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r_fe0           |   none   |   none   |    yes     |   yes   |   yes   |
+        x_h0            |   none   |   none   |    yes     |   yes   |   yes   |
+        ________________|_______________________Winding HV______________________
+        r1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r0              |   none   |   yes*   |    yes     |   yes°  |   None  |
+        x0              |   none   |   yes*   |    yes     |   yes°  |   None  |
+        ________________|_______________________Winding LV______________________
+        r1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r0              |   yes*   |   none   |    yes     |   None  |   yes°  |
+        x0              |   yes*   |   none   |    yes     |   None  |   yes°  |
+
+        * Results from uk0 resp. uk0r.
+          As the magnetising impedance Zm0 cannot be separated from Zk0 due to delta winding, it is assumed that Zm0 is included in Zk0.
+          Thus, only the results from uk0 resp. uk0r, which represent the total zero sequence loop impedance, are stored in r0 and x0.
+        ° Total leakage impedance from uk0 and uk0r (zero sequence) is assigned to the side where the transformer star point terminal is available.
 
         Arguments:
             transformer_2w  {PFTypes.Transformer2W} -- the powerfactory transformer data object
@@ -1034,9 +1038,12 @@ class PowerFactoryExporter:
             )
 
             # Neutral point phase connection
-            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+            neutral_connected_h, neutral_connected_l = self.get_transformer2w_neutral_connection(
                 transformer=transformer_2w,
-                vector_group=vector_group,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+                terminal_h=t_high,
+                terminal_l=t_low,
             )
 
             # Neutral point earthing
@@ -1158,9 +1165,10 @@ class PowerFactoryExporter:
         pu2abs: float,
     ) -> tuple[float, float, float, float, float | None, float | None, float | None, float | None]:
         r_1 = t_type.r1pu * pu2abs
+        x_1 = t_type.x1pu * pu2abs
+        # unsymmetrical distribution to HV and LV side may be possible
         r_1_h = r_1 * t_type.itrdr
         r_1_l = r_1 * t_type.itrdr_lv
-        x_1 = t_type.x1pu * pu2abs
         x_1_h = x_1 * t_type.itrdl
         x_1_l = x_1 * t_type.itrdl_lv
 
@@ -1185,15 +1193,33 @@ class PowerFactoryExporter:
                 x_0_h = z_k_0
         elif vector_group_l and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:
             r_0 = t_type.r0pu * pu2abs
+            x_0 = t_type.x0pu * pu2abs
+            # unsymmetrical distribution to HV and LV side may be possible
             r_0_h = r_0 * t_type.zx0hl_h
             r_0_l = r_0 * t_type.zx0hl_l
-            x_0 = t_type.x0pu * pu2abs
             x_0_h = x_0 * t_type.zx0hl_h
             x_0_l = x_0 * t_type.zx0hl_l
+            # except for vector group YNy and Yyn, where zero sequence impedance can not be separated afterwards
+            if vector_group_h is WVectorGroup.YN and vector_group_l is WVectorGroup.Y:
+                # assummption: leakage impedance of the total zero sequence loop is assigned to the HV side
+                r_0_h = r_0
+                r_0_l = None
+                x_0_h = x_0
+                x_0_l = None
+            elif vector_group_h is WVectorGroup.Y and vector_group_l is WVectorGroup.YN:
+                # assummption: leakage impedance of the total zero sequence loop is assigned to the LV side
+                r_0_h = None
+                r_0_l = r_0
+                x_0_h = None
+                x_0_l = x_0
         else:
             loguru.logger.warning(
                 "Zero sequence leakage impedance for transformer with vector group 'Z' is not supported yet. Skipping.",
             )
+            r_0_h = None
+            x_0_h = None
+            r_0_l = None
+            x_0_l = None
 
         return (r_1_h, x_1_h, r_1_l, x_1_l, r_0_h, x_0_h, r_0_l, x_0_l)
 
@@ -1223,8 +1249,8 @@ class PowerFactoryExporter:
     def get_transformer2w_magnetising_impedance(
         *,
         t_type: PFTypes.Transformer2WType,
-        vector_group_l: WVectorGroup,
         vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
         voltage_ref: float,
         pu2abs: float,
     ) -> tuple[float, float, float | None, float | None]:
@@ -1263,21 +1289,45 @@ class PowerFactoryExporter:
         return (r_fe_1, x_h_1, r_fe_0, x_h_0)
 
     @staticmethod
-    def transformer_neutral_connection_hvlv(
+    def get_transformer2w_neutral_connection(
         *,
         transformer: PFTypes.Transformer2W,
-        vector_group: VectorGroup,
+        vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
+        terminal_h: PFTypes.Terminal,
+        terminal_l: PFTypes.Terminal,
     ) -> tuple[bool, bool]:
-        if "n" in vector_group.name.lower():
+        # Default values correspond to TrfNeutralConnectionType.NO as well as vectorgroup without "N"
+        neutral_connected_h = False
+        neutral_connected_l = False
+        # HV side
+        if "n" in vector_group_h.name.lower():
             if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
-                return True, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV:
-                return True, False
-            if transformer.cneutcon == TrfNeutralConnectionType.LV:
-                return False, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV_LV:
-                return True, True
-        return False, False  # corresponds to TrfNeutralConnectionType.NO
+                if terminal_h.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_h = True
+                else:
+                    neutral_connected_h = False
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} HV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.HV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_h = True
+        # LV side
+        if "n" in vector_group_l.name.lower():
+            if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
+                if terminal_l.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_l = True
+                else:
+                    neutral_connected_l = True
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} LV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.LV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_l = True
+
+        return neutral_connected_h, neutral_connected_l
 
     @staticmethod
     def get_description(
