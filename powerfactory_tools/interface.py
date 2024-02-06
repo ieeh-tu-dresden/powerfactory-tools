@@ -432,14 +432,14 @@ class PowerFactoryInterface:
         /,
     ) -> None:
         loguru.logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
-        if not grid.IsCalcRelevant() and grid.Activate():
-            msg = "Could not activate grid."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if grid.IsCalcRelevant():
             loguru.logger.warning(
                 "Grid {grid_name} is already active.",
                 grid_name=grid.loc_name,
             )
+        elif grid.Activate():
+            msg = "Could not activate grid."
+            raise RuntimeError(msg)
 
     def deactivate_grids(self) -> None:
         for grid in self.independent_grids(calc_relevant=True):
@@ -451,14 +451,14 @@ class PowerFactoryInterface:
         /,
     ) -> None:
         loguru.logger.debug("Deactivating grid {grid_name} application...", grid_name=grid.loc_name)
-        if grid.IsCalcRelevant() and grid.Deactivate():
-            msg = "Could not deactivate grid."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if not grid.IsCalcRelevant():
             loguru.logger.warning(
                 "Grid {grid_name} is already inactive.",
                 grid_name=grid.loc_name,
             )
+        elif grid.Deactivate():
+            msg = "Could not deactivate grid."
+            raise RuntimeError(msg)
 
     def activate_scenario(
         self,
@@ -470,14 +470,14 @@ class PowerFactoryInterface:
             scenario_name=scenario.loc_name,
         )
         active_scenario = self.app.GetActiveScenario()
-        if active_scenario != scenario and scenario.Activate():
-            msg = "Could not activate scenario."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if active_scenario == scenario:
             loguru.logger.warning(
                 "Scenario {scenario_name} is already active.",
                 scenario_name=scenario.loc_name,
             )
+        elif scenario.Activate():
+            msg = "Could not activate scenario."
+            raise RuntimeError(msg)
 
     def deactivate_scenario(
         self,
@@ -489,14 +489,14 @@ class PowerFactoryInterface:
             scenario_name=scenario.loc_name,
         )
         active_scenario = self.app.GetActiveScenario()
-        if active_scenario == scenario and scenario.Deactivate():
-            msg = "Could not deactivate scenario."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if active_scenario != scenario:
             loguru.logger.warning(
                 "Scenario {scenario_name} is already inactive.",
                 scenario_name=scenario.loc_name,
             )
+        elif scenario.Deactivate():
+            msg = "Could not deactivate scenario."
+            raise RuntimeError(msg)
 
     def activate_study_case(
         self,
@@ -508,14 +508,14 @@ class PowerFactoryInterface:
             study_case_name=study_case.loc_name,
         )
         active_study_case = self.app.GetActiveStudyCase()
-        if active_study_case != study_case and study_case.Activate():
-            msg = "Could not activate case study."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if active_study_case == study_case:
             loguru.logger.warning(
                 "Study_case {study_case_name} is already inactive.",
                 study_case_name=study_case.loc_name,
             )
+        elif study_case.Activate():
+            msg = "Could not activate case study."
+            raise RuntimeError(msg)
 
     def deactivate_study_case(
         self,
@@ -527,14 +527,14 @@ class PowerFactoryInterface:
             study_case_name=study_case.loc_name,
         )
         active_study_case = self.app.GetActiveStudyCase()
-        if active_study_case == study_case and study_case.Deactivate():
-            msg = "Could not deactivate case study."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if active_study_case != study_case:
             loguru.logger.warning(
                 "Study_case {study_case_name} is already inactive.",
                 study_case_name=study_case.loc_name,
             )
+        elif study_case.Deactivate():
+            msg = "Could not deactivate case study."
+            raise RuntimeError(msg)
 
     def activate_grid_variant(
         self,
@@ -546,14 +546,14 @@ class PowerFactoryInterface:
             variant_name=grid_variant.loc_name,
         )
         active_variants = self.app.GetActiveNetworkVariations()
-        if grid_variant not in active_variants and grid_variant.Activate():
-            msg = "Could not activate grid variant."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if grid_variant in active_variants:
             loguru.logger.warning(
                 "Grid variant {variant_name} is already active.",
                 variant_name=grid_variant.loc_name,
             )
+        elif grid_variant.Activate():
+            msg = "Could not activate grid variant."
+            raise RuntimeError(msg)
 
     def deactivate_grid_variant(
         self,
@@ -565,14 +565,14 @@ class PowerFactoryInterface:
             variant_name=grid_variant.loc_name,
         )
         active_variants = self.app.GetActiveNetworkVariations()
-        if grid_variant in active_variants and grid_variant.Deactivate():
-            msg = "Could not deactivate grid variant."
-            raise RuntimeError(msg)
-        else:  # noqa: RET506
+        if grid_variant not in active_variants:
             loguru.logger.warning(
                 "Grid variant {variant_name} is already inactive.",
                 variant_name=grid_variant.loc_name,
             )
+        elif grid_variant.Deactivate():
+            msg = "Could not deactivate grid variant."
+            raise RuntimeError(msg)
 
     def deactivate_grid_variants(self) -> None:
         active_variants = self.app.GetActiveNetworkVariations()
