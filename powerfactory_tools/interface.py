@@ -1568,11 +1568,24 @@ class PowerFactoryInterface:
         *,
         element: PFTypes.DataObject,
         result: PFTypes.Result,
-        variables: Sequence[str] | None = None,
+        variables: Sequence[str],
         data: dict[str, ValidPFValue] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.VariableMonitor | None:
+        """Creates a variable monitoring object within a result object.
+
+         Keyword Arguments:
+            element {PFTypes.DataObject} -- the element for which variable monitors are to be created
+            result {PFTypes.Result} -- the related result object the variable monitor is to be created within
+            variables {Sequence[str]} -- a list of variable names to be monitored
+            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True})
+
+        Returns:
+            {PFTypes.VariableMonitor | None -- the created variable monitoring object
+        """
         loguru.logger.debug("Create variable monitor object {name} ...", name=element.loc_name)
         obj = self.create_object(
             name=element.loc_name,
@@ -1583,13 +1596,13 @@ class PowerFactoryInterface:
             update=update,
         )
         variable_monitor = t.cast("PFTypes.VariableMonitor", obj) if obj is not None else None
-        # add variables to monitor
+
         if variable_monitor is not None:
             # specify the element to monitor
             variable_monitor.obj_id = element
-            if variables is not None:
-                for var in variables:
-                    variable_monitor.AddVar(var)
+            # add variables to monitor
+            for var in variables:
+                variable_monitor.AddVar(var)
         return variable_monitor
 
     def create_result(
@@ -1601,6 +1614,18 @@ class PowerFactoryInterface:
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
+        """Creates a result object within a study case.
+
+         Keyword Arguments:
+            name {str} -- the name of the new study case
+            study_case {PFTypes.StudyCase} -- the related study case the result is to be created within (default: {None})
+            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True})
+
+        Returns:
+            {PFTypes.Result | None -- the created result object
+        """
         loguru.logger.debug("Create result object {name} ...", name=name)
         element = self.create_object(
             name=name,
@@ -1627,17 +1652,17 @@ class PowerFactoryInterface:
         """Create a study case with optional related grids, variants and scenarios.
 
         Keyword Arguments:
-            name -- the name of the new study case
-            grids -- preset of grids to be related to the study case (default: {None})
-            grid_variants -- preset of grid variants to be related to / activated in the study case (default: {None})
-            scenario -- preset scenario to be related to the study case (default: {None})
-            target_datetime -- datetime basis to be related to the study case (default: {None})
-            location -- the folder where the study case should be created in (default: {None})
-            force -- flag to force the creation, nonetheless if variant already exits (default: {False})
-            update -- Flag to update object attributes if objects already exists (default: {True})
+            name {str} -- the name of the new study case
+            grids {Sequence[PFTypes.Grid] | None} -- preset of grids to be related to the study case (default: {None})
+            grid_variants {Sequence[PFTypes.GridVariant] | None} -- preset of grid variants to be related to / activated in the study case (default: {None})
+            scenario {PFTypes.Scenario | None} -- preset scenario to be related to the study case (default: {None})
+            target_datetime {datetime | None}-- datetime basis to be related to the study case (default: {None})
+            location {PFTypes.DataObject | None} -- the folder where the study case should be created in (default: {None})
+            force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True})
 
         Returns:
-            created study case
+            {PFTypes.StudyCase} -- the created study case
         """
         if location is None:
             location = self.study_case_dir
@@ -1713,7 +1738,7 @@ class PowerFactoryInterface:
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            {PFTypes.GridVariant | None} -- The created grid variant if successful.
+            {PFTypes.GridVariant | None} -- the created grid variant
         """
         if location is None:
             location = self.grid_variant_dir
@@ -1765,7 +1790,7 @@ class PowerFactoryInterface:
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            {PFTypes.GridVariantStage | None} -- The created grid variant stage if successful.
+            {PFTypes.GridVariantStage | None} -- the created grid variant stage
         """
         # try to catch possibly existing variant stage
         stage = self.grid_variant_stage(name, grid_variant=grid_variant)
@@ -1812,7 +1837,7 @@ class PowerFactoryInterface:
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            {PFTypes.DataObject | None} - The created folder if successful.
+            {PFTypes.DataObject | None} - the created folder
         """
         loguru.logger.debug("Create folder {name} in {location} ...", name=name, location=location.loc_name)
         return self.create_object(
@@ -1847,7 +1872,7 @@ class PowerFactoryInterface:
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            {PFTypes.DataObject | None} -- The created object if successful.
+            {PFTypes.DataObject | None} -- the created object
         """
 
         _elements = self.elements_of(location, pattern=f"{name}.{class_name}")
@@ -2015,18 +2040,18 @@ class PowerFactoryInterface:
         """Creates a new result export command object.
 
         Args:
-            result (PFTypes.Result) -- the result to be exported
-            study_case (PFTypes.StudyCase) -- the study case this export command is related to (resp. the loaction)
-            export_path (pathlib.Path) -- relative or absolute path for export
-            export_mode (ResultExportMode) -- the export mode to be used (eg. CSV or COMTRADE)
-            file_name (str | None, optional) -- name of the export file. (defaults: {None}).
-            name (str, optional) -- the name of the command itself.  (defaults: {"Result Export"}).
+            result {PFTypes.Result} -- the result to be exported
+            study_case {PFTypes.StudyCase} -- the study case this export command is related to (resp. the loaction)
+            export_path {pathlib.Path} -- relative or absolute path for export
+            export_mode {ResultExportMode} -- the export mode to be used (eg. CSV or COMTRADE)
+            file_name {str | None} -- name of the export file. (defaults: {None}).
+            name {str} -- the name of the command itself.  (defaults: {"Result Export"}).
             data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
         Returns:
-            PFTypes.CommandResultExport | None
+            {PFTypes.CommandResultExport | None} -- The new created command object.
         """
         loguru.logger.debug("Create result export command {name} ...", name=name)
         if data is None:
