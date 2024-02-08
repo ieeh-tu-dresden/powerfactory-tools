@@ -40,6 +40,7 @@ def test_schema_import(case, schema_class, json_file_name) -> None:
 
     with json_file_path.open(encoding="utf-8") as file_handle:
         data = json.load(file_handle)
+
     json_str2 = json.dumps(data, indent=2, sort_keys=True)
 
     assert json_str1 == json_str2
