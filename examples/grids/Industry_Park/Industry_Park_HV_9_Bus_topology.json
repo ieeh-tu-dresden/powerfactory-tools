@@ -4351,7 +4351,7 @@
     "id": "911f093d-481e-428a-ba0d-cd5384a61e06",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.1"
+    "version": "2.1.2"
   },
   "nodes": [
     {
