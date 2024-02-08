@@ -1284,12 +1284,14 @@ class PowerFactoryExporter:
 
     @staticmethod
     def get_description(
-        element: PFTypes.Terminal
-        | PFTypes.LineBase
-        | PFTypes.Element
-        | PFTypes.Coupler
-        | PFTypes.ExternalGrid
-        | PFTypes.Fuse,
+        element: (
+            PFTypes.Terminal
+            | PFTypes.LineBase
+            | PFTypes.Element
+            | PFTypes.Coupler
+            | PFTypes.ExternalGrid
+            | PFTypes.Fuse
+        ),
     ) -> tuple[bool, str]:
         desc = element.desc
         if desc:
