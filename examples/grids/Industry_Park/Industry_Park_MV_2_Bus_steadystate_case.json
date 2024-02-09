@@ -60,7 +60,7 @@
     "id": "d65de5b6-cc54-4116-8850-da194325a22d",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.1"
+    "version": "2.1.2"
   },
   "transformers": [
     {

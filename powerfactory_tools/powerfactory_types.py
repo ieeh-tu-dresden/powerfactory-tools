@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
-    COMPOUND_MODEL = "ElmComp"  # e.g. a template model
+    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
+    COMPOUND_MODEL = "ElmComp"  # e.g. a compound generator with multiple functional slots as part of a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
