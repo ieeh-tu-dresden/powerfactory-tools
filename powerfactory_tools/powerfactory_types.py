@@ -1529,7 +1529,14 @@ class PowerFactoryTypes:
             self,
             class_name: str,
             /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        ) -> PowerFactoryTypes.DataObject:
+            """Returns the first found object of class “className” from the currently active study case.
+
+            The object is created when no object of the given name and/or class was found.
+            For commands the returned instance corresponds to the one that is used if opened via the main
+            menue load-flow, short-circuit, transient simulation, etc.
+            """
+            ...
 
         def PostCommand(  # noqa: N802
             self,
