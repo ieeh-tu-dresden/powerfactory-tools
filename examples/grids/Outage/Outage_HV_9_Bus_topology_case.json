@@ -7,43 +7,16 @@
     },
     {
       "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/IS1.2",
+      "name": "Line_34",
       "open_switches": []
     },
     {
       "disabled": false,
       "name": "Line_56",
       "open_switches": [
-        "Node_6_MV",
-        "Node_5_MV"
+        "Node_5_MV",
+        "Node_6_MV"
       ]
-    },
-    {
-      "disabled": true,
-      "name": "Line_34",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Node_7_LV",
-      "open_switches": []
-    },
-    {
-      "disabled": false,
-      "name": "Line_23",
-      "open_switches": [
-        "Node_3"
-      ]
-    },
-    {
-      "disabled": true,
-      "name": "Node_9/ISField_3.2",
-      "open_switches": []
     },
     {
       "disabled": true,
@@ -52,15 +25,42 @@
     },
     {
       "disabled": true,
+      "name": "Node_7_LV",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/IS1.2",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
       "name": "Transformer_2w_110/20",
       "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/ISField_3.2",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/ISField_2.3",
+      "open_switches": []
+    },
+    {
+      "disabled": false,
+      "name": "Line_23",
+      "open_switches": [
+        "Node_3"
+      ]
     }
   ],
   "meta": {
     "case": "Outage",
-    "date": "2023-12-19",
+    "date": "2024-02-09",
     "grid": "HV_9_Bus",
-    "id": "ac09362d-f436-45f9-98f0-1a1af84fb926",
+    "id": "e59243ff-6144-469e-9402-f13cb3dee161",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.1.2"

@@ -39,8 +39,6 @@ The following figure provides a short overview of the dependencies within a Powe
 ## <div id="controller" /> Control Functionalities
 
 The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
-This example is based on the [PowerFactory example project](#-powerfactory-example-project).
-
 
 The example includes:
 
@@ -54,13 +52,32 @@ The example includes:
 - Request and change study cases, operation scenarios and network variations
 
 ## <div id="example project" /> PowerFactory Example Project
-The PowerFactory example project `PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
-The project contains a 9-bus high voltage grid and a 2-bus medium voltage industry grid.
-Furthermore, three predefined study cases are provided:
+The related PowerFactory example project `PF2022_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
+The project contains:
+- 3-bus high voltage grid
+- a composition of a 9-bus high voltage grid and a 2-bus medium voltage industry grid
 
+Furthermore, four predefined study cases are provided:
+
+- `3_Bus` (only grid "HV_3_Bus" is active)
 - `Base` (only grid "HV_9_Bus" is active)
-- `Industry_Park` (both grids are active)
+- `Industry_Park` ("HV_9_Bus" and "MV_2_Bus" are active)
 - `Outage` (only grid "HV_9_Bus" is active, additionally the operation case "outOfService_Set1" is applied)
+
+
+### The 3-bus high voltage grid 'HV_3_Bus'
+
+This very simple example grid contains:
+
+- 110 kV voltage level
+- 3 nodes
+- 3 branches
+- 2 general loads
+- 2 static generators
+- 1 external grid
+
+![HV_3_Bus grid](./grids/HV_3_Bus.png)
+
 
 ### The 9-bus high voltage grid 'HV_9_Bus'
 
@@ -83,9 +100,10 @@ This example grid contains:
 
 ![HV_9_Bus grid](./grids/Base_HV_9_Bus.png)
 
+
 ### The 2-bus medium voltage industry grid 'MV_2_Bus'
 
-This example grid contains:
+This grid is an extension to the 'HV_9_Bus' grid and contains:
 
 - 20 kV voltage level
 - 2 nodes
