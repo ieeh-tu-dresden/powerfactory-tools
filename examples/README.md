@@ -3,11 +3,12 @@
 Examples for application of powerfactory exporter and controller.
 
 - [Application Examples](#application-examples)
-  - [Export Functionalities](#-export-functionalities)
-  - [Control Functionalities](#-control-functionalities)
+  - [Export Functionalities](#export-functionalities)
+  - [Control Functionalities](#control-functionalities)
+  - [Raw PSDM Import](#import-functionalities)
   - [PowerFactory Example Project](#-powerfactory-example-project)
 
-## <div id="exporter" /> Export Functionalities
+## <div id="export-functionalities" /> Export Functionalities
 
 The jupyter notebook [powerfactory_export.ipynb](powerfactory_export.ipynb) is provided to get in touch with the usage of the powerfactory exporter.
 This example is based on the [PowerFactory example project](#-powerfactory-example-project).
@@ -36,7 +37,7 @@ The following figure provides a short overview of the dependencies within a Powe
 
 ![PowerFactory_StudyCase_Dependencies](./PowerFactory_StudyCase_Dependencies.png)
 
-## <div id="controller" /> Control Functionalities
+## <div id="control-functionalities" /> Control Functionalities
 
 The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
 
@@ -50,6 +51,12 @@ The example includes:
 - Preparation and execution of RMS/EMT simulations
 - Export of results objects as well as user defined data to json or csv
 - Request and change study cases, operation scenarios and network variations
+
+## <div id="import-functionalities" /> Raw PSDM Import
+
+The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is provided to how to apply a raw import of a given (exported) PSDM grid representation.
+
+Here, `PSDM class objects` are generated out of a given `json`-file.
 
 ## <div id="example project" /> PowerFactory Example Project
 The related PowerFactory example project `PF2022_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
