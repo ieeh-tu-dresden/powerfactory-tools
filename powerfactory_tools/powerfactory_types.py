@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a composite grid graphic consiting of multiple elements
-    COMPOUND_MODEL = "ElmComp"  # e.g. a template model
+    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
+    COMPOUND_MODEL = "ElmComp"  # e.g. a compound generator with multiple functional slots as part of a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
@@ -1529,7 +1529,14 @@ class PowerFactoryTypes:
             self,
             class_name: str,
             /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        ) -> PowerFactoryTypes.DataObject:
+            """Returns the first found object of class “className” from the currently active study case.
+
+            The object is created when no object of the given name and/or class was found.
+            For commands the returned instance corresponds to the one that is used if opened via the main
+            menue load-flow, short-circuit, transient simulation, etc.
+            """
+            ...
 
         def PostCommand(  # noqa: N802
             self,

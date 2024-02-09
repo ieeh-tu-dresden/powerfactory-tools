@@ -29,6 +29,7 @@ from psdm.quantities.single_phase import Angle as AngleSP
 from psdm.quantities.single_phase import ImpedanceNat
 from psdm.quantities.single_phase import ImpedancePosSeq
 from psdm.quantities.single_phase import ImpedanceZerSeq
+from psdm.quantities.single_phase import Length
 from psdm.quantities.single_phase import PhaseAngleClock
 from psdm.quantities.single_phase import Voltage as VoltageSP
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
@@ -634,24 +635,25 @@ class PowerFactoryExporter:
         i = l_type.InomAir if line.inAir else l_type.sline
         i_r = line.nlnum * line.fline * i * Exponents.CURRENT  # rated current (A)
 
-        r1 = l_type.rline * line.dline / line.nlnum * Exponents.RESISTANCE
-        x1 = l_type.xline * line.dline / line.nlnum * Exponents.REACTANCE
-        r0 = l_type.rline0 * line.dline / line.nlnum * Exponents.RESISTANCE
-        x0 = l_type.xline0 * line.dline / line.nlnum * Exponents.REACTANCE
-        g1 = l_type.gline * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b1 = l_type.bline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
-        g0 = l_type.gline0 * line.dline * line.nlnum * Exponents.CONDUCTANCE
-        b0 = l_type.bline0 * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+        line_len = line.dline
+        r1 = l_type.rline * line_len / line.nlnum * Exponents.RESISTANCE
+        x1 = l_type.xline * line_len / line.nlnum * Exponents.REACTANCE
+        r0 = l_type.rline0 * line_len / line.nlnum * Exponents.RESISTANCE
+        x0 = l_type.xline0 * line_len / line.nlnum * Exponents.REACTANCE
+        g1 = l_type.gline * line_len * line.nlnum * Exponents.CONDUCTANCE
+        b1 = l_type.bline * line_len * line.nlnum * Exponents.SUSCEPTANCE
+        g0 = l_type.gline0 * line_len * line.nlnum * Exponents.CONDUCTANCE
+        b0 = l_type.bline0 * line_len * line.nlnum * Exponents.SUSCEPTANCE
         if l_type.nneutral:
             l_type = t.cast("PFTypes.LineNType", l_type)
-            rn = l_type.rnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xn = l_type.xnline * line.dline / line.nlnum * Exponents.REACTANCE
-            rpn = l_type.rpnline * line.dline / line.nlnum * Exponents.RESISTANCE
-            xpn = l_type.xpnline * line.dline / line.nlnum * Exponents.REACTANCE
+            rn = l_type.rnline * line_len / line.nlnum * Exponents.RESISTANCE
+            xn = l_type.xnline * line_len / line.nlnum * Exponents.REACTANCE
+            rpn = l_type.rpnline * line_len / line.nlnum * Exponents.RESISTANCE
+            xpn = l_type.xpnline * line_len / line.nlnum * Exponents.REACTANCE
             gn = 0  # as attribute 'gnline' does not exist in PF model type
-            bn = l_type.bnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bn = l_type.bnline * line_len * line.nlnum * Exponents.SUSCEPTANCE
             gpn = 0  # as attribute 'gpnline' does not exist in PF model type
-            bpn = l_type.bpnline * line.dline * line.nlnum * Exponents.SUSCEPTANCE
+            bpn = l_type.bpnline * line_len * line.nlnum * Exponents.SUSCEPTANCE
         else:
             rn = None
             xn = None
@@ -706,6 +708,7 @@ class PowerFactoryExporter:
             f_n=Qc.single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
+            length=Length(value=line_len),
         )
 
     @staticmethod
@@ -924,24 +927,28 @@ class PowerFactoryExporter:
         """Create a symmetrical 2-windung transformer.
 
         The assignment of zero sequence quantities is depended from the wiring group as follows:
-        wiring group    |   Dy(n)   |   Y(N)d   |   Y(N)y(n)
-        __________________________Transformer________________
-        r_fe1           |   yes     |   yes     |   yes
-        x_h1            |   yes     |   yes     |   yes
-        r_fe0           |   none    |   none    |   yes
-        x_h0            |   none    |   none    |   yes
-        __________________________Winding HV_________________
-        r1              |   yes     |   yes     |   yes
-        x1              |   yes     |   yes     |   yes
-        r0              |   none    |   yes*    |   yes
-        x0              |   none    |   yes*    |   yes
-        __________________________Winding LV_________________
-        r1              |   yes     |   yes     |   yes
-        x1              |   yes     |   yes     |   yes
-        r0              |   yes*    |   none    |   yes
-        x0              |   yes*    |   none    |   yes
 
-        * Results from uk0 resp. Zk0 instead of Zm0, as the magnetising impedance Zm0 cannot be separated from Zk0 due to delta wiring group.
+        wiring group    |   Dy(n)  |   Y(N)d  | Yy or YNyn |   YNy   |   Yyn   |
+        ________________|_______________________Transformer_____________________
+        r_fe1           |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x_h1            |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r_fe0           |   none   |   none   |    yes     |   yes   |   yes   |
+        x_h0            |   none   |   none   |    yes     |   yes   |   yes   |
+        ________________|_______________________Winding HV______________________
+        r1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r0              |   none   |   yes*   |    yes     |   yes°  |   None  |
+        x0              |   none   |   yes*   |    yes     |   yes°  |   None  |
+        ________________|_______________________Winding LV______________________
+        r1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        x1              |   yes    |   yes    |    yes     |   yes   |   yes   |
+        r0              |   yes*   |   none   |    yes     |   None  |   yes°  |
+        x0              |   yes*   |   none   |    yes     |   None  |   yes°  |
+
+        * Results from uk0 resp. uk0r.
+          As the magnetising impedance Zm0 cannot be separated from Zk0 due to delta winding, it is assumed that Zm0 is included in Zk0.
+          Thus, only the results from uk0 resp. uk0r, which represent the total zero sequence loop impedance, are stored in r0 and x0.
+        ° Total leakage impedance from uk0 and uk0r (zero sequence) is assigned to the side where the transformer star point terminal is available.
 
         Arguments:
             transformer_2w  {PFTypes.Transformer2W} -- the powerfactory transformer data object
@@ -1034,9 +1041,12 @@ class PowerFactoryExporter:
             )
 
             # Neutral point phase connection
-            neutral_connected_h, neutral_connected_l = self.transformer_neutral_connection_hvlv(
+            neutral_connected_h, neutral_connected_l = self.get_transformer2w_neutral_connection(
                 transformer=transformer_2w,
-                vector_group=vector_group,
+                vector_group_h=vector_group_h,
+                vector_group_l=vector_group_l,
+                terminal_h=t_high,
+                terminal_l=t_low,
             )
 
             # Neutral point earthing
@@ -1158,9 +1168,10 @@ class PowerFactoryExporter:
         pu2abs: float,
     ) -> tuple[float, float, float, float, float | None, float | None, float | None, float | None]:
         r_1 = t_type.r1pu * pu2abs
+        x_1 = t_type.x1pu * pu2abs
+        # unsymmetrical distribution to HV and LV side may be possible
         r_1_h = r_1 * t_type.itrdr
         r_1_l = r_1 * t_type.itrdr_lv
-        x_1 = t_type.x1pu * pu2abs
         x_1_h = x_1 * t_type.itrdl
         x_1_l = x_1 * t_type.itrdl_lv
 
@@ -1185,15 +1196,33 @@ class PowerFactoryExporter:
                 x_0_h = z_k_0
         elif vector_group_l and vector_group_h in [WVectorGroup.Y, WVectorGroup.YN]:
             r_0 = t_type.r0pu * pu2abs
+            x_0 = t_type.x0pu * pu2abs
+            # unsymmetrical distribution to HV and LV side may be possible
             r_0_h = r_0 * t_type.zx0hl_h
             r_0_l = r_0 * t_type.zx0hl_l
-            x_0 = t_type.x0pu * pu2abs
             x_0_h = x_0 * t_type.zx0hl_h
             x_0_l = x_0 * t_type.zx0hl_l
+            # except for vector group YNy and Yyn, where zero sequence impedance can not be separated afterwards
+            if vector_group_h is WVectorGroup.YN and vector_group_l is WVectorGroup.Y:
+                # assummption: leakage impedance of the total zero sequence loop is assigned to the HV side
+                r_0_h = r_0
+                r_0_l = None
+                x_0_h = x_0
+                x_0_l = None
+            elif vector_group_h is WVectorGroup.Y and vector_group_l is WVectorGroup.YN:
+                # assummption: leakage impedance of the total zero sequence loop is assigned to the LV side
+                r_0_h = None
+                r_0_l = r_0
+                x_0_h = None
+                x_0_l = x_0
         else:
             loguru.logger.warning(
                 "Zero sequence leakage impedance for transformer with vector group 'Z' is not supported yet. Skipping.",
             )
+            r_0_h = None
+            x_0_h = None
+            r_0_l = None
+            x_0_l = None
 
         return (r_1_h, x_1_h, r_1_l, x_1_l, r_0_h, x_0_h, r_0_l, x_0_l)
 
@@ -1223,8 +1252,8 @@ class PowerFactoryExporter:
     def get_transformer2w_magnetising_impedance(
         *,
         t_type: PFTypes.Transformer2WType,
-        vector_group_l: WVectorGroup,
         vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
         voltage_ref: float,
         pu2abs: float,
     ) -> tuple[float, float, float | None, float | None]:
@@ -1263,21 +1292,45 @@ class PowerFactoryExporter:
         return (r_fe_1, x_h_1, r_fe_0, x_h_0)
 
     @staticmethod
-    def transformer_neutral_connection_hvlv(
+    def get_transformer2w_neutral_connection(
         *,
         transformer: PFTypes.Transformer2W,
-        vector_group: VectorGroup,
+        vector_group_h: WVectorGroup,
+        vector_group_l: WVectorGroup,
+        terminal_h: PFTypes.Terminal,
+        terminal_l: PFTypes.Terminal,
     ) -> tuple[bool, bool]:
-        if "n" in vector_group.name.lower():
+        # Default values correspond to TrfNeutralConnectionType.NO as well as vectorgroup without "N"
+        neutral_connected_h = False
+        neutral_connected_l = False
+        # HV side
+        if "n" in vector_group_h.name.lower():
             if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
-                return True, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV:
-                return True, False
-            if transformer.cneutcon == TrfNeutralConnectionType.LV:
-                return False, True
-            if transformer.cneutcon == TrfNeutralConnectionType.HV_LV:
-                return True, True
-        return False, False  # corresponds to TrfNeutralConnectionType.NO
+                if terminal_h.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_h = True
+                else:
+                    neutral_connected_h = False
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} HV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.HV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_h = True
+        # LV side
+        if "n" in vector_group_l.name.lower():
+            if transformer.cneutcon == TrfNeutralConnectionType.ABC_N:
+                if terminal_l.phtech == TerminalPhaseConnectionType.THREE_PH_N:
+                    neutral_connected_l = True
+                else:
+                    neutral_connected_l = True
+                    loguru.logger.warning(
+                        "Transformer {transformer_name} LV side has a neutral connection to terminal but terminal has no phase connection type ABC_N. neutral_connected is set to False.",
+                        transformer_name=transformer.loc_name,
+                    )
+            elif transformer.cneutcon in [TrfNeutralConnectionType.LV, TrfNeutralConnectionType.HV_LV]:
+                neutral_connected_l = True
+
+        return neutral_connected_h, neutral_connected_l
 
     @staticmethod
     def get_description(
@@ -1377,13 +1430,20 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> Sequence[Load]:
         loguru.logger.debug("Creating subconsumers for low voltage consumer {name}...", name=load.loc_name)
-        powers = self.calc_load_lv_powers(load)
-        sfx_pre = "" if len(powers) == 1 else "_({})"
+        powers, subload_names = self.calc_load_lv_powers(load)
+        sfx_pre = "" if len(powers) == 1 else "__{}"
 
         consumer_lv_parts = [
-            self.create_consumer_lv_parts(load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
+            self.create_consumer_lv_parts(
+                load,
+                grid_name=grid_name,
+                power=power,
+                subload_name=subload_names[i],
+                sfx_pre=sfx_pre,
+            )
             for i, power in enumerate(powers)
         ]
+
         return self.pfi.list_from_sequences(*consumer_lv_parts)
 
     def create_consumer_lv_parts(
@@ -1393,12 +1453,12 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadLV,
+        subload_name: str,
         sfx_pre: str,
-        index: int,
     ) -> Sequence[Load]:
         loguru.logger.debug(
-            "Creating partial consumers for subconsumer {index} of low voltage consumer {name}...",
-            index=index,
+            "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {name}...",
+            subload_name=subload_name,
             name=load.loc_name,
         )
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
@@ -1409,7 +1469,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
                 load_model_default="Z",
             )
             if power.fixed.pow_app_abs != 0
@@ -1422,7 +1482,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
                 load_model_default="Z",
             )
             if power.night.pow_app_abs != 0
@@ -1435,7 +1495,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
                 load_model_default="Z",
             )
             if power.flexible.pow_app_abs != 0
@@ -2516,11 +2576,17 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[LoadSSC]:
-        powers = self.calc_load_lv_powers(load)
-        sfx_pre = "" if len(powers) == 1 else "_({})"
+        powers, subload_names = self.calc_load_lv_powers(load)
+        sfx_pre = "" if len(powers) == 1 else "__{}"
 
         consumer_ssc_lv_parts = [
-            self.create_consumer_ssc_lv_parts(load, grid_name=grid_name, power=power, sfx_pre=sfx_pre, index=i)
+            self.create_consumer_ssc_lv_parts(
+                load,
+                grid_name=grid_name,
+                power=power,
+                subload_name=subload_names[i],
+                sfx_pre=sfx_pre,
+            )
             for i, power in enumerate(powers)
         ]
         return list(itertools.chain.from_iterable(consumer_ssc_lv_parts))
@@ -2532,9 +2598,14 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadLV,
+        subload_name: str,
         sfx_pre: str,
-        index: int,
     ) -> Sequence[LoadSSC]:
+        loguru.logger.debug(
+            "Creating partial consumer SSCs for subconsumer {subload_name} of low voltage consumer {name}...",
+            subload_name=subload_name,
+            name=load.loc_name,
+        )
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         consumer_fixed_ssc = (
             self.create_consumer_ssc(
@@ -2542,7 +2613,7 @@ class PowerFactoryExporter:
                 power=power.fixed,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -2553,7 +2624,7 @@ class PowerFactoryExporter:
                 power=power.night,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -2564,7 +2635,7 @@ class PowerFactoryExporter:
                 power=power.flexible_avg,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(index) + "_" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -2575,12 +2646,14 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadLV,
         /,
-    ) -> Sequence[LoadLV]:
+    ) -> tuple[Sequence[LoadLV], Sequence[str]]:
         subloads = self.pfi.subloads_of(load)
         if not subloads:
-            return [self.calc_load_lv_power(load)]
+            return [self.calc_load_lv_power(load)], [""]
 
-        return [self.calc_load_lv_power_sym(sl) for sl in subloads]
+        powers = [self.calc_load_lv_power_sym(sl) for sl in subloads]
+        subload_names = [sl.loc_name for sl in subloads]
+        return powers, subload_names
 
     def calc_load_lv_power(
         self,
