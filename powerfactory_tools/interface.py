@@ -1653,7 +1653,7 @@ class PowerFactoryInterface:
         """Creates a result object within a study case.
 
          Keyword Arguments:
-            name {str} -- the name of the new study case
+            name {str} -- the name of the result
             study_case {PFTypes.StudyCase} -- the related study case the result is to be created within (default: {None})
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
@@ -1672,6 +1672,41 @@ class PowerFactoryInterface:
             update=update,
         )
         return t.cast("PFTypes.Result", element) if element is not None else None
+
+    def create_scenario(
+        self,
+        *,
+        name: str,
+        location: PFTypes.DataObject | None = None,
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Scenario | None:
+        """Creates a grid scenario.
+
+         Keyword Arguments:
+            name {str} -- the name of the scenario
+            location {PFTypes.DataObject | None} -- the folder within which the scenario should be created (default: {None}).
+            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- flag to force the creation, nonetheless if scenario already exits (default: {False}).
+            update {bool} -- flag to update object attributes if objects already exists (default: {True}).
+
+        Returns:
+            {PFTypes.Scenario | None -- the created scenario object
+        """
+        loguru.logger.debug("Create scenario object {name} ...", name=name)
+
+        if location is None:
+            location = self.scenario_dir
+        element = self.create_object(
+            name=name,
+            class_name=PFClassId.SCENARIO.value,
+            location=location,
+            data=data,
+            force=force,
+            update=update,
+        )
+        return t.cast("PFTypes.Scenario", element) if element is not None else None
 
     def create_study_case(
         self,
