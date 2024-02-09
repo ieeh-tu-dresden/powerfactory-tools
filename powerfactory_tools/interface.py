@@ -2012,7 +2012,7 @@ class PowerFactoryInterface:
         """Creates a new / collects a command object of type ComInc.
 
         Keyword Arguments:
-            sim {TimeSimulationType} -- flag to choose between RMS and EMT.
+            sim_type {TimeSimulationType} -- flag to choose between RMS and EMT.
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
