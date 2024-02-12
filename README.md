@@ -32,7 +32,8 @@ Please consider the [README](./examples/README.md) in the example section. Here,
 - for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
 - for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
 
-In addition, please see this interactive [Code Ocean Capsule](https://codeocean.com/capsule/4423034/tree/v1) as an example how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
+In addition, please see this interactive [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) as an example how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
+
 
 ## <div id="remarks" /> General Remarks on Export
 
