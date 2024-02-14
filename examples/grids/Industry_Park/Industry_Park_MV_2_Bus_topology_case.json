@@ -2,11 +2,12 @@
   "elements": [],
   "meta": {
     "case": "Industry_Park",
-    "date": "2024-02-09",
+    "creator": "powerfactory-tools @ version 2.1.0",
+    "date": "2024-02-14",
     "grid": "MV_2_Bus",
-    "id": "384abdd1-0e45-4e87-b281-11b68a08513b",
+    "id": "8c4bbb73-9482-4461-a779-49302311d8ce",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.2"
+    "version": "2.2.0"
   }
 }

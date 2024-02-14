@@ -4391,12 +4391,13 @@
   ],
   "meta": {
     "case": "Outage",
-    "date": "2024-02-09",
+    "creator": "powerfactory-tools @ version 2.1.0",
+    "date": "2024-02-14",
     "grid": "HV_9_Bus",
-    "id": "e59243ff-6144-469e-9402-f13cb3dee161",
+    "id": "9afea1dd-8df6-4812-bd0d-38eef9e27592",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.2"
+    "version": "2.2.0"
   },
   "nodes": [
     {
