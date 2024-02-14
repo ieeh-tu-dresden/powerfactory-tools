@@ -69,6 +69,7 @@ from powerfactory_tools.constants import Exponents
 from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
 from powerfactory_tools.exporter.load_power import ControlTypeFactory
 from powerfactory_tools.exporter.load_power import LoadPower
+from powerfactory_tools.interface import VERSION
 from powerfactory_tools.interface import PowerFactoryData
 from powerfactory_tools.interface import PowerFactoryInterface
 from powerfactory_tools.powerfactory_types import CosPhiChar
@@ -440,6 +441,7 @@ class PowerFactoryExporter:
             grid=grid_name,
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
+            creator=f"powerfactory-tools @ version {VERSION}",
         )
 
     def create_topology(
