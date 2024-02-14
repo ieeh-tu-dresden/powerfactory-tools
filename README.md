@@ -67,7 +67,6 @@ During an active connection, the following units apply:
   - `ElmLodLvp` - a partial low voltage load
   - `ElmPvsys` - a PV system (generator)
   - `ElmGenstat` - a static generator
-  - `ElmIac` - an AC current source
   - `ElmXNet` - an external grid representation
   - `RelFuse` - a fuse (bus-bus or bus-load)
 
@@ -103,7 +102,7 @@ pip install ieeh-powerfactory-tools
 | <= 1.3.1      | 1.1.0        | 2022                 | 3.9, 3.10      |
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
-| 2.1.0         | 2.1.2        | 2022                 | 3.10           |
+| 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 
 Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed. Also `Python 3.11` can be used. Related adjustments are on schedule for the next mayor release 3.x
 
