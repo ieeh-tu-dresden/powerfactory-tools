@@ -1,3 +1,20 @@
+## 2.1.0 (2024-02-14)
+
+### Feat
+
+- extend functions for time simulation by provision of optional data (contributors: @SebastianDD)
+- rework low voltage load naming to include partial load names instead of an index (contributors: @SebastianDD)
+- add comfort functions for scenario and grid variants (contributors: @SebastianDD, @sasanjac)
+- extend PF types (contributors: @SebastianDD)
+
+### Fix
+
+- update libraries and exported grid data (contributors: @SebastianDD)
+- make json export more efficient (contributors: @SebastianDD)
+- lengths of lines always null (contributors: @SebastianDD)
+- transformer export (contributors: @SebastianDD)
+- disable update_value function (contributors: @SebastianDD)
+
 ## 2.0.0 (2023-12-21)
 
 ### BREAKING CHANGE
