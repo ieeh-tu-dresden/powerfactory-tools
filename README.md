@@ -32,6 +32,9 @@ Please consider the [README](./examples/README.md) in the example section. Here,
 - for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
 - for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
 
+In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
+
+
 ## <div id="remarks" /> General Remarks on Export
 
 Please find below some important general remarks and assumptions to consider for the application:
@@ -64,7 +67,6 @@ During an active connection, the following units apply:
   - `ElmLodLvp` - a partial low voltage load
   - `ElmPvsys` - a PV system (generator)
   - `ElmGenstat` - a static generator
-  - `ElmIac` - an AC current source
   - `ElmXNet` - an external grid representation
   - `RelFuse` - a fuse (bus-bus or bus-load)
 
@@ -100,37 +102,37 @@ pip install ieeh-powerfactory-tools
 | <= 1.3.1      | 1.1.0        | 2022                 | 3.9, 3.10      |
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
-| 2.0.0         | 2.1.1        | 2022                 | 3.10           |
+| 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 
 Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed. Also `Python 3.11` can be used. Related adjustments are on schedule for the next mayor release 3.x
 
 ## <div id="development" /> Development
 
-Install [pdm](https://github.com/pdm-project/pdm)
+### Install [pdm](https://github.com/pdm-project/pdm)
 
-Windows:
+- Windows
 
-```bash
-(Invoke-WebRequest -Uri https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py -UseBasicParsing).Content | python -
-```
+  ```bash
+  (Invoke-WebRequest -Uri https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py -UseBasicParsing).Content | python -
+  ```
 
-Linux/Mac:
+- Linux/Mac:
 
-```bash
-curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
-```
+  ```bash
+  curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
+  ```
 
-Or using pipx or pip:
+- Or using pipx or pip:
 
-```bash
-pipx install pdm
-```
+  ```bash
+  pipx install pdm
+  ```
 
-```bash
-pip install --user pdm
-```
+  ```bash
+  pip install --user pdm
+  ```
 
-Clone `powerfactory-tools`
+### Clone `powerfactory-tools`
 
 ```bash
 git@github.com:ieeh-tu-dresden/powerfactory-tools.git
@@ -140,17 +142,18 @@ git@github.com:ieeh-tu-dresden/powerfactory-tools.git
 cd powerfactory-tools
 ```
 
-Install `powerfactory-tools` as a production tool
+### Install `powerfactory-tools` 
+- as a production tool
 
-```bash
-pdm install --prod
-```
+  ```bash
+  pdm install --prod
+  ```
 
-Install `powerfactory-tools` in development mode
+- in development mode
 
-```bash
-pdm install
-```
+  ```bash
+  pdm install
+  ```
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
 

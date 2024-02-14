@@ -43,7 +43,12 @@
         "unit": "AMPERE",
         "value": 461.0
       },
-      "length": null,
+      "length": {
+        "precision": 0,
+        "system_type": "NATURAL",
+        "unit": "METER",
+        "value": 20.0
+      },
       "name": "Industry_Line",
       "node_1": "Industry_Node_1",
       "node_2": "Industry_Node_2",
@@ -233,12 +238,13 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "date": "2023-12-19",
+    "creator": "powerfactory-tools @ version 2.1.0",
+    "date": "2024-02-14",
     "grid": "MV_2_Bus",
-    "id": "d65de5b6-cc54-4116-8850-da194325a22d",
+    "id": "8c4bbb73-9482-4461-a779-49302311d8ce",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.1.2"
+    "version": "2.2.0"
   },
   "nodes": [
     {
@@ -318,12 +324,7 @@
             "angle": 0.0,
             "value": 0.0
           },
-          "r0": {
-            "precision": 7,
-            "system_type": "ZERO_SEQUENCE",
-            "unit": "OHM",
-            "value": 2.7224999
-          },
+          "r0": null,
           "r1": {
             "precision": 7,
             "system_type": "POSITIVE_SEQUENCE",
@@ -351,12 +352,7 @@
             "value": 110000.0
           },
           "vector_group": "Y",
-          "x0": {
-            "precision": 7,
-            "system_type": "ZERO_SEQUENCE",
-            "unit": "OHM",
-            "value": 16.106526
-          },
+          "x0": null,
           "x1": {
             "precision": 7,
             "system_type": "POSITIVE_SEQUENCE",
@@ -376,7 +372,7 @@
             "precision": 7,
             "system_type": "ZERO_SEQUENCE",
             "unit": "OHM",
-            "value": 0.3025001
+            "value": 3.0249999
           },
           "r1": {
             "precision": 7,
@@ -414,7 +410,7 @@
             "precision": 7,
             "system_type": "ZERO_SEQUENCE",
             "unit": "OHM",
-            "value": 1.7896145
+            "value": 17.8961405
           },
           "x1": {
             "precision": 7,
