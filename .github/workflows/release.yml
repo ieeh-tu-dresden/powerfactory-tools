@@ -17,13 +17,13 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
       - name: Temporarily disable 'include administrators' default branch protection
-        uses: benjefferies/branch-protection-bot@1.0.9
+        uses: benjefferies/branch-protection-bot@v1.1.2
         if: always()
         with:
           access_token: ${{ secrets.ACCESS_TOKEN }}
@@ -42,7 +42,7 @@ jobs:
 
       - name: Find new version
         id: cz
-        uses: commitizen-tools/commitizen-action@0.18.2
+        uses: commitizen-tools/commitizen-action@0.20.0
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           push: false
@@ -50,13 +50,13 @@ jobs:
           changelog: false
 
       - name: Check out repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up PDM
-        uses: pdm-project/setup-pdm@v3
+      - name: Set up PDM @ ${{ matrix.python-version }}
+        uses: pdm-project/setup-pdm@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: true
@@ -74,13 +74,13 @@ jobs:
         run: echo "`jq '.related_identifiers[0].identifier="https://github.com/ieeh-tu-dresden/powerfactory-tools/tree/${{ steps.cz.outputs.version }}"' .zenodo.json`" > .zenodo.json
 
       - name: Bump version and create changelog
-        uses: commitizen-tools/commitizen-action@master
+        uses: commitizen-tools/commitizen-action@0.20.0
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           changelog_increment_filename: body.md
 
       - name: Restore 'include administrators' default branch protection
-        uses: benjefferies/branch-protection-bot@master
+        uses: benjefferies/branch-protection-bot@v1.1.2
         if: always()
         with:
           access_token: ${{ secrets.ACCESS_TOKEN }}

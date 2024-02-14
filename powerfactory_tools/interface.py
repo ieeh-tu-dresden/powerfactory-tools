@@ -51,6 +51,8 @@ POWERFACTORY_VERSION = "2022 SP2"
 PYTHON_VERSION = "3.10"
 PATH_SEP = "/"
 
+VERSION = "2.1.0"
+
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
