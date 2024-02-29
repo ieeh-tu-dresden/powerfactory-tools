@@ -1472,7 +1472,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1485,7 +1485,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1498,7 +1498,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.flexible.pow_app_abs != 0
             else None
