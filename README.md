@@ -71,28 +71,39 @@ During an active connection, the following units apply:
   - `RelFuse` - a fuse (bus-bus or bus-load)
 
 - Remarks on export of `loads`:
+  - The default load model of general loads (`ElmLod`) is of type `const. impedance`.
+  - The default load model of low-voltage loads (`ElmLodLv`, `ElmLodLvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
   - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower - as_rated_power()](./powerfactory_tools/exporter/load_power.py).
+
 - Remarks on export of `transformer`:
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
   - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./powerfactory_tools/exporter/exporter.py).
+
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
+
 - Remarks on export of `SteadyStateCase`:
-  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power.
-  - By default a consumer load has a CosPhiConst type controller, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory.
+  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
+  - By default a consumer load has a Q-controller of type `CosPhiConst`, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory, then it's `QConst`.
   - It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
-  The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported q operating point is the same that set by the station controller.
+  The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported operating point of *Q* is the same that set by the station controller.
 
 ## <div id="installation" /> Installation
 
-Just install via pip:
+Install via pip:
 
 ```bash
 pip install ieeh-powerfactory-tools
+```
+
+Install via pdm:
+
+```bash
+pdm add ieeh-powerfactory-tools
 ```
 
 ## <div id="compatibility" /> Compatibility
