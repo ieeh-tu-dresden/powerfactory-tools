@@ -922,7 +922,7 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
     ) -> Sequence[PFTypes.LineType]:
-        elements = self.equipment_type_elements("TypLne", name)
+        elements = self.equipment_type_elements(PFClassId.LINE_TYPE.value, name)
         return [t.cast("PFTypes.LineType", element) for element in elements]
 
     def load_type(
@@ -937,7 +937,7 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
     ) -> Sequence[PFTypes.DataObject]:
-        elements = self.equipment_type_elements("TypLod", name)
+        elements = self.equipment_type_elements(PFClassId.LOAD_TYPE_GENERAL.value, name)
         return [t.cast("PFTypes.LoadType", element) for element in elements]
 
     def transformer_2w_type(
@@ -952,23 +952,23 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
     ) -> Sequence[PFTypes.Transformer2WType]:
-        elements = self.equipment_type_elements("TypTr2", name)
+        elements = self.equipment_type_elements(PFClassId.TRANSFORMER_2W_TYPE.value, name)
         return [t.cast("PFTypes.Transformer2WType", element) for element in elements]
 
     def harmonic_source_type(
         self,
         name: str = "*",
         /,
-    ) -> PFTypes.HarmonicSourceType | None:
+    ) -> PFTypes.SourceTypeHarmonicCurrent | None:
         return self.first_of(self.harmonic_source_types(name))
 
     def harmonic_source_types(
         self,
         name: str = "*",
         /,
-    ) -> Sequence[PFTypes.HarmonicSourceType]:
-        elements = self.equipment_type_elements("TypHmccur", name)
-        return [t.cast("PFTypes.HarmonicSourceType", element) for element in elements]
+    ) -> Sequence[PFTypes.SourceTypeHarmonicCurrent]:
+        elements = self.equipment_type_elements(PFClassId.SOURCE_TYPE_HARMONIC_CURRENT.value, name)
+        return [t.cast("PFTypes.SourceTypeHarmonicCurrent", element) for element in elements]
 
     def area(
         self,

@@ -38,7 +38,8 @@ class PFClassId(enum.Enum):
     LOAD_LV_PART = "ElmLodlvp"
     LOAD_MV = "ElmLodMv"
     LOAD_TYPE_GENERAL = "TypLod"
-    LOAD_TYPE_HARMONIC = "TypHmccur"
+    LOAD_TYPE_LV = "TypLodlv"
+    LOAD_TYPE_MV = "TypDistrf"
     MEASUREMENT_FILE = "ElmFile"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
@@ -51,6 +52,7 @@ class PFClassId(enum.Enum):
     SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
+    SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
     SWITCH = "StaSwitch"
@@ -424,6 +426,11 @@ class TerminalVoltageSystemType(enum.IntEnum):
     ACBI = 2
 
 
+class PowerModelType(enum.IntEnum):
+    COMPOSITE_ZIP = 0  # ZIP load model
+    EXPONENT = 1  # Exponential load model: P = P0 *exp(eP), Q = Q0 *exp(eQ)
+
+
 class HarmonicSourceSystemType(enum.IntEnum):
     SYMMETIRC = 0
     UNSYMMETRIC = 1
@@ -744,6 +751,55 @@ class PowerFactoryTypes:
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
 
+    class LoadTypeLV(DataObject, Protocol):  # PFClassId.LOAD_TYPE_LV
+        Smax: float  # maximum apparent power for a single residential unit, per default in kVA
+        cosphi: float  # power factor
+        ginf: float  # simultaneity factor
+
+        iLodTyp: PowerModelType  # composite (ZIP) / exponent  # noqa: N815
+        aP: float  # noqa: N815  # const. power part of the active power in relation to ZIP load model
+        bP: float  # noqa: N815  # const. current part of the active power in relation to ZIP load model
+        cP: float  # noqa: N815  # const. impedance part of the active power in relation to ZIP load model
+        aQ: float  # noqa: N815  # const. power part of the reactive power in relation to ZIP load model
+        bQ: float  # noqa: N815  # const. current part of the reactive power in relation to ZIP load model
+        cQ: float  # noqa: N815  # const. impedance part of the reactive power in relation to ZIP load model
+
+        eP: float  # noqa: N815  # exponent of the active power in relation to exponential load model
+        eQ: float  # noqa: N815  # exponent of the reactive power in relation to exponential load model
+
+    class LoadTypeMV(DataObject, Protocol):  # PFClassId.LOAD_TYPE_MV  # is an equivalent of a distribution transformer
+        strn: float  # rated power, per default in MVA
+        frnom: float  # nominal frequency
+        tratio: float  # transformer ratio
+        phtech: LoadPhaseConnectionType
+
+        uktr: float  # short-circuit voltage in percentage (pos. seq.)
+        pcutr: float  # cupper losses, per default in kW
+
+        iZzero: bool  # 1 zero seq. impedance is given; 0 zero seq. impedance is not given  # noqa: N815
+        uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
+        ur0tr: float  # real part of uk0tr
+
+        pfe: float  # iron losses, per default in kW
+        dutap: float  # additional voltage per tap changer step in percentage
+        nntap0: int  # neutral position of tap changer
+        ntpmn: int  # lowest position of tap changer
+        ntpmx: int  # highest position of tap changer
+
+        LodTyp: PowerModelType  # composite (ZIP) / exponent
+        aP: float  # noqa: N815  # const. power part of the active power in relation to ZIP load model
+        bP: float  # noqa: N815  # const. current part of the active power in relation to ZIP load model
+        cP: float  # noqa: N815  # const. impedance part of the active power in relation to ZIP load model
+        aQ: float  # noqa: N815  # const. power part of the reactive power in relation to ZIP load model
+        bQ: float  # noqa: N815  # const. current part of the reactive power in relation to ZIP load model
+        cQ: float  # noqa: N815  # const. impedance part of the reactive power in relation to ZIP load model
+
+        eP: float  # noqa: N815  # exponent of the active power in relation to exponential load model
+        eQ: float  # noqa: N815  # exponent of the reactive power in relation to exponential load model
+
+    class SourceTypeHarmonicCurrent(DataObject, Protocol):  # PFClassId.SOURCE_TYPE_HARMONIC_CURRENT
+        i_usym: HarmonicSourceSystemType
+
     class LineType(DataObject, Protocol):  # PFClassId.LINE_TYPE
         uline: float  # rated voltage (kV)
         sline: float  # rated current (kA) when installed in soil
@@ -820,9 +876,6 @@ class PowerFactoryTypes:
         Inom: float
         R_on: float
         X_on: float
-
-    class HarmonicSourceType(DataObject, Protocol):  # PFClassId.LOAD_TYPE_HARMONIC
-        i_usym: HarmonicSourceSystemType
 
     class Coupler(DataObject, Protocol):  # PFClassId.COUPLER
         bus1: PowerFactoryTypes.StationCubicle | None
@@ -956,7 +1009,6 @@ class PowerFactoryTypes:
         pgini: float
         qgini: float
         cosgini: float
-        pf_recap: PFRecap
         Kpf: float
         ddroop: float
         Qfu_min: float
@@ -994,6 +1046,10 @@ class PowerFactoryTypes:
         Pcu: float
 
     class LoadBase(Element, Protocol):
+        typ_id: PowerFactoryTypes.LoadType | PowerFactoryTypes.LoadTypeLV | PowerFactoryTypes.LoadTypeMV | None
+        outserv: bool
+
+    class LoadBase3Ph(LoadBase, Protocol):
         slini: float
         slinir: float
         slinis: float
@@ -1014,16 +1070,17 @@ class PowerFactoryTypes:
         coslinir: float
         coslinis: float
         coslinit: float
-        outserv: bool
-        typ_id: PowerFactoryTypes.LoadType | None
 
-    class Load(LoadBase, Protocol):  # PFClassId.LOAD
+    class Load(LoadBase3Ph, Protocol):  # PFClassId.LOAD
+        typ_id: PowerFactoryTypes.LoadType | None
         mode_inp: ModeInpLoad
         i_sym: ISym
         u0: float
         phtech: LoadPhaseConnectionType
 
-    class LoadLVP(DataObject, Protocol):  # PFClassId.LOAD_LV_PART
+    class LoadLVP(LoadBase, Protocol):  # PFClassId.LOAD_LV_PART
+        desc: Sequence[str]
+        typ_id: PowerFactoryTypes.LoadTypeLV | None
         iopt_inp: IOpt
         elini: float
         cplinia: float
@@ -1040,12 +1097,14 @@ class PowerFactoryTypes:
         pf_recap: PFRecap
         phtech: LoadLVPhaseConnectionType
 
-    class LoadLV(LoadBase, LoadLVP, Protocol):  # PFClassId.LOAD_LV
+    class LoadLV(LoadBase3Ph, LoadLVP, Protocol):  # PFClassId.LOAD_LV
+        typ_id: PowerFactoryTypes.LoadTypeLV | None
         i_sym: ISym
         lodparts: Sequence[PowerFactoryTypes.LoadLVP]
         phtech: LoadLVPhaseConnectionType
 
-    class LoadMV(LoadBase, Protocol):  # PFClassId.LOAD_MV
+    class LoadMV(LoadBase3Ph, Protocol):  # PFClassId.LOAD_MV
+        typ_id: PowerFactoryTypes.LoadTypeMV | None
         mode_inp: ModeInpMV
         ci_sym: ISym
         elini: float
@@ -1138,7 +1197,7 @@ class PowerFactoryTypes:
         phisetp0: float
         G0: float
         B0: float
-        phmc: PowerFactoryTypes.HarmonicSourceType | None
+        phmc: PowerFactoryTypes.SourceTypeHarmonicCurrent | None
 
     class Template(DataObject, Protocol):  # PFClassId.TEMPLATE
         ...

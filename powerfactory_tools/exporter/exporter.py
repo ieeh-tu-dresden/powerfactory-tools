@@ -85,7 +85,9 @@ from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase1PH as PFPhase1PH
 from powerfactory_tools.powerfactory_types import Phase2PH as PFPhase2PH
 from powerfactory_tools.powerfactory_types import Phase3PH as PFPhase3PH
+from powerfactory_tools.powerfactory_types import PowerFactoryTypes
 from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.powerfactory_types import PowerModelType
 from powerfactory_tools.powerfactory_types import QChar
 from powerfactory_tools.powerfactory_types import TerminalPhaseConnectionType
 from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
@@ -104,7 +106,7 @@ if t.TYPE_CHECKING:
 
     import typing_extensions as te
 
-    ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase | PFTypes.ExternalGrid
+    ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
 
 POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
@@ -115,11 +117,11 @@ FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 STRING_SEPARATOR = "; "
 
-LOAD_CLASSES = [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_MV.value]
+LOAD_CLASSES = [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_LV_PART.value, PFClassId.LOAD_MV.value]
 
 
 @pydantic.dataclasses.dataclass
-class LoadLV:
+class LoadLV:  # TODO rename
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
@@ -127,7 +129,7 @@ class LoadLV:
 
 
 @pydantic.dataclasses.dataclass
-class LoadMV:
+class LoadMV:  # TODO rename
     consumer: LoadPower
     producer: LoadPower
 
@@ -1472,7 +1474,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.FIXED_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1485,7 +1487,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.NIGHT_STORAGE,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1498,7 +1500,7 @@ class PowerFactoryExporter:
                 system_type=SystemType.VARIABLE_CONSUMPTION,
                 phase_connection_type=phase_connection_type,
                 name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
-                load_model_default="Z",
+                load_model_default="I",
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -1553,7 +1555,7 @@ class PowerFactoryExporter:
 
     def create_consumer(
         self,
-        load: PFTypes.LoadBase,
+        load: PFTypes.LoadBase3Ph,
         /,
         *,
         power: LoadPower,
@@ -1592,11 +1594,13 @@ class PowerFactoryExporter:
             bus=bus,
             grid_name=grid_name,
         )
-        voltage_system_type = (
-            VoltageSystemType[ElementVoltageSystemType(load.typ_id.systp).name]
-            if load.typ_id is not None
-            else VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
-        )
+
+        if load.GetClassName() is PFClassId.LOAD.value and load.typ_id is not None:
+            voltage_system_type = VoltageSystemType[
+                ElementVoltageSystemType(t.cast("PowerFactoryTypes.LoadType", load.typ_id).systp).name
+            ]
+        else:
+            voltage_system_type = VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
 
         # Rated power and load models for active and reactive power
         power = power.limit_phases(n_phases=phase_connections.n_phases)
@@ -1625,7 +1629,7 @@ class PowerFactoryExporter:
 
     @staticmethod
     def reference_voltage_for_load_model_of(
-        load: PFTypes.LoadBase | PFTypes.LoadLVP | PFTypes.GeneratorBase,
+        load: PFTypes.LoadBase3Ph | PFTypes.LoadLVP | PFTypes.GeneratorBase,
         /,
         *,
         u_nom: pydantic.confloat(ge=0),  # type: ignore[valid-type]
@@ -1642,7 +1646,7 @@ class PowerFactoryExporter:
         return u_nom
 
     @staticmethod
-    def load_model_of(
+    def load_model_of(  # noqa: PLR0912, PLR0911
         load: PFTypes.LoadBase | PFTypes.GeneratorBase,
         /,
         *,
@@ -1651,43 +1655,93 @@ class PowerFactoryExporter:
         default: t.Literal["Z", "I", "P"] = "P",
     ) -> LoadModel:
         u_0 = Qc.sym_three_phase_voltage(u_0)
+        # TODO an dieser Stelle gibt es keine Info ob es sich bei der LoadLV um eine LoadLVp handelt
+        # man könnte jetzt für load vom Typ LoadLV prüfen ob es subloads_of() gibt deren Namen im name_suffix der
+        # übergelagerten create_consumer() enthalten ist (da müsste dieser str dann auch hierher mit übergeben werden).
+        # Ist dies der Fall nehme ich anstatt load den ensprechenden subload und dann letztlich davon den Typ.
         load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
         if load_type is not None:
-            if load_type.loddy != FULL_DYNAMIC:
-                loguru.logger.warning(
-                    "Please check load model setting of {load_name} for RMS simulation.",
-                    load_name=load.loc_name,
-                )
-                loguru.logger.info(
-                    r"Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
-                )
+            if load_type.GetClassName() in PFClassId.LOAD_TYPE_GENERAL.value:
+                load_type = t.cast("PFTypes.LoadType", load_type)
+                if load_type.loddy != FULL_DYNAMIC:
+                    loguru.logger.warning(
+                        "Please check load model setting of {load_name} for RMS simulation.",
+                        load_name=load.loc_name,
+                    )
+                    loguru.logger.info(
+                        r"Consider to set 100% dynamic mode, but with time constants =0 (=same static model for RMS).",
+                    )
 
-            name = load_type.loc_name
+                name = load_type.loc_name
 
-            if specifier == "p":
-                return LoadModel(
-                    name=name,
-                    c_p=load_type.aP,
-                    c_i=load_type.bP,
-                    exp_p=load_type.kpu0,
-                    exp_i=load_type.kpu1,
-                    exp_z=load_type.kpu,
-                    u_0=u_0,
-                )
+                if specifier == "p":
+                    return LoadModel(
+                        name=name,
+                        c_p=load_type.aP,
+                        c_i=load_type.bP,
+                        exp_p=load_type.kpu0,
+                        exp_i=load_type.kpu1,
+                        exp_z=load_type.kpu,
+                        u_0=u_0,
+                    )
 
-            if specifier == "q":
-                return LoadModel(
-                    name=name,
-                    c_p=load_type.aQ,
-                    c_i=load_type.bQ,
-                    exp_p=load_type.kqu0,
-                    exp_i=load_type.kqu1,
-                    exp_z=load_type.kqu,
-                    u_0=u_0,
-                )
+                if specifier == "q":
+                    return LoadModel(
+                        name=name,
+                        c_p=load_type.aQ,
+                        c_i=load_type.bQ,
+                        exp_p=load_type.kqu0,
+                        exp_i=load_type.kqu1,
+                        exp_z=load_type.kqu,
+                        u_0=u_0,
+                    )
 
-            msg = "unreachable"
-            raise RuntimeError(msg)
+                msg = "unreachable"
+                raise RuntimeError(msg)
+
+            if load_type.GetClassName() in PFClassId.LOAD_TYPE_LV.value:
+                load_type = t.cast("PFTypes.LoadTypeLV", load_type)
+                name = load_type.loc_name
+
+                if load_type.iLodTyp == PowerModelType.COMPOSITE_ZIP.value:
+                    if specifier == "p":
+                        return LoadModel(
+                            name=name,
+                            c_p=load_type.aP,
+                            c_i=load_type.bP,
+                            u_0=u_0,
+                        )
+                    if specifier == "q":
+                        return LoadModel(
+                            name=name,
+                            c_p=load_type.aQ,
+                            c_i=load_type.bQ,
+                            u_0=u_0,
+                        )
+                elif load_type.iLodTyp == PowerModelType.EXPONENT.value:
+                    if specifier == "p":
+                        return LoadModel(
+                            name=name,
+                            c_p=1,
+                            c_i=0,
+                            exp_p=load_type.eP,
+                            u_0=u_0,
+                        )
+                    if specifier == "q":
+                        return LoadModel(
+                            name=name,
+                            c_p=1,
+                            c_i=0,
+                            exp_p=load_type.eQ,
+                            u_0=u_0,
+                        )
+
+                msg = "unreachable"
+                raise RuntimeError(msg)
+
+            if load_type.GetClassName() in PFClassId.LOAD_TYPE_MV.value:
+                load_type = t.cast("PFTypes.LoadTypeMV", load_type)
+                loguru.logger.warning("Medium voltage load model not supported yet. Using default model instead.")
 
         if default == "I":
             return LoadModel(c_i=1, c_p=0, u_0=u_0)
@@ -2972,7 +3026,7 @@ class PowerFactoryExporter:
 
     def create_consumer_ssc(
         self,
-        load: PFTypes.LoadBase,
+        load: PFTypes.LoadBase3Ph,
         /,
         *,
         power: LoadPower,
@@ -3114,7 +3168,7 @@ class PowerFactoryExporter:
 
     def create_p_controller_builtin(
         self,
-        load: PFTypes.GeneratorBase | PFTypes.LoadBase,
+        load: PFTypes.GeneratorBase | PFTypes.LoadBase3Ph,
         /,
         *,
         grid_name: str,
@@ -3132,7 +3186,7 @@ class PowerFactoryExporter:
 
     def create_consumer_q_controller_builtin(
         self,
-        load: PFTypes.LoadBase,
+        load: PFTypes.LoadBase3Ph,
         /,
         *,
         grid_name: str,
