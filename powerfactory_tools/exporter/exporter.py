@@ -121,7 +121,7 @@ LOAD_CLASSES = [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_LV
 
 
 @pydantic.dataclasses.dataclass
-class LoadLV:  # TODO rename
+class LoadLVPower:
     fixed: LoadPower
     night: LoadPower
     flexible: LoadPower
@@ -129,7 +129,7 @@ class LoadLV:  # TODO rename
 
 
 @pydantic.dataclasses.dataclass
-class LoadMV:  # TODO rename
+class LoadMVPower:
     consumer: LoadPower
     producer: LoadPower
 
@@ -1456,7 +1456,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-        power: LoadLV,
+        power: LoadLVPower,
         subload_name: str,
         sfx_pre: str,
     ) -> Sequence[Load]:
@@ -2653,7 +2653,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-        power: LoadLV,
+        power: LoadLVPower,
         subload_name: str,
         sfx_pre: str,
     ) -> Sequence[LoadSSC]:
@@ -2702,7 +2702,7 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadLV,
         /,
-    ) -> tuple[Sequence[LoadLV], Sequence[str]]:
+    ) -> tuple[Sequence[LoadLVPower], Sequence[str]]:
         subloads = self.pfi.subloads_of(load)
         if not subloads:
             return [self.calc_load_lv_power(load)], [""]
@@ -2715,7 +2715,7 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadLV,
         /,
-    ) -> LoadLV:
+    ) -> LoadLVPower:
         loguru.logger.debug("Calculating power for low voltage load {load_name}...", load_name=load.loc_name)
         scaling = load.scale0
         pow_fac_dir = PowerFactorDirection.OE if load.pf_recap else PowerFactorDirection.UE
@@ -2746,13 +2746,15 @@ class PowerFactoryExporter:
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
-        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg)
+        return LoadLVPower(
+            fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg
+        )
 
     def calc_load_lv_power_sym(
         self,
         load: PFTypes.LoadLVP,
         /,
-    ) -> LoadLV:
+    ) -> LoadLVPower:
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         power_fixed = self.calc_load_lv_power_fixed_sym(load, scaling=1)
         power_night = LoadPower.from_pq_sym(
@@ -2776,7 +2778,9 @@ class PowerFactoryExporter:
             scaling=1,
             phase_connection_type=phase_connection_type,
         )
-        return LoadLV(fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg)
+        return LoadLVPower(
+            fixed=power_fixed, night=power_night, flexible=power_flexible, flexible_avg=power_flexible_avg
+        )
 
     def calc_load_lv_power_fixed_sym(
         self,
@@ -2904,7 +2908,7 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadMV,
         /,
-    ) -> LoadMV:
+    ) -> LoadMVPower:
         loguru.logger.debug("Calculating power for medium voltage load {load_name}...", load_name=load.loc_name)
         if not load.ci_sym:
             return self.calc_load_mv_power_sym(load)
@@ -2915,7 +2919,7 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadMV,
         /,
-    ) -> LoadMV:
+    ) -> LoadMVPower:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
@@ -2939,7 +2943,7 @@ class PowerFactoryExporter:
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
-            return LoadMV(consumer=power_consumer, producer=power_producer)
+            return LoadMVPower(consumer=power_consumer, producer=power_producer)
 
         if load_type == "SC":
             power_consumer = LoadPower.from_sc_sym(
@@ -2956,7 +2960,7 @@ class PowerFactoryExporter:
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
-            return LoadMV(consumer=power_consumer, producer=power_producer)
+            return LoadMVPower(consumer=power_consumer, producer=power_producer)
 
         if load_type == "EC":
             loguru.logger.warning("Power from yearly demand is not implemented yet. Skipping.")
@@ -2974,7 +2978,7 @@ class PowerFactoryExporter:
                 scaling=scaling_prod,
                 phase_connection_type=phase_connection_type,
             )
-            return LoadMV(consumer=power_consumer, producer=power_producer)
+            return LoadMVPower(consumer=power_consumer, producer=power_producer)
 
         msg = "unreachable"
         raise RuntimeError(msg)
@@ -2983,7 +2987,7 @@ class PowerFactoryExporter:
         self,
         load: PFTypes.LoadMV,
         /,
-    ) -> LoadMV:
+    ) -> LoadMVPower:
         load_type = load.mode_inp
         scaling_cons = load.scale0
         scaling_prod = load.gscale * -1  # to be in line with demand based counting system
@@ -3004,7 +3008,7 @@ class PowerFactoryExporter:
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
-            return LoadMV(consumer=power_consumer, producer=power_producer)
+            return LoadMVPower(consumer=power_consumer, producer=power_producer)
 
         if load_type == "SC":
             power_consumer = LoadPower.from_sc_asym(
@@ -3019,7 +3023,7 @@ class PowerFactoryExporter:
                 pow_fac_dir=pow_fac_dir_prod,
                 scaling=scaling_prod,
             )
-            return LoadMV(consumer=power_consumer, producer=power_producer)
+            return LoadMVPower(consumer=power_consumer, producer=power_producer)
 
         msg = "unreachable"
         raise RuntimeError(msg)
