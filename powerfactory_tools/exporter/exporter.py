@@ -80,6 +80,7 @@ from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
+from powerfactory_tools.powerfactory_types import LoadPhaseConnectionTypeDefaultTerminalMapping
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase1PH as PFPhase1PH
@@ -1399,13 +1400,25 @@ class PowerFactoryExporter:
         grid_name: str,
     ) -> Load | None:
         power = self.calc_normal_load_power(load)
-        phase_connection_type = (
-            ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
-            if load.typ_id is not None
-            else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
-        )
-        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="Z")
-        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="Z")
+
+        # Connected terminal
+        bus = load.bus1
+        if bus is None:
+            loguru.logger.warning(
+                "Consumer {load_name} is not connected to any bus. Skipping.",
+                load_name=self.pfi.create_name(load, grid_name=grid_name),
+            )
+            return [None]
+        terminal = bus.cterm
+
+        # PhaseConnectionType
+        if load.typ_id is not None:
+            phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        else:
+            # if no load type is set, the phase connection type is dependent on the terminal's phase connection type
+            phase_connection_type = ConsolidatedLoadPhaseConnectionType[
+                LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
+            ]
         if power is not None:
             return self.create_consumer(
                 load,
@@ -1567,15 +1580,25 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[Load | None]:
-        loguru.logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
+        l_name = self.pfi.create_name(load, grid_name=grid_name)
+        loguru.logger.debug("Creating medium voltage load {name}...", name=l_name)
         power = self.calc_load_mv_power(load)
-        phase_connection_type = (
-            ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
-            if load.typ_id is not None
-            else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
-        )
-        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="P")
-        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="P")
+
+        # Connected terminal
+        bus = load.bus1
+        if bus is None:
+            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
+            return [None]
+        terminal = bus.cterm
+
+        # PhaseConnectionType
+        if load.typ_id is not None:
+            phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
+        else:
+            # if no load type is set, the phase connection type is dependent on the terminal's phase connection type
+            phase_connection_type = ConsolidatedLoadPhaseConnectionType[
+                LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
+            ]
         consumer = self.create_consumer(
             load,
             power=power.consumer,
