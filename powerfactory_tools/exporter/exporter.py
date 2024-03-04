@@ -1404,8 +1404,8 @@ class PowerFactoryExporter:
             if load.typ_id is not None
             else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
         )
-        load_model_p = self.create_load_model(load, specifier="p", load_model_default="Z")
-        load_model_q = self.create_load_model(load, specifier="q", load_model_default="Z")
+        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="Z")
+        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="Z")
         if power is not None:
             return self.create_consumer(
                 load,
@@ -1501,8 +1501,8 @@ class PowerFactoryExporter:
             )
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
         subload_name = subload.loc_name if subload is not None else ""
-        load_model_p = self.create_load_model(load, specifier="p", load_model_default="I", subload=subload)
-        load_model_q = self.create_load_model(load, specifier="q", load_model_default="I", subload=subload)
+        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="I", subload=subload)
+        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="I", subload=subload)
 
         consumer_fixed = (
             self.create_consumer(
@@ -1567,15 +1567,15 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> Sequence[Load | None]:
-        power = self.calc_load_mv_power(load)
         loguru.logger.debug("Creating medium voltage load {name}...", name=load.loc_name)
+        power = self.calc_load_mv_power(load)
         phase_connection_type = (
             ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
             if load.typ_id is not None
             else ConsolidatedLoadPhaseConnectionType.THREE_PH_D
         )
-        load_model_p = self.create_load_model(load, specifier="p", load_model_default="P")
-        load_model_q = self.create_load_model(load, specifier="q", load_model_default="P")
+        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="P")
+        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="P")
         consumer = self.create_consumer(
             load,
             power=power.consumer,
@@ -1684,7 +1684,7 @@ class PowerFactoryExporter:
             voltage_system_type=voltage_system_type,
         )
 
-    def create_load_model(
+    def create_consumer_load_model(
         self,
         load: PFTypes.LoadBase3Ph | PFTypes.GeneratorBase,
         /,
@@ -1973,8 +1973,8 @@ class PowerFactoryExporter:
         rated_power = power.as_rated_power()
 
         u_0 = self.reference_voltage_for_load_model_of(generator, u_nom=terminal.uknom * Exponents.VOLTAGE)
-        load_model_p = self.load_model_of(generator, specifier="p", default=load_model_default, u_0=u_0)
-        load_model_q = self.load_model_of(generator, specifier="q", default=load_model_default, u_0=u_0)
+        load_model_p = self.load_model_of(generator, u_0=u_0, specifier="p", default=load_model_default)
+        load_model_q = self.load_model_of(generator, u_0=u_0, specifier="q", default=load_model_default)
 
         phase_connections = self.get_load_phase_connections(
             phase_connection_type=phase_connection_type,
