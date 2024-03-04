@@ -998,11 +998,12 @@ class PowerFactoryTypes:
 
     class Element(DataObject, Protocol):
         desc: Sequence[str]
+
+    class GeneratorBase(Element, Protocol):
         pf_recap: PFRecap
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
-    class GeneratorBase(Element, Protocol):
         ngnum: int
         sgn: float
         cosn: float
@@ -1050,6 +1051,10 @@ class PowerFactoryTypes:
         outserv: bool
 
     class LoadBase3Ph(LoadBase, Protocol):
+        pf_recap: PFRecap
+        bus1: PowerFactoryTypes.StationCubicle | None
+        scale0: float
+
         slini: float
         slinir: float
         slinis: float
@@ -1079,7 +1084,6 @@ class PowerFactoryTypes:
         phtech: LoadPhaseConnectionType
 
     class LoadLVP(LoadBase, Protocol):  # PFClassId.LOAD_LV_PART
-        desc: Sequence[str]
         typ_id: PowerFactoryTypes.LoadTypeLV | None
         iopt_inp: IOpt
         elini: float
