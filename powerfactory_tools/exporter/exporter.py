@@ -1764,13 +1764,13 @@ class PowerFactoryExporter:
         """
         u_0 = Qc.sym_three_phase_voltage(u_0)
 
-        if load.GetClassName() is PFClassId.LOAD_LV.value and subload is not None:
+        if load.GetClassName() == PFClassId.LOAD_LV.value and subload is not None:
             load = subload
         load_type = t.cast("PFTypes.LoadBase", load).typ_id if load.GetClassName() in LOAD_CLASSES else None
 
         if load_type is not None:
             # general load type
-            if load_type.GetClassName() in PFClassId.LOAD_TYPE_GENERAL.value:
+            if load_type.GetClassName() == PFClassId.LOAD_TYPE_GENERAL.value:
                 load_type = t.cast("PFTypes.LoadType", load_type)
                 if load_type.loddy != FULL_DYNAMIC:
                     loguru.logger.warning(
@@ -1809,7 +1809,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
 
             # low-voltage (lv) load type
-            if load_type.GetClassName() in PFClassId.LOAD_TYPE_LV.value:
+            if load_type.GetClassName() == PFClassId.LOAD_TYPE_LV.value:
                 load_type = t.cast("PFTypes.LoadTypeLV", load_type)
                 name = load_type.loc_name
 
@@ -1850,7 +1850,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
 
             # medium-voltage (mv) load type
-            if load_type.GetClassName() in PFClassId.LOAD_TYPE_MV.value:
+            if load_type.GetClassName() == PFClassId.LOAD_TYPE_MV.value:
                 load_type = t.cast("PFTypes.LoadTypeMV", load_type)
                 loguru.logger.warning("Medium voltage load model not supported yet. Using default model instead.")
 
