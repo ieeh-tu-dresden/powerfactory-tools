@@ -80,7 +80,6 @@ from powerfactory_tools.powerfactory_types import GeneratorSystemType
 from powerfactory_tools.powerfactory_types import IOpt
 from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
 from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
-from powerfactory_tools.powerfactory_types import LoadPhaseConnectionTypeDefaultTerminalMapping
 from powerfactory_tools.powerfactory_types import LocalQCtrlMode
 from powerfactory_tools.powerfactory_types import PFClassId
 from powerfactory_tools.powerfactory_types import Phase1PH as PFPhase1PH

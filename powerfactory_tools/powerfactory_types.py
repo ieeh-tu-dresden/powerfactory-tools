@@ -195,18 +195,6 @@ class LoadPhaseConnectionType(enum.Enum):
     ONE_PH_PH_E = "1PH PH-E"
 
 
-class LoadPhaseConnectionTypeDefaultTerminalMapping(enum.Enum):
-    THREE_PH = "3PH-'D'"
-    THREE_PH_N = "3PH-'YN'"
-    BI = "1PH PH-PH"
-    BI_N = "2PH-'YN'"
-    TWO_PH = "1PH PH-PH"  # noqa: PIE796
-    TWO_PH_N = "2PH-'YN'"  # noqa: PIE796
-    ONE_PH = "1PH PH-E"
-    ONE_PH_N = "1PH PH-N"
-    N = "1PH PH-E"  # noqa: PIE796
-
-
 class PFRecap(enum.IntEnum):
     OE = 0
     UE = 1
