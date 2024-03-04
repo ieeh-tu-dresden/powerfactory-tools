@@ -1838,6 +1838,7 @@ class PowerFactoryInterface:
         stage = self.create_grid_variant_stage(
             name=stage_name,
             grid_variant=variant,
+            data=data,
             force=force,
             update=update,
         )
