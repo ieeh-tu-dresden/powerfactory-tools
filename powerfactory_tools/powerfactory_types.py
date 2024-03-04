@@ -421,8 +421,8 @@ class Phase1PH(enum.Enum):
 
 
 class TerminalVoltageSystemType(enum.IntEnum):
-    DC = 0
-    AC = 1
+    AC = 0
+    DC = 1
     ACBI = 2
 
 
