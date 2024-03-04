@@ -117,6 +117,7 @@ PYTHON_VERSION = "3.10"
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
 STRING_SEPARATOR = "; "
+STRING_DO_NOT_EXPORT = "do_not_export"
 
 LOAD_CLASSES = [PFClassId.LOAD.value, PFClassId.LOAD_LV.value, PFClassId.LOAD_LV_PART.value, PFClassId.LOAD_MV.value]
 
@@ -1350,7 +1351,7 @@ class PowerFactoryExporter:
     ) -> tuple[bool, str]:
         desc = element.desc
         if desc:
-            if desc[0] == "do_not_export":
+            if desc[0] == STRING_DO_NOT_EXPORT:
                 return False, ""
 
             return True, desc[0]
@@ -1419,6 +1420,12 @@ class PowerFactoryExporter:
             phase_connection_type = ConsolidatedLoadPhaseConnectionType[
                 LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
             ]
+
+        # LoadModel
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
+        load_model_p = self.load_model_of(load, u_0=u_0, specifier="p", default="Z")
+        load_model_q = self.load_model_of(load, u_0=u_0, specifier="q", default="Z")
+
         if power is not None:
             return self.create_consumer(
                 load,
@@ -1501,21 +1508,33 @@ class PowerFactoryExporter:
         Returns:
             Sequence[Load]: partial load objects in respect to fixed, variable and night-storage characteristics
         """
+        l_name = self.pfi.create_name(load, grid_name=grid_name)
         if subload is not None:
             loguru.logger.debug(
                 "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {name}...",
                 subload_name=subload.loc_name,
-                name=load.loc_name,
+                name=l_name,
             )
         else:
             loguru.logger.debug(
                 "Creating partial consumers for low voltage consumer {name}...",
-                name=load.loc_name,
+                name=l_name,
             )
+
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
+
+        # Connected terminal
+        bus = load.bus1
+        if bus is None:
+            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
+            return [None]
+        terminal = bus.cterm
+
+        # LoadModel
         subload_name = subload.loc_name if subload is not None else ""
-        load_model_p = self.create_consumer_load_model(load, specifier="p", load_model_default="I", subload=subload)
-        load_model_q = self.create_consumer_load_model(load, specifier="q", load_model_default="I", subload=subload)
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
+        load_model_p = self.load_model_of(load, u_0=u_0, specifier="p", default="I", subload=subload)
+        load_model_q = self.load_model_of(load, u_0=u_0, specifier="q", default="I", subload=subload)
 
         consumer_fixed = (
             self.create_consumer(
@@ -1599,6 +1618,12 @@ class PowerFactoryExporter:
             phase_connection_type = ConsolidatedLoadPhaseConnectionType[
                 LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
             ]
+
+        # LoadModel
+        u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
+        load_model_p = self.load_model_of(load, u_0=u_0, specifier="p", default="P")
+        load_model_q = self.load_model_of(load, u_0=u_0, specifier="q", default="P")
+
         consumer = self.create_consumer(
             load,
             power=power.consumer,
@@ -1653,13 +1678,13 @@ class PowerFactoryExporter:
         loguru.logger.debug("Creating consumer {load_name}...", load_name=l_name)
         export, description = self.get_description(load)
         if not export:
-            loguru.logger.warning("Consumer {load_name} not set for export. Skipping.", load_name=l_name)
+            loguru.logger.warning("Consumer {load_name} is not set for export. Skipping.", load_name=l_name)
             return None
 
         # get connected terminal
         bus = load.bus1
         if bus is None:
-            loguru.logger.warning("Consumer {load_name} not connected to any bus. Skipping.", load_name=l_name)
+            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
             return None
 
         phase_id = bus.cPhInfo
@@ -1707,36 +1732,6 @@ class PowerFactoryExporter:
             voltage_system_type=voltage_system_type,
         )
 
-    def create_consumer_load_model(
-        self,
-        load: PFTypes.LoadBase3Ph | PFTypes.GeneratorBase,
-        /,
-        *,
-        specifier: t.Literal["p", "q"],
-        load_model_default: t.Literal["Z", "I", "P"] = "P",
-        subload: PFTypes.LoadLVP | None = None,
-    ) -> LoadModel:
-        """Creates a load model for a loads or generators (re)active power.
-
-        Args:
-            load (PFTypes.LoadBase3Ph | PFTypes.GeneratorBase): the load of interest
-            specifier (t.Literal["p", "q"]): specifier to choose active or reactive power model
-            load_model_default (t.Literal["Z", "I", "P"], optional): default load model if no load type is set (default: "P")
-            subload (PFTypes.LoadLVP | None, optional): a low voltage subload related to load (if low voltage), may be none existential (default: None)
-
-
-        Returns:
-            LoadModel:
-        """
-        # get connected terminal
-        bus = load.bus1
-        if bus is None:
-            u_0 = float("nan")
-        else:
-            u_0 = self.reference_voltage_for_load_model_of(load, u_nom=bus.cterm.uknom * Exponents.VOLTAGE)
-
-        return self.load_model_of(load, u_0=u_0, specifier=specifier, default=load_model_default, subload=subload)
-
     @staticmethod
     def reference_voltage_for_load_model_of(
         load: PFTypes.LoadBase3Ph | PFTypes.LoadLVP | PFTypes.GeneratorBase,
@@ -1765,6 +1760,19 @@ class PowerFactoryExporter:
         default: t.Literal["Z", "I", "P"] = "P",
         subload: PFTypes.LoadLVP | None = None,
     ) -> LoadModel:
+        """Creates a load model for a loads or generators (re)active power.
+
+        Arguments:
+            load {PFTypes.LoadBase | PFTypes.GeneratorBase}: the load of interest
+
+        Keyword Arguments:
+            u_0 {float}: reference voltage for loads voltage dependency
+            default {t.Literal["Z", "I", "P"], optional}: default load model type (default: "P")
+            subload {PFTypes.LoadLVP | None, optional}: a low voltage subload related to load (if low voltage), may be none existential (default: None)
+
+        Returns:
+            LoadModel:
+        """
         u_0 = Qc.sym_three_phase_voltage(u_0)
 
         if load.GetClassName() is PFClassId.LOAD_LV.value and subload is not None:
@@ -3682,7 +3690,7 @@ class PowerFactoryExporter:
         elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 3)
         elif t_phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
-            msg = "Terminal phase technology implementation unclear. Please extend exporter by your own."
+            msg = "Terminal phase technology implementation is unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
         else:
             msg = "unreachable"
@@ -3939,22 +3947,22 @@ def export_powerfactory_data(  # noqa: PLR0913
     info) and steadystate_case (operation points).
     When the code execution is complete, the process is terminated and the connection to PowerFactory is closed.
 
-        Arguments:
-            export_path {pathlib.Path} -- the directory where the exported json files are saved
-            project_name {str} -- project name in PowerFactory to which the grid belongs
-            powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
-            powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
-            powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
-            python_version {str} -- version number of Python (hard-coded in interface.py)
-            logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
-            log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
-            topology_name {str} -- the chosen file name for 'topology' data (default: {None})
-            topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
-            steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
-            study_case_names {list[str]} -- a list of study cases to export (default: {None})
+    Arguments:
+        export_path {pathlib.Path} -- the directory where the exported json files are saved
+        project_name {str} -- project name in PowerFactory to which the grid belongs
+        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
+        powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
+        python_version {str} -- version number of Python (hard-coded in interface.py)
+        logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
+        log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
+        topology_name {str} -- the chosen file name for 'topology' data (default: {None})
+        topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
+        steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
+        study_case_names {list[str]} -- a list of study cases to export (default: {None})
 
-        Returns:
-            None
+    Returns:
+        None
     """
 
     process = PowerFactoryExporterProcess(
