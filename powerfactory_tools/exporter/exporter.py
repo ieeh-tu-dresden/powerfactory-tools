@@ -1412,14 +1412,8 @@ class PowerFactoryExporter:
             return [None]
         terminal = bus.cterm
 
-        # PhaseConnectionType
-        if load.typ_id is not None:
-            phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
-        else:
-            # if no load type is set, the phase connection type is dependent on the terminal's phase connection type
-            phase_connection_type = ConsolidatedLoadPhaseConnectionType[
-                LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
-            ]
+        # PhaseConnectionType: either based on load type or on terminal phase connection type
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
 
         # LoadModel
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
@@ -1521,14 +1515,15 @@ class PowerFactoryExporter:
                 name=l_name,
             )
 
-        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
-
         # Connected terminal
         bus = load.bus1
         if bus is None:
             loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
             return [None]
         terminal = bus.cterm
+
+        # PhaseConnectionType: either based on load type or on terminal phase connection type
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
 
         # LoadModel
         subload_name = subload.loc_name if subload is not None else ""
@@ -1610,14 +1605,8 @@ class PowerFactoryExporter:
             return [None]
         terminal = bus.cterm
 
-        # PhaseConnectionType
-        if load.typ_id is not None:
-            phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
-        else:
-            # if no load type is set, the phase connection type is dependent on the terminal's phase connection type
-            phase_connection_type = ConsolidatedLoadPhaseConnectionType[
-                LoadPhaseConnectionTypeDefaultTerminalMapping[TerminalPhaseConnectionType(terminal.phtech).name].name
-            ]
+        # PhaseConnectionType: either based on load type or on terminal phase connection type
+        phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadPhaseConnectionType(load.phtech).name]
 
         # LoadModel
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
