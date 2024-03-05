@@ -40,56 +40,53 @@
 
 [tool.ruff]
   line-length = 120
-  
-[tool.ruff.lint]
-  ignore = [
-    "ANN002",
-    "ANN003",
-    "ANN101",
-    "ANN102",
-    "C901",
-    "D100",
-    "D101",
-    "D102",
-    "D103",
-    "D104",
-    "D105",
-    "D106",
-    "D107",
-    "D202",
-    "D203",
-    "D401",
-    "E402",
-    "E501",
-  ]
-  select = ["ALL"]
 
-  [tool.ruff.lint.flake8-type-checking]
-    runtime-evaluated-decorators = ["pydantic.dataclasses.dataclass"]
-
-  [tool.ruff.lint.isort]
-    force-single-line = true
-
-  [tool.ruff.lint.pydocstyle]
-    convention = "pep257"
-
-  [tool.ruff.lint.pep8-naming]
-    classmethod-decorators = [
-      "classmethod",
-      "pydantic.root_validator",
-      "pydantic.validator",
+  [tool.ruff.lint]
+    ignore = [
+      "ANN002",
+      "ANN003",
+      "ANN101",
+      "ANN102",
+      "C901",
+      "D100",
+      "D101",
+      "D102",
+      "D103",
+      "D104",
+      "D105",
+      "D106",
+      "D107",
+      "D202",
+      "D203",
+      "D401",
+      "E402",
+      "E501",
     ]
+    select = ["ALL"]
 
-  [tool.ruff.lint.pylint]
-    max-args = 10
+    [tool.ruff.lint.flake8-type-checking]
+      runtime-evaluated-decorators = ["pydantic.dataclasses.dataclass"]
 
-  [tool.ruff.lint.flake8-import-conventions.extend-aliases]
-    "datetime"         = "dt"
-    "geopandas"        = "gpd"
-    "numpy.typing"     = "npt"
-    "rasterio"         = "rio"
-    "shapely.geometry" = "shg"
-    "typing"           = "t"
+    [tool.ruff.lint.isort]
+      force-single-line = true
+
+    [tool.ruff.lint.pydocstyle]
+      convention = "pep257"
+
+    [tool.ruff.lint.pep8-naming]
+      classmethod-decorators = ["classmethod", "pydantic.field_validator"]
+
+    [tool.ruff.lint.pylint]
+      max-args = 10
+
+    [tool.ruff.lint.flake8-import-conventions.extend-aliases]
+      "collections.abc"  = "cabc"
+      "datetime"         = "dt"
+      "geopandas"        = "gpd"
+      "numpy.typing"     = "npt"
+      "rasterio"         = "rio"
+      "shapely.geometry" = "shg"
+      "typing"           = "t"
 
 [tool.ruff.lint.per-file-ignores]
   "tests/*" = ["ANN001", "ANN201", "INP001", "S101"]
@@ -104,8 +101,8 @@
   version_files = [
     ".zenodo.json:version",
     "CITATION.cff:cff-version",
+    "powerfactory_tools/__version__.py:VERSION",
     "pyproject.toml:version",
-    "powerfactory_tools/interface.py:VERSION",
   ]
 
 [tool.mypy]
