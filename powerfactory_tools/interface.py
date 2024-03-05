@@ -11,10 +11,10 @@ import pathlib
 
 import pydantic
 
-from powerfactory_tools.powerfactory.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
-from powerfactory_tools.powerfactory.powerfactory import DEFAULT_PF_VERSION
-from powerfactory_tools.powerfactory.powerfactory import PF_VERSIONS
-from powerfactory_tools.powerfactory.powerfactory import SUPPORTED_VERSIONS
+from powerfactory_tools.versions.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
+from powerfactory_tools.versions.powerfactory import DEFAULT_PF_VERSION
+from powerfactory_tools.versions.powerfactory import PF_VERSIONS
+from powerfactory_tools.versions.powerfactory import SUPPORTED_VERSIONS
 
 
 @pydantic.dataclasses.dataclass
