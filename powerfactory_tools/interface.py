@@ -2002,6 +2002,22 @@ class PowerFactoryInterface:
 
         return element
 
+    def is_of_type(
+        self,
+        element: PFTypes.DataObject,
+        pf_type: PFClassId,
+        /,
+    ) -> bool:
+        return element.GetClassName() == pf_type.value
+
+    def is_of_types(
+        self,
+        element: PFTypes.DataObject,
+        pf_types: Sequence[PFClassId],
+        /,
+    ) -> bool:
+        return element.GetClassName() in [pf_type.value for pf_type in pf_types]
+
     def create_command(self, command_type: CalculationCommand) -> PFTypes.CommandBase:
         return t.cast("PFTypes.CommandBase", self.app.GetFromStudyCase(command_type.value))
 
