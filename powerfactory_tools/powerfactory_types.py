@@ -999,8 +999,11 @@ class PowerFactoryTypes:
     class Element(DataObject, Protocol):
         desc: Sequence[str]
 
-    class GeneratorBase(Element, Protocol):
+    class DeviceBase(Element, Protocol):
         pf_recap: PFRecap
+        outserv: bool
+
+    class GeneratorBase(DeviceBase, Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -1016,7 +1019,6 @@ class PowerFactoryTypes:
         Qfu_max: float
         udeadblow: float
         udeadbup: float
-        outserv: bool
         av_mode: LocalQCtrlMode
         mode_inp: ModeInpGen
         sgini_a: float
@@ -1046,12 +1048,10 @@ class PowerFactoryTypes:
         uk: float
         Pcu: float
 
-    class LoadBase(Element, Protocol):
+    class LoadBase(DeviceBase, Protocol):
         typ_id: PowerFactoryTypes.LoadType | PowerFactoryTypes.LoadTypeLV | PowerFactoryTypes.LoadTypeMV | None
-        outserv: bool
 
     class LoadBase3Ph(LoadBase, Protocol):
-        pf_recap: PFRecap
         bus1: PowerFactoryTypes.StationCubicle | None
         scale0: float
 
@@ -1098,7 +1098,6 @@ class PowerFactoryTypes:
         cSav: float  # noqa: N815
         cSmax: float  # noqa: N815
         ccosphi: float
-        pf_recap: PFRecap
         phtech: LoadLVPhaseConnectionType
 
     class LoadLV(LoadBase3Ph, LoadLVP, Protocol):  # PFClassId.LOAD_LV
@@ -1126,7 +1125,6 @@ class PowerFactoryTypes:
         cosginis: float
         cosginit: float
         gscale: float
-        pf_recap: PFRecap
         pfg_recap: PFRecap
         phtech: LoadPhaseConnectionType
 

@@ -35,7 +35,7 @@ jobs:
         run: pdm run black . --check
 
       - name: Code checking using ruff
-        run: pdm run ruff .
+        run: pdm run ruff check .
 
       - name: Type checking using mypy
         run: pdm run mypy .
