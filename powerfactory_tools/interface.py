@@ -22,6 +22,7 @@ import loguru
 import pydantic
 
 from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.powerfactory_types import CalculationCommand
 from powerfactory_tools.powerfactory_types import Currency
 from powerfactory_tools.powerfactory_types import FolderType
@@ -289,7 +290,9 @@ class PowerFactoryInterface:
                 command_line_arg,
             )
         except pf.ExitError as element:
-            msg = "Could not start application."
+            error_code = self.resolve_pf_error_code(element)
+            msg = f"Could not start application. Error code: {error_code.value} - {error_code.name}"
+            loguru.logger.exception(msg)
             raise RuntimeError(msg) from element
 
     def connect_to_project(self, project_name: str) -> PFTypes.Project:
@@ -318,6 +321,13 @@ class PowerFactoryInterface:
             project_name=project_name,
         )
         return project
+
+    @staticmethod
+    def resolve_pf_error_code(error: PFTypes.PowerFactoryExitError) -> ErrorCode:
+        try:
+            return ErrorCode(error.code)
+        except ValueError:
+            return ErrorCode.UNKNOWN_ERROR_OCCURED
 
     def switch_study_case(self, study_case_name: str) -> PFTypes.StudyCase:
         study_case = self.study_case(study_case_name)
