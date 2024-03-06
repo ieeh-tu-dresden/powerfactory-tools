@@ -118,7 +118,8 @@ M_TAB2015_MIN_THRESHOLD = 0.01
 STRING_SEPARATOR = "; "
 STRING_DO_NOT_EXPORT = "do_not_export"
 
-LOAD_CLASSES = [PFClassId.LOAD, PFClassId.LOAD_LV, PFClassId.LOAD_LV_PART, PFClassId.LOAD_MV]
+PF_LOAD_CLASSES = [PFClassId.LOAD, PFClassId.LOAD_LV, PFClassId.LOAD_LV_PART, PFClassId.LOAD_MV]
+STORAGE_SYSTEM_TYPES = [SystemType.BATTERY_STORAGE, SystemType.PUMP_STORAGE]
 
 
 @pydantic.dataclasses.dataclass
@@ -1771,7 +1772,7 @@ class PowerFactoryExporter:
         if self.pfi.is_of_type(load, PFClassId.LOAD_LV) and subload is not None:
             load = subload
 
-        load_type = t.cast("PFTypes.LoadBase", load).typ_id if self.pfi.is_of_types(load, LOAD_CLASSES) else None
+        load_type = t.cast("PFTypes.LoadBase", load).typ_id if self.pfi.is_of_types(load, PF_LOAD_CLASSES) else None
 
         if load_type is not None:
             # general load type
@@ -1877,6 +1878,7 @@ class PowerFactoryExporter:
     ) -> Sequence[Load]:
         loguru.logger.info("Creating normal producers...")
         producers = [self.create_producer_normal(generator, grid_name=grid_name) for generator in generators]
+
         return self.pfi.filter_none(producers)
 
     def create_producer_normal(
@@ -1910,6 +1912,7 @@ class PowerFactoryExporter:
     ) -> Sequence[Load]:
         loguru.logger.info("Creating PV producers...")
         producers = [self.create_producer_pv(generator, grid_name=grid_name) for generator in generators]
+
         return self.pfi.filter_none(producers)
 
     def create_producer_pv(
@@ -1922,14 +1925,14 @@ class PowerFactoryExporter:
         power = self.calc_normal_gen_power(generator)
         gen_name = self.pfi.create_generator_name(generator)
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[GeneratorPhaseConnectionType(generator.phtech).name]
-        system_type = SystemType.PV
+
         return self.create_producer(
             generator,
             power=power,
             gen_name=gen_name,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            system_type=system_type,
+            system_type=SystemType.PV,
             load_model_default="P",
         )
 
@@ -2006,6 +2009,7 @@ class PowerFactoryExporter:
             bus=bus,
             grid_name=grid_name,
         )
+        load_type = LoadType.STORAGE if system_type in STORAGE_SYSTEM_TYPES else LoadType.PRODUCER
 
         return Load(
             name=gen_name,
@@ -2015,7 +2019,7 @@ class PowerFactoryExporter:
             active_power_model=load_model_p,
             reactive_power_model=load_model_q,
             phase_connections=phase_connections,
-            type=LoadType.PRODUCER,
+            type=load_type,
             system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
         )
