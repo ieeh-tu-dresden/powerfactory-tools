@@ -19,17 +19,17 @@ class PfData(t.TypedDict):
 
 
 PF_VERSIONS: dict[str, PfData] = {
-    "2022SP2": {
-        "types": "powerfactory_tools.versions.pf2022_sp2.types",
-        "exporter": "powerfactory_tools.versions.2022_sp2.exporter",
-        "interface": "powerfactory_tools.versions.2022_sp2.interface",
-        "pf_version": "2022 SP2",
+    "2022": {
+        "types": "powerfactory_tools.versions.pf2022.types",
+        "exporter": "powerfactory_tools.versions.pf2022.exporter",
+        "interface": "powerfactory_tools.versions.pf2022.interface",
+        "pf_version": "2022",
         "pf_path": pathlib.Path("C:/Program Files/DIgSILENT"),
         "python_version": "3.10",
     },
 }
 
-LATEST = "2022SP2"
+LATEST = "2022"
 DEFAULT_PF_VERSION = PF_VERSIONS[LATEST]["pf_version"]
 DEFAULT_PF_PATH = PF_VERSIONS[LATEST]["pf_path"]
 DEFAULT_PYTHON_VERSION = PF_VERSIONS[LATEST]["python_version"]

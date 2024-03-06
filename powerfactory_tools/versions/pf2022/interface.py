@@ -22,21 +22,21 @@ import loguru
 import pydantic
 
 from powerfactory_tools.constants import BaseUnits
-from powerfactory_tools.powerfactory.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
-from powerfactory_tools.types.powerfactory_types import CalculationCommand
-from powerfactory_tools.types.powerfactory_types import Currency
-from powerfactory_tools.types.powerfactory_types import FolderType
-from powerfactory_tools.types.powerfactory_types import MetricPrefix
-from powerfactory_tools.types.powerfactory_types import NetworkExtendedCalcType
-from powerfactory_tools.types.powerfactory_types import PFClassId
-from powerfactory_tools.types.powerfactory_types import ResultExportMode
-from powerfactory_tools.types.powerfactory_types import TimeSimulationNetworkCalcType
-from powerfactory_tools.types.powerfactory_types import TimeSimulationType
-from powerfactory_tools.types.powerfactory_types import UnitSystem
-from powerfactory_tools.types.powerfactory_types import ValidPFValue
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022sp2.data import PowerFactoryData
+from powerfactory_tools.versions.pf2022.data import PowerFactoryData
+from powerfactory_tools.versions.pf2022.types import CalculationCommand
+from powerfactory_tools.versions.pf2022.types import FolderType
+from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
+from powerfactory_tools.versions.pf2022.types import PFClassId
+from powerfactory_tools.versions.pf2022.types import ResultExportMode
+from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
+from powerfactory_tools.versions.pf2022.types import TimeSimulationType
+from powerfactory_tools.versions.pf2022.types import UnitSystem
+from powerfactory_tools.versions.pf2022.types import ValidPFValue
+from powerfactory_tools.versions.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
+from powerfactory_tools.versions.types import Currency
+from powerfactory_tools.versions.types import MetricPrefix
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -44,7 +44,7 @@ if t.TYPE_CHECKING:
 
     import typing_extensions as te
 
-    from powerfactory_tools.versions.pf2022sp2.types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
 
@@ -90,6 +90,7 @@ class PowerFactoryInterface:
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
+    powerfactory_service_pack: int | None = None
     powerfactory_ini_name: str | None = None
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -171,7 +172,11 @@ class PowerFactoryInterface:
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         loguru.logger.debug("Loading PowerFactory Python module...")
-        module_path = self.powerfactory_path / "PowerFactory 2022 SP2" / "Python" / "3.10"
+        module_path = (
+            self.powerfactory_path / "PowerFactory 2022" / "Python" / "3.10"
+            if self.powerfactory_service_pack is None
+            else self.powerfactory_path / f"PowerFactory 2022 SP{self.powerfactory_service_pack}" / "Python" / "3.10"
+        )
         spec = importlib.util.spec_from_file_location(
             "powerfactory",
             module_path / "powerfactory.pyd",
@@ -247,7 +252,13 @@ class PowerFactoryInterface:
         if self.powerfactory_ini_name is None:
             command_line_arg = None
         else:
-            ini_path = self.powerfactory_path / "PowerFactory 2022 SP2" / (self.powerfactory_ini_name + ".ini")
+            ini_path = (
+                self.powerfactory_path / "PowerFactory 2022" / (self.powerfactory_ini_name + ".ini")
+                if self.powerfactory_service_pack is None
+                else self.powerfactory_path
+                / f"PowerFactory 2022 SP{self.powerfactory_service_pack}"
+                / (self.powerfactory_ini_name + ".ini")
+            )
             command_line_arg = '/ini "' + str(ini_path) + '"'
         try:
             return pf.GetApplicationExt(
@@ -293,6 +304,7 @@ class PowerFactoryInterface:
         else:
             msg = f"Study case {study_case_name} does not exist."
             raise RuntimeError(msg)
+
         return self.study_case(study_case_name)  # type: ignore [return-value]
 
     def switch_scenario(self, scenario_name: str) -> None:
@@ -2009,11 +2021,11 @@ class PowerFactoryInterface:
         cmd = t.cast("PFTypes.CommandLoadFlow", self.create_command(CalculationCommand.LOAD_FLOW))
         if ac:
             if symmetrical:
-                cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+                cmd.iopt_net = NetworkExtendedCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
             else:
-                cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value
+                cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         else:
-            cmd.iopt_net = NetworkExtendedCalcType.DC.value
+            cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
 
         # update further attributes if needed
         if data is not None:
@@ -2048,12 +2060,12 @@ class PowerFactoryInterface:
             self.create_command(CalculationCommand.TIME_DOMAIN_SIMULATION_START),
         )
         # Set type of simulation (RMS, EMT)
-        cmd.iopt_sim = sim_type.value
+        cmd.iopt_sim = sim_type.value  # type: ignore[assignment]
         # Set type of network representation (symmetrical, unsymmetrical)
         if symmetrical:
-            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_SYM_POSITIVE_SEQUENCE.value  # type: ignore[assignment]
         else:
-            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value
+            cmd.iopt_net = TimeSimulationNetworkCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         # Set result object to be used for simulation
         if result is not None:
             cmd.p_resvar = result

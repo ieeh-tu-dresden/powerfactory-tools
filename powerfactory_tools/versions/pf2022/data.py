@@ -12,7 +12,7 @@ if t.TYPE_CHECKING:
     import collections.abc as cabc
     import datetime as dt
 
-    from powerfactory_tools.versions.pf2022sp2.types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
 
 @dataclasses.dataclass

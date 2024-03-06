@@ -11,15 +11,14 @@ import pathlib
 
 import pydantic
 
-from powerfactory_tools.powerfactory.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
-from powerfactory_tools.powerfactory.powerfactory import DEFAULT_PF_VERSION
-from powerfactory_tools.powerfactory.powerfactory import PF_VERSIONS
-from powerfactory_tools.powerfactory.powerfactory import SUPPORTED_VERSIONS
+from powerfactory_tools.versions.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
+from powerfactory_tools.versions.powerfactory import DEFAULT_PF_VERSION
+from powerfactory_tools.versions.powerfactory import PF_VERSIONS
+from powerfactory_tools.versions.powerfactory import SUPPORTED_VERSIONS
 
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryExporter:
-    export_path: pathlib.Path
     project_name: str
     powerfactory_version: str = DEFAULT_PF_VERSION
 
@@ -33,20 +32,25 @@ class PowerFactoryExporter:
 
     powerfactory_user_profile: str = ""
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
+    powerfactory_service_pack: int | None = None
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
     def __post_init__(self) -> None:
         exporter_import_path = PF_VERSIONS[self.powerfactory_version]["exporter"]
         pfm = importlib.import_module(exporter_import_path)
-        pfe = pfm.Exporter(
+        pfe = pfm.PowerFactoryExporter(
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
+            powerfactory_service_pack=self.powerfactory_service_pack,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
         )
+        method_names = [method_name for method_name in dir(pfe) if callable(getattr(pfe, method_name))]
         self.__dict__.update(pfe.__dict__)
+        for method_name in method_names:
+            setattr(self, method_name, getattr(pfe, method_name))
 
 
 def export_powerfactory_data(  # noqa: PLR0913
