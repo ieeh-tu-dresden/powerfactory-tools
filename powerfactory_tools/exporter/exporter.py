@@ -24,7 +24,7 @@ class PowerFactoryExporter:
 
     @pydantic.field_validator("powerfactory_version")
     def check_unit(cls, v: str) -> str:
-        if v is not SUPPORTED_VERSIONS:
+        if v not in SUPPORTED_VERSIONS:
             msg = f"Version {v} is not supported. Supported versions are {SUPPORTED_VERSIONS}"
             raise ValueError(msg)
 
