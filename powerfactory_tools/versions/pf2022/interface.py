@@ -26,9 +26,7 @@ from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 from powerfactory_tools.versions.pf2022.types import CalculationCommand
-from powerfactory_tools.versions.pf2022.types import FolderType
 from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
-from powerfactory_tools.versions.pf2022.types import PFClassId
 from powerfactory_tools.versions.pf2022.types import ResultExportMode
 from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
@@ -36,7 +34,9 @@ from powerfactory_tools.versions.pf2022.types import UnitSystem
 from powerfactory_tools.versions.pf2022.types import ValidPFValue
 from powerfactory_tools.versions.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
 from powerfactory_tools.versions.types import Currency
+from powerfactory_tools.versions.types import FolderType
 from powerfactory_tools.versions.types import MetricPrefix
+from powerfactory_tools.versions.types import PFClassId
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -87,10 +87,10 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
-    powerfactory_user_profile: str | None = None
-    powerfactory_user_password: str | None = None
     powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
+    powerfactory_user_profile: str | None = None
+    powerfactory_user_password: str | None = None
     powerfactory_ini_name: str | None = None
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None

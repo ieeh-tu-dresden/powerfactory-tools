@@ -81,7 +81,6 @@ from powerfactory_tools.versions.pf2022.types import IOpt
 from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import PFClassId
 from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
 from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
 from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
@@ -99,6 +98,7 @@ from powerfactory_tools.versions.pf2022.types import Vector
 from powerfactory_tools.versions.pf2022.types import VectorGroup
 from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
 from powerfactory_tools.versions.powerfactory import PF_VERSIONS
+from powerfactory_tools.versions.types import PFClassId
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
