@@ -20,6 +20,7 @@ from powerfactory_tools.versions.powerfactory import SUPPORTED_VERSIONS
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
+    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
     powerfactory_version: str = DEFAULT_PF_VERSION
 
     @pydantic.field_validator("powerfactory_version")
@@ -30,10 +31,9 @@ class PowerFactoryInterface:
 
         return v
 
+    powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str = ""
     powerfactory_user_password: str | None = None
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
-    powerfactory_service_pack: int | None = None
     powerfactory_ini_name: str | None = None
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -43,10 +43,10 @@ class PowerFactoryInterface:
         pfm = importlib.import_module(interface_import_path)
         pfi = pfm.Interface(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
-            powerfactory_user_password=self.powerfactory_user_password,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             powerfactory_ini_name=self.powerfactory_ini_name,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
