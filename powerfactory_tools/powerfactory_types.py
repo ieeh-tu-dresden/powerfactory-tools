@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import enum
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Literal
 from typing import Protocol
 
@@ -1609,7 +1610,7 @@ class PowerFactoryTypes:
             ...
 
     class PowerFactoryModule(Protocol):
-        ExitError: tuple[type[Exception], ...]
+        ExitError: tuple[type[PowerFactoryTypes.PowerFactoryExitError], ...]
 
         def GetApplicationExt(  # noqa: N802
             self,
@@ -1618,6 +1619,10 @@ class PowerFactoryTypes:
             command_line_arguments: str | None = None,
             /,
         ) -> PowerFactoryTypes.Application: ...
+
+    class PowerFactoryExitError(Exception):
+        code: int
+        args: tuple[Any, ...]
 
 
 ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
