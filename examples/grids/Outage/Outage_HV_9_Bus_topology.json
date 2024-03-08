@@ -3986,7 +3986,7 @@
         }
       },
       "system_type": "BATTERY_STORAGE",
-      "type": "PRODUCER",
+      "type": "STORAGE",
       "voltage_system_type": "AC"
     },
     {
