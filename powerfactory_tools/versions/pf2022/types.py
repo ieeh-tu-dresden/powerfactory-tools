@@ -11,9 +11,9 @@ import typing as t
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from powerfactory_tools.versions.types import Currency
-    from powerfactory_tools.versions.types import FolderType
-    from powerfactory_tools.versions.types import MetricPrefix
+    from powerfactory_tools.base.types import Currency
+    from powerfactory_tools.base.types import FolderType
+    from powerfactory_tools.base.types import MetricPrefix
 
 
 class LocalQCtrlMode(enum.Enum):

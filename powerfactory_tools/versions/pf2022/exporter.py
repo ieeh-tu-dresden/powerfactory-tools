@@ -64,13 +64,16 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
-from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.constants import DecimalDigits
-from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.exporter.load_power import ControlTypeFactory
-from powerfactory_tools.exporter.load_power import LoadPower
-from powerfactory_tools.quantities import QuantityConverter as Qc
+from powerfactory_tools.base.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.base.constants import DecimalDigits
+from powerfactory_tools.base.constants import Exponents
+from powerfactory_tools.base.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.base.load_power import ControlTypeFactory
+from powerfactory_tools.base.load_power import LoadPower
+from powerfactory_tools.base.quantities import QuantityConverter as Qc
+from powerfactory_tools.base.types import PFClassId
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2022.interface import PYTHON_VERSIONS
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 from powerfactory_tools.versions.pf2022.types import CosPhiChar
 from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
@@ -97,8 +100,7 @@ from powerfactory_tools.versions.pf2022.types import TrfTapSide
 from powerfactory_tools.versions.pf2022.types import Vector
 from powerfactory_tools.versions.pf2022.types import VectorGroup
 from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
-from powerfactory_tools.versions.powerfactory import PF_VERSIONS
-from powerfactory_tools.versions.types import PFClassId
+from powerfactory_tools.versions.powerfactory import DEFAULT_PYTHON_VERSION
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -117,7 +119,6 @@ STRING_SEPARATOR = "; "
 STRING_DO_NOT_EXPORT = "do_not_export"
 
 LOAD_CLASSES = [PFClassId.LOAD, PFClassId.LOAD_LV, PFClassId.LOAD_LV_PART, PFClassId.LOAD_MV]
-POWERFACTORY_PATH = PF_VERSIONS["2022"]["pf_path"]
 
 
 @pydantic.dataclasses.dataclass
@@ -141,7 +142,9 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         export_path: pathlib.Path,
         project_name: str,
         powerfactory_user_profile: str = "",
-        powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
+        powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
+        powerfactory_service_pack: int | None = None,
+        python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
         topology_name: str | None = None,
@@ -154,6 +157,8 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.project_name = project_name
         self.powerfactory_user_profile = powerfactory_user_profile
         self.powerfactory_path = powerfactory_path
+        self.powerfactory_service_pack = powerfactory_service_pack
+        self.python_version = python_version
         self.logging_level = logging_level
         self.log_file_path = log_file_path
         self.topology_name = topology_name
@@ -182,8 +187,9 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
 class PowerFactoryExporter:
     project_name: str
     powerfactory_user_profile: str = ""
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
+    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -193,6 +199,7 @@ class PowerFactoryExporter:
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
         )
@@ -3919,12 +3926,14 @@ class PowerFactoryExporter:
         return phases
 
 
-def export_powerfactory_data(
+def export_powerfactory_data(  # noqa: PLR0913
     *,
     export_path: pathlib.Path,
     project_name: str,
     powerfactory_user_profile: str = "",
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
+    powerfactory_service_pack: int | None = None,
+    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
     topology_name: str | None = None,
@@ -3944,6 +3953,8 @@ def export_powerfactory_data(
         project_name {str} -- project name in PowerFactory to which the grid belongs
         powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
         powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
+        powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
+        python_version {PYTHON_VERSIONS} -- the version of Python to be used for PowerFactory (default: {DEFAULT_PYTHON_VERSION})
         logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
         log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
         topology_name {str} -- the chosen file name for 'topology' data (default: {None})
@@ -3960,6 +3971,8 @@ def export_powerfactory_data(
         export_path=export_path,
         powerfactory_user_profile=powerfactory_user_profile,
         powerfactory_path=powerfactory_path,
+        powerfactory_service_pack=powerfactory_service_pack,
+        python_version=python_version,
         logging_level=logging_level,
         log_file_path=log_file_path,
         topology_name=topology_name,

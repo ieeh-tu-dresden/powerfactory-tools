@@ -21,7 +21,11 @@ from collections.abc import Sequence
 import loguru
 import pydantic
 
-from powerfactory_tools.constants import BaseUnits
+from powerfactory_tools.base.constants import BaseUnits
+from powerfactory_tools.base.types import Currency
+from powerfactory_tools.base.types import FolderType
+from powerfactory_tools.base.types import MetricPrefix
+from powerfactory_tools.base.types import PFClassId
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
@@ -32,11 +36,6 @@ from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcTy
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
 from powerfactory_tools.versions.pf2022.types import UnitSystem
 from powerfactory_tools.versions.pf2022.types import ValidPFValue
-from powerfactory_tools.versions.powerfactory import DEFAULT_PF_PATH as POWERFACTORY_PATH
-from powerfactory_tools.versions.types import Currency
-from powerfactory_tools.versions.types import FolderType
-from powerfactory_tools.versions.types import MetricPrefix
-from powerfactory_tools.versions.types import PFClassId
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -49,7 +48,10 @@ if t.TYPE_CHECKING:
     T = t.TypeVar("T")
 
 PATH_SEP = "/"
-
+DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
+POWERFACTORY_VERSION = "PowerFactory 2022"
+PYTHON_VERSIONS = t.Literal["3.6", "3.7", "3.8", "3.9", "3.10"]
+DEFAULT_PYTHON_VERSION = "3.10"
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -87,11 +89,12 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
     powerfactory_ini_name: str | None = None
+    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -173,9 +176,10 @@ class PowerFactoryInterface:
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         loguru.logger.debug("Loading PowerFactory Python module...")
         module_path = (
-            self.powerfactory_path / "PowerFactory 2022" / "Python" / "3.10"
+            self.powerfactory_path / POWERFACTORY_VERSION / "Python" / self.python_version
             if self.powerfactory_service_pack is None
-            else self.powerfactory_path / f"PowerFactory 2022 SP{self.powerfactory_service_pack}" / "Python" / "3.10"
+            else self.powerfactory_path / POWERFACTORY_VERSION
+            + f" SP{self.powerfactory_service_pack}" / "Python" / self.python_version
         )
         spec = importlib.util.spec_from_file_location(
             "powerfactory",
@@ -253,11 +257,10 @@ class PowerFactoryInterface:
             command_line_arg = None
         else:
             ini_path = (
-                self.powerfactory_path / "PowerFactory 2022" / (self.powerfactory_ini_name + ".ini")
+                self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
                 if self.powerfactory_service_pack is None
-                else self.powerfactory_path
-                / f"PowerFactory 2022 SP{self.powerfactory_service_pack}"
-                / (self.powerfactory_ini_name + ".ini")
+                else self.powerfactory_path / POWERFACTORY_VERSION
+                + f" SP{self.powerfactory_service_pack}" / (self.powerfactory_ini_name + ".ini")
             )
             command_line_arg = '/ini "' + str(ini_path) + '"'
         try:
