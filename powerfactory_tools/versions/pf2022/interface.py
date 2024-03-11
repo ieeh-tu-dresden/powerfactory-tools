@@ -6,10 +6,8 @@
 from __future__ import annotations
 
 import datetime as dt
-import importlib.util
 import logging
 import pathlib
-import sys
 import typing as t
 
 import loguru
@@ -22,9 +20,6 @@ from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
-    from types import TracebackType
-
-    import typing_extensions as te
 
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
@@ -52,8 +47,8 @@ class PowerFactoryInterface(PowerFactoryInterfaceBase):
         try:
             self._set_logging_handler(self.log_file_path)
             loguru.logger.info("Starting PowerFactory Interface...")
-            pf = self.load_powerfactory_module_from_path()
-            self.app = self.connect_to_app(pf)
+            pfm = self.load_powerfactory_module_from_path(POWERFACTORY_VERSION)
+            self.app = self.connect_to_app(pfm, POWERFACTORY_VERSION)
             self.project = self.connect_to_project(self.project_name)
             self.load_project_setting_folders_from_pf_db()
             self.stash_unit_conversion_settings()
@@ -63,90 +58,6 @@ class PowerFactoryInterface(PowerFactoryInterfaceBase):
         except RuntimeError:
             loguru.logger.exception("Could not start PowerFactory Interface. Shutting down...")
             self.close()
-
-    def _set_logging_handler(self, log_file_path: pathlib.Path | None) -> None:
-        loguru.logger.remove(handler_id=0)
-        if log_file_path is None:
-            loguru.logger.add(
-                sink=sys.stdout,
-                colorize=True,
-                format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> <level>{file}:{line}</level> <white>{message}</white>",
-                filter="powerfactory_tools",
-                level=self.logging_level,
-            )
-        else:
-            loguru.logger.add(
-                sink=log_file_path,
-                format="{time:YYYY-MM-DD HH:mm:ss} {level} {file}:{line} {message}",
-                filter="powerfactory_tools",
-                level=self.logging_level,
-                enqueue=True,
-            )
-
-    def __enter__(self) -> te.Self:
-        return self
-
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
-        self.close()
-
-    def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
-        loguru.logger.debug("Loading PowerFactory Python module...")
-        module_path = (
-            self.powerfactory_path / POWERFACTORY_VERSION / "Python" / self.python_version
-            if self.powerfactory_service_pack is None
-            else self.powerfactory_path / POWERFACTORY_VERSION
-            + f" SP{self.powerfactory_service_pack}" / "Python" / self.python_version
-        )
-        spec = importlib.util.spec_from_file_location(
-            "powerfactory",
-            module_path / "powerfactory.pyd",
-        )
-        if (spec is None) or (spec.loader is None):
-            msg = "Could not load PowerFactory Module."
-            raise RuntimeError(msg)
-
-        pfm = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(pfm)
-        return t.cast("PFTypes.PowerFactoryModule", pfm)
-
-    def connect_to_app(
-        self,
-        pf: PFTypes.PowerFactoryModule,
-    ) -> PFTypes.Application:
-        """Connect to PowerFactory Application.
-
-        Arguments:
-            pf {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
-
-        Returns:
-            PFTypes.Application -- the application handle (root)
-        """
-
-        loguru.logger.debug("Connecting to PowerFactory application...")
-        if self.powerfactory_ini_name is None:
-            command_line_arg = None
-        else:
-            ini_path = (
-                self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
-                if self.powerfactory_service_pack is None
-                else self.powerfactory_path / POWERFACTORY_VERSION
-                + f" SP{self.powerfactory_service_pack}" / (self.powerfactory_ini_name + ".ini")
-            )
-            command_line_arg = '/ini "' + str(ini_path) + '"'
-        try:
-            return pf.GetApplicationExt(
-                self.powerfactory_user_profile,
-                self.powerfactory_user_password,
-                command_line_arg,
-            )
-        except pf.ExitError as element:
-            msg = "Could not start application."
-            raise RuntimeError(msg) from element
 
     def compile_powerfactory_data(self, grid: PFTypes.Grid) -> PowerFactoryData:
         """Read out all relevant data from PowerFactory 2022 for a given grid and store as typed dataclass PowerFactroyData.

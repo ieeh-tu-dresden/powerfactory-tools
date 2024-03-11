@@ -9,7 +9,9 @@ import contextlib
 import dataclasses
 import datetime as dt
 import enum
+import importlib
 import itertools
+import logging
 import pathlib
 import sys
 import time
@@ -47,6 +49,8 @@ if t.TYPE_CHECKING:
 
 PATH_SEP = "/"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
+PYTHON_VERSIONS = t.Literal["3.6", "3.7", "3.8", "3.9", "3.10"]
+DEFAULT_PYTHON_VERSION = "3.10"
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -83,6 +87,15 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
+    project_name: str
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
+    powerfactory_service_pack: int | None = None
+    powerfactory_user_profile: str | None = None
+    powerfactory_user_password: str | None = None
+    powerfactory_ini_name: str | None = None
+    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
+    logging_level: int = logging.DEBUG
+    log_file_path: pathlib.Path | None = None
 
     def __post_init__(self) -> None:
         try:
@@ -129,6 +142,61 @@ class PowerFactoryInterface:
         exc_tb: TracebackType | None,
     ) -> None:
         self.close()
+
+    def load_powerfactory_module_from_path(self, pf_version: str) -> PFTypes.PowerFactoryModule:
+        loguru.logger.debug("Loading PowerFactory Python module...")
+        module_path = (
+            self.powerfactory_path / pf_version / "Python" / self.python_version
+            if self.powerfactory_service_pack is None
+            else self.powerfactory_path / pf_version
+            + f" SP{self.powerfactory_service_pack}" / "Python" / self.python_version
+        )
+        spec = importlib.util.spec_from_file_location(
+            "powerfactory",
+            module_path / "powerfactory.pyd",
+        )
+        if (spec is None) or (spec.loader is None):
+            msg = "Could not load PowerFactory Module."
+            raise RuntimeError(msg)
+
+        pfm = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(pfm)
+        return t.cast("PFTypes.PowerFactoryModule", pfm)
+
+    def connect_to_app(
+        self,
+        pfm: PFTypes.PowerFactoryModule,
+        pf_version: str,
+    ) -> PFTypes.Application:
+        """Connect to PowerFactory Application.
+
+        Arguments:
+            pf {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
+
+        Returns:
+            PFTypes.Application -- the application handle (root)
+        """
+
+        loguru.logger.debug("Connecting to PowerFactory application...")
+        if self.powerfactory_ini_name is None:
+            command_line_arg = None
+        else:
+            ini_path = (
+                self.powerfactory_path / pf_version / (self.powerfactory_ini_name + ".ini")
+                if self.powerfactory_service_pack is None
+                else self.powerfactory_path / pf_version
+                + f" SP{self.powerfactory_service_pack}" / (self.powerfactory_ini_name + ".ini")
+            )
+            command_line_arg = '/ini "' + str(ini_path) + '"'
+        try:
+            return pfm.GetApplicationExt(
+                self.powerfactory_user_profile,
+                self.powerfactory_user_password,
+                command_line_arg,
+            )
+        except pfm.ExitError as element:
+            msg = "Could not start application."
+            raise RuntimeError(msg) from element
 
     def load_project_setting_folders_from_pf_db(self) -> None:
         self.project_settings = self.load_project_settings_dir_from_pf()
