@@ -406,7 +406,7 @@ class ResultExportMode(enum.IntEnum):
     TEXT_FILE = 4
     PSSPLT_VERSION_2 = 5
     CSV = 6
-    DATABSE = 7
+    DATABASE = 7
 
 
 class ResultExportVariableSelection(enum.IntEnum):

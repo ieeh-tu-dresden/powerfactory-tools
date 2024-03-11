@@ -73,6 +73,7 @@ from powerfactory_tools.base.load_power import LoadPower
 from powerfactory_tools.base.quantities import QuantityConverter as Qc
 from powerfactory_tools.base.types import PFClassId
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
 from powerfactory_tools.versions.pf2022.interface import PYTHON_VERSIONS
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 from powerfactory_tools.versions.pf2022.types import CosPhiChar
@@ -100,7 +101,6 @@ from powerfactory_tools.versions.pf2022.types import TrfTapSide
 from powerfactory_tools.versions.pf2022.types import Vector
 from powerfactory_tools.versions.pf2022.types import VectorGroup
 from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
-from powerfactory_tools.versions.powerfactory import DEFAULT_PYTHON_VERSION
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
