@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from base.types import PowerFactoryTypes as PowerFactoryTypesBase
+from powerfactory_tools.base.types import PowerFactoryTypes as PowerFactoryTypesBase
 
 
 class PowerFactoryTypes(PowerFactoryTypesBase): ...

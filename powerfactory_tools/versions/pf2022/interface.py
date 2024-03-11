@@ -15,12 +15,9 @@ import pydantic
 
 from powerfactory_tools.base.interface import DEFAULT_POWERFACTORY_PATH
 from powerfactory_tools.base.interface import PowerFactoryInterface as PowerFactoryInterfaceBase
-from powerfactory_tools.base.types import PFClassId
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 
 if t.TYPE_CHECKING:
-    from collections.abc import Sequence
-
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
 
@@ -94,61 +91,3 @@ class PowerFactoryInterface(PowerFactoryInterfaceBase):
             efuses=self.efuses(grid_name=grid_name, calc_relevant=True),
             ac_current_sources=self.ac_current_sources(grid_name=grid_name, calc_relevant=True),
         )
-
-    def subloads_of(
-        self,
-        load: PFTypes.LoadLV,
-        /,
-    ) -> Sequence[PFTypes.LoadLVP]:
-        elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
-        return [t.cast("PFTypes.LoadLVP", element) for element in elements]
-
-    def load_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadLV | None:
-        return self.first_of(self.loads_lv(name, grid_name=grid_name))
-
-    def loads_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadLV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_LV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadLV", element) for element in elements]
-
-    def load_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadMV | None:
-        return self.first_of(self.loads_mv(name, grid_name=grid_name))
-
-    def loads_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadMV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_MV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadMV", element) for element in elements]

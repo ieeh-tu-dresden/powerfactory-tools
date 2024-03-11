@@ -22,6 +22,7 @@ import loguru
 import pydantic
 
 from powerfactory_tools.base.constants import BaseUnits
+from powerfactory_tools.base.data import PowerFactoryData
 from powerfactory_tools.base.types import CalculationCommand
 from powerfactory_tools.base.types import Currency
 from powerfactory_tools.base.types import FolderType
@@ -35,7 +36,6 @@ from powerfactory_tools.base.types import UnitSystem
 from powerfactory_tools.base.types import ValidPFValue
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -43,7 +43,7 @@ if t.TYPE_CHECKING:
 
     import typing_extensions as te
 
-    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.base.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
 
@@ -148,8 +148,10 @@ class PowerFactoryInterface:
         module_path = (
             self.powerfactory_path / pf_version / "Python" / self.python_version
             if self.powerfactory_service_pack is None
-            else self.powerfactory_path / pf_version
-            + f" SP{self.powerfactory_service_pack}" / "Python" / self.python_version
+            else self.powerfactory_path
+            / str(pf_version + f" SP{self.powerfactory_service_pack}")
+            / "Python"
+            / self.python_version
         )
         spec = importlib.util.spec_from_file_location(
             "powerfactory",
@@ -184,8 +186,9 @@ class PowerFactoryInterface:
             ini_path = (
                 self.powerfactory_path / pf_version / (self.powerfactory_ini_name + ".ini")
                 if self.powerfactory_service_pack is None
-                else self.powerfactory_path / pf_version
-                + f" SP{self.powerfactory_service_pack}" / (self.powerfactory_ini_name + ".ini")
+                else self.powerfactory_path
+                / str(pf_version + f" SP{self.powerfactory_service_pack}")
+                / (self.powerfactory_ini_name + ".ini")
             )
             command_line_arg = '/ini "' + str(ini_path) + '"'
         try:
@@ -650,14 +653,6 @@ class PowerFactoryInterface:
         if self.project.Deactivate():
             msg = "Could not deactivate project."
             raise RuntimeError(msg)
-
-    def subloads_of(
-        self,
-        load: PFTypes.LoadLV,
-        /,
-    ) -> Sequence[PFTypes.LoadLVP]:
-        elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
-        return [t.cast("PFTypes.LoadLVP", element) for element in elements]
 
     def variable_monitor(
         self,
@@ -1271,56 +1266,6 @@ class PowerFactoryInterface:
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Load", element) for element in elements]
-
-    def load_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadLV | None:
-        return self.first_of(self.loads_lv(name, grid_name=grid_name))
-
-    def loads_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadLV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_LV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadLV", element) for element in elements]
-
-    def load_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadMV | None:
-        return self.first_of(self.loads_mv(name, grid_name=grid_name))
-
-    def loads_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadMV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_MV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadMV", element) for element in elements]
 
     def generator(
         self,
@@ -2471,3 +2416,62 @@ class PowerFactoryInterface:
     ) -> bool:
         """Return true if branch fuse."""
         return fuse.bus1 is not None or fuse.bus2 is not None
+
+    ## The following may be part of version inconsistent behavior
+    def subloads_of(
+        self,
+        load: PFTypes.LoadLV,
+        /,
+    ) -> Sequence[PFTypes.LoadLVP]:
+        elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
+        return [t.cast("PFTypes.LoadLVP", element) for element in elements]
+
+    def load_lv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+    ) -> PFTypes.LoadLV | None:
+        return self.first_of(self.loads_lv(name, grid_name=grid_name))
+
+    def loads_lv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.LoadLV]:
+        elements = self.grid_elements(
+            class_name=PFClassId.LOAD_LV.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+        )
+        return [t.cast("PFTypes.LoadLV", element) for element in elements]
+
+    def load_mv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+    ) -> PFTypes.LoadMV | None:
+        return self.first_of(self.loads_mv(name, grid_name=grid_name))
+
+    def loads_mv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.LoadMV]:
+        elements = self.grid_elements(
+            class_name=PFClassId.LOAD_MV.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+        )
+        return [t.cast("PFTypes.LoadMV", element) for element in elements]

@@ -1526,7 +1526,7 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application: ...
 
-    ## The following may be part of version inconsitent behavior
+    ## The following may be part of version inconsistent behavior
     class LoadTypeLV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_LV
         Smax: float  # maximum apparent power for a single residential unit, per default in kVA
         cosphi: float  # power factor
