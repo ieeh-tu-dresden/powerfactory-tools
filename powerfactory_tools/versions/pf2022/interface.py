@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2024.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -14,16 +14,15 @@ import loguru
 import pydantic
 
 from powerfactory_tools.base.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.base.interface import DEFAULT_POWERFACTORY_VERSION
+from powerfactory_tools.base.interface import DEFAULT_PYTHON_VERSION
 from powerfactory_tools.base.interface import PowerFactoryInterface as PowerFactoryInterfaceBase
+from powerfactory_tools.base.interface import ValidPythonVersion
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 
 if t.TYPE_CHECKING:
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
-
-POWERFACTORY_VERSION = "PowerFactory 2022"
-PYTHON_VERSIONS = t.Literal["3.6", "3.7", "3.8", "3.9", "3.10"]
-DEFAULT_PYTHON_VERSION = "3.10"
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -36,7 +35,7 @@ class PowerFactoryInterface(PowerFactoryInterfaceBase):
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
     powerfactory_ini_name: str | None = None
-    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -44,8 +43,8 @@ class PowerFactoryInterface(PowerFactoryInterfaceBase):
         try:
             self._set_logging_handler(self.log_file_path)
             loguru.logger.info("Starting PowerFactory Interface...")
-            pfm = self.load_powerfactory_module_from_path(POWERFACTORY_VERSION)
-            self.app = self.connect_to_app(pfm, POWERFACTORY_VERSION)
+            pfm = self.load_powerfactory_module_from_path(DEFAULT_POWERFACTORY_VERSION)
+            self.app = self.connect_to_app(pfm, DEFAULT_POWERFACTORY_VERSION)
             self.project = self.connect_to_project(self.project_name)
             self.load_project_setting_folders_from_pf_db()
             self.stash_unit_conversion_settings()

@@ -72,8 +72,8 @@ from powerfactory_tools.base.exporter.load_power import ControlTypeFactory
 from powerfactory_tools.base.exporter.load_power import LoadPower
 from powerfactory_tools.base.interface import DEFAULT_POWERFACTORY_PATH
 from powerfactory_tools.base.interface import DEFAULT_PYTHON_VERSION
-from powerfactory_tools.base.interface import PYTHON_VERSIONS
 from powerfactory_tools.base.interface import PowerFactoryInterface
+from powerfactory_tools.base.interface import ValidPythonVersion
 from powerfactory_tools.base.quantities import QuantityConverter as Qc
 from powerfactory_tools.base.types import CosPhiChar
 from powerfactory_tools.base.types import CtrlVoltageRef
@@ -143,7 +143,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
-        python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
+        python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
         topology_name: str | None = None,
@@ -188,7 +188,7 @@ class PowerFactoryExporter:
     powerfactory_user_profile: str = ""
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
-    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -2219,7 +2219,7 @@ class PowerFactoryExporter:
         The element states contain no node reference.
 
         Arguments:
-            elements {Sequence[ElementBase} -- sequence of one-sided connected PowerFactory objects
+            elements {Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W} -- sequence of one-sided connected PowerFactory objects
 
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
@@ -3932,7 +3932,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     powerfactory_user_profile: str = "",
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
-    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
     topology_name: str | None = None,

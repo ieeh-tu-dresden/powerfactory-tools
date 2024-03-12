@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 import multiprocessing
-import pathlib
 import typing as t
 
 import loguru
@@ -21,16 +20,16 @@ from psdm.topology_case.case import Case as TopologyCase
 from powerfactory_tools.__version__ import VERSION
 from powerfactory_tools.base.exporter.exporter import PowerFactoryExporter as PowerFactoryExporterBase
 from powerfactory_tools.base.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.base.interface import ValidPythonVersion
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
-from powerfactory_tools.versions.pf2022.interface import PYTHON_VERSIONS
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 
 if t.TYPE_CHECKING:
     import pathlib
     from collections.abc import Sequence
 
+    from powerfactory_tools.base.types import PowerFactoryTypes as PFTypes
     from powerfactory_tools.versions.pf2022.data import PowerFactoryData
-    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
@@ -44,7 +43,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
-        python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
+        python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
         topology_name: str | None = None,
@@ -85,7 +84,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryExporter(PowerFactoryExporterBase):
-    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
 
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
@@ -237,7 +236,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     powerfactory_user_profile: str = "",
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
-    python_version: PYTHON_VERSIONS = DEFAULT_PYTHON_VERSION,
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
     topology_name: str | None = None,
