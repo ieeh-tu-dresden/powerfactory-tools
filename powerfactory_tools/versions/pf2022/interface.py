@@ -21,6 +21,7 @@ from collections.abc import Sequence
 import loguru
 import pydantic
 
+from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.constants import BaseUnits
@@ -308,6 +309,13 @@ class PowerFactoryInterface:
             project_name=project_name,
         )
         return project
+
+    @staticmethod
+    def resolve_pf_error_code(error: PFTypes.PowerFactoryExitError) -> ErrorCode:
+        try:
+            return ErrorCode(error.code)
+        except ValueError:
+            return ErrorCode.UNKNOWN_ERROR_OCCURED
 
     def switch_study_case(self, study_case_name: str) -> PFTypes.StudyCase:
         study_case = self.study_case(study_case_name)

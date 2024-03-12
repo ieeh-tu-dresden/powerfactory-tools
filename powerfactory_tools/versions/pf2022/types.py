@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import enum
 import typing as t
+from typing import Protocol
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -1515,8 +1516,8 @@ class PowerFactoryTypes:
         def ResetCalculation(self) -> None:  # noqa: N802
             ...
 
-    class PowerFactoryModule(t.Protocol):
-        ExitError: tuple[type[Exception], ...]
+    class PowerFactoryModule(Protocol):
+        ExitError: tuple[type[PowerFactoryTypes.PowerFactoryExitError], ...]
 
         def GetApplicationExt(  # noqa: N802
             self,
@@ -1525,6 +1526,10 @@ class PowerFactoryTypes:
             command_line_arguments: str | None = None,
             /,
         ) -> PowerFactoryTypes.Application: ...
+
+    class PowerFactoryExitError(Exception):
+        code: int
+        args: tuple[t.Any, ...]
 
     ## The following may be part of version inconsistent behavior
     class LoadTypeLV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_LV
