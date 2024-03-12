@@ -6,7 +6,9 @@ Examples for application of powerfactory exporter and controller.
   - [Export Functionalities](#export-functionalities)
   - [Control Functionalities](#control-functionalities)
   - [Raw PSDM Import](#import-functionalities)
-  - [PowerFactory Example Project](#-powerfactory-example-project)
+  - [PowerFactory Example Project](#powerfactory-example-project)
+
+The whole examples are based on the PowerFactory version `2022`!
 
 ## <div id="export-functionalities" /> Export Functionalities
 
@@ -26,12 +28,12 @@ to three different json files using the [power system data model (psdm)][link_to
 
 ### Usage
 
-**Please note** that default values for the installation directory and version number of PowerFactory are used.
-The user can adapt `powerfactory_path` and `powerfactory_version` when initializing the [PowerFactoryInterface][link_to_interface].
+**Please note**, that default values for the PowerFactory installation path and the Python version are used.
+If necessary, one can adapt `powerfactory_path`, `powerfactory_service_pack` and `python_version` when initializing the [PowerFactoryExporter][link_to_exporter].
 
 By default, **all assests of all active grids** within the selected PowerFactory project are to be exported.
-- The preferred way for export is to first define study cases in PowerFactory und then assign the desired study cases to the `export()` function call, see [export example](powerfactory_export.ipynb).
-- For more control, the user can select _study cases_, _operation scenarios_ and _grid variations_ before export, see [control example 7-9](powerfactory_control.ipynb).
+- The preferred way for export is to assign the desired study cases to the `export()` function call, see [export example](powerfactory_export.ipynb).
+- Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control example 7-9](powerfactory_control.ipynb).
 
 The following figure provides a short overview of the dependencies within a PowerFactory project.
 
@@ -54,11 +56,11 @@ The example includes:
 
 ## <div id="import-functionalities" /> Raw PSDM Import
 
-The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is provided to how to apply a raw import of a given (exported) PSDM grid representation.
+The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is provided to see how to apply a raw import of a given (exported) PSDM grid representation.
 
 Here, `PSDM class objects` are generated out of a given `json`-file.
 
-## <div id="example project" /> PowerFactory Example Project
+## <div id="powerfactory-example-project" /> PowerFactory Example Project
 The related PowerFactory example project `PF2022_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
 The project contains:
 - 3-bus high voltage grid
@@ -122,5 +124,5 @@ This grid is an extension to the 'HV_9_Bus' grid and contains:
 ![MV_2_Bus grid](./grids/MV_2_Bus.png)
 
 [link_to_example_grids]: ./grids
-[link_to_interface]: ../powerfactory_tools/interface.py
+[link_to_exporter]: ../powerfactory_tools/versions/pf2022/exporter/exporter.py
 [link_to_psdm]: https://github.com/ieeh-tu-dresden/power-system-data-model

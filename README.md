@@ -5,14 +5,15 @@
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
-  - [Field of Application](#-field-of-application)
-  - [Tutorials](#-tutorials)
-  - [General Remarks](#-general-remarks)
-  - [Installation](#-installation)
-  - [Compatibility](#-compatibility)
-  - [Development](#-development)
-  - [Acknowledgement](#-acknowledgement)
-  - [Attribution](#-attribution)
+  - [Field of Application](#application)
+  - [PowerFactory Interface](#interface)
+  - [General Remarks on Export](#remarks)
+  - [Tutorials](#tutorials)
+  - [Installation](#installation)
+  - [Compatibility](#compatibility)
+  - [Development](#development)
+  - [Acknowledgement](#acknowledgement)
+  - [Attribution](#attribution)
 
 ## <div id="application" /> Field of Application
 
@@ -21,27 +22,29 @@ Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
 The following functionalities are provided:
 
-- export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model)
-- basic control of PowerFactory
-- [intended in future release] import from external grid data into the PowerFactory environment
+- **Interface**: collection of comfort functions for the work with the PowerFactory API
+- **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
+- **Importer**: import from external grid data into the PowerFactory environment [intended in future release]
 
-## <div id="tutorials" /> Tutorials
-
-Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
-
-- for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-- for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
-
-In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
+**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`) of PowerFactory, all functionalities are set up individual for main versions.
 
 
-## <div id="remarks" /> General Remarks on Export
+## <div id="interface" /> PowerFactory Interface
+The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py), that provides comfort functions to:
+- connect to PowerFactory
+- create and alter PowerFactory elements ("physical" elements, "organizational" elements, commands, etc.)
+- collect PowerFactory elements of specific types
+- execute PowerFactory commands
+- ...
 
-Please find below some important general remarks and assumptions to consider for the application:
+## <div id="remarks" /> General Remarks
+
+Please find below some important general remarks and assumptions to consider for the application.
 
 ### General
 
-After successful connection to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/interface.py), a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
+A connection to PowerFactory is established via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
+After this initialization, a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
 During an active connection, the following units apply:
 
 - power in MW
@@ -51,7 +54,9 @@ During an active connection, the following units apply:
 
 ### Exporter
 
-- The grid export follows the rules of usage recommended by [psdm](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
+The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
+
+- The grid export follows the rules of usage recommended by [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
   - The passive sign convention is used for all types of loads (consumer as well as producer).
   - The `Rated Power` is always defined positive (absolute value).
 - By default, all assests of all active grids within the selected study case are to be exported, see [example readme](./examples/README.md).
@@ -77,24 +82,33 @@ During an active connection, the following units apply:
   - The default load model of medium-voltage loads (`ElmLodmv`) is of type `const. power`.
   - The default load model of low-voltage loads (`ElmLodlv`, `ElmLodlvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower - as_rated_power()](./powerfactory_tools/exporter/load_power.py).
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower - as_rated_power()](./powerfactory_tools/versions/pf2022/exporter/load_power.py).
   - Connected consumer loads with an active and reactive power of zero leads to a RatedPower of `NaN`. Consider to exclude them for export.
 
 - Remarks on export of `transformer`:
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./powerfactory_tools/exporter/exporter.py).
+  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./powerfactory_tools/versions/pf2022/exporter/exporter.py).
 
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
 
 - Remarks on export of the `SteadyStateCase`:
-  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [Power System Data Model](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
+  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
   - By default a consumer load has a Q-controller of type `CosPhiConst`, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory, then it's `QConst`.
   - It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
   The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported operating point of *Q* is the same that set by the station controller.
+
+## <div id="tutorials" /> Tutorials
+
+Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
+
+- for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
+- for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+
+In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
 
 ## <div id="installation" /> Installation
 
