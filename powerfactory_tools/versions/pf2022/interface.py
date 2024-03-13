@@ -160,7 +160,7 @@ class PowerFactoryInterface:
             self.powerfactory_path / POWERFACTORY_VERSION / "Python" / self.python_version.value
             if self.powerfactory_service_pack is None
             else self.powerfactory_path
-            / str(POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+            / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
             / "Python"
             / self.python_version.value
         )
@@ -194,7 +194,7 @@ class PowerFactoryInterface:
                 self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
                 if self.powerfactory_service_pack is None
                 else self.powerfactory_path
-                / str(POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+                / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
                 / (self.powerfactory_ini_name + ".ini")
             )
             command_line_arg = '/ini "' + str(ini_path) + '"'
