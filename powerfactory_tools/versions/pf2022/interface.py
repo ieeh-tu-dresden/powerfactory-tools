@@ -25,18 +25,22 @@ from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.constants import BaseUnits
+from powerfactory_tools.versions.pf2022.constants import Exponents
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 from powerfactory_tools.versions.pf2022.types import CalculationCommand
+from powerfactory_tools.versions.pf2022.types import ConGraphData
 from powerfactory_tools.versions.pf2022.types import Currency
 from powerfactory_tools.versions.pf2022.types import FolderType
+from powerfactory_tools.versions.pf2022.types import GraphData
 from powerfactory_tools.versions.pf2022.types import MetricPrefix
 from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
 from powerfactory_tools.versions.pf2022.types import PFClassId
 from powerfactory_tools.versions.pf2022.types import ResultExportMode
+from powerfactory_tools.versions.pf2022.types import SwitchType
 from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
 from powerfactory_tools.versions.pf2022.types import UnitSystem
-from powerfactory_tools.versions.pf2022.types import ValidPFValue
+from powerfactory_tools.versions.pf2022.types import ValidPFTypes
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -1418,6 +1422,22 @@ class PowerFactoryInterface:
         rv = [self.elements_of(g, pattern=name + "." + class_name) for g in self.grids(grid_name)]
         return self.list_from_sequences(*rv)
 
+    def grid_model_element(
+        self,
+        *,
+        class_name: str,
+        name: str = "*",
+        calc_relevant: bool = False,
+        include_out_of_service: bool = True,
+    ) -> PFTypes.DataObject | None:
+        elements = self.grid_model_elements(
+            class_name=class_name,
+            name=name,
+            calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
+        )
+        return self.first_of(elements)
+
     def grid_model_elements(
         self,
         *,
@@ -1446,13 +1466,7 @@ class PowerFactoryInterface:
         study_case_name: str = "*",
     ) -> PFTypes.DataObject | None:
         elements = self.study_case_elements(class_name=class_name, name=name, study_case_name=study_case_name)
-        if len(elements) == 0:
-            return None
-
-        if len(elements) > 1:
-            loguru.logger.warning("Found more then one element, returning only the first one.")
-
-        return elements[0]
+        return self.first_of(elements)
 
     def study_case_elements(
         self,
@@ -1472,13 +1486,7 @@ class PowerFactoryInterface:
         result_name: str = "*",
     ) -> PFTypes.DataObject | None:
         elements = self.result_elements(class_name=class_name, name=name, result_name=result_name)
-        if len(elements) == 0:
-            return None
-
-        if len(elements) > 1:
-            loguru.logger.warning("Found more then one element, returning only the first one.")
-
-        return elements[0]
+        return self.first_of(elements)
 
     def result_elements(
         self,
@@ -1489,6 +1497,33 @@ class PowerFactoryInterface:
     ) -> Sequence[PFTypes.DataObject]:
         rv = [self.elements_of(res, pattern=name + "." + class_name) for res in self.results(result_name)]
         return self.list_from_sequences(*rv)
+
+    def free_cubicle_for(self, element: PFTypes.Terminal, /) -> PFTypes.StationCubicle | None:
+        cubicles = [
+            t.cast("PFTypes.StationCubicle", e)
+            for e in self.elements_of(element, pattern="*." + PFClassId.CUBICLE.value)
+        ]
+        cubicles_free = [c for c in cubicles if c.obj_id is None]
+
+        if len(cubicles_free) > 0:
+            return cubicles_free[0]
+
+        return self.create_cubicle(name="Field", element=element)
+
+    def breaker_for(self, element: PFTypes.StationCubicle, /) -> PFTypes.Switch | None:
+        elm = self.create_switch(name="Breaker", element=element)
+        if elm is not None:
+            elm.aUsage = SwitchType.CIRCUIT_BREAKER.value  # type: ignore[assignment]
+            elm.on_off = True
+
+        return elm
+
+    def graph_of(self, element: PFTypes.DataObject, /) -> PFTypes.Graph | None:
+        return self.first_of(self.graphs_of(element))
+
+    def graphs_of(self, element: PFTypes.DataObject, /) -> Sequence[PFTypes.Graph]:
+        elements = self.elements_of(element, pattern="*." + PFClassId.GRAPHIC.value)
+        return [t.cast("PFTypes.Graph", element) for element in elements]
 
     def first_of(
         self,
@@ -1548,7 +1583,7 @@ class PowerFactoryInterface:
         element: PFTypes.DataObject,
         result: PFTypes.Result,
         variables: Sequence[str],
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.VariableMonitor | None:
@@ -1558,7 +1593,7 @@ class PowerFactoryInterface:
             element {PFTypes.DataObject} -- the element for which variable monitors are to be created
             result {PFTypes.Result} -- the related result object the variable monitor is to be created within
             variables {Sequence[str]} -- a list of variable names to be monitored
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
             update {bool} -- Flag to update object attributes if objects already exists (default: {True})
 
@@ -1589,7 +1624,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         study_case: PFTypes.StudyCase,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Result | None:
@@ -1598,7 +1633,7 @@ class PowerFactoryInterface:
          Keyword Arguments:
             name {str} -- the name of the result
             study_case {PFTypes.StudyCase} -- the related study case the result is to be created within (default: {None})
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
             update {bool} -- Flag to update object attributes if objects already exists (default: {True})
 
@@ -1621,7 +1656,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         location: PFTypes.DataObject | None = None,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.Scenario | None:
@@ -1630,7 +1665,7 @@ class PowerFactoryInterface:
          Keyword Arguments:
             name {str} -- the name of the scenario
             location {PFTypes.DataObject | None} -- the folder within which the scenario should be created (default: {None}).
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- flag to force the creation, nonetheless if scenario already exits (default: {False}).
             update {bool} -- flag to update object attributes if objects already exists (default: {True}).
 
@@ -1737,7 +1772,7 @@ class PowerFactoryInterface:
         name: str,
         stage_name: str = "initial stage",
         location: PFTypes.DataObject | None = None,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.GridVariant | None:
@@ -1747,7 +1782,7 @@ class PowerFactoryInterface:
             name {str} -- The name of the grid variant to be created.
             stage_name {str} -- The name of the variant stage related to the grid variant; at least one active stage is necessary (default: {"initial stage"}).
             location {PFTypes.DataObject | None} -- The folder within which the variant should be created (default: {None}).
-            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation, nonetheless if variant already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1791,7 +1826,7 @@ class PowerFactoryInterface:
         *,
         name: str,
         grid_variant: PFTypes.GridVariant,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.GridVariantStage | None:
@@ -1800,7 +1835,7 @@ class PowerFactoryInterface:
         Keyword Arguments:
             name {str} -- The given name of the grid variant stage.
             grid_variant {PFTypes.GridVariant} -- The name of the grid variant.
-            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation nonetheless if stage already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1863,13 +1898,555 @@ class PowerFactoryInterface:
             update=update,
         )
 
+    def create_terminal(  # noqa: PLR0913
+        self,
+        *,
+        name: str,
+        zone: str,
+        area: str,
+        phase_connection_type: t.Literal[0, 1, 2, 3, 4, 5, 7, 8],
+        node_type: t.Literal[0, 1, 2],
+        voltage: float,
+        serial_number: str,
+        description: str,
+        lat: float,
+        lon: float,
+        x_center: float | None = None,
+        y_center: float | None = None,
+        grid_name: str = "*",
+        create_graph: bool = True,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Terminal | None:
+        grid = self.grid(grid_name)
+        if grid is None:
+            return None
+
+        data: dict[str, ValidPFTypes] = {
+            "cpZone": zone,
+            "cpArea": area,
+            "phtech": phase_connection_type,
+            "iUsage": node_type,
+            "uknom": voltage,
+            "sernum": serial_number,
+            "desc": description,
+            "GPSlat": lat,
+            "GPSlon": lon,
+        }
+
+        element = self.create_grid_element(
+            name=name,
+            class_name=PFClassId.TERMINAL.value,
+            grid=grid,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if element is not None:
+            element = t.cast("PFTypes.Terminal", element)
+
+            if create_graph:
+                self.create_terminal_graph_element(
+                    name=name,
+                    grid_name=grid_name,
+                    terminal=element,
+                    x_center=x_center,
+                    y_center=y_center,
+                    force=force,
+                    update=update,
+                )
+
+        return element
+
+    def create_line(  # noqa: PLR0913
+        self,
+        *,
+        name: str,
+        node1_name: str,
+        node2_name: str,
+        line_type: PFTypes.LineType,
+        line_length: float,
+        line_amount: int,
+        serial_number: str,
+        breaker1_closed: bool,
+        breaker2_closed: bool,
+        grid_name: str = "*",
+        create_graph: bool = True,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Line | None:
+        grid = self.grid(grid_name)
+        if grid is None:
+            return None
+
+        term1 = self.terminal(node1_name)
+        term2 = self.terminal(node2_name)
+        if term1 is None or term2 is None:
+            return None
+
+        cub1 = self.free_cubicle_for(term1)
+        cub2 = self.free_cubicle_for(term2)
+        if cub1 is None or cub2 is None:
+            return None
+
+        breaker1 = self.breaker_for(cub1)
+        breaker2 = self.breaker_for(cub2)
+        if breaker1 is None or breaker2 is None:
+            return None
+
+        breaker1.on_off = breaker1_closed
+        breaker2.on_off = breaker2_closed
+
+        data: dict[str, ValidPFTypes] = {
+            "bus1": cub1,
+            "bus2": cub2,
+            "type_id": line_type,
+            "dline": line_length,
+            "nlnum": line_amount,
+            "sernum": serial_number,
+        }
+
+        element = self.create_grid_element(
+            name=name,
+            class_name=PFClassId.LINE.value,
+            grid=grid,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if element is not None:
+            element = t.cast("PFTypes.Line", element)
+
+            if create_graph:
+                self.create_line_graph_element(
+                    name=name,
+                    grid_name=grid_name,
+                    line=element,
+                    terminal1=term1,
+                    terminal2=term2,
+                    cubicle1=cub1,
+                    cubicle2=cub2,
+                    force=force,
+                    update=update,
+                )
+
+        return element
+
+    def create_load(  # noqa: PLR0913
+        self,
+        *,
+        name: str,
+        node1_name: str,
+        load_type: PFTypes.LoadType,
+        p: float,
+        q: float,
+        scale: float,
+        description: str,
+        grid_name: str = "*",
+        create_graph: bool = True,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Load | None:
+        grid = self.grid(grid_name)
+        if grid is None:
+            return None
+
+        term = self.terminal(node1_name)
+        if term is None:
+            return None
+
+        cub = self.free_cubicle_for(term)
+        if cub is None:
+            return None
+
+        data: dict[str, ValidPFTypes] = {
+            "typ_id": load_type,
+            "bus1": cub,
+            "plini": p / Exponents.POWER,
+            "qlini": q / Exponents.POWER,
+            "scale0": scale,
+            "desc": description,
+        }
+
+        element = self.create_grid_element(
+            name=name,
+            class_name=PFClassId.LOAD.value,
+            grid=grid,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if element is not None:
+            element = t.cast("PFTypes.Load", element)
+
+            if create_graph:
+                self.create_load_graph_element(
+                    name=name,
+                    grid_name=grid_name,
+                    load=element,
+                    terminal=term,
+                    cubicle=cub,
+                    force=force,
+                    update=update,
+                )
+
+        return element
+
+    def create_gen(  # noqa: PLR0913
+        self,
+        *,
+        name: str,
+        node1_name: str,
+        p: float,
+        q: float,
+        scale: float,
+        s: float,
+        description: str,
+        grid_name: str = "*",
+        create_graph: bool = True,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Generator | None:
+        grid = self.grid(grid_name)
+        if grid is None:
+            return None
+
+        term = self.terminal(node1_name)
+        if term is None:
+            return None
+
+        cub = self.free_cubicle_for(term)
+        if cub is None:
+            return None
+
+        data: dict[str, ValidPFTypes] = {
+            "bus1": cub,
+            "pqini": -p / Exponents.POWER,
+            "qqini": -q / Exponents.POWER,
+            "sgn": s,
+            "scale0": scale,
+            "desc": description,
+        }
+
+        element = self.create_grid_element(
+            name=name,
+            class_name=PFClassId.GENERATOR.value,
+            grid=grid,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if element is not None:
+            element = t.cast("PFTypes.Generator", element)
+
+            if create_graph:
+                self.create_generator_graph_element(
+                    name=name,
+                    grid_name=grid_name,
+                    generator=element,
+                    terminal=term,
+                    cubicle=cub,
+                    force=force,
+                    update=update,
+                )
+
+        return element
+
+    def create_terminal_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        terminal: PFTypes.Terminal,
+        x_center: float | None = None,
+        y_center: float | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        data: GraphData = {
+            "rCenterX": x_center if x_center is not None else 0.0,
+            "rCenterY": y_center if y_center is not None else 0.0,
+            "sSymName": "CircTerm1",
+            "pDataObj": terminal,
+            "rSizeX": 0.5,
+            "rSizeY": 0.5,
+        }
+        return self.create_grid_graph_element(
+            name=name,
+            grid_name=grid_name,
+            data=data,
+            force=force,
+            update=update,
+        )
+
+    def create_line_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        line: PFTypes.Line,
+        terminal1: PFTypes.Terminal,
+        terminal2: PFTypes.Terminal,
+        cubicle1: PFTypes.StationCubicle,
+        cubicle2: PFTypes.StationCubicle,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        term_graph1 = self.graph_of(terminal1)
+        term_graph2 = self.graph_of(terminal2)
+        if term_graph1 is None or term_graph2 is None:
+            return None
+
+        x1 = term_graph1.rCenterX
+        x2 = term_graph2.rCenterX
+        y1 = term_graph1.rCenterY
+        y2 = term_graph2.rCenterY
+        x0 = x1 + (x2 - x1) / 2
+        y0 = y1 + (y2 - y1) / 2
+
+        data: GraphData = {
+            "rCenterX": x0,
+            "rCenterY": y0,
+            "sSymName": "d_lin",
+            "pDataObj": line,
+            "rSizeX": 0.5,
+            "rSizeY": 0.5,
+        }
+        element = self.create_grid_graph_element(
+            name=name,
+            grid_name=grid_name,
+            data=data,
+            force=force,
+            update=update,
+        )
+        if element is not None:
+            self.create_con_graph_element(
+                location=element,
+                cubicle=cubicle1,
+                x0=x0,
+                x1=x1,
+                y0=y0,
+                y1=y1,
+                force=force,
+                update=update,
+            )
+            self.create_con_graph_element(
+                location=element,
+                cubicle=cubicle2,
+                x0=x0,
+                x1=x2,
+                y0=y0,
+                y1=y2,
+                force=force,
+                update=update,
+            )
+
+        return element
+
+    def create_device_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        device: PFTypes.Load | PFTypes.Generator,
+        terminal: PFTypes.Terminal,
+        cubicle: PFTypes.StationCubicle,
+        rotation: int,
+        symbol_name: t.Literal["d_load", "d_genstat"],
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        term_graph = self.graph_of(terminal)
+        if term_graph is None:
+            return None
+
+        x1 = term_graph.rCenterX
+        y1 = term_graph.rCenterY
+
+        x0 = x1 + 13.125
+        y0 = y1 - 13.125
+
+        data: GraphData = {
+            "rCenterX": x0,
+            "rCenterY": y0,
+            "sSymName": symbol_name,
+            "pDataObj": device,
+            "iRot": rotation,
+        }
+        element = self.create_grid_graph_element(
+            name=name,
+            grid_name=grid_name,
+            data=data,
+            force=force,
+            update=update,
+        )
+
+        if element is not None:
+            self.create_con_graph_element(
+                location=element,
+                cubicle=cubicle,
+                x0=x0,
+                x1=x1,
+                y0=y0,
+                y1=y1,
+                force=force,
+                update=update,
+            )
+
+        return element
+
+    def create_load_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        load: PFTypes.Load,
+        terminal: PFTypes.Terminal,
+        cubicle: PFTypes.StationCubicle,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        return self.create_device_graph_element(
+            name=name,
+            grid_name=grid_name,
+            device=load,
+            terminal=terminal,
+            cubicle=cubicle,
+            rotation=45,
+            symbol_name="d_load",
+            force=force,
+            update=update,
+        )
+
+    def create_generator_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        generator: PFTypes.Generator,
+        terminal: PFTypes.Terminal,
+        cubicle: PFTypes.StationCubicle,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        return self.create_device_graph_element(
+            name=name,
+            grid_name=grid_name,
+            device=generator,
+            terminal=terminal,
+            cubicle=cubicle,
+            rotation=225,
+            symbol_name="d_genstat",
+            force=force,
+            update=update,
+        )
+
+    def create_grid_graph_element(
+        self,
+        *,
+        name: str,
+        grid_name: str = "*",
+        data: GraphData,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.Graph | None:
+        graph = self.grid_model_element(class_name=PFClassId.GRID_GRAPHIC.value, name=grid_name)
+        if graph is None:
+            return None
+
+        element = self.create_object(
+            name=name,
+            class_name=PFClassId.GRAPHIC.value,
+            location=graph,
+            data=data,  # type: ignore[arg-type]
+            force=force,
+            update=update,
+        )
+        return t.cast("PFTypes.Graph", element) if element is not None else None
+
+    def create_con_graph_element(
+        self,
+        *,
+        location: PFTypes.Graph,
+        cubicle: PFTypes.StationCubicle,
+        x0: float,
+        x1: float,
+        y0: float,
+        y1: float,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.ConnectionGraph | None:
+        rx = [-1.0] * 20
+        rx[0] = x0
+        rx[1] = x1
+
+        ry = [-1.0] * 20
+        ry[0] = y0
+        ry[1] = y1
+
+        bus_no = cubicle.obj_bus + 1
+
+        data: ConGraphData = {
+            "iGrfNr": bus_no,
+            "iDatConNr": cubicle.obj_bus,
+            "rX": rx,
+            "rY": ry,
+        }
+
+        element = self.create_object(
+            name=f"GCO_{bus_no}",
+            class_name=PFClassId.CONNECTION_GRAPHIC.value,
+            location=location,
+            data=data,  # type: ignore[arg-type]
+            force=force,
+            update=update,
+        )
+        return t.cast("PFTypes.ConnectionGraph", element) if element is not None else None
+
+    def create_grid_element(
+        self,
+        *,
+        name: str,
+        class_name: str,
+        grid: PFTypes.Grid,
+        data: dict[str, ValidPFTypes] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.DataObject | None:
+        return self.create_object(
+            name=name,
+            class_name=class_name,
+            location=grid,
+            data=data,
+            force=force,
+            update=update,
+        )
+
+    def create_cubicle(
+        self,
+        *,
+        name: str,
+        element: PFTypes.Terminal,
+    ) -> PFTypes.StationCubicle | None:
+        elm = self.create_object(name=name, class_name=PFClassId.CUBICLE.value, location=element)
+        return t.cast("PFTypes.StationCubicle", elm) if elm is not None else None
+
+    def create_switch(
+        self,
+        *,
+        name: str,
+        element: PFTypes.DataObject,
+    ) -> PFTypes.Switch | None:
+        elm = self.create_object(name=name, class_name=PFClassId.SWITCH.value, location=element)
+        return t.cast("PFTypes.Switch", elm) if elm is not None else None
+
     def create_object(
         self,
         *,
         name: str,
         class_name: str,
         location: PFTypes.DataObject,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.DataObject | None:
@@ -1882,7 +2459,7 @@ class PowerFactoryInterface:
             name {str} -- The name of the grid variant to be created.
             class_name {str} -- The PowerFactory class name string for the type of object.
             location {PFTypes.DataObject} -- The directory the object should be created in.
-            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -1915,7 +2492,7 @@ class PowerFactoryInterface:
         element: PFTypes.DataObject,
         /,
         *,
-        data: dict[str, ValidPFValue],
+        data: dict[str, ValidPFTypes],
     ) -> PFTypes.DataObject:
         for key, value in data.items():
             if getattr(element, key, None) is not None:
@@ -1968,14 +2545,14 @@ class PowerFactoryInterface:
         *,
         ac: bool = True,
         symmetrical: bool = True,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
     ) -> PFTypes.CommandLoadFlow:
         """Creates a new / collect a command object of type ComLdf.
 
         Args:
             ac {bool} -- flag for AC or DC load flow. (default: {True})
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
             {PFTypes.CommandLoadFlow} -- the load flow command object.
@@ -2002,7 +2579,7 @@ class PowerFactoryInterface:
         sim_type: TimeSimulationType,
         symmetrical: bool = True,
         result: PFTypes.Result | None = None,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
     ) -> PFTypes.CommandTimeSimulationStart:
         """Creates a new / collects a command object of type ComInc.
 
@@ -2010,7 +2587,7 @@ class PowerFactoryInterface:
             sim_type {TimeSimulationType} -- flag to choose between RMS and EMT.
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
              {PFTypes.CommandTimeSimulationStart} -- the command object.
@@ -2064,7 +2641,7 @@ class PowerFactoryInterface:
         export_mode: ResultExportMode,
         file_name: str | None = None,
         name: str = "Result Export",
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
         force: bool = False,
         update: bool = True,
     ) -> PFTypes.CommandResultExport | None:
@@ -2077,7 +2654,7 @@ class PowerFactoryInterface:
             export_mode {ResultExportMode} -- the export mode to be used (eg. CSV or COMTRADE)
             file_name {str | None} -- name of the export file. (defaults: {None}).
             name {str} -- the name of the command itself.  (defaults: {"Result Export"}).
-            data {dict[str, ValidPFValue] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
+            data {dict[str, ValidPFTypes] | None} -- A dictionary with name-value-pairs of object attributes (default: {None}).
             force {bool} -- Flag to force the creation of the object nonetheless if it already exits (default: {False}).
             update {bool} -- Flag to update object attributes if objects already exists (default: {True}).
 
@@ -2158,14 +2735,14 @@ class PowerFactoryInterface:
         *,
         ac: bool = True,
         symmetrical: bool = True,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
     ) -> PFTypes.Result | None:
         """Wrapper for load flow calculation.
 
         Keyword Arguments:
             ac {bool} -- the voltage system used for load flow calculation (default: {True}).
             symmetrical {bool} -- flag to indicate symmetrical (positive sequence based) or unsymmetrical load flow (3phase natural components based) (default: {True}).
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
             {PFTypes.Result | None} -- The default result object of load flow.
@@ -2185,7 +2762,7 @@ class PowerFactoryInterface:
         *,
         symmetrical: bool = True,
         result: PFTypes.Result | None = None,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
     ) -> PFTypes.Result | None:
         """Wrapper to easily run RMS time simulation.
 
@@ -2194,7 +2771,7 @@ class PowerFactoryInterface:
         Keyword Arguments:
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
             {PFTypes.Result | None} -- The result object related to the RMS simualtion.
@@ -2225,7 +2802,7 @@ class PowerFactoryInterface:
         /,
         *,
         result: PFTypes.Result | None = None,
-        data: dict[str, ValidPFValue] | None = None,
+        data: dict[str, ValidPFTypes] | None = None,
     ) -> PFTypes.Result | None:
         """Wrapper to easily run EMT time simulation.
 
@@ -2233,7 +2810,7 @@ class PowerFactoryInterface:
             time {float}: simualtion time in seconds
         Keyword Arguments:
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
-            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
+            data {dict[str, ValidPFTypes] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
             {PFTypes.Result | None} -- the result object related to the EMT simualtion.

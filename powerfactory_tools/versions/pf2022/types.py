@@ -12,22 +12,26 @@ from typing import Protocol
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
 
+    import typing_extensions as te
+
 
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
     COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
     COMPOUND_MODEL = "ElmComp"  # e.g. a compound generator with multiple functional slots as part of a template model
+    CONNECTION_GRAPHIC = "IntGrfcon"
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
-    EXTERNAL_GRID = "ElmXNet"
     DATETIME = "SetTime"
     DESKTOP = "SetDesktop"
     DSL_MODEL = "ElmDsl"
+    EXTERNAL_GRID = "ElmXNet"
     FOLDER = "IntFolder"
     FUSE = "RelFuse"
     FUSE_TYPE = "TypFuse"
     GENERATOR = "ElmGenstat"
+    GRAPHIC = "IntGrf"
     GRID = "ElmNet"
     GRID_GRAPHIC = "IntGrfnet"
     LINE = "ElmLne"
@@ -355,6 +359,14 @@ class VectorGroup(enum.Enum):
     YNzn11 = "YNzn11"
 
 
+class SwitchType(enum.Enum):
+    CIRCUIT_BREAKER = "cbk"
+    DISCONNECTOR = "dct"
+    SWITCH_DISCONNECTOR = "sdc"
+    LOAD_SWITCH = "swt"
+    DISCONNECTING_CIRCUIT_BREAKER = "dcb"
+
+
 class TrfPhaseTechnology(enum.IntEnum):
     SINGLE_PH_E = 1
     SINGLE_PH = 2
@@ -494,6 +506,16 @@ class CalculationType(enum.IntEnum):  # only excerpt
     SENSITIVITY_FACTORS = 31
 
 
+class BusIndexType(enum.IntEnum):
+    LEFT = 0
+    RIGHT = 1
+
+
+class GraphConIndexType(enum.IntEnum):
+    LEFT = 1
+    RIGHT = 2
+
+
 class CalculationCommand(enum.Enum):  # only excerpt
     CONTINGENCY_ANALYSIS = "ComContingency"
     FLICKER = "ComFlickermeter"
@@ -569,6 +591,23 @@ class ResultExportNumberFormat(enum.IntEnum):
     SCIENTIFIC = 1
 
 
+class GraphData(t.TypedDict):
+    sSymName: str
+    pDataObj: PowerFactoryTypes.DataObject | None
+    rCenterX: float
+    rCenterY: float
+    rSizeX: te.NotRequired[float]
+    rSizeY: te.NotRequired[float]
+    iRot: te.NotRequired[int]
+
+
+class ConGraphData(t.TypedDict):
+    rX: t.Sequence[float]
+    rY: t.Sequence[float]
+    iGrfNr: int
+    iDatConNr: int
+
+
 class PowerFactoryTypes:
     class DataObject(t.Protocol):
         loc_name: str
@@ -627,7 +666,7 @@ class PowerFactoryTypes:
     class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
         ...
 
-    class Graph(DataObject, t.Protocol):
+    class Graph(DataObject, t.Protocol):  # PFClassId.GRAPHIC
         sSymName: str  # noqa: N815
         pDataObj: PowerFactoryTypes.DataObject | None  # noqa: N815
         rCenterX: float  # noqa: N815
@@ -640,6 +679,12 @@ class PowerFactoryTypes:
         iCollapsed: bool  # noqa: N815
         iIndLS: int  # noqa: N815
         iVis: bool  # noqa: N815
+
+    class ConnectionGraph(DataObject, t.Protocol):  # PFClassId.CONNECTION_GRAPHIC
+        rX: t.Sequence[float]  # noqa: N815
+        rY: t.Sequence[float]  # noqa: N815
+        iGrfNr: GraphConIndexType  # noqa: N815
+        iDatConNr: BusIndexType  # noqa: N815
 
     class Project(DataObject, t.Protocol):
         pPrjSettings: PowerFactoryTypes.ProjectSettings  # noqa: N815
@@ -889,6 +934,7 @@ class PowerFactoryTypes:
         obj_id: PowerFactoryTypes.Line | PowerFactoryTypes.Element | None
         nphase: int
         cPhInfo: str  # noqa: N815
+        obj_bus: BusIndexType
 
     class Transformer2W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_2W
         buslv: PowerFactoryTypes.StationCubicle | None
@@ -1039,6 +1085,8 @@ class PowerFactoryTypes:
     class Switch(DataObject, t.Protocol):  # PFClassId.SWITCH
         fold_id: PowerFactoryTypes.StationCubicle
         isclosed: bool  # 0:open; 1:closed
+        on_off: bool  # 0:open; 1:closed
+        aUsage: SwitchType  # noqa: N815
 
     class Line(LineBase, t.Protocol):  # PFClassId.LINE
         bus1: PowerFactoryTypes.StationCubicle | None
@@ -1126,7 +1174,7 @@ class PowerFactoryTypes:
 
         def AddRef(  # noqa: N802
             self,
-            element: PowerFactoryTypes.DataObject | list[PowerFactoryTypes.DataObject],
+            element: PowerFactoryTypes.DataObject | t.Sequence[PowerFactoryTypes.DataObject],
             /,
         ) -> None: ...
 
@@ -1625,5 +1673,13 @@ class PowerFactoryTypes:
         phtech: LoadPhaseConnectionType
 
 
-ValidPFPrimitive = PowerFactoryTypes.DataObject | str | bool | int | float | None
-ValidPFValue = ValidPFPrimitive | list[ValidPFPrimitive] | dict[str, ValidPFPrimitive]
+ValidPFTypes = (
+    PowerFactoryTypes.DataObject
+    | str
+    | bool
+    | int
+    | float
+    | None
+    | t.Sequence[ValidPFTypes]
+    | t.Mapping[str, ValidPFTypes]
+)
