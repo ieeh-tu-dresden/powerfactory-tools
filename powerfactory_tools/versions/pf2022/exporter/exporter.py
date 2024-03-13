@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2024.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -63,42 +63,42 @@ from psdm.topology.windings import Winding
 from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
-from powerfactory_tools.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.constants import DecimalDigits
-from powerfactory_tools.constants import Exponents
-from powerfactory_tools.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.exporter.load_power import ControlTypeFactory
-from powerfactory_tools.exporter.load_power import LoadPower
-from powerfactory_tools.interface import VERSION
-from powerfactory_tools.interface import PowerFactoryData
-from powerfactory_tools.interface import PowerFactoryInterface
-from powerfactory_tools.powerfactory_types import CosPhiChar
-from powerfactory_tools.powerfactory_types import CtrlVoltageRef
-from powerfactory_tools.powerfactory_types import ExternalQCtrlMode
-from powerfactory_tools.powerfactory_types import GeneratorPhaseConnectionType
-from powerfactory_tools.powerfactory_types import GeneratorSystemType
-from powerfactory_tools.powerfactory_types import IOpt
-from powerfactory_tools.powerfactory_types import LoadLVPhaseConnectionType
-from powerfactory_tools.powerfactory_types import LoadPhaseConnectionType
-from powerfactory_tools.powerfactory_types import LocalQCtrlMode
-from powerfactory_tools.powerfactory_types import PFClassId
-from powerfactory_tools.powerfactory_types import Phase1PH as PFPhase1PH
-from powerfactory_tools.powerfactory_types import Phase2PH as PFPhase2PH
-from powerfactory_tools.powerfactory_types import Phase3PH as PFPhase3PH
-from powerfactory_tools.powerfactory_types import PowerFactoryTypes
-from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.powerfactory_types import PowerModelType
-from powerfactory_tools.powerfactory_types import QChar
-from powerfactory_tools.powerfactory_types import TerminalPhaseConnectionType
-from powerfactory_tools.powerfactory_types import TerminalVoltageSystemType
-from powerfactory_tools.powerfactory_types import TrfNeutralConnectionType
-from powerfactory_tools.powerfactory_types import TrfNeutralPointState
-from powerfactory_tools.powerfactory_types import TrfPhaseTechnology
-from powerfactory_tools.powerfactory_types import TrfTapSide
-from powerfactory_tools.powerfactory_types import Vector
-from powerfactory_tools.powerfactory_types import VectorGroup
-from powerfactory_tools.powerfactory_types import VoltageSystemType as ElementVoltageSystemType
-from powerfactory_tools.quantities import QuantityConverter as Qc
+from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2022.constants import DecimalDigits
+from powerfactory_tools.versions.pf2022.constants import Exponents
+from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFactory
+from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
+from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
+from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2022.types import CosPhiChar
+from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
+from powerfactory_tools.versions.pf2022.types import ExternalQCtrlMode
+from powerfactory_tools.versions.pf2022.types import GeneratorPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import GeneratorSystemType
+from powerfactory_tools.versions.pf2022.types import IOpt
+from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
+from powerfactory_tools.versions.pf2022.types import PFClassId
+from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
+from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
+from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
+from powerfactory_tools.versions.pf2022.types import PowerModelType
+from powerfactory_tools.versions.pf2022.types import QChar
+from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
+from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
+from powerfactory_tools.versions.pf2022.types import TrfNeutralPointState
+from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
+from powerfactory_tools.versions.pf2022.types import TrfTapSide
+from powerfactory_tools.versions.pf2022.types import Vector
+from powerfactory_tools.versions.pf2022.types import VectorGroup
+from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
@@ -106,12 +106,11 @@ if t.TYPE_CHECKING:
 
     import typing_extensions as te
 
+    from powerfactory_tools.versions.pf2022.data import PowerFactoryData
+    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
+
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
-
-POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-POWERFACTORY_VERSION = "2022 SP2"
-PYTHON_VERSION = "3.10"
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
@@ -143,9 +142,9 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         export_path: pathlib.Path,
         project_name: str,
         powerfactory_user_profile: str = "",
-        powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
-        powerfactory_version: str = POWERFACTORY_VERSION,
-        python_version: str = PYTHON_VERSION,
+        powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
+        powerfactory_service_pack: int | None = None,
+        python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
         topology_name: str | None = None,
@@ -158,7 +157,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.project_name = project_name
         self.powerfactory_user_profile = powerfactory_user_profile
         self.powerfactory_path = powerfactory_path
-        self.powerfactory_version = powerfactory_version
+        self.powerfactory_service_pack = powerfactory_service_pack
         self.python_version = python_version
         self.logging_level = logging_level
         self.log_file_path = log_file_path
@@ -172,8 +171,6 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
-            powerfactory_version=self.powerfactory_version,
-            python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
         )
@@ -190,9 +187,9 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
 class PowerFactoryExporter:
     project_name: str
     powerfactory_user_profile: str = ""
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
-    powerfactory_version: str = POWERFACTORY_VERSION
-    python_version: str = PYTHON_VERSION
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
+    powerfactory_service_pack: int | None = None
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -201,7 +198,7 @@ class PowerFactoryExporter:
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
-            powerfactory_version=self.powerfactory_version,
+            powerfactory_service_pack=self.powerfactory_service_pack,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -1697,7 +1694,7 @@ class PowerFactoryExporter:
 
         if load.GetClassName() is PFClassId.LOAD.value and load.typ_id is not None:
             voltage_system_type = VoltageSystemType[
-                ElementVoltageSystemType(t.cast("PowerFactoryTypes.LoadType", load.typ_id).systp).name
+                ElementVoltageSystemType(t.cast("PFTypes.LoadType", load.typ_id).systp).name
             ]
         else:
             voltage_system_type = VoltageSystemType[TerminalVoltageSystemType(terminal.systype).name]
@@ -2226,7 +2223,7 @@ class PowerFactoryExporter:
         The element states contain no node reference.
 
         Arguments:
-            elements {Sequence[ElementBase} -- sequence of one-sided connected PowerFactory objects
+            elements {Sequence[ElementBase | PFTypes.Line | PFTypes.Transformer2W} -- sequence of one-sided connected PowerFactory objects
 
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
@@ -3937,9 +3934,9 @@ def export_powerfactory_data(  # noqa: PLR0913
     export_path: pathlib.Path,
     project_name: str,
     powerfactory_user_profile: str = "",
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH,
-    powerfactory_version: str = POWERFACTORY_VERSION,
-    python_version: str = PYTHON_VERSION,
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
+    powerfactory_service_pack: int | None = None,
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
     topology_name: str | None = None,
@@ -3958,9 +3955,9 @@ def export_powerfactory_data(  # noqa: PLR0913
         export_path {pathlib.Path} -- the directory where the exported json files are saved
         project_name {str} -- project name in PowerFactory to which the grid belongs
         powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
-        powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (hard-coded in interface.py)
-        powerfactory_version {str} -- version number of PowerFactory (hard-coded in interface.py)
-        python_version {str} -- version number of Python (hard-coded in interface.py)
+        powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
+        powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
+        python_version {PYTHON_VERSIONS} -- the version of Python to be used for PowerFactory (default: {DEFAULT_PYTHON_VERSION})
         logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
         log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
         topology_name {str} -- the chosen file name for 'topology' data (default: {None})
@@ -3977,7 +3974,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         export_path=export_path,
         powerfactory_user_profile=powerfactory_user_profile,
         powerfactory_path=powerfactory_path,
-        powerfactory_version=powerfactory_version,
+        powerfactory_service_pack=powerfactory_service_pack,
         python_version=python_version,
         logging_level=logging_level,
         log_file_path=log_file_path,

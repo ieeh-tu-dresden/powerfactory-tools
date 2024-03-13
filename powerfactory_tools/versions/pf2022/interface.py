@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2024.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -21,21 +21,22 @@ from collections.abc import Sequence
 import loguru
 import pydantic
 
-from powerfactory_tools.constants import BaseUnits
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
-from powerfactory_tools.powerfactory_types import CalculationCommand
-from powerfactory_tools.powerfactory_types import Currency
-from powerfactory_tools.powerfactory_types import FolderType
-from powerfactory_tools.powerfactory_types import MetricPrefix
-from powerfactory_tools.powerfactory_types import NetworkExtendedCalcType
-from powerfactory_tools.powerfactory_types import PFClassId
-from powerfactory_tools.powerfactory_types import ResultExportMode
-from powerfactory_tools.powerfactory_types import TimeSimulationNetworkCalcType
-from powerfactory_tools.powerfactory_types import TimeSimulationType
-from powerfactory_tools.powerfactory_types import UnitSystem
-from powerfactory_tools.powerfactory_types import ValidPFValue
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
+from powerfactory_tools.versions.pf2022.constants import BaseUnits
+from powerfactory_tools.versions.pf2022.data import PowerFactoryData
+from powerfactory_tools.versions.pf2022.types import CalculationCommand
+from powerfactory_tools.versions.pf2022.types import Currency
+from powerfactory_tools.versions.pf2022.types import FolderType
+from powerfactory_tools.versions.pf2022.types import MetricPrefix
+from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
+from powerfactory_tools.versions.pf2022.types import PFClassId
+from powerfactory_tools.versions.pf2022.types import ResultExportMode
+from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
+from powerfactory_tools.versions.pf2022.types import TimeSimulationType
+from powerfactory_tools.versions.pf2022.types import UnitSystem
+from powerfactory_tools.versions.pf2022.types import ValidPFValue
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -43,17 +44,24 @@ if t.TYPE_CHECKING:
 
     import typing_extensions as te
 
-    from powerfactory_tools.powerfactory_types import PowerFactoryTypes as PFTypes
+    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
 
-POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-POWERFACTORY_VERSION = "2022 SP2"
-PYTHON_VERSION = "3.10"
+
+# allowed Python versions
+class ValidPythonVersion(enum.Enum):
+    VERSION_3_6 = "3.6"
+    VERSION_3_7 = "3.7"
+    VERSION_3_8 = "3.8"
+    VERSION_3_9 = "3.9"
+    VERSION_3_10 = "3.10"
+
+
 PATH_SEP = "/"
-
-VERSION = "2.1.0"
-
+POWERFACTORY_VERSION = "PowerFactory 2022"
+DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_10
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -88,37 +96,15 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 )
 
 
-@dataclasses.dataclass
-class PowerFactoryData:
-    date: dt.date
-    project_name: str
-    grid_name: str
-    external_grids: Sequence[PFTypes.ExternalGrid]
-    terminals: Sequence[PFTypes.Terminal]
-    lines: Sequence[PFTypes.Line]
-    transformers_2w: Sequence[PFTypes.Transformer2W]
-    transformers_3w: Sequence[PFTypes.Transformer3W]
-    loads: Sequence[PFTypes.Load]
-    loads_lv: Sequence[PFTypes.LoadLV]
-    loads_mv: Sequence[PFTypes.LoadMV]
-    generators: Sequence[PFTypes.Generator]
-    pv_systems: Sequence[PFTypes.PVSystem]
-    couplers: Sequence[PFTypes.Coupler]
-    switches: Sequence[PFTypes.Switch]
-    bfuses: Sequence[PFTypes.BFuse]
-    efuses: Sequence[PFTypes.EFuse]
-    ac_current_sources: Sequence[PFTypes.AcCurrentSource]
-
-
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
+    powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
+    powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
-    powerfactory_path: pathlib.Path = POWERFACTORY_PATH
-    powerfactory_version: str = POWERFACTORY_VERSION
     powerfactory_ini_name: str | None = None
-    python_version: str = PYTHON_VERSION
+    python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
 
@@ -126,8 +112,8 @@ class PowerFactoryInterface:
         try:
             self._set_logging_handler(self.log_file_path)
             loguru.logger.info("Starting PowerFactory Interface...")
-            pf = self.load_powerfactory_module_from_path()
-            self.app = self.connect_to_app(pf)
+            pfm = self.load_powerfactory_module_from_path()
+            self.app = self.connect_to_app(pfm)
             self.project = self.connect_to_project(self.project_name)
             self.load_project_setting_folders_from_pf_db()
             self.stash_unit_conversion_settings()
@@ -168,6 +154,60 @@ class PowerFactoryInterface:
     ) -> None:
         self.close()
 
+    def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
+        loguru.logger.debug("Loading PowerFactory Python module...")
+        module_path = (
+            self.powerfactory_path / POWERFACTORY_VERSION / "Python" / self.python_version.value
+            if self.powerfactory_service_pack is None
+            else self.powerfactory_path
+            / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+            / "Python"
+            / self.python_version.value
+        )
+        spec = importlib.util.spec_from_file_location(
+            "powerfactory",
+            module_path / "powerfactory.pyd",
+        )
+        if (spec is None) or (spec.loader is None):
+            msg = "Could not load PowerFactory Module."
+            raise RuntimeError(msg)
+
+        pfm = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(pfm)
+        return t.cast("PFTypes.PowerFactoryModule", pfm)
+
+    def connect_to_app(self, pfm: PFTypes.PowerFactoryModule) -> PFTypes.Application:
+        """Connect to PowerFactory Application.
+
+        Arguments:
+            pfm {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
+
+        Returns:
+            PFTypes.Application -- the application handle (root)
+        """
+
+        loguru.logger.debug("Connecting to PowerFactory application...")
+        if self.powerfactory_ini_name is None:
+            command_line_arg = None
+        else:
+            ini_path = (
+                self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
+                if self.powerfactory_service_pack is None
+                else self.powerfactory_path
+                / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+                / (self.powerfactory_ini_name + ".ini")
+            )
+            command_line_arg = '/ini "' + str(ini_path) + '"'
+        try:
+            return pfm.GetApplicationExt(
+                self.powerfactory_user_profile,
+                self.powerfactory_user_password,
+                command_line_arg,
+            )
+        except pfm.ExitError as element:
+            msg = "Could not start application."
+            raise RuntimeError(msg) from element
+
     def load_project_setting_folders_from_pf_db(self) -> None:
         self.project_settings = self.load_project_settings_dir_from_pf()
         self.settings_dir = self.load_settings_dir_from_pf()
@@ -196,23 +236,6 @@ class PowerFactoryInterface:
 
         self.ext_data_dir = self.project_settings.extDataDir
         loguru.logger.debug("Loading all project folders... Done")
-
-    def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
-        loguru.logger.debug("Loading PowerFactory Python module...")
-        module_path = (
-            self.powerfactory_path / ("PowerFactory " + self.powerfactory_version) / "Python" / self.python_version
-        )
-        spec = importlib.util.spec_from_file_location(
-            "powerfactory",
-            module_path / "powerfactory.pyd",
-        )
-        if (spec is None) or (spec.loader is None):
-            msg = "Could not load PowerFactory Module."
-            raise RuntimeError(msg)
-
-        pfm = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(pfm)
-        return t.cast("PFTypes.PowerFactoryModule", pfm)
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         loguru.logger.debug("Loading settings from PowerFactory...")
@@ -260,41 +283,6 @@ class PowerFactoryInterface:
 
         loguru.logger.info("Closing PowerFactory Interface... Done.")
 
-    def connect_to_app(
-        self,
-        pf: PFTypes.PowerFactoryModule,
-    ) -> PFTypes.Application:
-        """Connect to PowerFactory Application.
-
-        Arguments:
-            pf {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
-
-        Returns:
-            PFTypes.Application -- the application handle (root)
-        """
-
-        loguru.logger.debug("Connecting to PowerFactory application...")
-        if self.powerfactory_ini_name is None:
-            command_line_arg = None
-        else:
-            ini_path = (
-                self.powerfactory_path
-                / ("PowerFactory " + self.powerfactory_version)
-                / (self.powerfactory_ini_name + ".ini")
-            )
-            command_line_arg = '/ini "' + str(ini_path) + '"'
-        try:
-            return pf.GetApplicationExt(
-                self.powerfactory_user_profile,
-                self.powerfactory_user_password,
-                command_line_arg,
-            )
-        except pf.ExitError as element:
-            error_code = self.resolve_pf_error_code(element)
-            msg = f"Could not start application. Error code: {error_code.value} - {error_code.name}"
-            loguru.logger.exception(msg)
-            raise RuntimeError(msg) from element
-
     def connect_to_project(self, project_name: str) -> PFTypes.Project:
         """Connect to a PowerFactory project.
 
@@ -336,6 +324,7 @@ class PowerFactoryInterface:
         else:
             msg = f"Study case {study_case_name} does not exist."
             raise RuntimeError(msg)
+
         return self.study_case(study_case_name)  # type: ignore [return-value]
 
     def switch_scenario(self, scenario_name: str) -> None:
@@ -678,14 +667,6 @@ class PowerFactoryInterface:
         if self.project.Deactivate():
             msg = "Could not deactivate project."
             raise RuntimeError(msg)
-
-    def subloads_of(
-        self,
-        load: PFTypes.LoadLV,
-        /,
-    ) -> Sequence[PFTypes.LoadLVP]:
-        elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
-        return [t.cast("PFTypes.LoadLVP", element) for element in elements]
 
     def variable_monitor(
         self,
@@ -1299,56 +1280,6 @@ class PowerFactoryInterface:
             calc_relevant=calc_relevant,
         )
         return [t.cast("PFTypes.Load", element) for element in elements]
-
-    def load_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadLV | None:
-        return self.first_of(self.loads_lv(name, grid_name=grid_name))
-
-    def loads_lv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadLV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_LV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadLV", element) for element in elements]
-
-    def load_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-    ) -> PFTypes.LoadMV | None:
-        return self.first_of(self.loads_mv(name, grid_name=grid_name))
-
-    def loads_mv(
-        self,
-        name: str = "*",
-        /,
-        *,
-        grid_name: str = "*",
-        calc_relevant: bool = False,
-    ) -> Sequence[PFTypes.LoadMV]:
-        elements = self.grid_elements(
-            class_name=PFClassId.LOAD_MV.value,
-            name=name,
-            grid_name=grid_name,
-            calc_relevant=calc_relevant,
-        )
-        return [t.cast("PFTypes.LoadMV", element) for element in elements]
 
     def generator(
         self,
@@ -2499,3 +2430,62 @@ class PowerFactoryInterface:
     ) -> bool:
         """Return true if branch fuse."""
         return fuse.bus1 is not None or fuse.bus2 is not None
+
+    ## The following may be part of version inconsistent behavior
+    def subloads_of(
+        self,
+        load: PFTypes.LoadLV,
+        /,
+    ) -> Sequence[PFTypes.LoadLVP]:
+        elements = self.elements_of(load, pattern="*." + PFClassId.LOAD_LV_PART.value)
+        return [t.cast("PFTypes.LoadLVP", element) for element in elements]
+
+    def load_lv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+    ) -> PFTypes.LoadLV | None:
+        return self.first_of(self.loads_lv(name, grid_name=grid_name))
+
+    def loads_lv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.LoadLV]:
+        elements = self.grid_elements(
+            class_name=PFClassId.LOAD_LV.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+        )
+        return [t.cast("PFTypes.LoadLV", element) for element in elements]
+
+    def load_mv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+    ) -> PFTypes.LoadMV | None:
+        return self.first_of(self.loads_mv(name, grid_name=grid_name))
+
+    def loads_mv(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.LoadMV]:
+        elements = self.grid_elements(
+            class_name=PFClassId.LOAD_MV.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+        )
+        return [t.cast("PFTypes.LoadMV", element) for element in elements]
