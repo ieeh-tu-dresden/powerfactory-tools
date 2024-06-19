@@ -239,9 +239,9 @@
   "meta": {
     "case": "Industry_Park",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-03-04",
+    "date": "2024-06-19",
     "grid": "MV_2_Bus",
-    "id": "02b6c174-8bb0-4a29-888d-64854055fb1d",
+    "id": "9cd3f735-3fb8-4979-a32e-46bfa71b2536",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.2.0"
@@ -282,7 +282,7 @@
     {
       "description": "",
       "name": "Industry_Transformer_2w_110/20",
-      "node_1": "Node_9/Field_3",
+      "node_1": "Node_9/Field_3/T3",
       "node_2": "Industry_Node_1",
       "number": 1,
       "phase_technology_type": "THREE_PH",
@@ -319,7 +319,7 @@
       "windings": [
         {
           "neutral_connected": false,
-          "node": "Node_9/Field_3",
+          "node": "Node_9/Field_3/T3",
           "phase_angle_clock": {
             "angle": 0.0,
             "value": 0.0
