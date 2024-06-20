@@ -114,8 +114,10 @@ if t.TYPE_CHECKING:
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
+NAME_SEPARATOR = "__"
 STRING_SEPARATOR = "; "
 STRING_DO_NOT_EXPORT = "do_not_export"
+
 
 PF_LOAD_CLASSES = [PFClassId.LOAD, PFClassId.LOAD_LV, PFClassId.LOAD_LV_PART, PFClassId.LOAD_MV]
 STORAGE_SYSTEM_TYPES = [SystemType.BATTERY_STORAGE, SystemType.PUMP_STORAGE]
@@ -308,9 +310,13 @@ class PowerFactoryExporter:
             meta = self.create_meta_data(data=data, case_name=study_case_name)
 
             topology = self.create_topology(meta=meta, data=data)
-            topology_case = self.create_topology_case(meta=meta, data=data)
-            steadystate_case = self.create_steadystate_case(meta=meta, data=data)
 
+            topology_case = self.create_topology_case(meta=meta, data=data, topology_loads=topology.loads)
+            if topology_case.is_valid_topology(topology) is False:
+                msg = "Topology case does not match specified topology."
+                raise ValueError(msg)
+
+            steadystate_case = self.create_steadystate_case(meta=meta, data=data)
             if steadystate_case.is_valid_topology(topology) is False:
                 msg = "Steadystate case does not match specified topology."
                 raise ValueError(msg)
@@ -1538,7 +1544,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1552,7 +1558,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1566,7 +1572,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -2026,6 +2032,7 @@ class PowerFactoryExporter:
         *,
         meta: Meta,
         data: PowerFactoryData,
+        topology_loads: Sequence[Load],
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(data.switches, grid_name=data.grid_name)
@@ -2034,11 +2041,13 @@ class PowerFactoryExporter:
         efuse_states = self.create_efuse_states(data.efuses, grid_name=data.grid_name)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
             data.loads,
-            data.loads_lv,
-            data.loads_mv,
             data.generators,
             data.pv_systems,
             data.external_grids,
+        )
+        special_loads: Sequence[PFTypes.LoadLV | PFTypes.LoadMV] = self.pfi.list_from_sequences(
+            data.loads_lv,
+            data.loads_mv,
         )
         node_power_on_states = self.create_node_power_on_states(data.terminals, grid_name=data.grid_name)
         line_power_on_states = self.create_element_power_on_states(data.lines, grid_name=data.grid_name)
@@ -2046,7 +2055,15 @@ class PowerFactoryExporter:
             data.transformers_2w,
             grid_name=data.grid_name,
         )
-        element_power_on_states = self.create_element_power_on_states(elements, grid_name=data.grid_name)
+        element_power_on_states = self.create_element_power_on_states(
+            elements,
+            grid_name=data.grid_name,
+        )
+        special_loads_power_on_states = self.create_special_loads_power_on_states(
+            special_loads,
+            grid_name=data.grid_name,
+            topology_loads=topology_loads,
+        )
         power_on_states = self.pfi.list_from_sequences(
             switch_states,
             coupler_states,
@@ -2056,6 +2073,7 @@ class PowerFactoryExporter:
             line_power_on_states,
             transformer_2w_power_on_states,
             element_power_on_states,
+            special_loads_power_on_states,
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
@@ -2112,6 +2130,7 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
     ) -> ElementState | None:
+        # TODO @SebastianDD: check for switched off LV- and MV-Loads as they may have a name appendix  # noqa: FIX002, TD003
         if not switch.isclosed:
             cub = switch.fold_id
             element = cub.obj_id
@@ -2190,7 +2209,7 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
-        loguru.logger.info("Creating node power on states...")
+        loguru.logger.info("Creating power_on states for nodes ...")
         states = [self.create_node_power_on_state(terminal, grid_name=grid_name) for terminal in terminals]
         return self.pfi.filter_none(states)
 
@@ -2204,7 +2223,7 @@ class PowerFactoryExporter:
         if terminal.outserv:
             node_name = self.pfi.create_name(terminal, grid_name=grid_name)
             loguru.logger.debug(
-                "Creating node power on state {node_name}...",
+                "Creating power_on state for node {node_name}...",
                 node_name=node_name,
             )
             return ElementState(name=node_name, disabled=True)
@@ -2231,7 +2250,7 @@ class PowerFactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-        loguru.logger.info("Creating element power on states...")
+        loguru.logger.info("Creating power_on states for elements ...")
         states = [self.create_element_power_on_state(element, grid_name=grid_name) for element in elements]
         return self.pfi.filter_none(states)
 
@@ -2245,10 +2264,63 @@ class PowerFactoryExporter:
         if element.outserv:
             element_name = self.pfi.create_name(element, grid_name=grid_name)
             loguru.logger.debug(
-                "Creating element power on state {element_name}...",
+                "Creating power_on state for element {element_name}...",
                 element_name=element_name,
             )
             return ElementState(name=element_name, disabled=True)
+
+        return None
+
+    def create_special_loads_power_on_states(
+        self,
+        elements: Sequence[PFTypes.LoadLV | PFTypes.LoadMV],
+        /,
+        *,
+        grid_name: str,
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState]:
+        """Create states for one-sided connected LV- and MV-loads based on if the elements are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            elements {Sequence[PFTypes.LoadLV | PFTypes.LoadMV]} -- sequence of one-sided connected PowerFactory objects
+
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
+            topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
+
+        Returns:
+            Sequence[ElementState] -- set of element states
+        """
+        loguru.logger.info("Creating power_on states for special loads...")
+        states = [
+            self.create_special_load_power_on_state(element, grid_name=grid_name, topology_loads=topology_loads)
+            for element in elements
+        ]
+        filtered_states = self.pfi.filter_none(states)
+        # unnest list of states
+        flattened_states = [item for sublist in filtered_states for item in sublist]
+        return self.pfi.filter_none(flattened_states)
+
+    def create_special_load_power_on_state(
+        self,
+        element: PFTypes.LoadLV | PFTypes.LoadMV,
+        /,
+        *,
+        grid_name: str,
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState] | None:
+        if element.outserv:
+            element_name = self.pfi.create_name(element, grid_name=grid_name)
+            loguru.logger.debug(
+                "Creating power_on state(s) for special load {element_name}...",
+                element_name=element_name,
+            )
+            # for a low- or medium-voltage load, an appendix was added to the original name during create_topology (load was divided into subloads)
+            # therefore, the name of the load is used to find the corresponding load in the topology loads
+            matching_load_names = [load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name]
+            return [ElementState(name=load_name, disabled=True) for load_name in matching_load_names]
 
         return None
 
@@ -2796,7 +2868,7 @@ class PowerFactoryExporter:
                 power=power.fixed,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -2807,7 +2879,7 @@ class PowerFactoryExporter:
                 power=power.night,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -2818,7 +2890,7 @@ class PowerFactoryExporter:
                 power=power.flexible_avg,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
