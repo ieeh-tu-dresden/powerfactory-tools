@@ -4392,9 +4392,9 @@
   "meta": {
     "case": "Outage",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-06-19",
+    "date": "2024-07-05",
     "grid": "HV_9_Bus",
-    "id": "2cf60000-b676-4999-80fc-1c25c3b6b3c7",
+    "id": "ef44000c-e394-46d9-b39d-f21a2aea82bf",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.2.0"
