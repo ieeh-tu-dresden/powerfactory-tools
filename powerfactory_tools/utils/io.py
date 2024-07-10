@@ -15,7 +15,7 @@ import pydantic
 
 
 class FileType(enum.Enum):
-    ARROW = ".arrow"
+    FEATHER = ".feather"  # exchange format for dataframes using pyarrow internally
     DAT = ".dat"  # e.g. for COMTRADE
     CSV = ".csv"
     JSON = ".json"
@@ -52,3 +52,14 @@ class CustomEncoder:
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
             return False
         return True
+
+    # def to_feather(self, file_path: str | pathlib.Path, /) -> bool:
+    #     # need to install libraries first: pyarrow, pandas as pd
+    #     df = pd.DataFrame.from_dict(self.data)  # noqa: ERA001
+    #     try: # noqa: ERA001
+    #        with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
+    #             df.to_feather(file_handle)  # noqa: ERA001
+    #     except Exception as e:  # noqa: BLE001, ERA001, RUF100
+    #         loguru.logger.error(f"Export to FEATHER failed at {file_path!s} with error {e}")  # noqa: ERA001
+    #         return False  # noqa: ERA001
+    #     return True  # noqa: ERA001
