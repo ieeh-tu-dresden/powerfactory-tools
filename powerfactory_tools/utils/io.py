@@ -53,9 +53,10 @@ class CustomEncoder:
             return False
         return True
 
-    # def to_feather(self, file_path: str | pathlib.Path, /) -> bool:
+    # def to_feather(self, file_path: str | pathlib.Path, /, dataframe: pd.DataFrame | None = None) -> bool:
     #     # need to install libraries first: pyarrow, pandas as pd
-    #     df = pd.DataFrame.from_dict(self.data)  # noqa: ERA001
+    #     if dataframe is None:
+    #       df = pd.DataFrame.from_dict(self.data)  # noqa: ERA001
     #     try: # noqa: ERA001
     #        with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
     #             df.to_feather(file_handle)  # noqa: ERA001
