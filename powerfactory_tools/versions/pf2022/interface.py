@@ -205,7 +205,9 @@ class PowerFactoryInterface:
                 command_line_arg,
             )
         except pfm.ExitError as element:
-            msg = "Could not start application."
+            error_code = self.resolve_pf_error_code(element)
+            msg = f"Could not start application. Error code: {error_code.value} - {error_code.name}"
+            loguru.logger.exception(msg)
             raise RuntimeError(msg) from element
 
     def load_project_setting_folders_from_pf_db(self) -> None:
