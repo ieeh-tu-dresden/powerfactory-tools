@@ -1020,12 +1020,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.ExternalGrid]:
         elements = self.grid_elements(
             class_name=PFClassId.EXTERNAL_GRID.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
 
@@ -1045,12 +1047,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Terminal]:
         elements = self.grid_elements(
             class_name=PFClassId.TERMINAL.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Terminal", element) for element in elements]
 
@@ -1070,12 +1074,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements(
             class_name=PFClassId.CUBICLE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
 
@@ -1095,12 +1101,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Coupler]:
         elements = self.grid_elements(
             class_name=PFClassId.COUPLER.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Coupler", element) for element in elements]
 
@@ -1120,12 +1128,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Switch]:
         elements = self.grid_elements(
             class_name=PFClassId.SWITCH.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
@@ -1145,12 +1155,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.BFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
@@ -1172,12 +1184,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.EFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         efuses = [fuse for fuse in fuses if self.is_efuse(fuse)]
@@ -1199,12 +1213,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Line]:
         elements = self.grid_elements(
             class_name=PFClassId.LINE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Line", element) for element in elements]
 
@@ -1224,12 +1240,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Transformer2W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_2W.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
 
@@ -1247,12 +1265,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Transformer3W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_3W.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
 
@@ -1272,12 +1292,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Load]:
         elements = self.grid_elements(
             class_name=PFClassId.LOAD.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Load", element) for element in elements]
 
@@ -1297,12 +1319,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Generator]:
         elements = self.grid_elements(
             class_name=PFClassId.GENERATOR.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Generator", element) for element in elements]
 
@@ -1320,12 +1344,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements(
             class_name=PFClassId.PVSYSTEM.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
 
@@ -1343,12 +1369,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.AcCurrentSource]:
         elements = self.grid_elements(
             class_name=PFClassId.CURRENT_SOURCE_AC.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
 
