@@ -1582,7 +1582,7 @@ class PowerFactoryExporter:
                 )
             else:
                 loguru.logger.warning(
-                    "All partial consumer of low voltage consumer {load_name} have power of zero. Skipping {load_name} for export.",
+                    "No partial consumers of low voltage consumer {load_name} have a nonzero power value. Skipping {load_name} for export.",
                     load_name=load_name,
                 )
         return self.pfi.filter_none([consumer_fixed, consumer_night, consumer_flex])
