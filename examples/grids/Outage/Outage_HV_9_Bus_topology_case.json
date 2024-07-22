@@ -1,14 +1,11 @@
 {
   "elements": [
     {
-      "disabled": true,
-      "name": "Node_9/ISField_2.3",
-      "open_switches": []
-    },
-    {
-      "disabled": true,
-      "name": "Line_34",
-      "open_switches": []
+      "disabled": false,
+      "name": "Line_23",
+      "open_switches": [
+        "Node_3"
+      ]
     },
     {
       "disabled": false,
@@ -25,20 +22,13 @@
     },
     {
       "disabled": true,
-      "name": "Node_7_LV",
+      "name": "Line_34",
       "open_switches": []
     },
     {
       "disabled": true,
-      "name": "Node_9/IS1.2",
+      "name": "Node_9/ISField_2.3",
       "open_switches": []
-    },
-    {
-      "disabled": false,
-      "name": "Line_23",
-      "open_switches": [
-        "Node_3"
-      ]
     },
     {
       "disabled": true,
@@ -52,6 +42,16 @@
     },
     {
       "disabled": true,
+      "name": "Node_9/IS1.2",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
+      "name": "Node_7_LV",
+      "open_switches": []
+    },
+    {
+      "disabled": true,
       "name": "Fuse_Node_8",
       "open_switches": []
     }
@@ -59,9 +59,9 @@
   "meta": {
     "case": "Outage",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-03-04",
+    "date": "2024-05-23",
     "grid": "HV_9_Bus",
-    "id": "524055c8-8b17-4b9f-aabf-ceb615e2e329",
+    "id": "e14407af-8dcb-4fb3-8c01-6d2ca13fa40e",
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.2.0"
