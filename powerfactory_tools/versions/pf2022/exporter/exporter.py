@@ -1576,7 +1576,7 @@ class PowerFactoryExporter:
         if consumer_fixed is None and consumer_night is None and consumer_flex is None:
             if subload is not None:
                 loguru.logger.warning(
-                    "All partial consumer of subconsumer {subload_name} of low voltage consumer {load_name} have power of zero. Skipping {subload_name} for export.",
+                    "No partial consumers of subconsumer {subload_name} of low voltage consumer {load_name} have a nonzero power value. Skipping {subload_name} for export.",
                     subload_name=subload_name,
                     load_name=load_name,
                 )
