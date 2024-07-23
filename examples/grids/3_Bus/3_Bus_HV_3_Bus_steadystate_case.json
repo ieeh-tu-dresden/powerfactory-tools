@@ -1,0 +1,254 @@
+{
+  "external_grids": [
+    {
+      "name": "External_Grid",
+      "p_0": {
+        "average": 0.0,
+        "is_symmetrical": true,
+        "n_phases": 3,
+        "power_type": "AC_ACTIVE",
+        "precision": 1,
+        "system_type": "NATURAL",
+        "total": 0.0,
+        "unit": "WATT",
+        "value": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "phi_0": null,
+      "q_0": null,
+      "u_0": {
+        "average": 110000.0,
+        "is_symmetrical": true,
+        "n_phases": 3,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": [
+          110000.0,
+          110000.0,
+          110000.0
+        ]
+      }
+    }
+  ],
+  "loads": [
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": 2993093.8,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 8979281.4,
+              "unit": "WATT",
+              "value": [
+                2993093.8,
+                2993093.8,
+                2993093.8
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_1"
+        }
+      },
+      "name": "Load_1",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "VAR",
+              "value": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_1"
+        }
+      }
+    },
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": 11972374.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 35917122.0,
+              "unit": "WATT",
+              "value": [
+                11972374.0,
+                11972374.0,
+                11972374.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_3"
+        }
+      },
+      "name": "Load_3",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 2993093.8,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 8979281.4,
+              "unit": "VAR",
+              "value": [
+                2993093.8,
+                2993093.8,
+                2993093.8
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_3"
+        }
+      }
+    },
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": -1666666.7,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": -5000000.1,
+              "unit": "WATT",
+              "value": [
+                -1666666.7,
+                -1666666.7,
+                -1666666.7
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_3"
+        }
+      },
+      "name": "Generator_3",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 1000000.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 3000000.0,
+              "unit": "VAR",
+              "value": [
+                1000000.0,
+                1000000.0,
+                1000000.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_3"
+        }
+      }
+    },
+    {
+      "active_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "P_CONST",
+            "p_set": {
+              "average": -10000000.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_ACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": -30000000.0,
+              "unit": "WATT",
+              "value": [
+                -10000000.0,
+                -10000000.0,
+                -10000000.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_2"
+        }
+      },
+      "name": "Generator_2",
+      "reactive_power": {
+        "controller": {
+          "control_type": {
+            "control_strategy": "Q_CONST",
+            "q_set": {
+              "average": 0.0,
+              "is_symmetrical": true,
+              "n_phases": 3,
+              "power_type": "AC_REACTIVE",
+              "precision": 1,
+              "system_type": "NATURAL",
+              "total": 0.0,
+              "unit": "VAR",
+              "value": [
+                -0.0,
+                -0.0,
+                -0.0
+              ]
+            }
+          },
+          "external_controller_name": null,
+          "node_target": "Node_2"
+        }
+      }
+    }
+  ],
+  "meta": {
+    "case": "3_Bus",
+    "creator": "powerfactory-tools @ version 2.1.0",
+    "date": "2024-07-23",
+    "grid": "HV_3_Bus",
+    "id": "7bd17123-ed74-4b11-bc74-144ad433d06e",
+    "project": "PowerFactory-Tools-Dev",
+    "sign_convention": "PASSIVE",
+    "version": "2.2.0"
+  },
+  "transformers": []
+}
