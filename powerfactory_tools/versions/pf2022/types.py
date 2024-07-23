@@ -570,6 +570,20 @@ class ResultExportNumberFormat(enum.IntEnum):
 
 
 class PowerFactoryTypes:
+    class AttributeType(enum.Enum):
+        INVALID = "INVALID"  # attr does not exist
+        INTEGER = "INTEGER"
+        INTEGER_VEC = "INTEGER_VEC"  # integer vector
+        DOUBLE = "DOUBLE"
+        DOUBLE_VEC = "DOUBLE_VEC"  # double vector
+        DOUBLE_MAT = "DOUBLE_MAT"  # double matrix
+        OBJECT = "OBJECT"  # DataObject
+        OBJECT_VEC = "OBJECT_VEC"  # DataObject vector
+        STRING = "STRING"
+        STRING_VEC = "STRING_VEC"  # string vector
+        INTEGER64 = "INTEGER64"  # 64-bit integer
+        INTEGER64_VEC = "INTEGER64_VEC"  # 64-bit integer vector
+
     class DataObject(t.Protocol):
         loc_name: str
         fold_id: PowerFactoryTypes.DataObject | None
@@ -594,6 +608,69 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+        def GetAttributeDescription(  # noqa: N802
+            self,
+            name: str,
+            short: int = 0,  # 0: long description; 1: short description
+            /,
+        ) -> str | None: ...
+
+        def GetAttributeShape(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> tuple[int, int]:
+            """Returns the shape of an attribute.
+
+            Args:
+                name (str): Name of the attribute.
+
+            Returns:
+                tuple[int, int]: [number of rows, number of columns]
+                    [>=0, >=0] Shape of a valid vector or matrix attribute.
+                    [0, 0]     All other valid attributes.
+                    [-1, 0]    For invalid attribute names.
+            """
+            ...
+
+        def GetAttributeType(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> PowerFactoryTypes.AttributeType: ...
+
+        def GetAttributeUnit(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> str | None: ...
+
+        def GetChildren(  # noqa: N802
+            self,
+            hiddenMode: int,  #  # noqa: N803
+            filter: str = "*",  # noqa: A002
+            subfolders: int = 0,
+            /,
+        ) -> Sequence[PowerFactoryTypes.DataObject]:
+            """This function returns the objects that are stored within the object the function was called on.
+
+            In contrast to DataObject.GetContents() this function gives access to objects that are currently hidden due to scheme management.
+
+            Args:
+                hiddenMode (int): Determines how hidden objects are handled.
+                    0: Hidden objects are ignored. Only nonhidden objects are returned.
+                    1: Hidden objects and nonhidden objects are returned.
+                    2: Only hidden objects are returned. Nonhidden objects are ignored.
+                filter (str, optional): Name filter, possibly containing '*' and '?' characters.. Defaults to "*".
+                subfolders (int, optional): Determines if children of subfolders are returned. Defaults to 0.
+                    0: Only direct children are returned, children of subfolders are ignored.
+                    1: Also children of subfolders are returned.
+
+            Returns:
+                Sequence[PowerFactoryTypes.DataObject]: Objects that are stored in the called object.
+            """
+            ...
+
         def GetClassName(self) -> str:  # noqa: N802
             ...
 
@@ -603,6 +680,12 @@ class PowerFactoryTypes:
             recursive: bool = False,  # noqa: FBT001, FBT002
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
+
+        def GetFullName(  # noqa: N802
+            self,
+            type: int = 0,  # noqa: A002 # not given: no special formatting; 0: full name incl. path, >0: (but <=190) full name with specific lenght
+            /,
+        ) -> str: ...
 
         def GetParent(self) -> PowerFactoryTypes.DataObject | None:  # noqa: N802
             ...
