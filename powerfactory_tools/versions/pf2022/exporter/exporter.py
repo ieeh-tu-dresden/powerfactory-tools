@@ -1502,12 +1502,13 @@ class PowerFactoryExporter:
         Returns:
             Sequence[Load] | None: partial load objects in respect to fixed, variable and night-storage characteristics or None if export is canceled
         """
-        l_name = self.pfi.create_name(load, grid_name=grid_name)
+        load_name = self.pfi.create_name(load, grid_name=grid_name)
         if subload is not None:
+            subload_name = subload.loc_name
             loguru.logger.debug(
-                "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {name}...",
-                subload_name=subload.loc_name,
-                name=l_name,
+                "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {load_name}...",
+                subload_name=subload_name,
+                load_name=load_name,
             )
             # Check for DO_NOT_EXPORT flag and description of subconsumer
             subload_export, subload_description = self.get_description(subload)
@@ -1519,24 +1520,24 @@ class PowerFactoryExporter:
                 return None
 
         else:
+            subload_name = ""
             loguru.logger.debug(
-                "Creating partial consumers for low voltage consumer {name}...",
-                name=l_name,
+                "Creating partial consumers for low voltage consumer {load_name}...",
+                load_name=load_name,
             )
             subload_description = ""
 
         # Connected terminal
         bus = load.bus1
         if bus is None:
-            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
-            return None
+            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=load_name)
+            return [None]
         terminal = bus.cterm
 
         # PhaseConnectionType: either based on load type or on terminal phase connection type
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
 
         # LoadModel
-        subload_name = subload.loc_name if subload is not None else ""
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
         load_model_p = self.load_model_of(load, u_0=u_0, specifier="p", default="I", subload=subload)
         load_model_q = self.load_model_of(load, u_0=u_0, specifier="q", default="I", subload=subload)
@@ -1586,6 +1587,20 @@ class PowerFactoryExporter:
             if power.flexible.pow_app_abs != 0
             else None
         )
+        # Check if all partial consumers have power of zero. If true print warning that export is skipped.
+        if consumer_fixed is None and consumer_night is None and consumer_flex is None:
+            if subload is not None:
+                loguru.logger.warning(
+                    "No partial consumers of subconsumer {subload_name} of low voltage consumer {load_name} have a nonzero power value. Skipping {subload_name} for export.",
+                    subload_name=subload_name,
+                    load_name=load_name,
+                )
+            else:
+                loguru.logger.warning(
+                    "No partial consumers of low voltage consumer {load_name} have a nonzero power value. Skipping {load_name} for export.",
+                    load_name=load_name,
+                )
+
         return self.pfi.filter_none([consumer_fixed, consumer_night, consumer_flex])
 
     def create_loads_mv(
