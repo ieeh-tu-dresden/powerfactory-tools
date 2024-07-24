@@ -3704,7 +3704,7 @@
         }
       },
       "description": "",
-      "name": "MV_Load_6_CONSUMER",
+      "name": "MV_Load_6__CONSUMER",
       "node": "Node_6_MV",
       "optional_data": null,
       "phase_connections": {
@@ -3848,7 +3848,7 @@
         }
       },
       "description": "",
-      "name": "MV_Load_6_PRODUCER",
+      "name": "MV_Load_6__PRODUCER",
       "node": "Node_6_MV",
       "optional_data": null,
       "phase_connections": {
@@ -4820,7 +4820,7 @@
     "creator": "powerfactory-tools @ version 2.1.0",
     "date": "2024-07-24",
     "grid": "HV_9_Bus",
-    "id": "cb50b4df-96d9-4a05-9366-7a3aad3f285a",
+    "id": "cac44651-3f63-4561-8a2b-be4a162f0ac6",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",

@@ -693,7 +693,7 @@
         },
         "optional_data": null
       },
-      "name": "MV_Load_6_CONSUMER",
+      "name": "MV_Load_6__CONSUMER",
       "optional_data": null,
       "reactive_power": {
         "controller": {
@@ -752,7 +752,7 @@
         },
         "optional_data": null
       },
-      "name": "MV_Load_6_PRODUCER",
+      "name": "MV_Load_6__PRODUCER",
       "optional_data": null,
       "reactive_power": {
         "controller": {
@@ -1229,7 +1229,7 @@
     "creator": "powerfactory-tools @ version 2.1.0",
     "date": "2024-07-24",
     "grid": "HV_9_Bus",
-    "id": "375ae2ae-f786-4f45-aa6e-9e12527ad28b",
+    "id": "ba7287d4-f116-4c2b-916c-bd3f7b71879c",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",

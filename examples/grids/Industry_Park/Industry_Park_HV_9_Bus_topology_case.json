@@ -8,13 +8,13 @@
     },
     {
       "disabled": true,
-      "name": "Node_9/Field_2/QB1",
+      "name": "Node_9/Field_3/QB1",
       "open_switches": [],
       "optional_data": null
     },
     {
       "disabled": true,
-      "name": "Node_9/Field_3/QB1",
+      "name": "Node_9/Field_2/QB1",
       "open_switches": [],
       "optional_data": null
     }
@@ -24,7 +24,7 @@
     "creator": "powerfactory-tools @ version 2.1.0",
     "date": "2024-07-24",
     "grid": "HV_9_Bus",
-    "id": "cb50b4df-96d9-4a05-9366-7a3aad3f285a",
+    "id": "cac44651-3f63-4561-8a2b-be4a162f0ac6",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
