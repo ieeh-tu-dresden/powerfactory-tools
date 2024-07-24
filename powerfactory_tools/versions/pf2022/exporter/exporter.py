@@ -540,7 +540,7 @@ class PowerFactoryExporter:
             type=GridType(ext_grid.bustp),
             short_circuit_power_max=Qc.single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
             short_circuit_power_min=Qc.single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     def create_nodes(
@@ -580,7 +580,7 @@ class PowerFactoryExporter:
         if self.element_specific_attrs is not None:
             extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
 
-        return Node(name=name, u_n=u_n, phases=phases, description=description, meta=extra_meta_data)
+        return Node(name=name, u_n=u_n, phases=phases, description=description, optional_data=extra_meta_data)
 
     def create_branches(
         self,
@@ -721,7 +721,7 @@ class PowerFactoryExporter:
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
             length=Length(value=line_len),
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     @staticmethod
@@ -813,7 +813,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     def create_fuse(
@@ -897,7 +897,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     def get_element_description(
@@ -1137,7 +1137,7 @@ class PowerFactoryExporter:
                 description=description,
                 phase_technology_type=ph_technology,
                 windings=[wh, wl],
-                meta=extra_meta_data,
+                optional_data=extra_meta_data,
             )
 
         loguru.logger.warning(
@@ -1763,7 +1763,7 @@ class PowerFactoryExporter:
             type=LoadType.CONSUMER,
             system_type=system_type,
             voltage_system_type=voltage_system_type,
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     def reference_voltage_for_load_model_of(
@@ -2072,7 +2072,7 @@ class PowerFactoryExporter:
             type=load_type,
             system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
-            meta=extra_meta_data,
+            optional_data=extra_meta_data,
         )
 
     def create_topology_case(
