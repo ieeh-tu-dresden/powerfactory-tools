@@ -1655,7 +1655,7 @@ class PowerFactoryExporter:
             phase_connection_type=phase_connection_type,
             load_model_p=load_model_p,
             load_model_q=load_model_q,
-            name_suffix="_CONSUMER",
+            name_suffix=NAME_SEPARATOR + LoadType.CONSUMER.value,
         )
         producer = self.create_producer(
             load,
@@ -1664,7 +1664,7 @@ class PowerFactoryExporter:
             grid_name=grid_name,
             system_type=SystemType.OTHER,
             phase_connection_type=phase_connection_type,
-            name_suffix="_PRODUCER",
+            name_suffix=NAME_SEPARATOR + LoadType.PRODUCER.value,
         )
 
         return [consumer, producer]
@@ -2068,7 +2068,11 @@ class PowerFactoryExporter:
         topology_loads: Sequence[Load],
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
-        switch_states = self.create_switch_states(data.switches, grid_name=data.grid_name)
+        switch_states = self.create_switch_states(
+            data.switches,
+            grid_name=data.grid_name,
+            topology_loads=topology_loads,
+        )
         coupler_states = self.create_coupler_states(data.couplers, grid_name=data.grid_name)
         bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.grid_name)
         efuse_states = self.create_efuse_states(data.efuses, grid_name=data.grid_name)
@@ -2138,6 +2142,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
+        topology_loads: Sequence[Load],
     ) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the switch is open.
 
@@ -2148,13 +2153,21 @@ class PowerFactoryExporter:
 
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
+            topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
+
+
         Returns:
             Sequence[ElementState] -- set of element states
         """
 
         loguru.logger.info("Creating switch states...")
-        states = [self.create_switch_state(switch, grid_name=grid_name) for switch in switches]
-        return self.pfi.filter_none(states)
+        states = [
+            self.create_switch_state(switch, grid_name=grid_name, topology_loads=topology_loads) for switch in switches
+        ]
+        filtered_states = self.pfi.filter_none(states)
+        # unnest list of states
+        flattened_states = [item for sublist in filtered_states for item in sublist]
+        return self.pfi.filter_none(flattened_states)
 
     def create_switch_state(
         self,
@@ -2162,8 +2175,8 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-    ) -> ElementState | None:
-        # TODO @SebastianDD: check for switched off LV- and MV-Loads as they may have a name appendix  # noqa: FIX002, TD003
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState] | None:
         if not switch.isclosed:
             cub = switch.fold_id
             element = cub.obj_id
@@ -2172,11 +2185,19 @@ class PowerFactoryExporter:
                 node_name = self.pfi.create_name(terminal, grid_name=grid_name)
                 element_name = self.pfi.create_name(element, grid_name=grid_name)
                 loguru.logger.debug(
-                    "Creating switch state {node_name}-{element_name}...",
+                    "Creating switch state(s) {node_name}-{element_name}...",
                     node_name=node_name,
                     element_name=element_name,
                 )
-                return ElementState(name=element_name, open_switches=(node_name,))
+                if self.pfi.is_of_type(element, PFClassId.LOAD_LV) or self.pfi.is_of_type(element, PFClassId.LOAD_MV):
+                    matching_load_names = [
+                        load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name
+                    ]
+                    return [
+                        ElementState(name=load_name, open_switches=(node_name,)) for load_name in matching_load_names
+                    ]
+
+                return [ElementState(name=element_name, open_switches=(node_name,))]
 
         return None
 
@@ -3141,14 +3162,14 @@ class PowerFactoryExporter:
             power=power.consumer,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            name_suffix="_CONSUMER",
+            name_suffix=NAME_SEPARATOR + LoadType.CONSUMER.value,
         )
         producer_ssc = self.create_consumer_ssc(
             load,
             power=power.producer,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            name_suffix="_PRODUCER",
+            name_suffix=NAME_SEPARATOR + LoadType.PRODUCER.value,
         )
         return [consumer_ssc, producer_ssc]
 
