@@ -4000,7 +4000,7 @@ class PowerFactoryExporter:
     ) -> Sequence[AttributeData] | None:
         """Creates a list of AttributeData for the given element based on given attrs_dict.
 
-        In case of the occurence of DataObject as value (return type) of a requesetd attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
+        In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
 
         Args:
             element (PFTypes.DataObject): the element of interest

@@ -2549,8 +2549,7 @@ class PowerFactoryInterface:
             return None
 
         nested_value = tuple(
-            PowerFactoryInterface.create_attribute_data_recursive(
-                self,
+            self.create_attribute_data_recursive(
                 obj,
                 nested_value,
                 grid_name=grid_name,
