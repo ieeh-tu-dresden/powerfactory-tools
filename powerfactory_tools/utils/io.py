@@ -9,6 +9,7 @@ import csv
 import enum
 import json
 import pathlib
+import importlib
 
 import loguru
 import pydantic
@@ -40,6 +41,7 @@ class CustomEncoder:
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to JSON failed at {file_path!s} with error {e}")
             return False
+
         return True
 
     def to_csv(self, file_path: str | pathlib.Path, /) -> bool:
@@ -51,16 +53,24 @@ class CustomEncoder:
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
             return False
+
         return True
 
-    # def to_feather(self, file_path: str | pathlib.Path, /, dataframe: pd.DataFrame | None = None) -> bool:
-    #     # need to install libraries first: pyarrow, pandas as pd
-    #     if dataframe is None:
-    #       df = pd.DataFrame.from_dict(self.data)  # noqa: ERA001
-    #     try: # noqa: ERA001
-    #        with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
-    #             df.to_feather(file_handle)  # noqa: ERA001
-    #     except Exception as e:  # noqa: BLE001, ERA001, RUF100
-    #         loguru.logger.error(f"Export to FEATHER failed at {file_path!s} with error {e}")  # noqa: ERA001
-    #         return False  # noqa: ERA001
-    #     return True  # noqa: ERA001
+    def to_feather(self, file_path: str | pathlib.Path, /) -> bool:
+        try:
+            pd = importlib.import_module("pandas")
+        except ModuleNotFoundError:
+            loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
+            return False
+
+        dataframe = pd.DataFrame.from_dict(self.data)
+
+        try:
+           with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
+                dataframe.to_feather(file_handle)
+
+        except ImportError:
+            loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
+            return False
+
+        return True
