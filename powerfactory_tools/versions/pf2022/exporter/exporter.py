@@ -154,6 +154,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
+        element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
     ) -> None:
         super().__init__()
         self.export_path = export_path
@@ -168,6 +169,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.topology_case_name = topology_case_name
         self.steadystate_case_name = steadystate_case_name
         self.study_case_names = study_case_names
+        self.element_specific_attrs = element_specific_attrs
 
     def run(self) -> None:
         pfe = PowerFactoryExporter(
@@ -176,6 +178,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             powerfactory_path=self.powerfactory_path,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
+            element_specific_attrs=self.element_specific_attrs,
         )
         pfe.export(
             export_path=self.export_path,
@@ -1113,7 +1116,9 @@ class PowerFactoryExporter:
 
             if self.element_specific_attrs is not None:
                 extra_meta_data = self.get_extra_element_attrs(
-                    transformer_2w, self.element_specific_attrs, grid_name=grid_name,
+                    transformer_2w,
+                    self.element_specific_attrs,
+                    grid_name=grid_name,
                 )
 
             return Transformer(
@@ -4040,6 +4045,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
     study_case_names: list[str] | None = None,
+    element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
 ) -> None:
     """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
@@ -4061,6 +4067,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
         steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
         study_case_names {list[str]} -- a list of study cases to export (default: {None})
+        element_specific_attrs {dict[PFClassId, Sequence[str | dict]]} -- a dictionary with PFClassIds as keys and a set of attribute names as value (default: {None})
 
     Returns:
         None
@@ -4079,6 +4086,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         topology_case_name=topology_case_name,
         steadystate_case_name=steadystate_case_name,
         study_case_names=study_case_names,
+        element_specific_attrs=element_specific_attrs,
     )
     process.start()
     process.join()
