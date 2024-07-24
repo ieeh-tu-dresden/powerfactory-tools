@@ -6,10 +6,12 @@
         "controller": {
           "control_type": {
             "control_strategy": "P_CONST",
+            "optional_data": null,
             "p_set": {
               "average": 666666.7,
               "is_symmetrical": true,
               "n_phases": 3,
+              "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
@@ -23,18 +25,23 @@
             }
           },
           "external_controller_name": null,
-          "node_target": "Industry_Node_2"
-        }
+          "node_target": "Industry_Node_2",
+          "optional_data": null
+        },
+        "optional_data": null
       },
       "name": "Industry_Load",
+      "optional_data": null,
       "reactive_power": {
         "controller": {
           "control_type": {
             "control_strategy": "Q_CONST",
+            "optional_data": null,
             "q_set": {
               "average": 333333.3,
               "is_symmetrical": true,
               "n_phases": 3,
+              "optional_data": null,
               "power_type": "AC_REACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
@@ -48,24 +55,29 @@
             }
           },
           "external_controller_name": null,
-          "node_target": "Industry_Node_2"
-        }
+          "node_target": "Industry_Node_2",
+          "optional_data": null
+        },
+        "optional_data": null
       }
     }
   ],
   "meta": {
     "case": "Industry_Park",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-05",
+    "date": "2024-07-24",
     "grid": "MV_2_Bus",
-    "id": "41e10626-8da0-43c0-a0b5-98aec5a5be8f",
+    "id": "34f60423-9ab4-4b3d-9ce9-3e8e258628bc",
+    "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.2.0"
   },
+  "optional_data": null,
   "transformers": [
     {
       "name": "Industry_Transformer_2w_110/20",
+      "optional_data": null,
       "tap_pos": 0
     }
   ]

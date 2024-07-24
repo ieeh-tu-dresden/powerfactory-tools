@@ -3,11 +3,13 @@
   "meta": {
     "case": "Industry_Park",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-05",
+    "date": "2024-07-24",
     "grid": "MV_2_Bus",
-    "id": "41e10626-8da0-43c0-a0b5-98aec5a5be8f",
+    "id": "34f60423-9ab4-4b3d-9ce9-3e8e258628bc",
+    "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.2.0"
-  }
+  },
+  "optional_data": null
 }
