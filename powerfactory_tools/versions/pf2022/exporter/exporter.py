@@ -712,7 +712,7 @@ class PowerFactoryExporter:
             f_n=Qc.single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
-            length=Length(value=line_len),
+            length=Length(value=line_len * Exponents.LENGTH),
         )
 
     @staticmethod
