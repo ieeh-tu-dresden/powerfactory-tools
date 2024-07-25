@@ -10,6 +10,7 @@ import enum
 import importlib
 import json
 import pathlib
+import pickle
 
 import loguru
 import pydantic
@@ -66,11 +67,23 @@ class CustomEncoder:
         dataframe = pd.DataFrame.from_dict(self.data)
 
         try:
-            with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
+            with pathlib.Path(file_path).open("wb+", encoding="utf-8") as file_handle:
                 dataframe.to_feather(file_handle)
-
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
+            return False
+        except Exception as e:  # noqa: BLE001
+            loguru.logger.error(f"Export to FEATHER failed at {file_path!s} with error {e}")
+            return False
+
+        return True
+
+    def to_pickle(self, file_path: str | pathlib.Path, /) -> bool:
+        try:
+            with pathlib.Path(file_path).open("wb+") as file_handle:
+                pickle.dump(self.data, file_handle)
+        except Exception as e:  # noqa: BLE001
+            loguru.logger.error(f"Export to PICKLE failed at {file_path!s} with error {e}")
             return False
 
         return True

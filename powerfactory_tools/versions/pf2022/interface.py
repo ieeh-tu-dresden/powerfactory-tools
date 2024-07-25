@@ -2279,7 +2279,7 @@ class PowerFactoryInterface:
             file_type=file_type,
             export_path=str(export_path),
         )
-        if file_type not in [FileType.JSON, FileType.CSV]:
+        if file_type not in [FileType.CSV, FileType.FEATHER, FileType.JSON, FileType.PICKLE]:
             msg = f"File type {file_type} is not supported."
             raise ValueError(msg)
         full_file_path = self.create_external_file_path(
@@ -2291,8 +2291,12 @@ class PowerFactoryInterface:
         ce = CustomEncoder(data=data, parent_path=full_file_path.parent)
         if file_type is FileType.CSV:
             ce.to_csv(full_file_path)
+        elif file_type is FileType.FEATHER:
+            ce.to_feather(full_file_path)
         elif file_type is FileType.JSON:
             ce.to_json(full_file_path)
+        elif file_type is FileType.PICKLE:
+            ce.to_pickle(full_file_path)
 
     @staticmethod
     def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:
