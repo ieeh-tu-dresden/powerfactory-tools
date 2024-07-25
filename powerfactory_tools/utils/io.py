@@ -66,7 +66,7 @@ class CustomEncoder:
         dataframe = pd.DataFrame.from_dict(self.data)
 
         try:
-           with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
+            with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
                 dataframe.to_feather(file_handle)
 
         except ImportError:
