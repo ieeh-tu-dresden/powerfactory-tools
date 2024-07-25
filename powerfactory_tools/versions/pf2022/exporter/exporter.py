@@ -312,12 +312,12 @@ class PowerFactoryExporter:
             topology = self.create_topology(meta=meta, data=data)
 
             topology_case = self.create_topology_case(meta=meta, data=data, topology_loads=topology.loads)
-            if topology_case.is_valid_topology(topology) is False:
+            if topology_case.matches_topology(topology) is False:
                 msg = "Topology case does not match specified topology."
                 raise ValueError(msg)
 
             steadystate_case = self.create_steadystate_case(meta=meta, data=data)
-            if steadystate_case.is_valid_topology(topology) is False:
+            if steadystate_case.matches_topology(topology) is False:
                 msg = "Steadystate case does not match specified topology."
                 raise ValueError(msg)
 
