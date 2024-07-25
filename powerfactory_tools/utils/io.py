@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import csv
 import enum
+import importlib
 import json
 import pathlib
-import importlib
 
 import loguru
 import pydantic
