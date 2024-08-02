@@ -21,6 +21,7 @@
 
   [project.optional-dependencies]
     arrow = ["pandas", "pyarrow"]
+    import = ["pandas"]
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
@@ -38,7 +39,7 @@
       formatting = ["black[jupyter]"]
       linter     = ["ruff"]
       prototype  = ["ipykernel"]
-      test       = ["pytest", "pytest-cov", "pytest-xdist"]
+      test       = ["pytest", "pytest-cov", "pytest-xdist", "pandas", "pyarrow"]
       typing     = ["mypy"]
 
 [tool.ruff]

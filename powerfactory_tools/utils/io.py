@@ -60,13 +60,13 @@ def create_external_file_path(
     return file_path
 
 
-def export_data(
+def export_user_data(
     data: dict,
     export_path: pathlib.Path,
     file_type: FileType,
     file_name: str | None = None,
 ) -> None:
-    """Export data to different file types.
+    """Export user defined data to different file types.
 
     Arguments:
         data {dict} -- data to export
@@ -99,11 +99,11 @@ def export_data(
         ce.to_pickle(full_file_path)
 
 
-def import_data(
+def import_user_data(
     full_file_path: pathlib.Path,
     file_type: FileType,
 ) -> dict | None:
-    """Import different file types as data to json file.
+    """Import different file types as raw data.
 
     Arguments:
         full_file_path {pathlib.Path} -- the directory where the file (to be imported) is saved
@@ -152,11 +152,13 @@ class CustomEncoder:
         return True
 
     def to_csv(self, file_path: str | pathlib.Path, /) -> bool:
+        # Convert dictionary to list of dictionaries
+        list_of_dicts = [dict(zip(self.data, t, strict=False)) for t in zip(*self.data.values(), strict=False)]
         try:
             with pathlib.Path(file_path).open("w+", encoding="utf-8", newline="") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=self.data.keys())
                 writer.writeheader()
-                writer.writerow(self.data)
+                writer.writerows(list_of_dicts)
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
             return False
@@ -173,7 +175,7 @@ class CustomEncoder:
         dataframe = pd.DataFrame.from_dict(self.data)
 
         try:
-            with pathlib.Path(file_path).open("wb+", encoding="utf-8") as file_handle:
+            with pathlib.Path(file_path).open("wb+") as file_handle:
                 dataframe.to_feather(file_handle)
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
@@ -207,7 +209,7 @@ class CustomDecoder:
         try:
             with pathlib.Path(file_path).open("rb") as file_handle:
                 dataframe = pd.read_csv(file_handle)
-                return dataframe.to_dict(orient="index")
+                return dataframe.to_dict(orient="list")
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
             return None
@@ -223,12 +225,9 @@ class CustomDecoder:
             return None
 
         try:
-            with pathlib.Path(file_path).open("rb", encoding="utf-8") as file_handle:
+            with pathlib.Path(file_path).open("r+", encoding="utf-8") as file_handle:
                 dataframe = pd.read_json(file_handle)
-                return dataframe.to_dict(orient="index")
-        except ImportError:
-            loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
-            return None
+                return dataframe.to_dict(orient="list")
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Import from JSON failed at {file_path!s} with error {e}")
             return None
@@ -243,7 +242,7 @@ class CustomDecoder:
         try:
             with pathlib.Path(file_path).open("rb") as file_handle:
                 dataframe = pd.read_feather(file_handle)
-                return dataframe.to_dict(orient="index")
+                return dataframe.to_dict(orient="list")
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
             return None
