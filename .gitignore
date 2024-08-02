@@ -239,3 +239,4 @@ scratchboard.ipynb
 .python-version
 .pdm-python
 .vscode/settings.json
+.vscode/launch.json
