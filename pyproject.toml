@@ -10,7 +10,7 @@
   dependencies = [
     "ieeh-power-system-data-model>=2.3.0",
     "loguru",
-    "pydantic>=2.1.1,<=2.5.3",
+    "pydantic",
   ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
@@ -29,7 +29,7 @@
 [tool]
 
   [tool.pdm]
-
+      
     [tool.pdm.dev-dependencies]
       deployment = ["commitizen"]
       formatting = ["black[jupyter]"]
