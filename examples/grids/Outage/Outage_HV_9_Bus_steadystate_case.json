@@ -1273,13 +1273,13 @@
   "meta": {
     "case": "Outage",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-24",
+    "date": "2024-08-05",
     "grid": "HV_9_Bus",
-    "id": "002507ee-49b6-42fe-bd4f-40a842ca4d73",
+    "id": "ff328a37-c4d3-475b-9498-1ecb2309f146",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "optional_data": null,
   "transformers": [

@@ -4818,13 +4818,13 @@
   "meta": {
     "case": "Base",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-24",
+    "date": "2024-08-05",
     "grid": "HV_9_Bus",
-    "id": "ba7287d4-f116-4c2b-916c-bd3f7b71879c",
+    "id": "07cfe0b6-d4fa-4da8-8124-a506a6ae1508",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "nodes": [
     {

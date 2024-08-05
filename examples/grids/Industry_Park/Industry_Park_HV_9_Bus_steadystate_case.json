@@ -1227,13 +1227,13 @@
   "meta": {
     "case": "Industry_Park",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-24",
+    "date": "2024-08-05",
     "grid": "HV_9_Bus",
-    "id": "cac44651-3f63-4561-8a2b-be4a162f0ac6",
+    "id": "ed69cd2f-bcd3-4547-84bc-9e886706349d",
     "optional_data": null,
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "optional_data": null,
   "transformers": [
