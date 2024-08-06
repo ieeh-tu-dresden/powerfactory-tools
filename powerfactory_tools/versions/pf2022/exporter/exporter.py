@@ -2194,7 +2194,8 @@ class PowerFactoryExporter:
                     element_name=element_name,
                 )
                 if PowerFactoryInterface.is_of_type(element, PFClassId.LOAD_LV) or PowerFactoryInterface.is_of_type(
-                    element, PFClassId.LOAD_MV
+                    element,
+                    PFClassId.LOAD_MV,
                 ):
                     matching_load_names = [
                         load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name
