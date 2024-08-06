@@ -311,15 +311,9 @@ class PowerFactoryExporter:
 
             topology = self.create_topology(meta=meta, data=data)
 
-            topology_case = self.create_topology_case(meta=meta, data=data, topology_loads=topology.loads)
-            if topology_case.matches_topology(topology) is False:
-                msg = "Topology case does not match specified topology."
-                raise ValueError(msg)
+            topology_case = self.create_topology_case(meta=meta, data=data, topology=topology)
 
-            steadystate_case = self.create_steadystate_case(meta=meta, data=data)
-            if steadystate_case.matches_topology(topology) is False:
-                msg = "Steadystate case does not match specified topology."
-                raise ValueError(msg)
+            steadystate_case = self.create_steadystate_case(meta=meta, data=data, topology=topology)
 
             self.export_topology(
                 topology=topology,
@@ -2065,13 +2059,13 @@ class PowerFactoryExporter:
         *,
         meta: Meta,
         data: PowerFactoryData,
-        topology_loads: Sequence[Load],
+        topology: Topology,
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(
             data.switches,
             grid_name=data.grid_name,
-            topology_loads=topology_loads,
+            topology_loads=topology.loads,
         )
         coupler_states = self.create_coupler_states(data.couplers, grid_name=data.grid_name)
         bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.grid_name)
@@ -2099,7 +2093,7 @@ class PowerFactoryExporter:
         special_loads_power_on_states = self.create_special_loads_power_on_states(
             special_loads,
             grid_name=data.grid_name,
-            topology_loads=topology_loads,
+            topology_loads=topology.loads,
         )
         power_on_states = self.pfi.list_from_sequences(
             switch_states,
@@ -2114,7 +2108,13 @@ class PowerFactoryExporter:
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
-        return TopologyCase(meta=meta, elements=power_on_states)
+        tc = TopologyCase(meta=meta, elements=power_on_states)
+
+        if not tc.matches_topology(topology):
+            msg = "Topology case does not match specified topology."
+            raise ValueError(msg)
+
+        return tc
 
     def merge_power_on_states(
         self,
@@ -2477,6 +2477,7 @@ class PowerFactoryExporter:
         *,
         meta: Meta,
         data: PowerFactoryData,
+        topology: Topology,
     ) -> SteadystateCase:
         loguru.logger.info("Creating steadystate case...")
         loads = self.create_loads_ssc(
@@ -2496,12 +2497,18 @@ class PowerFactoryExporter:
             grid_name=data.grid_name,
         )
 
-        return SteadystateCase(
+        sc = SteadystateCase(
             meta=meta,
             loads=loads,
             transformers=transformers,
             external_grids=external_grids,
         )
+
+        if not sc.matches_topology(topology):
+            msg = "Steadystate case does not match specified topology."
+            raise ValueError(msg)
+
+        return sc
 
     def create_transformers_ssc(
         self,
