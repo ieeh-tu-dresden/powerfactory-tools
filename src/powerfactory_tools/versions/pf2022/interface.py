@@ -20,7 +20,6 @@ from collections.abc import Sequence
 
 import loguru
 import pydantic
-
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
@@ -43,7 +42,6 @@ if t.TYPE_CHECKING:
     from types import TracebackType
 
     import typing_extensions as te
-
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
