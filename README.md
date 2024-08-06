@@ -137,31 +137,10 @@ Starting with `PowerFactory 2023`, a new model for LV and MV loads is available 
 
 ## <div id="development" /> Development
 
-### Install [pdm](https://github.com/pdm-project/pdm)
+[Install rye](https://rye.astral.sh)
 
-- Windows
 
-  ```bash
-  (Invoke-WebRequest -Uri https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py -UseBasicParsing).Content | python -
-  ```
-
-- Linux/Mac:
-
-  ```bash
-  curl -sSL https://raw.githubusercontent.com/pdm-project/pdm/main/install-pdm.py | python3 -
-  ```
-
-- Or using pipx or pip:
-
-  ```bash
-  pipx install pdm
-  ```
-
-  ```bash
-  pip install --user pdm
-  ```
-
-### Clone `powerfactory-tools`
+Clone `powerfactory-tools`
 
 ```bash
 git@github.com:ieeh-tu-dresden/powerfactory-tools.git
@@ -171,24 +150,23 @@ git@github.com:ieeh-tu-dresden/powerfactory-tools.git
 cd powerfactory-tools
 ```
 
-### Install `powerfactory-tools` 
-- as a production tool
+Install `powerfactory-tools` as a production tool
 
-  ```bash
-  pdm install --prod
-  ```
+```bash
+rye sync --no-dev
+```
 
-- in development mode
+Install `powerfactory-tools` in development mode
 
-  ```bash
-  pdm install
-  ```
+```bash
+rye sync
+```
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
 
 - [ruff](https://github.com/astral-sh/ruff)
-- [black](https://github.com/psf/black)
 - [mypy](https://github.com/python/mypy)
+
 
 ## <div id="acknowledgement" /> Acknowledgement
 
