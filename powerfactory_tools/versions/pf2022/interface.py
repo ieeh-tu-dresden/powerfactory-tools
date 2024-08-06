@@ -1973,16 +1973,16 @@ class PowerFactoryInterface:
 
         return element
 
+    @staticmethod
     def is_of_type(
-        self,
         element: PFTypes.DataObject,
         pf_type: PFClassId,
         /,
     ) -> bool:
         return element.GetClassName() == pf_type.value
 
+    @staticmethod
     def is_of_types(
-        self,
         element: PFTypes.DataObject,
         pf_types: Sequence[PFClassId],
         /,
@@ -2455,7 +2455,7 @@ class PowerFactoryInterface:
         if (parent is not None) and (parent.loc_name != grid_name):
             cp_substat: PFTypes.Substation | None = getattr(element, "cpSubstat", None)
             if cp_substat is not None:
-                if self.is_of_type(parent, PFClassId.SUBSTATION_FIELD):
+                if PowerFactoryInterface.is_of_type(parent, PFClassId.SUBSTATION_FIELD):
                     return cp_substat.loc_name + PATH_SEP + parent.loc_name + PATH_SEP + element_name
 
                 return cp_substat.loc_name + PATH_SEP + element_name

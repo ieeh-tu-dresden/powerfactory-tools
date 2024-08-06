@@ -1760,15 +1760,15 @@ class PowerFactoryExporter:
         *,
         u_nom: pydantic.confloat(ge=0),  # type: ignore[valid-type]
     ) -> pydantic.confloat(ge=0):  # type: ignore[valid-type]
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV):
             load = t.cast("PFTypes.LoadLV", load)
             return load.ulini * Exponents.VOLTAGE
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV_PART):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV_PART):
             load = t.cast("PFTypes.LoadLVP", load)
             return load.ulini * Exponents.VOLTAGE
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD):
             load = t.cast("PFTypes.Load", load)
             return load.u0 * u_nom
 
@@ -1799,14 +1799,18 @@ class PowerFactoryExporter:
         """
         u_0 = Qc.sym_three_phase_voltage(u_0)
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV) and subload is not None:
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV) and subload is not None:
             load = subload
 
-        load_type = t.cast("PFTypes.LoadBase", load).typ_id if self.pfi.is_of_types(load, PF_LOAD_CLASSES) else None
+        load_type = (
+            t.cast("PFTypes.LoadBase", load).typ_id
+            if PowerFactoryInterface.is_of_types(load, PF_LOAD_CLASSES)
+            else None
+        )
 
         if load_type is not None:
             # general load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_GENERAL):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_GENERAL):
                 load_type = t.cast("PFTypes.LoadType", load_type)
                 if load_type.loddy != FULL_DYNAMIC:
                     loguru.logger.warning(
@@ -1842,7 +1846,7 @@ class PowerFactoryExporter:
                     )
 
             # low-voltage (lv) load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_LV):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_LV):
                 load_type = t.cast("PFTypes.LoadTypeLV", load_type)
                 name = load_type.loc_name
 
@@ -1886,7 +1890,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
 
             # medium-voltage (mv) load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_MV):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_MV):
                 load_type = t.cast("PFTypes.LoadTypeMV", load_type)
                 loguru.logger.warning("Medium voltage load model not supported yet. Using default model instead.")
 
@@ -2189,7 +2193,9 @@ class PowerFactoryExporter:
                     node_name=node_name,
                     element_name=element_name,
                 )
-                if self.pfi.is_of_type(element, PFClassId.LOAD_LV) or self.pfi.is_of_type(element, PFClassId.LOAD_MV):
+                if PowerFactoryInterface.is_of_type(element, PFClassId.LOAD_LV) or PowerFactoryInterface.is_of_type(
+                    element, PFClassId.LOAD_MV
+                ):
                     matching_load_names = [
                         load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name
                     ]
