@@ -235,8 +235,6 @@ $RECYCLE.BIN/
 examples/export/*
 examples/control_action_results/*
 scratchboard.ipynb
-.pdm.toml
+.vscode
 .python-version
-.pdm-python
-.vscode/settings.json
-.vscode/launch.json
+*.lock
