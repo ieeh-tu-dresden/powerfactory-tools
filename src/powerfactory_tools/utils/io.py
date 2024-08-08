@@ -18,7 +18,6 @@ import loguru
 import pydantic
 
 if t.TYPE_CHECKING:
-
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
 
@@ -198,7 +197,6 @@ class CustomEncoder:
 
 
 class CustomDecoder:
-
     def from_csv(self, file_path: str | pathlib.Path, /) -> dict | None:
         try:
             pd = importlib.import_module("pandas")
