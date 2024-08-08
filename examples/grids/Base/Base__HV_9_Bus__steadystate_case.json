@@ -79,19 +79,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 666666.7,
+              "average": 3333333.3,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 2000000.1,
+              "total": 9999999.9,
               "unit": "WATT",
               "value": [
-                666666.7,
-                666666.7,
-                666666.7
+                3333333.3,
+                3333333.3,
+                3333333.3
               ]
             }
           },
@@ -108,7 +108,7 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cos_phi_set": {
-              "average": 0.1980618,
+              "average": 0.9903092,
               "direction": "UE",
               "is_symmetrical": true,
               "n_phases": 3,
@@ -117,9 +117,9 @@
               "system_type": "NATURAL",
               "unit": "UNITLESS",
               "value": [
-                0.1980618,
-                0.1980618,
-                0.1980618
+                0.9903092,
+                0.9903092,
+                0.9903092
               ]
             },
             "optional_data": null
@@ -138,19 +138,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 666666.7,
+              "average": 20000000.0,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 2000000.1,
+              "total": 60000000.0,
               "unit": "WATT",
               "value": [
-                666666.7,
-                666666.7,
-                666666.7
+                20000000.0,
+                20000000.0,
+                20000000.0
               ]
             }
           },
@@ -197,19 +197,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 666666.7,
+              "average": 16666665.8,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 2000000.1,
+              "total": 49999997.4,
               "unit": "WATT",
               "value": [
-                666666.7,
-                666666.7,
-                666666.7
+                16666665.8,
+                16666665.8,
+                16666665.8
               ]
             }
           },
@@ -226,7 +226,7 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cos_phi_set": {
-              "average": 0.1961161,
+              "average": 0.9805806,
               "direction": "OE",
               "is_symmetrical": true,
               "n_phases": 3,
@@ -235,9 +235,9 @@
               "system_type": "NATURAL",
               "unit": "UNITLESS",
               "value": [
-                0.1961161,
-                0.1961161,
-                0.1961161
+                0.9805806,
+                0.9805806,
+                0.9805806
               ]
             },
             "optional_data": null
@@ -256,19 +256,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 666666.7,
+              "average": 6666666.7,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 2000000.1,
+              "total": 20000000.1,
               "unit": "WATT",
               "value": [
-                666666.7,
-                666666.7,
-                666666.7
+                6666666.7,
+                6666666.7,
+                6666666.7
               ]
             }
           },
@@ -816,68 +816,22 @@
       "reactive_power": {
         "controller": {
           "control_type": {
-            "control_strategy": "COSPHI_P",
-            "cos_phi_oe": {
-              "average": 0.96,
-              "direction": "ND",
-              "is_symmetrical": true,
-              "n_phases": 3,
-              "optional_data": null,
-              "precision": 7,
-              "system_type": "NATURAL",
-              "unit": "UNITLESS",
-              "value": [
-                0.96,
-                0.96,
-                0.96
-              ]
-            },
-            "cos_phi_ue": {
-              "average": 0.95,
-              "direction": "ND",
-              "is_symmetrical": true,
-              "n_phases": 3,
-              "optional_data": null,
-              "precision": 7,
-              "system_type": "NATURAL",
-              "unit": "UNITLESS",
-              "value": [
-                0.95,
-                0.95,
-                0.95
-              ]
-            },
+            "control_strategy": "Q_CONST",
             "optional_data": null,
-            "p_threshold_oe": {
-              "average": -100000.0,
+            "q_set": {
+              "average": 0.0,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
-              "power_type": "AC_ACTIVE",
+              "power_type": "AC_REACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": -300000.0,
-              "unit": "WATT",
+              "total": 0.0,
+              "unit": "VAR",
               "value": [
-                -100000.0,
-                -100000.0,
-                -100000.0
-              ]
-            },
-            "p_threshold_ue": {
-              "average": -266666.7,
-              "is_symmetrical": true,
-              "n_phases": 3,
-              "optional_data": null,
-              "power_type": "AC_ACTIVE",
-              "precision": 1,
-              "system_type": "NATURAL",
-              "total": -800000.1,
-              "unit": "WATT",
-              "value": [
-                -266666.7,
-                -266666.7,
-                -266666.7
+                -0.0,
+                -0.0,
+                -0.0
               ]
             }
           },
@@ -1271,12 +1225,18 @@
     }
   ],
   "meta": {
-    "case": "Outage",
+    "case": "Base",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-05",
+    "date": "2024-08-08",
     "grid": "HV_9_Bus",
-    "id": "ff328a37-c4d3-475b-9498-1ecb2309f146",
-    "optional_data": null,
+    "id": "eaf757ee-a4eb-4176-abac-519207225f2f",
+    "optional_data": [
+      {
+        "description": "The version of PowerFactory used for export.",
+        "name": "PowerFactoryVersion",
+        "value": "PowerFactory 2022 || SP2"
+      }
+    ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.3.0"

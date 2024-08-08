@@ -13,6 +13,8 @@ import multiprocessing
 import pathlib
 import textwrap
 import typing as t
+from collections.abc import Sequence
+from sys import setrecursionlimit
 
 import loguru
 import pydantic
@@ -25,6 +27,7 @@ from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFa
 from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2022.interface import POWERFACTORY_VERSION
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
 from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
@@ -41,6 +44,7 @@ from powerfactory_tools.versions.pf2022.types import PFClassId
 from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
 from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
 from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
+from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.versions.pf2022.types import PowerModelType
 from powerfactory_tools.versions.pf2022.types import QChar
 from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
@@ -52,6 +56,7 @@ from powerfactory_tools.versions.pf2022.types import TrfTapSide
 from powerfactory_tools.versions.pf2022.types import Vector
 from powerfactory_tools.versions.pf2022.types import VectorGroup
 from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
+from psdm.base import AttributeData
 from psdm.base import UniqueTuple
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
@@ -100,12 +105,10 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 if t.TYPE_CHECKING:
-    from collections.abc import Sequence
     from types import TracebackType
 
     import typing_extensions as te
     from powerfactory_tools.versions.pf2022.data import PowerFactoryData
-    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
@@ -151,6 +154,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
+        element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
     ) -> None:
         super().__init__()
         self.export_path = export_path
@@ -165,6 +169,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.topology_case_name = topology_case_name
         self.steadystate_case_name = steadystate_case_name
         self.study_case_names = study_case_names
+        self.element_specific_attrs = element_specific_attrs
 
     def run(self) -> None:
         pfe = PowerFactoryExporter(
@@ -173,6 +178,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             powerfactory_path=self.powerfactory_path,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
+            element_specific_attrs=self.element_specific_attrs,
         )
         pfe.export(
             export_path=self.export_path,
@@ -192,6 +198,7 @@ class PowerFactoryExporter:
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
+    element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None
 
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
@@ -203,6 +210,7 @@ class PowerFactoryExporter:
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
         )
+        setrecursionlimit(1000)  # for recursive function calls
 
     def __enter__(self) -> te.Self:
         return self
@@ -305,6 +313,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
             )
             data = self.pfi.compile_powerfactory_data(grid)
+
             meta = self.create_meta_data(data=data, case_name=study_case_name)
 
             topology = self.create_topology(meta=meta, data=data)
@@ -408,11 +417,11 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{data.meta.case}_{grid_name}_{data_type}.json"
+                filename = f"{data.meta.case}__{grid_name}__{data_type}.json"
             else:
-                filename = f"{data.meta.case}_{grid_name}_{data_type}_{timestamp_string}.json"
+                filename = f"{data.meta.case}__{grid_name}__{data_type}__{timestamp_string}.json"
         else:
-            filename = f"{data_name}_{grid_name}_{data_type}.json"
+            filename = f"{data_name}__{grid_name}__{data_type}.json"
 
         file_path = export_path / filename
         try:
@@ -423,8 +432,8 @@ class PowerFactoryExporter:
 
         data.to_json(file_path)
 
-    @staticmethod
     def create_meta_data(
+        self,
         *,
         data: PowerFactoryData,
         case_name: str,
@@ -433,6 +442,15 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
+        pf_version_data = AttributeData(
+            name="PowerFactoryVersion",
+            value=(
+                POWERFACTORY_VERSION
+                if self.pfi.powerfactory_service_pack is None
+                else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+            ),
+            description="The version of PowerFactory used for export.",
+        )
 
         return Meta(
             case=case_name,
@@ -441,6 +459,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
+            optional_data=[pf_version_data],
         )
 
     def create_topology(
@@ -522,6 +541,9 @@ class PowerFactoryExporter:
             bus=ext_grid.bus1,
         )
 
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(ext_grid, self.element_specific_attrs, grid_name=grid_name)
+
         return ExternalGrid(
             name=name,
             description=description,
@@ -530,6 +552,7 @@ class PowerFactoryExporter:
             type=GridType(ext_grid.bustp),
             short_circuit_power_max=Qc.single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
             short_circuit_power_min=Qc.single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
+            optional_data=extra_meta_data,
         )
 
     def create_nodes(
@@ -566,12 +589,10 @@ class PowerFactoryExporter:
 
         phases = self.get_terminal_phases(TerminalPhaseConnectionType(terminal.phtech))
 
-        return Node(
-            name=name,
-            u_n=u_n,
-            phases=phases,
-            description=description,
-        )
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
+
+        return Node(name=name, u_n=u_n, phases=phases, description=description, optional_data=extra_meta_data)
 
     def create_branches(
         self,
@@ -680,6 +701,8 @@ class PowerFactoryExporter:
             bus=line.bus2,
             grid_name=grid_name,
         )
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(line, self.element_specific_attrs, grid_name=grid_name)
 
         return Branch(
             name=name,
@@ -710,6 +733,7 @@ class PowerFactoryExporter:
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
             length=Length(value=line_len * Exponents.LENGTH),
+            optional_data=extra_meta_data,
         )
 
     @staticmethod
@@ -783,6 +807,9 @@ class PowerFactoryExporter:
         phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
         phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
 
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(coupler, self.element_specific_attrs, grid_name=grid_name)
+
         return Branch(
             name=name,
             node_1=t1_name,
@@ -798,6 +825,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
+            optional_data=extra_meta_data,
         )
 
     def create_fuse(
@@ -863,6 +891,9 @@ class PowerFactoryExporter:
         phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
         phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
 
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(fuse, self.element_specific_attrs, grid_name=grid_name)
+
         return Branch(
             name=name,
             node_1=t1_name,
@@ -878,6 +909,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
+            optional_data=extra_meta_data,
         )
 
     def get_element_description(
@@ -1091,6 +1123,13 @@ class PowerFactoryExporter:
                 neutral_connected=neutral_connected_l,
             )
 
+            if self.element_specific_attrs is not None:
+                extra_meta_data = self.get_extra_element_attrs(
+                    transformer_2w,
+                    self.element_specific_attrs,
+                    grid_name=grid_name,
+                )
+
             return Transformer(
                 node_1=t_high_name,
                 node_2=t_low_name,
@@ -1112,6 +1151,7 @@ class PowerFactoryExporter:
                 description=description,
                 phase_technology_type=ph_technology,
                 windings=[wh, wl],
+                optional_data=extra_meta_data,
             )
 
         loguru.logger.warning(
@@ -1738,6 +1778,9 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(load, self.element_specific_attrs, grid_name=grid_name)
+
         return Load(
             name=l_name,
             node=t_name,
@@ -1749,6 +1792,7 @@ class PowerFactoryExporter:
             type=LoadType.CONSUMER,
             system_type=system_type,
             voltage_system_type=voltage_system_type,
+            optional_data=extra_meta_data,
         )
 
     def reference_voltage_for_load_model_of(
@@ -2043,6 +2087,13 @@ class PowerFactoryExporter:
         )
         load_type = LoadType.STORAGE if system_type in STORAGE_SYSTEM_TYPES else LoadType.PRODUCER
 
+        if self.element_specific_attrs is not None:
+            extra_meta_data = self.get_extra_element_attrs(
+                generator,
+                self.element_specific_attrs,
+                grid_name=grid_name,
+            )
+
         return Load(
             name=gen_name,
             node=t_name,
@@ -2054,6 +2105,7 @@ class PowerFactoryExporter:
             type=load_type,
             system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
+            optional_data=extra_meta_data,
         )
 
     def create_topology_case(
@@ -4074,6 +4126,41 @@ class PowerFactoryExporter:
 
         return phases
 
+    def get_extra_element_attrs(
+        self,
+        element: PFTypes.DataObject,
+        element_specific_attrs: dict[PFClassId, Sequence[str | dict]],  # dict[PFClassId, set[str]]
+        /,
+        *,
+        grid_name: str | None = None,
+    ) -> Sequence[AttributeData] | None:
+        """Creates a list of AttributeData for the given element based on given attrs_dict.
+
+        In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
+
+        Args:
+            element (PFTypes.DataObject): the element of interest
+            element_specific_attrs (dict[PFClassId, set[str]]): a dictionary with PFClassIds as keys and a set of attribute names as value
+            grid_name (str | None, optional): the name of the grid related to the element, relevant if converting a PFTypes.DataObject. Defaults to None.
+
+        Returns:
+            Sequence[AttributeData] | None: list of AttributeData or None if no attributes have been defined for this element type
+        """
+        for elm_type, attributes in element_specific_attrs.items():
+            if self.pfi.is_of_type(element, elm_type):
+                attribute_data = [
+                    self.pfi.create_attribute_data_recursive(element, attr, grid_name=grid_name)
+                    for attr in sorted(
+                        attributes,
+                        key=lambda x: x.lower() if isinstance(x, str) else next(iter(x)).lower(),
+                    )
+                ]
+                return self.pfi.filter_none_attributes(
+                    attribute_data,
+                    self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
+                )
+        return None
+
 
 def export_powerfactory_data(  # noqa: PLR0913
     *,
@@ -4089,6 +4176,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     topology_case_name: str | None = None,
     steadystate_case_name: str | None = None,
     study_case_names: list[str] | None = None,
+    element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
 ) -> None:
     """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
@@ -4110,6 +4198,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
         steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
         study_case_names {list[str]} -- a list of study cases to export (default: {None})
+        element_specific_attrs {dict[PFClassId, Sequence[str | dict]]} -- a dictionary with PFClassIds as keys and a set of attribute names as value (default: {None})
 
     Returns:
         None
@@ -4128,6 +4217,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         topology_case_name=topology_case_name,
         steadystate_case_name=steadystate_case_name,
         study_case_names=study_case_names,
+        element_specific_attrs=element_specific_attrs,
     )
     process.start()
     process.join()

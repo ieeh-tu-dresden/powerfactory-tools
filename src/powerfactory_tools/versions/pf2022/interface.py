@@ -31,18 +31,19 @@ from powerfactory_tools.versions.pf2022.types import FolderType
 from powerfactory_tools.versions.pf2022.types import MetricPrefix
 from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
 from powerfactory_tools.versions.pf2022.types import PFClassId
+from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.versions.pf2022.types import ResultExportMode
 from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
 from powerfactory_tools.versions.pf2022.types import UnitSystem
 from powerfactory_tools.versions.pf2022.types import ValidPFValue
+from psdm.base import AttributeData
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
     from types import TracebackType
 
     import typing_extensions as te
-    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
 
@@ -2400,13 +2401,6 @@ class PowerFactoryInterface:
         return list(itertools.chain.from_iterable([*sequences]))
 
     @staticmethod
-    def filter_none(
-        data: Sequence[T | None],
-        /,
-    ) -> Sequence[T]:
-        return [e for e in data if e is not None]
-
-    @staticmethod
     def is_efuse(
         fuse: PFTypes.Fuse,
         /,
@@ -2421,6 +2415,121 @@ class PowerFactoryInterface:
     ) -> bool:
         """Return true if branch fuse."""
         return fuse.bus1 is not None or fuse.bus2 is not None
+
+    @staticmethod
+    def filter_none(
+        data: Sequence[T | None],
+        /,
+    ) -> Sequence[T]:
+        return [e for e in data if e is not None]
+
+    def filter_none_attributes(
+        self,
+        attribute_data: Sequence[AttributeData | None],
+        elment: str,
+        /,
+    ) -> Sequence[AttributeData]:
+        """Filters out None values from a list of AttributeData."""
+        filtered_attribute_data: Sequence[AttributeData] = self.filter_none(attribute_data)
+
+        # log if some attributes have not been exported
+        if len(attribute_data) > len(filtered_attribute_data):
+            loguru.logger.info(
+                "Only {len_filtered_attribute_data} out of {len_attribute_data} attributes exported for element {elment}.",
+                len_filtered_attribute_data=len(filtered_attribute_data),
+                len_attribute_data=len(attribute_data),
+                elment=elment,
+            )
+        return filtered_attribute_data
+
+    def pf_dataobject_to_name_string(self, obj: PFTypes.DataObject, /, *, grid_name: str | None = None) -> str:
+        """Converts a PowerFactory DataObject into a string based on its (full) name."""
+        class_name = obj.GetClassName() if grid_name is not None else ""
+        object_name = self.create_name(obj, grid_name=grid_name) if grid_name is not None else obj.GetFullName()
+        return object_name + "." + class_name
+
+    def create_attribute_data_recursive(
+        self,
+        element: PFTypes.DataObject,
+        attribute: str | dict[str, str | dict],
+        /,
+        *,
+        grid_name: str | None = None,
+    ) -> AttributeData | None:
+        """Create an instance of AttributeData for the given element.
+
+        In case that the given attribute is a dictionary, the function is called recursively to get nested attributes.
+        In case of the occurence of DataObject as value (return type) of a requesetd attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
+
+        Args:
+            element (PFTypes.DataObject): the element of interest
+            elm_type(PFClassId): the type of the element
+            attribute (str): key of the attribute
+            grid_name (str | None, optional): the name of the grid related to the element, relevant if converting a PFTypes.DataObject. Defaults to None.
+
+        Returns:
+            AttributeData | None: instance of AttributeData or None if attribute does not exist within the element
+        """
+        # if given attribute is just a simple string key
+        if not isinstance(attribute, dict):
+            attr_value = getattr(element, attribute, None)
+            if attr_value is None:
+                loguru.logger.debug(
+                    "Attribute {attr_key} does not exist for element {element_name}.",
+                    attr_key=attribute,
+                    element_name=element.loc_name,
+                )
+                return None
+
+            # if attr_value is DataObject: convert to its (full) name as DataObject is not hashable, else if attr_value is vector: convert into tuple
+            if element.GetAttributeType(attribute).name == PFTypes.AttributeType.OBJECT.value:
+                attr_value = self.pf_dataobject_to_name_string(attr_value, grid_name=grid_name)
+            elif element.GetAttributeType(attribute).name == PFTypes.AttributeType.OBJECT_VEC.value:
+                attr_value = tuple(
+                    [self.pf_dataobject_to_name_string(obj, grid_name=grid_name) for obj in attr_value],
+                )
+            elif element.GetAttributeType(attribute).name in [
+                PFTypes.AttributeType.INTEGER_VEC.value,
+                PFTypes.AttributeType.DOUBLE_VEC.value,
+                PFTypes.AttributeType.INTEGER64_VEC.value,
+            ]:
+                attr_value = tuple(attr_value)
+            return AttributeData(
+                name=attribute,
+                value=attr_value,
+                description=element.GetAttributeDescription(attribute),
+            )
+
+        # otherwise if the given attribute is not a str but a dictionary, recursively get nested attributes
+        obj: PFTypes.DataObject | None = getattr(element, next(iter(attribute)), None)
+        if obj is None:
+            loguru.logger.debug(
+                "Attribute {attr_key} does not exist for element {element_name}.",
+                attr_key=next(iter(attribute)),
+                element_name=element.loc_name,
+            )
+            return None
+
+        nested_value = tuple(
+            self.create_attribute_data_recursive(
+                obj,
+                nested_value,
+                grid_name=grid_name,
+            )
+            for nested_value in sorted(
+                attribute[next(iter(attribute))],
+                key=lambda x: x.lower() if isinstance(x, str) else next(iter(x)).lower(),
+            )
+        )
+
+        return AttributeData(
+            name=next(iter(attribute)),
+            description=element.GetAttributeDescription(next(iter(attribute))),
+            value=self.filter_none_attributes(
+                nested_value,
+                self.pf_dataobject_to_name_string(obj, grid_name=grid_name),
+            ),
+        )
 
     def create_name(
         self,
@@ -2462,7 +2571,9 @@ class PowerFactoryInterface:
 
         return element_name
 
+    ## !
     ## The following may be part of version inconsistent behavior
+    ## !
     def subloads_of(
         self,
         load: PFTypes.LoadLV,

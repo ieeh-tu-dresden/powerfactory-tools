@@ -33,7 +33,7 @@ GRID_PATH = pathlib.Path("examples/grids/")
     ],
 )
 def test_schema_import(case, schema_class, json_file_name) -> None:
-    json_file_path = GRID_PATH / case / (case + "_HV_9_Bus_" + json_file_name)
+    json_file_path = GRID_PATH / case / (case + "__HV_9_Bus__" + json_file_name)
 
     data = schema_class.from_file(json_file_path)
     json_str1 = json.dumps(data.model_dump(mode="json"), indent=2, sort_keys=True)

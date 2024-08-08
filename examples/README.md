@@ -39,6 +39,11 @@ The following figure provides a short overview of the dependencies within a Powe
 
 ![PowerFactory_StudyCase_Dependencies](./PowerFactory_StudyCase_Dependencies.png)
 
+### Extended Attributes Export
+
+In the case an export of additional attribute data is required for elements of specified types, one can specify a dictionary and pass this as aditional parameter to the `Exporter` class.
+In our [export example](powerfactory_export.ipynb) such a request is performed by specifying  the dict `element_specific_attrs`.
+
 ## <div id="control-functionalities" /> Control Functionalities
 
 The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
