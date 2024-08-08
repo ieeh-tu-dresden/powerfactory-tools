@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2023.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2024.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -43,7 +43,7 @@ def create_external_file_path(
     timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
     study_case_name = active_study_case.loc_name if active_study_case is not None else ""
     filename = (
-        f"{study_case_name}_{timestamp_string}{file_type.value}"
+        f"{study_case_name}__{timestamp_string}{file_type.value}"
         if file_name is None
         else f"{file_name}{file_type.value}"
     )
