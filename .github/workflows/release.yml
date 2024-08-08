@@ -55,13 +55,15 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up PDM @ ${{ matrix.python-version }}
-        uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: true
-          architecture: x64
-          enable-pep582: true
+      - name: Set up rye
+        uses: eifinger/setup-rye@v4.2.1
+        id: setup-rye
+
+      - name: Pin python-version @ ${{ env.PYTHON_VERSION }}
+        run: rye pin ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: rye sync
 
       - name: Get current date
         id: get_date
@@ -88,14 +90,10 @@ jobs:
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
 
       - name: Build Python packages
-        run: pdm build
+        run: rye build
 
       - name: Publish Python packages
-        run: pdm publish
-        env:
-          PDM_PUBLISH_REPO: pypi
-          PDM_PUBLISH_USERNAME: __token__
-          PDM_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: rye publish --repository pypi --username __token__ --token ${{ secrets.PYPI_TOKEN }} --yes
 
       - name: Create release
         uses: softprops/action-gh-release@v1

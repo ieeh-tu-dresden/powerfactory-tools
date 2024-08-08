@@ -20,7 +20,6 @@ from collections.abc import Sequence
 
 import loguru
 import pydantic
-
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.utils.io import create_external_file_path
@@ -43,7 +42,6 @@ if t.TYPE_CHECKING:
     from types import TracebackType
 
     import typing_extensions as te
-
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     T = t.TypeVar("T")
@@ -205,7 +203,9 @@ class PowerFactoryInterface:
                 command_line_arg,
             )
         except pfm.ExitError as element:
-            msg = "Could not start application."
+            error_code = self.resolve_pf_error_code(element)
+            msg = f"Could not start application. Error code: {error_code.value} - {error_code.name}"
+            loguru.logger.exception(msg)
             raise RuntimeError(msg) from element
 
     def load_project_setting_folders_from_pf_db(self) -> None:
@@ -1020,12 +1020,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.ExternalGrid]:
         elements = self.grid_elements(
             class_name=PFClassId.EXTERNAL_GRID.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.ExternalGrid", element) for element in elements]
 
@@ -1045,12 +1047,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Terminal]:
         elements = self.grid_elements(
             class_name=PFClassId.TERMINAL.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Terminal", element) for element in elements]
 
@@ -1070,12 +1074,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements(
             class_name=PFClassId.CUBICLE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
 
@@ -1095,12 +1101,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Coupler]:
         elements = self.grid_elements(
             class_name=PFClassId.COUPLER.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Coupler", element) for element in elements]
 
@@ -1120,12 +1128,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Switch]:
         elements = self.grid_elements(
             class_name=PFClassId.SWITCH.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Switch", element) for element in elements]
 
@@ -1145,12 +1155,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.BFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
@@ -1172,12 +1184,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.EFuse]:
         elements = self.grid_elements(
             class_name=PFClassId.FUSE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
         efuses = [fuse for fuse in fuses if self.is_efuse(fuse)]
@@ -1199,12 +1213,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Line]:
         elements = self.grid_elements(
             class_name=PFClassId.LINE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Line", element) for element in elements]
 
@@ -1224,12 +1240,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Transformer2W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_2W.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Transformer2W", element) for element in elements]
 
@@ -1247,12 +1265,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Transformer3W]:
         elements = self.grid_elements(
             class_name=PFClassId.TRANSFORMER_3W.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Transformer3W", element) for element in elements]
 
@@ -1272,12 +1292,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Load]:
         elements = self.grid_elements(
             class_name=PFClassId.LOAD.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Load", element) for element in elements]
 
@@ -1297,12 +1319,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.Generator]:
         elements = self.grid_elements(
             class_name=PFClassId.GENERATOR.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Generator", element) for element in elements]
 
@@ -1320,12 +1344,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements(
             class_name=PFClassId.PVSYSTEM.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.PVSystem", element) for element in elements]
 
@@ -1343,12 +1369,14 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
+        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.AcCurrentSource]:
         elements = self.grid_elements(
             class_name=PFClassId.CURRENT_SOURCE_AC.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
 
@@ -1943,16 +1971,16 @@ class PowerFactoryInterface:
 
         return element
 
+    @staticmethod
     def is_of_type(
-        self,
         element: PFTypes.DataObject,
         pf_type: PFClassId,
         /,
     ) -> bool:
         return element.GetClassName() == pf_type.value
 
+    @staticmethod
     def is_of_types(
-        self,
         element: PFTypes.DataObject,
         pf_types: Sequence[PFClassId],
         /,
@@ -2257,43 +2285,6 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     @staticmethod
-    def create_name(
-        element: PFTypes.DataObject,
-        /,
-        *,
-        grid_name: str,
-        element_name: str | None = None,
-    ) -> str:
-        """Create a unique name of the object.
-
-        Object type differentiation based on the input parameters. Considers optional parents of the object,
-        element.g. in case of detailed template or detailed substation.
-
-        Arguments:
-            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
-            grid_name {str} -- The name of the grid to which the object belongs (root).
-
-        Keyword Arguments:
-            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
-
-        Returns:
-            {str} -- The unique name of the object.
-        """
-
-        if element_name is None:
-            element_name = element.loc_name
-
-        parent = element.fold_id
-        if (parent is not None) and (parent.loc_name != grid_name):
-            cp_substat: PFTypes.DataObject | None = getattr(element, "cpSubstat", None)
-            if cp_substat is not None:
-                return cp_substat.loc_name + PATH_SEP + element_name
-
-            return parent.loc_name + PATH_SEP + element_name
-
-        return element_name
-
-    @staticmethod
     def create_generator_name(
         generator: PFTypes.GeneratorBase,
         /,
@@ -2371,6 +2362,46 @@ class PowerFactoryInterface:
     ) -> bool:
         """Return true if branch fuse."""
         return fuse.bus1 is not None or fuse.bus2 is not None
+
+    def create_name(
+        self,
+        element: PFTypes.DataObject,
+        /,
+        *,
+        grid_name: str,
+        element_name: str | None = None,
+    ) -> str:
+        """Create a unique name of the object.
+
+        Object type differentiation based on the input parameters. Considers optional parents of the object,
+        element.g. in case of detailed template or detailed substation.
+
+        Arguments:
+            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
+            grid_name {str} -- The name of the grid to which the object belongs (root).
+
+        Keyword Arguments:
+            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
+
+        Returns:
+            {str} -- The unique name of the object.
+        """
+
+        if element_name is None:
+            element_name = element.loc_name
+
+        parent = element.fold_id
+        if (parent is not None) and (parent.loc_name != grid_name):
+            cp_substat: PFTypes.Substation | None = getattr(element, "cpSubstat", None)
+            if cp_substat is not None:
+                if PowerFactoryInterface.is_of_type(parent, PFClassId.SUBSTATION_FIELD):
+                    return cp_substat.loc_name + PATH_SEP + parent.loc_name + PATH_SEP + element_name
+
+                return cp_substat.loc_name + PATH_SEP + element_name
+
+            return parent.loc_name + PATH_SEP + element_name
+
+        return element_name
 
     ## The following may be part of version inconsistent behavior
     def subloads_of(

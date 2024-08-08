@@ -8,9 +8,9 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model==2.2.0",
-    "loguru",
-    "pydantic>=2.1.1,<=2.5.3",
+    "ieeh-power-system-data-model>=2.3.0",
+    "loguru>=0.7.2",
+    "pydantic>=2.8.2",
   ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
@@ -27,20 +27,28 @@
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
 
 [build-system]
-  build-backend = "pdm.backend"
-  requires      = ["pdm-backend"]
+  build-backend = "hatchling.build"
+  requires      = ["hatchling"]
 
-[tool]
+[tool.rye]
+  dev-dependencies = [
+    "commitizen>=3.28.0",
+    "ipykernel>=6.29.5",
+    "mypy>=1.11.0",
+    "pytest-cov>=5.0.0",
+    "pytest-xdist>=3.6.1",
+    "pytest>=8.3.1",
+    "ruff>=0.5.5",
+    "pandas>=2.2.2",
+    "pyarrow>=17.0.0",
+  ]
+  managed = true
 
-  [tool.pdm]
+[tool.hatch.metadata]
+  allow-direct-references = true
 
-    [tool.pdm.dev-dependencies]
-      deployment = ["commitizen"]
-      formatting = ["black[jupyter]"]
-      linter     = ["ruff"]
-      prototype  = ["ipykernel"]
-      test       = ["pytest", "pytest-cov", "pytest-xdist", "pandas", "pyarrow"]
-      typing     = ["mypy"]
+[tool.hatch.build.targets.wheel]
+  packages = ["src/powerfactory_tools"]
 
 [tool.ruff]
   line-length = 120
@@ -105,14 +113,14 @@
   version_files = [
     ".zenodo.json:version",
     "CITATION.cff:cff-version",
-    "powerfactory_tools/__version__.py:VERSION",
     "pyproject.toml:version",
+    "src/powerfactory_tools/__version__.py:VERSION",
   ]
 
 [tool.mypy]
   follow_imports         = "normal"
   ignore_missing_imports = true
-  mypy_path              = "powerfactory_tools"
+  mypy_path              = "src/powerfactory_tools"
   namespace_packages     = true
   plugins                = "pydantic.mypy"
   strict_optional        = true
@@ -121,14 +129,13 @@
   warn_unused_ignores    = true
 
 [tool.pytest.ini_options]
-  addopts      = "-ra --strict-markers -p pytester --cov=powerfactory_tools --cov-report xml --cov-report term -n 2"
   python_files = "test_*.py"
   testpaths    = ["tests"]
 
 [tool.coverage.run]
   branch = true
   omit   = ["__pypackages__/*", "build/*", "tests/*"]
-  source = ["powerfactory_tools"]
+  source = ["src/powerfactory_tools"]
 
 [tool.coverage.report]
   show_missing = true

@@ -16,6 +16,42 @@ import typing as t
 
 import loguru
 import pydantic
+from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2022.constants import DecimalDigits
+from powerfactory_tools.versions.pf2022.constants import Exponents
+from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFactory
+from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
+from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
+from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2022.types import CosPhiChar
+from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
+from powerfactory_tools.versions.pf2022.types import ExternalQCtrlMode
+from powerfactory_tools.versions.pf2022.types import GeneratorPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import GeneratorSystemType
+from powerfactory_tools.versions.pf2022.types import IOpt
+from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
+from powerfactory_tools.versions.pf2022.types import PFClassId
+from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
+from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
+from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
+from powerfactory_tools.versions.pf2022.types import PowerModelType
+from powerfactory_tools.versions.pf2022.types import QChar
+from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
+from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
+from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
+from powerfactory_tools.versions.pf2022.types import TrfNeutralPointState
+from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
+from powerfactory_tools.versions.pf2022.types import TrfTapSide
+from powerfactory_tools.versions.pf2022.types import Vector
+from powerfactory_tools.versions.pf2022.types import VectorGroup
+from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
 from psdm.base import UniqueTuple
 from psdm.base import VoltageSystemType
 from psdm.meta import Meta
@@ -63,49 +99,11 @@ from psdm.topology.windings import Winding
 from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
-from powerfactory_tools.__version__ import VERSION
-from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2022.constants import DecimalDigits
-from powerfactory_tools.versions.pf2022.constants import Exponents
-from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFactory
-from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
-from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
-from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
-from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
-from powerfactory_tools.versions.pf2022.types import CosPhiChar
-from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
-from powerfactory_tools.versions.pf2022.types import ExternalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import GeneratorPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import GeneratorSystemType
-from powerfactory_tools.versions.pf2022.types import IOpt
-from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import PFClassId
-from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
-from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
-from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
-from powerfactory_tools.versions.pf2022.types import PowerModelType
-from powerfactory_tools.versions.pf2022.types import QChar
-from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
-from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
-from powerfactory_tools.versions.pf2022.types import TrfNeutralPointState
-from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
-from powerfactory_tools.versions.pf2022.types import TrfTapSide
-from powerfactory_tools.versions.pf2022.types import Vector
-from powerfactory_tools.versions.pf2022.types import VectorGroup
-from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
-
 if t.TYPE_CHECKING:
     from collections.abc import Sequence
     from types import TracebackType
 
     import typing_extensions as te
-
     from powerfactory_tools.versions.pf2022.data import PowerFactoryData
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
@@ -114,8 +112,10 @@ if t.TYPE_CHECKING:
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
-STRING_SEPARATOR = "; "
+NAME_SEPARATOR = "__"
+STRING_SEPARATOR = " || "
 STRING_DO_NOT_EXPORT = "do_not_export"
+STRING_SUBCONSUMER_START = "subconsumer_follows" + STRING_SEPARATOR
 
 PF_LOAD_CLASSES = [PFClassId.LOAD, PFClassId.LOAD_LV, PFClassId.LOAD_LV_PART, PFClassId.LOAD_MV]
 STORAGE_SYSTEM_TYPES = [SystemType.BATTERY_STORAGE, SystemType.PUMP_STORAGE]
@@ -308,12 +308,10 @@ class PowerFactoryExporter:
             meta = self.create_meta_data(data=data, case_name=study_case_name)
 
             topology = self.create_topology(meta=meta, data=data)
-            topology_case = self.create_topology_case(meta=meta, data=data)
-            steadystate_case = self.create_steadystate_case(meta=meta, data=data)
 
-            if steadystate_case.is_valid_topology(topology) is False:
-                msg = "Steadystate case does not match specified topology."
-                raise ValueError(msg)
+            topology_case = self.create_topology_case(meta=meta, data=data, topology=topology)
+
+            steadystate_case = self.create_steadystate_case(meta=meta, data=data, topology=topology)
 
             self.export_topology(
                 topology=topology,
@@ -711,7 +709,7 @@ class PowerFactoryExporter:
             f_n=Qc.single_phase_frequency(f_nom),
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
-            length=Length(value=line_len),
+            length=Length(value=line_len * Exponents.LENGTH),
         )
 
     @staticmethod
@@ -1351,7 +1349,8 @@ class PowerFactoryExporter:
             if desc[0] == STRING_DO_NOT_EXPORT:
                 return False, ""
 
-            return True, desc[0]
+            _desc = STRING_SEPARATOR.join(desc) if len(desc) > 1 else desc[0]
+            return True, _desc
 
         return True, ""
 
@@ -1476,7 +1475,7 @@ class PowerFactoryExporter:
             for power, subload in zip(powers, subloads, strict=True)
         ]
 
-        return self.pfi.list_from_sequences(*consumer_lv_parts)
+        return self.pfi.list_from_sequences(*self.pfi.filter_none(consumer_lv_parts))
 
     def create_consumer_lv_parts(
         self,
@@ -1487,7 +1486,7 @@ class PowerFactoryExporter:
         power: LoadLVPower,
         subload: PFTypes.LoadLVP | None,
         sfx_pre: str,
-    ) -> Sequence[Load]:
+    ) -> Sequence[Load] | None:
         """Creating independent consumers for a low-voltage (sub)consumer in respect to fixed, variable and night-storage parts.
 
         Args:
@@ -1498,25 +1497,37 @@ class PowerFactoryExporter:
             sfx_pre (str): a suffix to be added to the name of the (sub)consumer
 
         Returns:
-            Sequence[Load]: partial load objects in respect to fixed, variable and night-storage characteristics
+            Sequence[Load] | None: partial load objects in respect to fixed, variable and night-storage characteristics or None if export is canceled
         """
-        l_name = self.pfi.create_name(load, grid_name=grid_name)
+        load_name = self.pfi.create_name(load, grid_name=grid_name)
         if subload is not None:
+            subload_name = subload.loc_name
             loguru.logger.debug(
-                "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {name}...",
-                subload_name=subload.loc_name,
-                name=l_name,
+                "Creating partial consumers for subconsumer {subload_name} of low voltage consumer {load_name}...",
+                subload_name=subload_name,
+                load_name=load_name,
             )
+            # Check for DO_NOT_EXPORT flag and description of subconsumer
+            subload_export, subload_description = self.get_description(subload)
+            if not subload_export:
+                loguru.logger.warning(
+                    "Subconsumer {subload_name} is not set for export. Skipping.",
+                    subload_name=subload.loc_name,
+                )
+                return None
+
         else:
+            subload_name = ""
             loguru.logger.debug(
-                "Creating partial consumers for low voltage consumer {name}...",
-                name=l_name,
+                "Creating partial consumers for low voltage consumer {load_name}...",
+                load_name=load_name,
             )
+            subload_description = ""
 
         # Connected terminal
         bus = load.bus1
         if bus is None:
-            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=l_name)
+            loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=load_name)
             return [None]
         terminal = bus.cterm
 
@@ -1524,7 +1535,6 @@ class PowerFactoryExporter:
         phase_connection_type = ConsolidatedLoadPhaseConnectionType[LoadLVPhaseConnectionType(load.phtech).name]
 
         # LoadModel
-        subload_name = subload.loc_name if subload is not None else ""
         u_0 = self.reference_voltage_for_load_model_of(load, u_nom=terminal.uknom * Exponents.VOLTAGE)
         load_model_p = self.load_model_of(load, u_0=u_0, specifier="p", default="I", subload=subload)
         load_model_q = self.load_model_of(load, u_0=u_0, specifier="q", default="I", subload=subload)
@@ -1538,7 +1548,8 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.FIXED_CONSUMPTION.name,
+                desc_suffix=subload_description,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -1552,7 +1563,8 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.NIGHT_STORAGE.name,
+                desc_suffix=subload_description,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -1566,11 +1578,26 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
                 load_model_p=load_model_p,
                 load_model_q=load_model_q,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.VARIABLE_CONSUMPTION.name,
+                desc_suffix=subload_description,
             )
             if power.flexible.pow_app_abs != 0
             else None
         )
+        # Check if all partial consumers have power of zero. If true print warning that export is skipped.
+        if consumer_fixed is None and consumer_night is None and consumer_flex is None:
+            if subload is not None:
+                loguru.logger.warning(
+                    "No partial consumers of subconsumer {subload_name} of low voltage consumer {load_name} have a nonzero power value. Skipping {subload_name} for export.",
+                    subload_name=subload_name,
+                    load_name=load_name,
+                )
+            else:
+                loguru.logger.warning(
+                    "No partial consumers of low voltage consumer {load_name} have a nonzero power value. Skipping {load_name} for export.",
+                    load_name=load_name,
+                )
+
         return self.pfi.filter_none([consumer_fixed, consumer_night, consumer_flex])
 
     def create_loads_mv(
@@ -1620,7 +1647,7 @@ class PowerFactoryExporter:
             phase_connection_type=phase_connection_type,
             load_model_p=load_model_p,
             load_model_q=load_model_q,
-            name_suffix="_CONSUMER",
+            name_suffix=NAME_SEPARATOR + LoadType.CONSUMER.value,
         )
         producer = self.create_producer(
             load,
@@ -1629,7 +1656,7 @@ class PowerFactoryExporter:
             grid_name=grid_name,
             system_type=SystemType.OTHER,
             phase_connection_type=phase_connection_type,
-            name_suffix="_PRODUCER",
+            name_suffix=NAME_SEPARATOR + LoadType.PRODUCER.value,
         )
 
         return [consumer, producer]
@@ -1646,6 +1673,7 @@ class PowerFactoryExporter:
         load_model_p: LoadModel,
         load_model_q: LoadModel,
         name_suffix: str = "",
+        desc_suffix: str = "",
     ) -> Load | None:
         """Create a PSDM object "Load" for a load of type consumer.
 
@@ -1658,6 +1686,7 @@ class PowerFactoryExporter:
             load_model_p (LoadModel): the active power model of the consumer
             load_model_q (LoadModel): the reactive power model of the consumer
             name_suffix (str, optional): a suffix to be added to the name of the consumer (default: "")
+            desc_suffix (str, optional): a suffix to be added to the description of the consumer (default: "")
 
         Returns:
             Load | None: a PSDM object "Load"
@@ -1668,6 +1697,8 @@ class PowerFactoryExporter:
         if not export:
             loguru.logger.warning("Consumer {load_name} is not set for export. Skipping.", load_name=l_name)
             return None
+        if desc_suffix:
+            description = description + STRING_SEPARATOR + STRING_SUBCONSUMER_START + desc_suffix
 
         # get connected terminal
         bus = load.bus1
@@ -1727,15 +1758,15 @@ class PowerFactoryExporter:
         *,
         u_nom: pydantic.confloat(ge=0),  # type: ignore[valid-type]
     ) -> pydantic.confloat(ge=0):  # type: ignore[valid-type]
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV):
             load = t.cast("PFTypes.LoadLV", load)
             return load.ulini * Exponents.VOLTAGE
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV_PART):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV_PART):
             load = t.cast("PFTypes.LoadLVP", load)
             return load.ulini * Exponents.VOLTAGE
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD):
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD):
             load = t.cast("PFTypes.Load", load)
             return load.u0 * u_nom
 
@@ -1766,14 +1797,18 @@ class PowerFactoryExporter:
         """
         u_0 = Qc.sym_three_phase_voltage(u_0)
 
-        if self.pfi.is_of_type(load, PFClassId.LOAD_LV) and subload is not None:
+        if PowerFactoryInterface.is_of_type(load, PFClassId.LOAD_LV) and subload is not None:
             load = subload
 
-        load_type = t.cast("PFTypes.LoadBase", load).typ_id if self.pfi.is_of_types(load, PF_LOAD_CLASSES) else None
+        load_type = (
+            t.cast("PFTypes.LoadBase", load).typ_id
+            if PowerFactoryInterface.is_of_types(load, PF_LOAD_CLASSES)
+            else None
+        )
 
         if load_type is not None:
             # general load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_GENERAL):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_GENERAL):
                 load_type = t.cast("PFTypes.LoadType", load_type)
                 if load_type.loddy != FULL_DYNAMIC:
                     loguru.logger.warning(
@@ -1809,7 +1844,7 @@ class PowerFactoryExporter:
                     )
 
             # low-voltage (lv) load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_LV):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_LV):
                 load_type = t.cast("PFTypes.LoadTypeLV", load_type)
                 name = load_type.loc_name
 
@@ -1853,7 +1888,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
 
             # medium-voltage (mv) load type
-            if self.pfi.is_of_type(load_type, PFClassId.LOAD_TYPE_MV):
+            if PowerFactoryInterface.is_of_type(load_type, PFClassId.LOAD_TYPE_MV):
                 load_type = t.cast("PFTypes.LoadTypeMV", load_type)
                 loguru.logger.warning("Medium voltage load model not supported yet. Using default model instead.")
 
@@ -2026,19 +2061,26 @@ class PowerFactoryExporter:
         *,
         meta: Meta,
         data: PowerFactoryData,
+        topology: Topology,
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
-        switch_states = self.create_switch_states(data.switches, grid_name=data.grid_name)
+        switch_states = self.create_switch_states(
+            data.switches,
+            grid_name=data.grid_name,
+            topology_loads=topology.loads,
+        )
         coupler_states = self.create_coupler_states(data.couplers, grid_name=data.grid_name)
         bfuse_states = self.create_bfuse_states(data.bfuses, grid_name=data.grid_name)
         efuse_states = self.create_efuse_states(data.efuses, grid_name=data.grid_name)
         elements: Sequence[ElementBase] = self.pfi.list_from_sequences(
             data.loads,
-            data.loads_lv,
-            data.loads_mv,
             data.generators,
             data.pv_systems,
             data.external_grids,
+        )
+        special_loads: Sequence[PFTypes.LoadLV | PFTypes.LoadMV] = self.pfi.list_from_sequences(
+            data.loads_lv,
+            data.loads_mv,
         )
         node_power_on_states = self.create_node_power_on_states(data.terminals, grid_name=data.grid_name)
         line_power_on_states = self.create_element_power_on_states(data.lines, grid_name=data.grid_name)
@@ -2046,7 +2088,15 @@ class PowerFactoryExporter:
             data.transformers_2w,
             grid_name=data.grid_name,
         )
-        element_power_on_states = self.create_element_power_on_states(elements, grid_name=data.grid_name)
+        element_power_on_states = self.create_element_power_on_states(
+            elements,
+            grid_name=data.grid_name,
+        )
+        special_loads_power_on_states = self.create_special_loads_power_on_states(
+            special_loads,
+            grid_name=data.grid_name,
+            topology_loads=topology.loads,
+        )
         power_on_states = self.pfi.list_from_sequences(
             switch_states,
             coupler_states,
@@ -2056,10 +2106,17 @@ class PowerFactoryExporter:
             line_power_on_states,
             transformer_2w_power_on_states,
             element_power_on_states,
+            special_loads_power_on_states,
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
-        return TopologyCase(meta=meta, elements=power_on_states)
+        tc = TopologyCase(meta=meta, elements=power_on_states)
+
+        if not tc.matches_topology(topology):
+            msg = "Topology case does not match specified topology."
+            raise ValueError(msg)
+
+        return tc
 
     def merge_power_on_states(
         self,
@@ -2087,6 +2144,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
+        topology_loads: Sequence[Load],
     ) -> Sequence[ElementState]:
         """Create element states for all type of elements based on if the switch is open.
 
@@ -2097,13 +2155,21 @@ class PowerFactoryExporter:
 
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
+            topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
+
+
         Returns:
             Sequence[ElementState] -- set of element states
         """
 
         loguru.logger.info("Creating switch states...")
-        states = [self.create_switch_state(switch, grid_name=grid_name) for switch in switches]
-        return self.pfi.filter_none(states)
+        states = [
+            self.create_switch_state(switch, grid_name=grid_name, topology_loads=topology_loads) for switch in switches
+        ]
+        filtered_states = self.pfi.filter_none(states)
+        # unnest list of states
+        flattened_states = [item for sublist in filtered_states for item in sublist]
+        return self.pfi.filter_none(flattened_states)
 
     def create_switch_state(
         self,
@@ -2111,7 +2177,8 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str,
-    ) -> ElementState | None:
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState] | None:
         if not switch.isclosed:
             cub = switch.fold_id
             element = cub.obj_id
@@ -2120,11 +2187,22 @@ class PowerFactoryExporter:
                 node_name = self.pfi.create_name(terminal, grid_name=grid_name)
                 element_name = self.pfi.create_name(element, grid_name=grid_name)
                 loguru.logger.debug(
-                    "Creating switch state {node_name}-{element_name}...",
+                    "Creating switch state(s) {node_name}-{element_name}...",
                     node_name=node_name,
                     element_name=element_name,
                 )
-                return ElementState(name=element_name, open_switches=(node_name,))
+                if PowerFactoryInterface.is_of_type(element, PFClassId.LOAD_LV) or PowerFactoryInterface.is_of_type(
+                    element,
+                    PFClassId.LOAD_MV,
+                ):
+                    matching_load_names = [
+                        load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name
+                    ]
+                    return [
+                        ElementState(name=load_name, open_switches=(node_name,)) for load_name in matching_load_names
+                    ]
+
+                return [ElementState(name=element_name, open_switches=(node_name,))]
 
         return None
 
@@ -2190,7 +2268,7 @@ class PowerFactoryExporter:
             Sequence[ElementState] -- set of element states
         """
 
-        loguru.logger.info("Creating node power on states...")
+        loguru.logger.info("Creating power_on states for nodes ...")
         states = [self.create_node_power_on_state(terminal, grid_name=grid_name) for terminal in terminals]
         return self.pfi.filter_none(states)
 
@@ -2204,7 +2282,7 @@ class PowerFactoryExporter:
         if terminal.outserv:
             node_name = self.pfi.create_name(terminal, grid_name=grid_name)
             loguru.logger.debug(
-                "Creating node power on state {node_name}...",
+                "Creating power_on state for node {node_name}...",
                 node_name=node_name,
             )
             return ElementState(name=node_name, disabled=True)
@@ -2231,7 +2309,7 @@ class PowerFactoryExporter:
         Returns:
             Sequence[ElementState] -- set of element states
         """
-        loguru.logger.info("Creating element power on states...")
+        loguru.logger.info("Creating power_on states for elements ...")
         states = [self.create_element_power_on_state(element, grid_name=grid_name) for element in elements]
         return self.pfi.filter_none(states)
 
@@ -2245,10 +2323,63 @@ class PowerFactoryExporter:
         if element.outserv:
             element_name = self.pfi.create_name(element, grid_name=grid_name)
             loguru.logger.debug(
-                "Creating element power on state {element_name}...",
+                "Creating power_on state for element {element_name}...",
                 element_name=element_name,
             )
             return ElementState(name=element_name, disabled=True)
+
+        return None
+
+    def create_special_loads_power_on_states(
+        self,
+        elements: Sequence[PFTypes.LoadLV | PFTypes.LoadMV],
+        /,
+        *,
+        grid_name: str,
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState]:
+        """Create states for one-sided connected LV- and MV-loads based on if the elements are out of service.
+
+        The element states contain no node reference.
+
+        Arguments:
+            elements {Sequence[PFTypes.LoadLV | PFTypes.LoadMV]} -- sequence of one-sided connected PowerFactory objects
+
+        Keyword Arguments:
+            grid_name {str} -- the name of the related grid
+            topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
+
+        Returns:
+            Sequence[ElementState] -- set of element states
+        """
+        loguru.logger.info("Creating power_on states for special loads...")
+        states = [
+            self.create_special_load_power_on_state(element, grid_name=grid_name, topology_loads=topology_loads)
+            for element in elements
+        ]
+        filtered_states = self.pfi.filter_none(states)
+        # unnest list of states
+        flattened_states = [item for sublist in filtered_states for item in sublist]
+        return self.pfi.filter_none(flattened_states)
+
+    def create_special_load_power_on_state(
+        self,
+        element: PFTypes.LoadLV | PFTypes.LoadMV,
+        /,
+        *,
+        grid_name: str,
+        topology_loads: Sequence[Load],
+    ) -> Sequence[ElementState] | None:
+        if element.outserv:
+            element_name = self.pfi.create_name(element, grid_name=grid_name)
+            loguru.logger.debug(
+                "Creating power_on state(s) for special load {element_name}...",
+                element_name=element_name,
+            )
+            # for a low- or medium-voltage load, an appendix was added to the original name during create_topology (load was divided into subloads)
+            # therefore, the name of the load is used to find the corresponding load in the topology loads
+            matching_load_names = [load.name for load in topology_loads if element_name + NAME_SEPARATOR in load.name]
+            return [ElementState(name=load_name, disabled=True) for load_name in matching_load_names]
 
         return None
 
@@ -2351,6 +2482,7 @@ class PowerFactoryExporter:
         *,
         meta: Meta,
         data: PowerFactoryData,
+        topology: Topology,
     ) -> SteadystateCase:
         loguru.logger.info("Creating steadystate case...")
         loads = self.create_loads_ssc(
@@ -2370,12 +2502,18 @@ class PowerFactoryExporter:
             grid_name=data.grid_name,
         )
 
-        return SteadystateCase(
+        sc = SteadystateCase(
             meta=meta,
             loads=loads,
             transformers=transformers,
             external_grids=external_grids,
         )
+
+        if not sc.matches_topology(topology):
+            msg = "Steadystate case does not match specified topology."
+            raise ValueError(msg)
+
+        return sc
 
     def create_transformers_ssc(
         self,
@@ -2741,7 +2879,7 @@ class PowerFactoryExporter:
     ) -> Sequence[LoadSSC]:
         loguru.logger.info("Creating low voltage consumers steadystate case...")
         consumers_ssc_lv_parts = [self.create_consumers_ssc_lv_parts(load, grid_name=grid_name) for load in loads]
-        return list(itertools.chain.from_iterable(consumers_ssc_lv_parts))
+        return self.pfi.list_from_sequences(*consumers_ssc_lv_parts)
 
     def create_consumers_ssc_lv_parts(
         self,
@@ -2763,7 +2901,7 @@ class PowerFactoryExporter:
             )
             for power, subload in zip(powers, subloads, strict=True)
         ]
-        return list(itertools.chain.from_iterable(consumer_ssc_lv_parts))
+        return self.pfi.list_from_sequences(*self.pfi.filter_none(consumer_ssc_lv_parts))
 
     def create_consumer_ssc_lv_parts(
         self,
@@ -2774,7 +2912,7 @@ class PowerFactoryExporter:
         power: LoadLVPower,
         subload: PFTypes.LoadLVP | None,
         sfx_pre: str,
-    ) -> Sequence[LoadSSC]:
+    ) -> Sequence[LoadSSC] | None:
         l_name = self.pfi.create_name(load, grid_name=grid_name)
         if subload is not None:
             loguru.logger.debug(
@@ -2782,6 +2920,14 @@ class PowerFactoryExporter:
                 subload_name=subload.loc_name,
                 name=l_name,
             )
+            # Check for DO_NOT_EXPORT flag subconsumer
+            subload_export, _ = self.get_description(subload)
+            if not subload_export:
+                loguru.logger.warning(
+                    "Subconsumer {subload_name} is not set for export. Skipping.",
+                    subload_name=subload.loc_name,
+                )
+                return None
         else:
             loguru.logger.debug(
                 "Creating partial consumer SSCs for low voltage consumer {name}...",
@@ -2796,7 +2942,7 @@ class PowerFactoryExporter:
                 power=power.fixed,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.FIXED_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.FIXED_CONSUMPTION.name,
             )
             if power.fixed.pow_app_abs != 0
             else None
@@ -2807,7 +2953,7 @@ class PowerFactoryExporter:
                 power=power.night,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.NIGHT_STORAGE.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.NIGHT_STORAGE.name,
             )
             if power.night.pow_app_abs != 0
             else None
@@ -2818,7 +2964,7 @@ class PowerFactoryExporter:
                 power=power.flexible_avg,
                 grid_name=grid_name,
                 phase_connection_type=phase_connection_type,
-                name_suffix=sfx_pre.format(subload_name) + "__" + SystemType.VARIABLE_CONSUMPTION.name,
+                name_suffix=sfx_pre.format(subload_name) + NAME_SEPARATOR + SystemType.VARIABLE_CONSUMPTION.name,
             )
             if power.flexible.pow_app_abs != 0
             else None
@@ -3028,14 +3174,14 @@ class PowerFactoryExporter:
             power=power.consumer,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            name_suffix="_CONSUMER",
+            name_suffix=NAME_SEPARATOR + LoadType.CONSUMER.value,
         )
         producer_ssc = self.create_consumer_ssc(
             load,
             power=power.producer,
             grid_name=grid_name,
             phase_connection_type=phase_connection_type,
-            name_suffix="_PRODUCER",
+            name_suffix=NAME_SEPARATOR + LoadType.PRODUCER.value,
         )
         return [consumer_ssc, producer_ssc]
 
@@ -3178,7 +3324,7 @@ class PowerFactoryExporter:
         export, _ = self.get_description(load)
         if not export:
             loguru.logger.warning(
-                "External grid {consumer_name} not set for export. Skipping.",
+                "Consumer {consumer_name} not set for export. Skipping.",
                 consumer_name=consumer_name,
             )
             return None
