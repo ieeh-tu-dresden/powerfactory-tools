@@ -1,0 +1,21 @@
+{
+  "elements": [],
+  "meta": {
+    "case": "Industry_Park",
+    "creator": "powerfactory-tools @ version 2.1.0",
+    "date": "2024-08-08",
+    "grid": "MV_2_Bus",
+    "id": "e18c4bdf-5fed-4425-acfb-5a9ddcbe191c",
+    "optional_data": [
+      {
+        "description": "The version of PowerFactory used for export.",
+        "name": "PowerFactoryVersion",
+        "value": "PowerFactory 2022 || SP2"
+      }
+    ],
+    "project": "PowerFactory-Tools",
+    "sign_convention": "PASSIVE",
+    "version": "2.3.0"
+  },
+  "optional_data": null
+}

@@ -2,254 +2,14 @@
   "branches": [
     {
       "b0": {
+        "optional_data": null,
         "precision": 13,
         "system_type": "ZERO_SEQUENCE",
         "unit": "SIEMENS",
         "value": 0.0
       },
       "b1": {
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0001
-      },
-      "bn": null,
-      "bpn": null,
-      "description": "",
-      "energized": null,
-      "f_n": {
-        "precision": 4,
-        "system_type": "NATURAL",
-        "unit": "HERTZ",
-        "value": 50.0
-      },
-      "g0": {
-        "precision": 13,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "g1": {
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "gn": null,
-      "gpn": null,
-      "i_r": {
-        "precision": 2,
-        "system_type": "NATURAL",
-        "unit": "AMPERE",
-        "value": 1000.0
-      },
-      "length": {
-        "precision": 0,
-        "system_type": "NATURAL",
-        "unit": "METER",
-        "value": 40.0
-      },
-      "meta": [
-        {
-          "description": "Sektionen/Streckenlasten/Kompensationen",
-          "name": "cubsecs",
-          "value": []
-        },
-        {
-          "description": "Parameter: Verlegefaktor",
-          "name": "fline",
-          "value": 1.0
-        },
-        {
-          "description": "Anzahl: parallele Leitungen",
-          "name": "nlnum",
-          "value": 1
-        },
-        {
-          "description": "Typ",
-          "name": "typ_id",
-          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
-        }
-      ],
-      "name": "Line_2_3",
-      "node_1": "Node_2",
-      "node_2": "Node_3",
-      "phases_1": [
-        "A",
-        "B",
-        "C"
-      ],
-      "phases_2": [
-        "A",
-        "B",
-        "C"
-      ],
-      "r0": {
-        "precision": 7,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "r1": {
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 4.0000001
-      },
-      "rn": null,
-      "rpn": null,
-      "type": "LINE",
-      "u_n": {
-        "precision": 2,
-        "system_type": "NATURAL",
-        "unit": "VOLT",
-        "value": 110000.0
-      },
-      "voltage_system_type": "AC",
-      "x0": {
-        "precision": 7,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "x1": {
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 16.0000002
-      },
-      "xn": null,
-      "xpn": null
-    },
-    {
-      "b0": {
-        "precision": 13,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "b1": {
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 7.5e-05
-      },
-      "bn": null,
-      "bpn": null,
-      "description": "",
-      "energized": null,
-      "f_n": {
-        "precision": 4,
-        "system_type": "NATURAL",
-        "unit": "HERTZ",
-        "value": 50.0
-      },
-      "g0": {
-        "precision": 13,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "g1": {
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "gn": null,
-      "gpn": null,
-      "i_r": {
-        "precision": 2,
-        "system_type": "NATURAL",
-        "unit": "AMPERE",
-        "value": 1000.0
-      },
-      "length": {
-        "precision": 0,
-        "system_type": "NATURAL",
-        "unit": "METER",
-        "value": 30.0
-      },
-      "meta": [
-        {
-          "description": "Sektionen/Streckenlasten/Kompensationen",
-          "name": "cubsecs",
-          "value": []
-        },
-        {
-          "description": "Parameter: Verlegefaktor",
-          "name": "fline",
-          "value": 1.0
-        },
-        {
-          "description": "Anzahl: parallele Leitungen",
-          "name": "nlnum",
-          "value": 1
-        },
-        {
-          "description": "Typ",
-          "name": "typ_id",
-          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
-        }
-      ],
-      "name": "Line_3_1",
-      "node_1": "Node_3",
-      "node_2": "Node_1",
-      "phases_1": [
-        "A",
-        "B",
-        "C"
-      ],
-      "phases_2": [
-        "A",
-        "B",
-        "C"
-      ],
-      "r0": {
-        "precision": 7,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "r1": {
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 3.0
-      },
-      "rn": null,
-      "rpn": null,
-      "type": "LINE",
-      "u_n": {
-        "precision": 2,
-        "system_type": "NATURAL",
-        "unit": "VOLT",
-        "value": 110000.0
-      },
-      "voltage_system_type": "AC",
-      "x0": {
-        "precision": 7,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "x1": {
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 12.0000002
-      },
-      "xn": null,
-      "xpn": null
-    },
-    {
-      "b0": {
-        "precision": 13,
-        "system_type": "ZERO_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "b1": {
+        "optional_data": null,
         "precision": 13,
         "system_type": "POSITIVE_SEQUENCE",
         "unit": "SIEMENS",
@@ -260,18 +20,21 @@
       "description": "",
       "energized": null,
       "f_n": {
+        "optional_data": null,
         "precision": 4,
         "system_type": "NATURAL",
         "unit": "HERTZ",
         "value": 50.0
       },
       "g0": {
+        "optional_data": null,
         "precision": 13,
         "system_type": "ZERO_SEQUENCE",
         "unit": "SIEMENS",
         "value": 0.0
       },
       "g1": {
+        "optional_data": null,
         "precision": 13,
         "system_type": "POSITIVE_SEQUENCE",
         "unit": "SIEMENS",
@@ -280,23 +43,23 @@
       "gn": null,
       "gpn": null,
       "i_r": {
+        "optional_data": null,
         "precision": 2,
         "system_type": "NATURAL",
         "unit": "AMPERE",
         "value": 1000.0
       },
       "length": {
+        "optional_data": null,
         "precision": 0,
         "system_type": "NATURAL",
         "unit": "METER",
-        "value": 50.0
+        "value": 50000.0
       },
-      "meta": [
-        {
-          "description": "Sektionen/Streckenlasten/Kompensationen",
-          "name": "cubsecs",
-          "value": []
-        },
+      "name": "Line_1_2",
+      "node_1": "Node_1",
+      "node_2": "Node_2",
+      "optional_data": [
         {
           "description": "Parameter: Verlegefaktor",
           "name": "fline",
@@ -313,9 +76,6 @@
           "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
         }
       ],
-      "name": "Line_1_2",
-      "node_1": "Node_1",
-      "node_2": "Node_2",
       "phases_1": [
         "A",
         "B",
@@ -327,12 +87,14 @@
         "C"
       ],
       "r0": {
+        "optional_data": null,
         "precision": 7,
         "system_type": "ZERO_SEQUENCE",
         "unit": "OHM",
         "value": 0.0
       },
       "r1": {
+        "optional_data": null,
         "precision": 7,
         "system_type": "POSITIVE_SEQUENCE",
         "unit": "OHM",
@@ -342,6 +104,7 @@
       "rpn": null,
       "type": "LINE",
       "u_n": {
+        "optional_data": null,
         "precision": 2,
         "system_type": "NATURAL",
         "unit": "VOLT",
@@ -349,16 +112,274 @@
       },
       "voltage_system_type": "AC",
       "x0": {
+        "optional_data": null,
         "precision": 7,
         "system_type": "ZERO_SEQUENCE",
         "unit": "OHM",
         "value": 0.0
       },
       "x1": {
+        "optional_data": null,
         "precision": 7,
         "system_type": "POSITIVE_SEQUENCE",
         "unit": "OHM",
         "value": 20.0000003
+      },
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "b1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0001
+      },
+      "bn": null,
+      "bpn": null,
+      "description": "",
+      "energized": null,
+      "f_n": {
+        "optional_data": null,
+        "precision": 4,
+        "system_type": "NATURAL",
+        "unit": "HERTZ",
+        "value": 50.0
+      },
+      "g0": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "g1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "gn": null,
+      "gpn": null,
+      "i_r": {
+        "optional_data": null,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "AMPERE",
+        "value": 1000.0
+      },
+      "length": {
+        "optional_data": null,
+        "precision": 0,
+        "system_type": "NATURAL",
+        "unit": "METER",
+        "value": 40000.0
+      },
+      "name": "Line_2_3",
+      "node_1": "Node_2",
+      "node_2": "Node_3",
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
+      "phases_1": [
+        "A",
+        "B",
+        "C"
+      ],
+      "phases_2": [
+        "A",
+        "B",
+        "C"
+      ],
+      "r0": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "r1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 4.0000001
+      },
+      "rn": null,
+      "rpn": null,
+      "type": "LINE",
+      "u_n": {
+        "optional_data": null,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 110000.0
+      },
+      "voltage_system_type": "AC",
+      "x0": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "x1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 16.0000002
+      },
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "b1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 7.5e-05
+      },
+      "bn": null,
+      "bpn": null,
+      "description": "",
+      "energized": null,
+      "f_n": {
+        "optional_data": null,
+        "precision": 4,
+        "system_type": "NATURAL",
+        "unit": "HERTZ",
+        "value": 50.0
+      },
+      "g0": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "g1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "gn": null,
+      "gpn": null,
+      "i_r": {
+        "optional_data": null,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "AMPERE",
+        "value": 1000.0
+      },
+      "length": {
+        "optional_data": null,
+        "precision": 0,
+        "system_type": "NATURAL",
+        "unit": "METER",
+        "value": 30000.0
+      },
+      "name": "Line_3_1",
+      "node_1": "Node_3",
+      "node_2": "Node_1",
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
+      "phases_1": [
+        "A",
+        "B",
+        "C"
+      ],
+      "phases_2": [
+        "A",
+        "B",
+        "C"
+      ],
+      "r0": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "r1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 3.0
+      },
+      "rn": null,
+      "rpn": null,
+      "type": "LINE",
+      "u_n": {
+        "optional_data": null,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 110000.0
+      },
+      "voltage_system_type": "AC",
+      "x0": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "ZERO_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "x1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 12.0000002
       },
       "xn": null,
       "xpn": null
@@ -367,15 +388,16 @@
   "external_grids": [
     {
       "description": "",
-      "meta": null,
       "name": "External_Grid",
       "node": "Node_1",
+      "optional_data": null,
       "phases": [
         "A",
         "B",
         "C"
       ],
       "short_circuit_power_max": {
+        "optional_data": null,
         "power_type": "AC_APPARENT",
         "precision": 1,
         "system_type": "NATURAL",
@@ -383,6 +405,7 @@
         "value": 10000000000.0
       },
       "short_circuit_power_min": {
+        "optional_data": null,
         "power_type": "AC_APPARENT",
         "precision": 1,
         "system_type": "NATURAL",
@@ -402,10 +425,12 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": "Load_const_power",
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -417,11 +442,12 @@
         }
       },
       "description": "",
-      "meta": null,
       "name": "Load_1",
       "node": "Node_1",
+      "optional_data": null,
       "phase_connections": {
         "n_phases": 3,
+        "optional_data": null,
         "value": [
           [
             "A",
@@ -439,33 +465,35 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 2993093.8,
+          "average": 2714824.4,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8979281.4,
+          "total": 8144473.2,
           "unit": "WATT",
           "value": [
-            2993093.8,
-            2993093.8,
-            2993093.8
+            2714824.4,
+            2714824.4,
+            2714824.4
           ]
         },
         "apparent_power": {
-          "average": 2993093.8,
+          "average": 2714824.4,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8979281.4,
+          "total": 8144473.2,
           "unit": "VA",
           "value": [
-            2993093.8,
-            2993093.8,
-            2993093.8
+            2714824.4,
+            2714824.4,
+            2714824.4
           ]
         },
         "cos_phi": {
@@ -473,6 +501,7 @@
           "direction": "ND",
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 7,
           "system_type": "NATURAL",
           "unit": "UNITLESS",
@@ -485,10 +514,12 @@
         "cos_phi_average": 1.0,
         "is_symmetrical": true,
         "n_phases": 3,
+        "optional_data": null,
         "reactive_power": {
           "average": 0.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
@@ -509,10 +540,12 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": "Load_const_power",
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -536,10 +569,12 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": "Load_const_power",
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -551,11 +586,12 @@
         }
       },
       "description": "",
-      "meta": null,
       "name": "Load_3",
       "node": "Node_3",
+      "optional_data": null,
       "phase_connections": {
         "n_phases": 3,
+        "optional_data": null,
         "value": [
           [
             "A",
@@ -573,33 +609,35 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 11972374.0,
+          "average": 10859296.3,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 35917122.0,
+          "total": 32577888.9,
           "unit": "WATT",
           "value": [
-            11972374.0,
-            11972374.0,
-            11972374.0
+            10859296.3,
+            10859296.3,
+            10859296.3
           ]
         },
         "apparent_power": {
-          "average": 12340840.7,
+          "average": 11193506.4,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 37022522.1,
+          "total": 33580519.2,
           "unit": "VA",
           "value": [
-            12340840.7,
-            12340840.7,
-            12340840.7
+            11193506.4,
+            11193506.4,
+            11193506.4
           ]
         },
         "cos_phi": {
@@ -607,6 +645,7 @@
           "direction": "ND",
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 7,
           "system_type": "NATURAL",
           "unit": "UNITLESS",
@@ -619,19 +658,21 @@
         "cos_phi_average": 0.9701425,
         "is_symmetrical": true,
         "n_phases": 3,
+        "optional_data": null,
         "reactive_power": {
-          "average": 2993093.5,
+          "average": 2714824.1,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8979280.5,
+          "total": 8144472.3,
           "unit": "VAR",
           "value": [
-            2993093.5,
-            2993093.5,
-            2993093.5
+            2714824.1,
+            2714824.1,
+            2714824.1
           ]
         }
       },
@@ -643,10 +684,12 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": "Load_const_power",
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -670,10 +713,12 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": null,
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -685,173 +730,18 @@
         }
       },
       "description": "",
-      "meta": [
-        {
-          "description": "Name",
-          "name": "loc_name",
-          "value": "Generator_3"
-        }
-      ],
-      "name": "Generator_3",
-      "node": "Node_3",
-      "phase_connections": {
-        "n_phases": 3,
-        "value": [
-          [
-            "A",
-            "B"
-          ],
-          [
-            "B",
-            "C"
-          ],
-          [
-            "C",
-            "A"
-          ]
-        ]
-      },
-      "rated_power": {
-        "active_power": {
-          "average": 3332999.9,
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "power_type": "AC_ACTIVE",
-          "precision": 1,
-          "system_type": "NATURAL",
-          "total": 9998999.7,
-          "unit": "WATT",
-          "value": [
-            3332999.9,
-            3332999.9,
-            3332999.9
-          ]
-        },
-        "apparent_power": {
-          "average": 3703333.2,
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "power_type": "AC_APPARENT",
-          "precision": 1,
-          "system_type": "NATURAL",
-          "total": 11109999.6,
-          "unit": "VA",
-          "value": [
-            3703333.2,
-            3703333.2,
-            3703333.2
-          ]
-        },
-        "cos_phi": {
-          "average": 0.9,
-          "direction": "ND",
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "precision": 7,
-          "system_type": "NATURAL",
-          "unit": "UNITLESS",
-          "value": [
-            0.9,
-            0.9,
-            0.9
-          ]
-        },
-        "cos_phi_average": 0.9,
-        "is_symmetrical": true,
-        "n_phases": 3,
-        "reactive_power": {
-          "average": 1614245.5,
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "power_type": "AC_REACTIVE",
-          "precision": 1,
-          "system_type": "NATURAL",
-          "total": 4842736.5,
-          "unit": "VAR",
-          "value": [
-            1614245.5,
-            1614245.5,
-            1614245.5
-          ]
-        }
-      },
-      "reactive_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
-        "name": null,
-        "u_0": {
-          "average": 110000.0,
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "precision": 2,
-          "system_type": "NATURAL",
-          "unit": "VOLT",
-          "value": [
-            110000.0,
-            110000.0,
-            110000.0
-          ]
-        }
-      },
-      "system_type": "WIND",
-      "type": "PRODUCER",
-      "voltage_system_type": "AC"
-    },
-    {
-      "active_power_model": {
-        "c_i": 0.0,
-        "c_p": 1.0,
-        "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
-        "name": null,
-        "u_0": {
-          "average": 110000.0,
-          "is_symmetrical": true,
-          "n_phases": 3,
-          "precision": 2,
-          "system_type": "NATURAL",
-          "unit": "VOLT",
-          "value": [
-            110000.0,
-            110000.0,
-            110000.0
-          ]
-        }
-      },
-      "description": "",
-      "meta": [
+      "name": "Generator_2",
+      "node": "Node_2",
+      "optional_data": [
         {
           "description": "Name",
           "name": "loc_name",
           "value": "Generator_2"
-        },
-        {
-          "description": "Betriebs-Blindleistungsgrenzen: Leistungsdiagramm",
-          "name": "pQlimType",
-          "value": [
-            {
-              "description": "Wirkleistung",
-              "name": "cap_Ppu",
-              "value": [
-                0.0,
-                0.09,
-                0.18,
-                0.9
-              ]
-            }
-          ]
         }
       ],
-      "name": "Generator_2",
-      "node": "Node_2",
       "phase_connections": {
         "n_phases": 3,
+        "optional_data": null,
         "value": [
           [
             "A",
@@ -872,6 +762,7 @@
           "average": 13333333.4,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
@@ -887,6 +778,7 @@
           "average": 16666666.7,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
@@ -903,6 +795,7 @@
           "direction": "ND",
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "precision": 7,
           "system_type": "NATURAL",
           "unit": "UNITLESS",
@@ -915,10 +808,12 @@
         "cos_phi_average": 0.8,
         "is_symmetrical": true,
         "n_phases": 3,
+        "optional_data": null,
         "reactive_power": {
           "average": 10000000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
@@ -939,10 +834,162 @@
         "exp_p": 0,
         "exp_z": 2,
         "name": null,
+        "optional_data": null,
         "u_0": {
           "average": 110000.0,
           "is_symmetrical": true,
           "n_phases": 3,
+          "optional_data": null,
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
+            110000.0,
+            110000.0,
+            110000.0
+          ]
+        }
+      },
+      "system_type": "WIND",
+      "type": "PRODUCER",
+      "voltage_system_type": "AC"
+    },
+    {
+      "active_power_model": {
+        "c_i": 0.0,
+        "c_p": 1.0,
+        "c_z": 0.0,
+        "exp_i": 1,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": null,
+        "optional_data": null,
+        "u_0": {
+          "average": 110000.0,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
+          "precision": 2,
+          "system_type": "NATURAL",
+          "unit": "VOLT",
+          "value": [
+            110000.0,
+            110000.0,
+            110000.0
+          ]
+        }
+      },
+      "description": "",
+      "name": "Generator_3",
+      "node": "Node_3",
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "Generator_3"
+        }
+      ],
+      "phase_connections": {
+        "n_phases": 3,
+        "optional_data": null,
+        "value": [
+          [
+            "A",
+            "B"
+          ],
+          [
+            "B",
+            "C"
+          ],
+          [
+            "C",
+            "A"
+          ]
+        ]
+      },
+      "rated_power": {
+        "active_power": {
+          "average": 3332999.9,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
+          "power_type": "AC_ACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": 9998999.7,
+          "unit": "WATT",
+          "value": [
+            3332999.9,
+            3332999.9,
+            3332999.9
+          ]
+        },
+        "apparent_power": {
+          "average": 3703333.2,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
+          "power_type": "AC_APPARENT",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": 11109999.6,
+          "unit": "VA",
+          "value": [
+            3703333.2,
+            3703333.2,
+            3703333.2
+          ]
+        },
+        "cos_phi": {
+          "average": 0.9,
+          "direction": "ND",
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
+          "precision": 7,
+          "system_type": "NATURAL",
+          "unit": "UNITLESS",
+          "value": [
+            0.9,
+            0.9,
+            0.9
+          ]
+        },
+        "cos_phi_average": 0.9,
+        "is_symmetrical": true,
+        "n_phases": 3,
+        "optional_data": null,
+        "reactive_power": {
+          "average": 1614245.5,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
+          "power_type": "AC_REACTIVE",
+          "precision": 1,
+          "system_type": "NATURAL",
+          "total": 4842736.5,
+          "unit": "VAR",
+          "value": [
+            1614245.5,
+            1614245.5,
+            1614245.5
+          ]
+        }
+      },
+      "reactive_power_model": {
+        "c_i": 0.0,
+        "c_p": 1.0,
+        "c_z": 0.0,
+        "exp_i": 1,
+        "exp_p": 0,
+        "exp_z": 2,
+        "name": null,
+        "optional_data": null,
+        "u_0": {
+          "average": 110000.0,
+          "is_symmetrical": true,
+          "n_phases": 3,
+          "optional_data": null,
           "precision": 2,
           "system_type": "NATURAL",
           "unit": "VOLT",
@@ -961,24 +1008,32 @@
   "meta": {
     "case": "3_Bus",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-07-23",
+    "date": "2024-08-08",
     "grid": "HV_3_Bus",
-    "id": "7bd17123-ed74-4b11-bc74-144ad433d06e",
-    "project": "PowerFactory-Tools-Dev",
+    "id": "2aefefb1-db41-4e1c-b7e4-fedef5916b93",
+    "optional_data": [
+      {
+        "description": "The version of PowerFactory used for export.",
+        "name": "PowerFactoryVersion",
+        "value": "PowerFactory 2022 || SP2"
+      }
+    ],
+    "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "nodes": [
     {
       "description": "",
-      "meta": null,
       "name": "Node_1",
+      "optional_data": null,
       "phases": [
         "A",
         "B",
         "C"
       ],
       "u_n": {
+        "optional_data": null,
         "precision": 2,
         "system_type": "NATURAL",
         "unit": "VOLT",
@@ -987,14 +1042,15 @@
     },
     {
       "description": "",
-      "meta": null,
       "name": "Node_2",
+      "optional_data": null,
       "phases": [
         "A",
         "B",
         "C"
       ],
       "u_n": {
+        "optional_data": null,
         "precision": 2,
         "system_type": "NATURAL",
         "unit": "VOLT",
@@ -1003,14 +1059,15 @@
     },
     {
       "description": "",
-      "meta": null,
       "name": "Node_3",
+      "optional_data": null,
       "phases": [
         "A",
         "B",
         "C"
       ],
       "u_n": {
+        "optional_data": null,
         "precision": 2,
         "system_type": "NATURAL",
         "unit": "VOLT",
@@ -1018,5 +1075,6 @@
       }
     }
   ],
+  "optional_data": null,
   "transformers": []
 }

@@ -59,7 +59,23 @@
       "name": "Line_24",
       "node_1": "Node_2",
       "node_2": "Node_4",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -171,7 +187,23 @@
       "name": "Line_23",
       "node_1": "Node_2",
       "node_2": "Node_3",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -283,7 +315,23 @@
       "name": "Line_13",
       "node_1": "Node_1",
       "node_2": "Node_3",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -395,7 +443,23 @@
       "name": "Line_34",
       "node_1": "Node_4",
       "node_2": "Node_3",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -507,7 +571,23 @@
       "name": "Line_37",
       "node_1": "Node_3",
       "node_2": "Node_9/Field_1/T3",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 2
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -619,7 +699,23 @@
       "name": "Line_56",
       "node_1": "Node_5_MV",
       "node_2": "Node_6_MV",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/N2XS(F)2Y 1x185RM/25 12/20kV it.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -755,7 +851,23 @@
       "name": "Line_12",
       "node_1": "Node_1",
       "node_2": "Node_2",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV_with_n.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -893,7 +1005,23 @@
       "name": "Line_WF",
       "node_1": "PCC_WTG",
       "node_2": "Node_4",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -1005,7 +1133,23 @@
       "name": "Line_WTG",
       "node_1": "Node_WTG",
       "node_2": "PCC_WTG",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/Line_110kV.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -3994,7 +4138,13 @@
       "description": "Q-Control: cosphi(P)-characteristic",
       "name": "StatGenerator_2",
       "node": "Node_4",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "StatGenerator_2"
+        }
+      ],
       "phase_connections": {
         "n_phases": 3,
         "optional_data": null,
@@ -4138,7 +4288,13 @@
       "description": "Q-Control: const. Q  || # given: P, Q (signed)  || # calc rule: S^2 = P^2 +Q^2  || # calc rule: cosphi = cos(atan(P/Q))",
       "name": "StatGenerator_1",
       "node": "Node_4",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "StatGenerator_1"
+        }
+      ],
       "phase_connections": {
         "n_phases": 3,
         "optional_data": null,
@@ -4282,7 +4438,13 @@
       "description": "Q-Control: Q(U)-Charakteristik",
       "name": "WTG",
       "node": "Node_WTG",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "WTG"
+        }
+      ],
       "phase_connections": {
         "n_phases": 3,
         "optional_data": null,
@@ -4426,7 +4588,13 @@
       "description": "",
       "name": "Battery",
       "node": "Node_8_LV",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "Battery"
+        }
+      ],
       "phase_connections": {
         "n_phases": 1,
         "optional_data": null,
@@ -4554,7 +4722,39 @@
       "description": "Q-Control: const. cosphi || # give: P, cosphi and cosphi_type  || # calc rule: S = P / cosphi  || # calc rule: Q = dir * S * sin(acos(phi)) = dir * P * tan(acos(cosphi) ",
       "name": "StatGenerator_3",
       "node": "Node_4",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Name",
+          "name": "loc_name",
+          "value": "StatGenerator_3"
+        },
+        {
+          "description": "Betriebs-Blindleistungsgrenzen: Leistungsdiagramm",
+          "name": "pQlimType",
+          "value": [
+            {
+              "description": "Wirkleistung",
+              "name": "cap_Ppu",
+              "value": [
+                0.0,
+                0.09,
+                0.18,
+                0.9
+              ]
+            },
+            {
+              "description": "Min. Blindleist.",
+              "name": "cap_Qmnpu",
+              "value": [
+                0.0,
+                -0.0905,
+                -0.4359,
+                -0.4359
+              ]
+            }
+          ]
+        }
+      ],
       "phase_connections": {
         "n_phases": 3,
         "optional_data": null,
@@ -4818,10 +5018,16 @@
   "meta": {
     "case": "Base",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-05",
+    "date": "2024-08-08",
     "grid": "HV_9_Bus",
-    "id": "07cfe0b6-d4fa-4da8-8124-a506a6ae1508",
-    "optional_data": null,
+    "id": "eaf757ee-a4eb-4176-abac-519207225f2f",
+    "optional_data": [
+      {
+        "description": "The version of PowerFactory used for export.",
+        "name": "PowerFactoryVersion",
+        "value": "PowerFactory 2022 || SP2"
+      }
+    ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.3.0"

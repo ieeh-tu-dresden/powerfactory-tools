@@ -59,7 +59,23 @@
       "name": "Industry_Line",
       "node_1": "Industry_Node_1",
       "node_2": "Industry_Node_2",
-      "optional_data": null,
+      "optional_data": [
+        {
+          "description": "Parameter: Verlegefaktor",
+          "name": "fline",
+          "value": 1.0
+        },
+        {
+          "description": "Anzahl: parallele Leitungen",
+          "name": "nlnum",
+          "value": 1
+        },
+        {
+          "description": "Typ",
+          "name": "typ_id",
+          "value": "Betriebsmitteltypen-Bibliothek/N2XS(F)2Y 1x185RM/25 12/20kV it.TypLne"
+        }
+      ],
       "phases_1": [
         "A",
         "B",
@@ -263,10 +279,16 @@
   "meta": {
     "case": "Industry_Park",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-05",
+    "date": "2024-08-08",
     "grid": "MV_2_Bus",
-    "id": "486ac496-f7c9-4ec4-abd1-bfede1117146",
-    "optional_data": null,
+    "id": "e18c4bdf-5fed-4425-acfb-5a9ddcbe191c",
+    "optional_data": [
+      {
+        "description": "The version of PowerFactory used for export.",
+        "name": "PowerFactoryVersion",
+        "value": "PowerFactory 2022 || SP2"
+      }
+    ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
     "version": "2.3.0"
