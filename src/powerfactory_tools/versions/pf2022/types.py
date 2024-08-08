@@ -649,7 +649,7 @@ class PowerFactoryTypes:
 
         def GetChildren(  # noqa: N802
             self,
-            hiddenMode: int,  #  # noqa: N803
+            hiddenMode: int,  # noqa: N803
             filter: str = "*",  # noqa: A002
             subfolders: int = 0,
             /,
