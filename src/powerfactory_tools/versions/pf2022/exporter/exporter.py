@@ -27,6 +27,7 @@ from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFa
 from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
 from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2022.interface import POWERFACTORY_VERSION
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
 from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
@@ -312,6 +313,7 @@ class PowerFactoryExporter:
                 grid_name=grid_name,
             )
             data = self.pfi.compile_powerfactory_data(grid)
+
             meta = self.create_meta_data(data=data, case_name=study_case_name)
 
             topology = self.create_topology(meta=meta, data=data)
@@ -430,8 +432,8 @@ class PowerFactoryExporter:
 
         data.to_json(file_path)
 
-    @staticmethod
     def create_meta_data(
+        self,
         *,
         data: PowerFactoryData,
         case_name: str,
@@ -440,6 +442,15 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
+        pf_version_data = AttributeData(
+            name="PowerFactoryVersion",
+            value=(
+                POWERFACTORY_VERSION
+                if self.pfi.powerfactory_service_pack is None
+                else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+            ),
+            description="The version of PowerFactory used for export.",
+        )
 
         return Meta(
             case=case_name,
@@ -448,6 +459,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
+            optional_data=[pf_version_data],
         )
 
     def create_topology(
