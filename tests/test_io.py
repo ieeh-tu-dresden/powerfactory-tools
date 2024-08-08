@@ -1,7 +1,6 @@
 from contextlib import nullcontext as does_not_raise
 
 import pytest
-
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.utils.io import export_user_data
 from powerfactory_tools.utils.io import import_user_data
