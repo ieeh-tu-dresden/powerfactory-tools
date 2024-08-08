@@ -20,8 +20,6 @@ from collections.abc import Sequence
 
 import loguru
 import pydantic
-from psdm.base import AttributeData
-
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import CustomEncoder
 from powerfactory_tools.utils.io import FileType
@@ -39,6 +37,7 @@ from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcTy
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
 from powerfactory_tools.versions.pf2022.types import UnitSystem
 from powerfactory_tools.versions.pf2022.types import ValidPFValue
+from psdm.base import AttributeData
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -1973,16 +1972,16 @@ class PowerFactoryInterface:
 
         return element
 
+    @staticmethod
     def is_of_type(
-        self,
         element: PFTypes.DataObject,
         pf_type: PFClassId,
         /,
     ) -> bool:
         return element.GetClassName() == pf_type.value
 
+    @staticmethod
     def is_of_types(
-        self,
         element: PFTypes.DataObject,
         pf_types: Sequence[PFClassId],
         /,
@@ -2346,43 +2345,6 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     @staticmethod
-    def create_name(
-        element: PFTypes.DataObject,
-        /,
-        *,
-        grid_name: str,
-        element_name: str | None = None,
-    ) -> str:
-        """Create a unique name of the object.
-
-        Object type differentiation based on the input parameters. Considers optional parents of the object,
-        element.g. in case of detailed template or detailed substation.
-
-        Arguments:
-            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
-            grid_name {str} -- The name of the grid to which the object belongs (root).
-
-        Keyword Arguments:
-            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
-
-        Returns:
-            {str} -- The unique name of the object.
-        """
-
-        if element_name is None:
-            element_name = element.loc_name
-
-        parent = element.fold_id
-        if (parent is not None) and (parent.loc_name != grid_name):
-            cp_substat: PFTypes.DataObject | None = getattr(element, "cpSubstat", None)
-            if cp_substat is not None:
-                return cp_substat.loc_name + PATH_SEP + element_name
-
-            return parent.loc_name + PATH_SEP + element_name
-
-        return element_name
-
-    @staticmethod
     def create_generator_name(
         generator: PFTypes.GeneratorBase,
         /,
@@ -2569,7 +2531,49 @@ class PowerFactoryInterface:
             ),
         )
 
+    def create_name(
+        self,
+        element: PFTypes.DataObject,
+        /,
+        *,
+        grid_name: str,
+        element_name: str | None = None,
+    ) -> str:
+        """Create a unique name of the object.
+
+        Object type differentiation based on the input parameters. Considers optional parents of the object,
+        element.g. in case of detailed template or detailed substation.
+
+        Arguments:
+            element {PFTypes.DataObject} -- The object itself for which a unique name is going to be created.
+            grid_name {str} -- The name of the grid to which the object belongs (root).
+
+        Keyword Arguments:
+            element_name {str | None} -- The element name if needed to specify independently (default: {None}).
+
+        Returns:
+            {str} -- The unique name of the object.
+        """
+
+        if element_name is None:
+            element_name = element.loc_name
+
+        parent = element.fold_id
+        if (parent is not None) and (parent.loc_name != grid_name):
+            cp_substat: PFTypes.Substation | None = getattr(element, "cpSubstat", None)
+            if cp_substat is not None:
+                if PowerFactoryInterface.is_of_type(parent, PFClassId.SUBSTATION_FIELD):
+                    return cp_substat.loc_name + PATH_SEP + parent.loc_name + PATH_SEP + element_name
+
+                return cp_substat.loc_name + PATH_SEP + element_name
+
+            return parent.loc_name + PATH_SEP + element_name
+
+        return element_name
+
+    ## !
     ## The following may be part of version inconsistent behavior
+    ## !
     def subloads_of(
         self,
         load: PFTypes.LoadLV,

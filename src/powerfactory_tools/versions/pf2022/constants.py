@@ -21,6 +21,7 @@ DEFAULT_PHASE_QUANTITY = 3
 class Exponents:
     CONDUCTANCE: float = 10**-6
     CURRENT: float = 10**3
+    LENGTH: float = 10**3
     POWER: float = 10**6
     REACTANCE: float = 10**0
     RESISTANCE: float = 10**0

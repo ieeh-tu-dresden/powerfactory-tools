@@ -54,6 +54,8 @@ class PFClassId(enum.Enum):
     SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
+    SUBSTATION = "ElmSubstat"
+    SUBSTATION_FIELD = "ElmBay"
     SWITCH = "StaSwitch"
     TEMPLATE = "IntTemplate"
     TERMINAL = "ElmTerm"
@@ -807,7 +809,15 @@ class PowerFactoryTypes:
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
 
-    class Substation(DataObject, t.Protocol): ...
+    class Substation(DataObject, t.Protocol): ...  # PFClassId.SUBSTATION
+
+    class SubstationField(DataObject, t.Protocol):  # PFClassId.SUBSTATION_FIELD
+        cpBusbar: (  # noqa: N815
+            PowerFactoryTypes.Terminal | None
+        )  # one of the busbars in the substation where this field is connected to
+        cpConBranch: PowerFactoryTypes.Line | None  # connected branch from outside of substation  # noqa: N815
+        swtstate: bool  # switching state
+        Inom: float
 
     class LoadType(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_GENERAL
         loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)

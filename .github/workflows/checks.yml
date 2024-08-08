@@ -17,25 +17,21 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Setting up PDM @ ${{ matrix.python-version }}
-        uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: true
-          architecture: x64
-          enable-pep582: true
+      - name: Set up rye
+        uses: eifinger/setup-rye@v4.2.1
+        id: setup-rye
 
-      - name: Check lockfile
-        run: pdm lock --check
+      - name: Pin python-version @ ${{ matrix.python-version }}
+        run: rye pin ${{ matrix.python-version }}
 
-      - name: Installing dependencies
-        run: pdm install
+      - name: Install dependencies
+        run: rye sync
 
-      - name: Code format checking using black
-        run: pdm run black . --check
+      - name: Check code
+        run: rye run ruff check .
 
-      - name: Code checking using ruff
-        run: pdm run ruff check .
+      - name: Check code format
+        run: rye run ruff format --check .
 
-      - name: Type checking using mypy
-        run: pdm run mypy .
+      - name: Type check using mypy
+        run: rye run mypy .

@@ -26,16 +26,15 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up PDM @ ${{ matrix.python-version }}
-        uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: true
-          architecture: x64
-          enable-pep582: true
+      - name: Set up rye
+        uses: eifinger/setup-rye@v4.2.1
+        id: setup-rye
+
+      - name: Pin python-version @ ${{ matrix.python-version }}
+        run: rye pin ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: pdm install
+        run: rye sync
 
       - name: Unit test using pytest
-        run: pdm run pytest
+        run: rye test
