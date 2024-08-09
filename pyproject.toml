@@ -20,8 +20,8 @@
   version = "2.1.0"
 
   [project.optional-dependencies]
-    arrow = ["pandas", "pyarrow"]
-    import = ["pandas"]
+    io-feather = ["pandas", "pyarrow"]
+    io-basic = ["pandas"]
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
