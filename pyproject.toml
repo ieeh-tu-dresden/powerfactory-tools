@@ -20,8 +20,8 @@
   version = "2.1.0"
 
   [project.optional-dependencies]
+    io-basic   = ["pandas"]
     io-feather = ["pandas", "pyarrow"]
-    io-basic = ["pandas"]
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
@@ -35,12 +35,12 @@
     "commitizen>=3.28.0",
     "ipykernel>=6.29.5",
     "mypy>=1.11.0",
+    "pandas>=2.2.2",
+    "pyarrow>=17.0.0",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
     "pytest>=8.3.1",
     "ruff>=0.5.5",
-    "pandas>=2.2.2",
-    "pyarrow>=17.0.0",
   ]
   managed = true
 
