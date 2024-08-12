@@ -8,7 +8,6 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import enum
-import importlib
 import json
 import pathlib
 import pickle
@@ -17,8 +16,19 @@ import typing as t
 import loguru
 import pydantic
 
+try:
+    import pandas as pd
+except ModuleNotFoundError:
+    loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
+
 if t.TYPE_CHECKING:
+    import collections.abc as cabc
+
     from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
+
+    PrimitiveType = (
+        str | bool | int | float | None | cabc.Sequence["PrimitiveType"] | cabc.Mapping[str, "PrimitiveType"]
+    )
 
 
 class FileType(enum.Enum):
@@ -45,14 +55,14 @@ class ExportHandler:
 
     def export_user_data(
         self,
-        data: dict,
+        data: dict[str, PrimitiveType],
         file_type: FileType,
         file_name: str | None = None,
     ) -> None:
         """Export user defined data to different file types.
 
         Arguments:
-            data {dict} -- data to export
+            data {dict[str, PrimitiveType]]} -- data to export
             export_path {pathlib.Path} -- the directory where the exported json file is saved
             file_type {FileType} -- the chosen file type for data export
             file_name {str | None} -- the chosen file name for data export. (default: {None})
@@ -109,7 +119,7 @@ class ExportHandler:
         return file_path
 
     @staticmethod
-    def _format_dict(data: dict) -> dict:
+    def _format_dict(data: dict[str, PrimitiveType]) -> dict[str, PrimitiveType]:
         # Convert dictionary to list of dictionaries
         max_length = max(len(v) if isinstance(v, list) else 1 for v in data.values())
         # Convert non-list values to lists with repeated values and pad shorter lists with None
@@ -118,7 +128,7 @@ class ExportHandler:
             for key, v in data.items()
         }
 
-    def to_json(self, file_path: pathlib.Path, /, *, data: dict, indent: int = 2) -> bool:
+    def to_json(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType], indent: int = 2) -> bool:
         padded_data = self._format_dict(data)
         try:
             with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
@@ -130,7 +140,7 @@ class ExportHandler:
 
         return True
 
-    def to_csv(self, file_path: pathlib.Path, /, *, data: dict) -> bool:
+    def to_csv(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
         padded_data = self._format_dict(data)
         list_of_dicts = [dict(zip(padded_data, t, strict=False)) for t in zip(*padded_data.values(), strict=False)]
 
@@ -146,13 +156,7 @@ class ExportHandler:
 
         return True
 
-    def to_feather(self, file_path: pathlib.Path, /, *, data: dict) -> bool:
-        try:
-            pd = importlib.import_module("pandas")
-        except ModuleNotFoundError:
-            loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
-            return False
-
+    def to_feather(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
         padded_data = self._format_dict(data)
         dataframe = pd.DataFrame.from_dict(padded_data)
 
@@ -169,7 +173,7 @@ class ExportHandler:
 
         return True
 
-    def to_pickle(self, file_path: pathlib.Path, /, *, data: dict) -> bool:
+    def to_pickle(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
         padded_data = self._format_dict(data)
         try:
             with pathlib.Path(file_path).open("wb+") as file_handle:
@@ -198,11 +202,11 @@ class ImportHandler:
 
     def import_user_data(
         self,
-    ) -> dict | None:
+    ) -> dict[str, PrimitiveType] | None:
         """Import different file types as raw data.
 
         Returns:
-            {dict} -- the imported data as a dict
+            {dict[str, PrimitiveType]} -- the imported data as a dict
         """
 
         loguru.logger.debug(
@@ -223,22 +227,17 @@ class ImportHandler:
         return None
 
     @staticmethod
-    def _format_dataframe(dataframe: pd.DataFrame) -> dict:  # type: ignore[name-defined] # noqa: F821
+    def _format_dataframe(dataframe: pd.DataFrame) -> dict[str, PrimitiveType]:
         # Drop NaN values from each column
         data = {col: dataframe[col].dropna().tolist() for col in dataframe.columns}
         # Unmap lists with a single value back to a single value
         for key, value in data.items():
             if all(v == value[0] for v in value):
                 data[key] = value[0]
+
         return data
 
-    def from_csv(self) -> dict | None:
-        try:
-            pd = importlib.import_module("pandas")
-        except ModuleNotFoundError:
-            loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
-            return None
-
+    def from_csv(self) -> dict[str, PrimitiveType] | None:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
                 dataframe = pd.read_csv(file_handle)
@@ -251,13 +250,7 @@ class ImportHandler:
             loguru.logger.error(f"Import from CSV failed at {self.file_path!s} with error {e}")
             return None
 
-    def from_json(self) -> dict | None:
-        try:
-            pd = importlib.import_module("pandas")
-        except ModuleNotFoundError:
-            loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
-            return None
-
+    def from_json(self) -> dict[str, PrimitiveType] | None:
         try:
             with pathlib.Path(self.file_path).open("r+", encoding="utf-8") as file_handle:
                 dataframe = pd.read_json(file_handle)
@@ -267,13 +260,7 @@ class ImportHandler:
             loguru.logger.error(f"Import from JSON failed at {self.file_path!s} with error {e}")
             return None
 
-    def from_feather(self) -> dict | None:
-        try:
-            pd = importlib.import_module("pandas")
-        except ModuleNotFoundError:
-            loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
-            return None
-
+    def from_feather(self) -> dict[str, PrimitiveType] | None:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
                 dataframe = pd.read_feather(file_handle)
