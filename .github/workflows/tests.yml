@@ -34,7 +34,7 @@ jobs:
         run: rye pin ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: rye sync
+        run: rye sync --features=io-feather
 
       - name: Unit test using pytest
         run: rye test

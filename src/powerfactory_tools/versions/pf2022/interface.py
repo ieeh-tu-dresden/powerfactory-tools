@@ -21,7 +21,7 @@ from collections.abc import Sequence
 import loguru
 import pydantic
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
-from powerfactory_tools.utils.io import CustomEncoder
+from powerfactory_tools.utils.io import ExportHandler
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.constants import BaseUnits
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
@@ -171,7 +171,12 @@ class PowerFactoryInterface:
             msg = "Could not load PowerFactory Module."
             raise RuntimeError(msg)
 
-        pfm = importlib.util.module_from_spec(spec)
+        try:
+            pfm = importlib.util.module_from_spec(spec)
+        except ImportError as element:
+            loguru.logger.exception("Could not find PowerFactory Module.")
+            raise RuntimeError from element
+
         spec.loader.exec_module(pfm)
         return t.cast("PFTypes.PowerFactoryModule", pfm)
 
@@ -2134,7 +2139,13 @@ class PowerFactoryInterface:
                 file_type = FileType.RAW
             elif export_mode is ResultExportMode.CSV:
                 file_type = FileType.CSV
-            file_path = self.create_external_file_path(file_type=file_type, path=export_path, file_name=file_name)
+
+            export_handler = ExportHandler(directory_path=export_path)
+            file_path = export_handler.create_file_path(
+                file_type=file_type,
+                file_name=file_name,
+                active_study_case=self.app.GetActiveStudyCase(),
+            )
             data["f_name"] = str(file_path.resolve())
 
         # create result export command within specified attribute data
@@ -2150,36 +2161,8 @@ class PowerFactoryInterface:
         # Need to explicitly set the result object of the command as not doable in create/update_object()
         if res_exp_cmd is not None and update is True:
             res_exp_cmd.pResult = result
+
         return res_exp_cmd
-
-    def create_external_file_path(
-        self,
-        /,
-        *,
-        file_type: FileType,
-        path: pathlib.Path,
-        file_name: str | None = None,
-    ) -> pathlib.Path:
-        timestamp = dt.datetime.now().astimezone()
-        timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
-        act_sc = self.app.GetActiveStudyCase()
-        study_case_name = act_sc.loc_name if act_sc is not None else ""
-        filename = (
-            f"{study_case_name}_{timestamp_string}{file_type.value}"
-            if file_name is None
-            else f"{file_name}{file_type.value}"
-        )
-        file_path = path / filename
-        # Formal validation of path
-        try:
-            file_path.resolve()
-        except OSError as e:
-            msg = f"File path {file_path} is not a valid path."
-            raise FileNotFoundError(msg) from e
-        # Create (sub)direcotries if not existing
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        return file_path
 
     def run_ldf(
         self,
@@ -2287,41 +2270,6 @@ class PowerFactoryInterface:
             raise ValueError(msg)
 
         return sim_start_cmd.p_resvar
-
-    def export_data(
-        self,
-        data: dict,
-        export_path: pathlib.Path,
-        file_type: FileType,
-        file_name: str | None = None,
-    ) -> None:
-        """Export data to json file.
-
-        Arguments:
-            data {dict} -- data to export
-            export_path {pathlib.Path} -- the directory where the exported json file is saved
-            file_type {FileType} -- the chosen file type for data export
-            file_name {str | None} -- the chosen file name for data export. (default: {None})
-        """
-        loguru.logger.debug(
-            "Export data to {export_path} as {file_type} ...",
-            file_type=file_type,
-            export_path=str(export_path),
-        )
-        if file_type not in [FileType.JSON, FileType.CSV]:
-            msg = f"File type {file_type} is not supported."
-            raise ValueError(msg)
-        full_file_path = self.create_external_file_path(
-            file_type=file_type,
-            path=export_path,
-            file_name=file_name,
-        )
-
-        ce = CustomEncoder(data=data, parent_path=full_file_path.parent)
-        if file_type is FileType.CSV:
-            ce.to_csv(full_file_path)
-        elif file_type is FileType.JSON:
-            ce.to_json(full_file_path)
 
     @staticmethod
     def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:
