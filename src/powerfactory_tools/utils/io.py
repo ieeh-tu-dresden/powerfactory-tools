@@ -108,10 +108,21 @@ class ExportHandler:
 
         return file_path
 
+    @staticmethod
+    def _format_dict(data: dict) -> dict:
+        # Convert dictionary to list of dictionaries
+        max_length = max(len(v) if isinstance(v, list) else 1 for v in data.values())
+        # Convert non-list values to lists with repeated values and pad shorter lists with None
+        return {
+            key: (v + [None] * (max_length - len(v))) if isinstance(v, list) else ([v] + [None] * (max_length - 1))
+            for key, v in data.items()
+        }
+
     def to_json(self, file_path: pathlib.Path, /, *, data: dict, indent: int = 2) -> bool:
+        padded_data = self._format_dict(data)
         try:
             with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
-                json.dump(data, file_handle, indent=indent, sort_keys=True)
+                json.dump(padded_data, file_handle, indent=indent, sort_keys=True)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to JSON failed at {file_path!s} with error {e}")
@@ -120,8 +131,9 @@ class ExportHandler:
         return True
 
     def to_csv(self, file_path: pathlib.Path, /, *, data: dict) -> bool:
-        # Convert dictionary to list of dictionaries
-        list_of_dicts = [dict(zip(data, t, strict=False)) for t in zip(*data.values(), strict=False)]
+        padded_data = self._format_dict(data)
+        list_of_dicts = [dict(zip(padded_data, t, strict=False)) for t in zip(*padded_data.values(), strict=False)]
+
         try:
             with pathlib.Path(file_path).open("w+", encoding="utf-8", newline="") as csvfile:
                 writer = csv.DictWriter(csvfile, fieldnames=data.keys())
@@ -141,7 +153,8 @@ class ExportHandler:
             loguru.logger.error("Missing optional dependency 'pandas'. Use pip or conda to install pandas.")
             return False
 
-        dataframe = pd.DataFrame.from_dict(data)
+        padded_data = self._format_dict(data)
+        dataframe = pd.DataFrame.from_dict(padded_data)
 
         try:
             with pathlib.Path(file_path).open("wb+") as file_handle:
@@ -157,9 +170,10 @@ class ExportHandler:
         return True
 
     def to_pickle(self, file_path: pathlib.Path, /, *, data: dict) -> bool:
+        padded_data = self._format_dict(data)
         try:
             with pathlib.Path(file_path).open("wb+") as file_handle:
-                pickle.dump(data, file_handle)
+                pickle.dump(padded_data, file_handle)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to PICKLE failed at {file_path!s} with error {e}")
@@ -208,6 +222,16 @@ class ImportHandler:
 
         return None
 
+    @staticmethod
+    def _format_dataframe(dataframe: pd.DataFrame) -> dict:  # type: ignore[name-defined] # noqa: F821
+        # Drop NaN values from each column
+        data = {col: dataframe[col].dropna().tolist() for col in dataframe.columns}
+        # Unmap lists with a single value back to a single value
+        for key, value in data.items():
+            if all(v == value[0] for v in value):
+                data[key] = value[0]
+        return data
+
     def from_csv(self) -> dict | None:
         try:
             pd = importlib.import_module("pandas")
@@ -218,7 +242,7 @@ class ImportHandler:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
                 dataframe = pd.read_csv(file_handle)
-                return dataframe.to_dict(orient="list")
+                return self._format_dataframe(dataframe)
 
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
@@ -237,7 +261,7 @@ class ImportHandler:
         try:
             with pathlib.Path(self.file_path).open("r+", encoding="utf-8") as file_handle:
                 dataframe = pd.read_json(file_handle)
-                return dataframe.to_dict(orient="list")
+                return self._format_dataframe(dataframe)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Import from JSON failed at {self.file_path!s} with error {e}")
@@ -253,7 +277,7 @@ class ImportHandler:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
                 dataframe = pd.read_feather(file_handle)
-                return dataframe.to_dict(orient="list")
+                return self._format_dataframe(dataframe)
 
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
