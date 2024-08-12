@@ -21,8 +21,8 @@ from collections.abc import Sequence
 import loguru
 import pydantic
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
+from powerfactory_tools.utils.io import ExportHandler
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.utils.io import create_external_file_path
 from powerfactory_tools.versions.pf2022.constants import BaseUnits
 from powerfactory_tools.versions.pf2022.data import PowerFactoryData
 from powerfactory_tools.versions.pf2022.types import CalculationCommand
@@ -170,7 +170,12 @@ class PowerFactoryInterface:
             msg = "Could not load PowerFactory Module."
             raise RuntimeError(msg)
 
-        pfm = importlib.util.module_from_spec(spec)
+        try:
+            pfm = importlib.util.module_from_spec(spec)
+        except ImportError as element:
+            loguru.logger.exception("Could not find PowerFactory Module.")
+            raise RuntimeError from element
+
         spec.loader.exec_module(pfm)
         return t.cast("PFTypes.PowerFactoryModule", pfm)
 
@@ -2133,11 +2138,12 @@ class PowerFactoryInterface:
                 file_type = FileType.RAW
             elif export_mode is ResultExportMode.CSV:
                 file_type = FileType.CSV
-            file_path = create_external_file_path(
+
+            export_handler = ExportHandler(directory_path=export_path)
+            file_path = export_handler.create_file_path(
                 file_type=file_type,
-                path=export_path,
-                active_study_case=self.app.GetActiveStudyCase(),
                 file_name=file_name,
+                active_study_case=self.app.GetActiveStudyCase(),
             )
             data["f_name"] = str(file_path.resolve())
 
@@ -2154,6 +2160,7 @@ class PowerFactoryInterface:
         # Need to explicitly set the result object of the command as not doable in create/update_object()
         if res_exp_cmd is not None and update is True:
             res_exp_cmd.pResult = result
+
         return res_exp_cmd
 
     def run_ldf(
