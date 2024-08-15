@@ -51,6 +51,7 @@ class PFClassId(enum.Enum):
     SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
+    SHUNT = "ElmShnt"
     SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
@@ -528,20 +529,31 @@ class SelectionType(enum.IntEnum):
     INTERCHANGE_NEIGHBORHOOD = 3
 
 
-class ResultExportMode(enum.IntEnum):
-    INTERNAL_OUTPUT_WINDOW = 0
-    WINDOWS_CLIPBOARD = 1
-    MEASUREMENT_DATA_FILE = 2  # ElmFile
-    COMTRADE = 3
-    TEXT_FILE = 4
-    PSSPLT_VERSION_2 = 5
-    CSV = 6
-    DATABASE = 7
+class ShuntNeutralConnectionType(enum.IntEnum):
+    NO = 0
+    ABC_N = 1  # at neutral connection of terminal
+    SEPARATE = 2  # separate neutral connection point
 
 
-class ResultExportVariableSelection(enum.IntEnum):
-    ALL = 0
-    SELECTED = 1
+class ShuntPhaseConnectionType(enum.Enum):
+    THREE_PH_D = "3PH-'D'"
+    THREE_PH_Y = "3PH-'Y'"
+    THREE_PH_YN = "3PH-'YN'"
+    TWO_PH_Y = "2PH-'Y'"
+    TWO_PH_YN = "2PH-'YN'"
+    ONE_PH_PH_PH = "1PH PH-PH"
+    ONE_PH_PH_N = "1PH PH-N"
+    ONE_PH_PH_E = "1PH PH-E"
+
+
+class ShuntType(enum.IntEnum):
+    R_L_C = 0  # in a row: R-L-C
+    R_L = 1  # in a row: R-L
+    C = 2  # C parallel to Gp
+    R_L_C_RP = 3  # in a row: ([R-L] || Rp)-C
+    R_L_C1_C2_RP = 4  # in a row: ([R-L-C1] || Rp)-C2
+
+
 
 
 class ResultExportColumnHeadingElement(enum.IntEnum):
@@ -1620,9 +1632,32 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application: ...
 
-    class PowerFactoryExitError(Exception):
-        code: int
-        args: tuple[t.Any, ...]
+    class Shunt(Element, t.Protocol):  # PFClassId.SHUNT
+        bus1: PowerFactoryTypes.StationCubicle | None
+        systp: VoltageSystemType
+        ctech: ShuntPhaseConnectionType
+        shtype: ShuntType
+        bcap: float  # suszeptance of a single block
+        c1: float  # capacitance C1 of a single block; for R-L-C1-C2-Rp type
+        c2: float  # capacitance C1 of a single block; for R-L-C1-C2-Rp type
+        xrea: float  # reactance of a single block
+        rrea: float  # resistance of a single block
+        rpara: float  # parallel resistance of a single block
+        gparac: float  # parallel conductance of a single block; for C tpye
+
+        iintgnd: ShuntNeutralConnectionType  # neutral connection
+        Bg: float  # susceptance against earth
+        cgnd: NeutralPointEarthing
+        Re: float  # resistance from internal star/neutral point against earth
+        Xe: float  # reactance from internal star/neutral point against earth
+        iZeConfig: bool  # 0: Re and Xe related to single block; 1: Re and Xe related to whole shunt  # noqa: N815
+        R0toR1: float  # ratio of zero sequence resistance to positive sequence resistance
+        X0toX1: float  # ratio of zero sequence reactance to positive sequence reactance
+
+        ncapx: int  # number of single blocks in a row
+        ncapa: int  # amount of actual seclected blocks
+        c_pctrl: PowerFactoryTypes.DataObject | None
+
 
     ## The following may be part of version inconsistent behavior
     class LoadTypeLV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_LV

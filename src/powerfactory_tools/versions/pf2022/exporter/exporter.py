@@ -40,6 +40,7 @@ from powerfactory_tools.versions.pf2022.types import IOpt
 from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
+from powerfactory_tools.versions.pf2022.types import NeutralPointEarthing
 from powerfactory_tools.versions.pf2022.types import PFClassId
 from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
 from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
@@ -47,14 +48,14 @@ from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
 from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.versions.pf2022.types import PowerModelType
 from powerfactory_tools.versions.pf2022.types import QChar
+from powerfactory_tools.versions.pf2022.types import ShuntPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
 from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
-from powerfactory_tools.versions.pf2022.types import TrfNeutralPointState
 from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
 from powerfactory_tools.versions.pf2022.types import TrfTapSide
-from powerfactory_tools.versions.pf2022.types import Vector
-from powerfactory_tools.versions.pf2022.types import VectorGroup
+from powerfactory_tools.versions.pf2022.types import TrfVectorGroup
+from powerfactory_tools.versions.pf2022.types import TrfWindingVector
 from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
 from psdm.base import AttributeData
 from psdm.base import UniqueTuple
@@ -1039,14 +1040,14 @@ class PowerFactoryExporter:
 
             # Wiring group
             try:
-                vector_group = TVectorGroup[VectorGroup(t_type.vecgrp).name]
+                vector_group = TVectorGroup[TrfVectorGroup(t_type.vecgrp).name]
             except KeyError as e:
                 msg = f"Vector group {t_type.vecgrp} of transformer {name} is technically impossible. Aborting."
                 loguru.logger.error(msg)
                 raise RuntimeError from e
 
-            vector_group_h = WVectorGroup[Vector(t_type.tr2cn_h).name]
-            vector_group_l = WVectorGroup[Vector(t_type.tr2cn_l).name]
+            vector_group_h = WVectorGroup[TrfWindingVector(t_type.tr2cn_h).name]
+            vector_group_l = WVectorGroup[TrfWindingVector(t_type.tr2cn_l).name]
             vector_phase_angle_clock = t_type.nt2ag
 
             phases_1 = self.get_transformer2w_3ph_phases(winding_vector_group=vector_group_h, bus=transformer_2w.bushv)
@@ -1274,13 +1275,13 @@ class PowerFactoryExporter:
         vector_group_h: WVectorGroup,
         vector_group_l: WVectorGroup,
     ) -> tuple[float | None, float | None, float | None, float | None]:
-        if "N" in vector_group_h.value and transformer.cgnd_h == TrfNeutralPointState.EARTHED:
+        if "N" in vector_group_h.value and transformer.cgnd_h == NeutralPointEarthing.EARTHED:
             re_h = transformer.re0tr_h
             xe_h = transformer.xe0tr_h
         else:
             re_h = None
             xe_h = None
-        if "N" in vector_group_l.value and transformer.cgnd_l == TrfNeutralPointState.EARTHED:
+        if "N" in vector_group_l.value and transformer.cgnd_l == NeutralPointEarthing.EARTHED:
             re_l = transformer.re0tr_l
             xe_l = transformer.xe0tr_l
         else:

@@ -387,6 +387,7 @@ class PowerFactoryInterface:
             bfuses=self.bfuses(grid_name=grid_name, calc_relevant=True),
             efuses=self.efuses(grid_name=grid_name, calc_relevant=True),
             ac_current_sources=self.ac_current_sources(grid_name=grid_name, calc_relevant=True),
+            shunts=self.shunts(grid_name=grid_name, calc_relevant=True),
         )
 
     def add_result_variables(
@@ -1229,6 +1230,33 @@ class PowerFactoryInterface:
             include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.Line", element) for element in elements]
+
+    def shunt(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+    ) -> PFTypes.Shunt | None:
+        return self.first_of(self.shunts(name, grid_name=grid_name))
+
+    def shunts(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+        include_out_of_service: bool = True,
+    ) -> Sequence[PFTypes.Shunt]:
+        elements = self.grid_elements(
+            class_name=PFClassId.SHUNT.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
+        )
+        return [t.cast("PFTypes.Shunt", element) for element in elements]
 
     def transformer_2w(
         self,

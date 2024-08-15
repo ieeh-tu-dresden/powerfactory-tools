@@ -54,8 +54,10 @@ class ConsolidatedLoadPhaseConnectionType(enum.Enum):
     ONE_PH_PH_PH = "ONE_PH_PH_PH"
     THREE_PH_D = "THREE_PH_D"
     THREE_PH_PH_E = "THREE_PH_PH_E"
+    THREE_PH_Y = "THREE_PH_Y"
     THREE_PH_YN = "THREE_PH_YN"
     TWO_PH_PH_E = "TWO_PH_PH_E"
+    TWO_PH_Y = "TWO_PH_Y"
     TWO_PH_YN = "TWO_PH_YN"
 
 
