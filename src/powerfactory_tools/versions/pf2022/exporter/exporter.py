@@ -48,7 +48,6 @@ from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
 from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 from powerfactory_tools.versions.pf2022.types import PowerModelType
 from powerfactory_tools.versions.pf2022.types import QChar
-from powerfactory_tools.versions.pf2022.types import ShuntPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
 from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
 from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
