@@ -13,6 +13,7 @@ if t.TYPE_CHECKING:
     from collections.abc import Sequence
 
 
+# High-Level Enums
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
     COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
@@ -51,6 +52,7 @@ class PFClassId(enum.Enum):
     SELECTION = "SetSelect"
     SETTINGS_FOLDER = "SetFold"
     SETTINGS_FOLDER_UNITS = "IntUnit"
+    SHUNT = "ElmShnt"
     SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
@@ -106,20 +108,71 @@ class FolderType(enum.Enum):
     V_CONTROL_CURVES = "ucc"
 
 
-class MetricPrefix(enum.Enum):
-    a = "a"
-    f = "f"
-    p = "p"
-    n = "n"
-    u = "u"
-    m = "m"
-    EMPTY = ""
-    k = "k"
-    M = "M"
-    G = "G"
-    T = "T"
-    P = "P"
-    E = "E"
+# Low-Level Enums
+
+
+class BusType(enum.Enum):
+    SL = "SL"
+    PV = "PV"
+    PQ = "PQ"
+
+
+class CalculationCommand(enum.Enum):  # only excerpt
+    CONTINGENCY_ANALYSIS = "ComContingency"
+    FLICKER = "ComFlickermeter"
+    FREQUENCY_SWEEP = "ComFsweep"
+    GRAPHIC_LAYOUT_TOOL = "ComSgllayout"
+    HARMONICS = "ComHldf"
+    LOAD_FLOW = "ComLdf"
+    MODAL_ANALYSIS = "ComMod"
+    QUASI_DYNAMIC_SIMULATION = "ComStatsim"
+    RESULT_EXPORT = "ComRes"
+    SENSITIVITY_ANALYSIS = "ComVstab"
+    SHORT_CIRCUIT = "ComShc"
+    SHORT_CIRCUIT_SWEEP = "ComShctrace"
+    TIME_DOMAIN_SIMULATION = "ComSim"
+    TIME_DOMAIN_SIMULATION_START = "ComInc"
+
+
+class CalculationType(enum.IntEnum):  # only excerpt
+    ALL_CALCULATIONS = 0
+    RELIABILITY_MONTE_CARLO = 1
+    RELIABILITY_ENUMERATION = 2
+    MODAL_ANALYSIS = 5  # Eigenvalues
+    HARMONICS = 6
+    MONITORING = 7
+    TRIGGERED = 8
+    FREQUENCY_SWEEP = 9
+    VOLTAGE_SAGS = 10
+    SHORT_CIRCUIT_SWEEP = 11
+    ONLINE_PFM = 12
+    CONTINGENCY_ANALYSIS = 13
+    OPF_BEFORE_OPTIMISATION = 14
+    OPF_AFTER_OPTIMISATION = 15
+    SHORT_CIRCUIT = 16
+    FFT_CALCULATION = 17
+    SHORT_CIRCUIT_EMT = 18
+    FLICKER = 19
+    QUASI_DYNAMIC_SIMULATION = 29
+    PROTECTION = 30
+    SENSITIVITY_FACTORS = 31
+
+
+class CosPhiChar(enum.IntEnum):
+    CONST = 0
+    P = 1
+    U = 2
+
+
+class CtrlVoltageRef(enum.IntEnum):
+    POS_SEQ = 0  # positive sequence value of voltage
+    AVG = 1  # average value of voltage
+    A = 2
+    B = 3
+    C = 4
+    AB = 5
+    BC = 6
+    CA = 7
 
 
 class Currency(enum.Enum):
@@ -146,17 +199,6 @@ class Currency(enum.Enum):
     CLP = "CLP"
 
 
-class LocalQCtrlMode(enum.Enum):
-    COSPHI_CONST = "constc"
-    COSPHI_P = "cpchar"
-    Q_CONST = "constq"
-    Q_P = "qpchar"
-    Q_U = "qvchar"
-    U_CONST = "constv"
-    U_I_DROOP = "idroop"
-    U_Q_DROOP = "vdroop"
-
-
 class ExternalQCtrlMode(enum.IntEnum):
     U = 0
     Q = 1
@@ -164,46 +206,10 @@ class ExternalQCtrlMode(enum.IntEnum):
     TANPHI = 3
 
 
-class CosPhiChar(enum.IntEnum):
-    CONST = 0
-    P = 1
-    U = 2
-
-
-class QChar(enum.IntEnum):
-    CONST = 0
-    U = 1
-    P = 2
-
-
-class IOpt(enum.IntEnum):
-    S_COSPHI = 0
-    P_COSPHI = 1
-    U_I_COSPHI = 2
-    E_COSPHI = 3
-
-
-class CtrlVoltageRef(enum.IntEnum):
-    POS_SEQ = 0  # positive sequence value of voltage
-    AVG = 1  # average value of voltage
-    A = 2
-    B = 3
-    C = 4
-    AB = 5
-    BC = 6
-    CA = 7
-
-
-class TerminalPhaseConnectionType(enum.IntEnum):
-    THREE_PH = 0
-    THREE_PH_N = 1
-    BI = 2
-    BI_N = 3
-    TWO_PH = 4
-    TWO_PH_N = 5
-    ONE_PH = 6
-    ONE_PH_N = 7
-    N = 8
+class FuseCharacteristicType(enum.Enum):
+    NS = 0
+    NH = 1
+    HH = 2
 
 
 class GeneratorPhaseConnectionType(enum.IntEnum):
@@ -212,86 +218,6 @@ class GeneratorPhaseConnectionType(enum.IntEnum):
     ONE_PH_PH_E = 2
     ONE_PH_PH_N = 3
     ONE_PH_PH_PH = 4
-
-
-class LoadLVPhaseConnectionType(enum.IntEnum):
-    THREE_PH_D = 0
-    THREE_PH_PH_E = 2
-    THREE_PH_YN = 3
-    TWO_PH_PH_E = 4
-    TWO_PH_YN = 5
-    ONE_PH_PH_PH = 7
-    ONE_PH_PH_N = 8
-    ONE_PH_PH_E = 9
-
-
-class LoadPhaseConnectionType(enum.Enum):
-    THREE_PH_D = "3PH-'D'"
-    THREE_PH_PH_E = "3PH PH-E"
-    THREE_PH_YN = "3PH-'YN'"
-    TWO_PH_PH_E = "2PH PH-E"
-    TWO_PH_YN = "2PH-'YN'"
-    ONE_PH_PH_PH = "1PH PH-PH"
-    ONE_PH_PH_N = "1PH PH-N"
-    ONE_PH_PH_E = "1PH PH-E"
-
-
-class PFRecap(enum.IntEnum):
-    OE = 0
-    UE = 1
-
-
-class QOrient(enum.IntEnum):
-    Q_POS = 0
-    Q_NEG = 1
-
-
-class NodeType(enum.IntEnum):
-    BUS_BAR = 0
-    JUNCTION_NODE = 1
-    INTERNAL_NODE = 2
-
-
-class ModeInpLoad(enum.Enum):
-    DEF = "DEF"
-    PQ = "PQ"
-    PC = "PC"
-    IC = "IC"
-    SC = "SC"
-    QC = "QC"
-    IP = "IP"
-    SP = "SP"
-    SQ = "SQ"
-
-
-class ModeInpGen(enum.Enum):
-    DEF = "DEF"
-    PQ = "PQ"
-    PC = "PC"
-    SC = "SC"
-    QC = "QC"
-    SP = "SP"
-    SQ = "SQ"
-
-
-class ModeInpMV(enum.Enum):
-    PC = "PC"
-    SC = "SC"
-    EC = "EC"
-
-
-class BusType(enum.Enum):
-    SL = "SL"
-    PV = "PV"
-    PQ = "PQ"
-
-
-class Vector(enum.Enum):
-    Y = "Y"
-    YN = "YN"
-    Z = "Z"
-    ZN = "ZN"
-    D = "D"
 
 
 class GeneratorSystemType(enum.Enum):
@@ -317,7 +243,306 @@ class GeneratorSystemType(enum.Enum):
     OTHER = "othg"
 
 
-class VectorGroup(enum.Enum):
+class ISym(enum.IntEnum):
+    SYM = 0
+    ASYM = 1
+
+
+class HarmonicLoadModelType(enum.IntEnum):
+    IMPEDANCE_TYPE_1 = 0
+    CURRENT_SOURCE = 1
+    IMPEDANCE_TYPE_2 = 2
+
+
+class HarmonicSourceSystemType(enum.IntEnum):
+    SYMMETIRC = 0
+    UNSYMMETRIC = 1
+    IEC_61000 = 2
+
+
+class IOpt(enum.IntEnum):
+    S_COSPHI = 0
+    P_COSPHI = 1
+    U_I_COSPHI = 2
+    E_COSPHI = 3
+
+
+class LoadLVPhaseConnectionType(enum.IntEnum):
+    THREE_PH_D = 0
+    THREE_PH_PH_E = 2
+    THREE_PH_YN = 3
+    TWO_PH_PH_E = 4
+    TWO_PH_YN = 5
+    ONE_PH_PH_PH = 7
+    ONE_PH_PH_N = 8
+    ONE_PH_PH_E = 9
+
+
+class LoadPhaseConnectionType(enum.Enum):
+    THREE_PH_D = "3PH-'D'"
+    THREE_PH_PH_E = "3PH PH-E"
+    THREE_PH_YN = "3PH-'YN'"
+    TWO_PH_PH_E = "2PH PH-E"
+    TWO_PH_YN = "2PH-'YN'"
+    ONE_PH_PH_PH = "1PH PH-PH"
+    ONE_PH_PH_N = "1PH PH-N"
+    ONE_PH_PH_E = "1PH PH-E"
+
+
+class LocalQCtrlMode(enum.Enum):
+    COSPHI_CONST = "constc"
+    COSPHI_P = "cpchar"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
+    U_CONST = "constv"
+    U_I_DROOP = "idroop"
+    U_Q_DROOP = "vdroop"
+
+
+class MetricPrefix(enum.Enum):
+    a = "a"
+    f = "f"
+    p = "p"
+    n = "n"
+    u = "u"
+    m = "m"
+    EMPTY = ""
+    k = "k"
+    M = "M"
+    G = "G"
+    T = "T"
+    P = "P"
+    E = "E"
+
+
+class ModeInpGen(enum.Enum):
+    DEF = "DEF"
+    PQ = "PQ"
+    PC = "PC"
+    SC = "SC"
+    QC = "QC"
+    SP = "SP"
+    SQ = "SQ"
+
+
+class ModeInpLoad(enum.Enum):
+    DEF = "DEF"
+    PQ = "PQ"
+    PC = "PC"
+    IC = "IC"
+    SC = "SC"
+    QC = "QC"
+    IP = "IP"
+    SP = "SP"
+    SQ = "SQ"
+
+
+class ModeInpMV(enum.Enum):
+    PC = "PC"
+    SC = "SC"
+    EC = "EC"
+
+
+class NetworkCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+
+
+class NetworkExtendedCalcType(enum.IntEnum):
+    AC_SYM_POSITIVE_SEQUENCE = 0
+    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
+    DC = 2
+
+
+class NeutralPointEarthing(enum.IntEnum):
+    EARTHED = 0
+    ISOLATED = 1
+
+
+class NodeType(enum.IntEnum):
+    BUS_BAR = 0
+    JUNCTION_NODE = 1
+    INTERNAL_NODE = 2
+
+
+class PFRecap(enum.IntEnum):
+    OE = 0
+    UE = 1
+
+
+class Phase1PH(enum.Enum):
+    A = "SP"
+    N = "N"
+
+
+class Phase2PH(enum.Enum):
+    A = "DP1"
+    B = "DP2"
+    N = "N"
+
+
+class Phase3PH(enum.Enum):
+    A = "L1"
+    B = "L2"
+    C = "L3"
+    N = "N"
+
+
+class PowerModelType(enum.IntEnum):
+    COMPOSITE_ZIP = 0  # ZIP load model
+    EXPONENT = 1  # Exponential load model: P = P0 *exp(eP), Q = Q0 *exp(eQ)
+
+
+class QChar(enum.IntEnum):
+    CONST = 0
+    U = 1
+    P = 2
+
+
+class QOrient(enum.IntEnum):
+    Q_POS = 0
+    Q_NEG = 1
+
+
+class ResultExportColumnHeadingElement(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_PATH_AND_NAME = 2
+    PATH_AND_NAME = 3
+    FOREIGN_KEY = 4
+
+
+class ResultExportColumnHeadingVariable(enum.IntEnum):
+    NONE = 0
+    NAME = 1
+    SHORT_DESCRIPTION = 2
+    FULL_DESCRIPTION = 3
+
+
+class ResultExportIntervalFilter(enum.IntEnum):
+    NONE = 0
+    UNDERSAMPLING = 1
+    SYMMETRIC_MEAN_VALUE = 2
+    FLOATING_SYMMETRIC_MEAN_VALUE = 3
+
+
+class ResultExportNumberFormat(enum.IntEnum):
+    DECIMAL = 0
+    SCIENTIFIC = 1
+
+
+class ResultExportMode(enum.IntEnum):
+    INTERNAL_OUTPUT_WINDOW = 0
+    WINDOWS_CLIPBOARD = 1
+    MEASUREMENT_DATA_FILE = 2  # ElmFile
+    COMTRADE = 3
+    TEXT_FILE = 4
+    PSSPLT_VERSION_2 = 5
+    CSV = 6
+    DATABASE = 7
+
+
+class ResultExportVariableSelection(enum.IntEnum):
+    ALL = 0
+    SELECTED = 1
+
+
+class SelectionTarget(enum.IntEnum):  # only excerpt
+    CONTINGENCY_ANALYSIS = 0
+    SHORT_CIRCUIT = 1
+    OUTPUTS = 2
+    GENERAL = 5
+    SGL_LAYOUT = 23
+
+
+class SelectionType(enum.IntEnum):
+    K_NEIGHBORHOOD = 0
+    GRIDS = 1
+    FEEDERS = 2
+    INTERCHANGE_NEIGHBORHOOD = 3
+
+
+class ShuntNeutralConnectionType(enum.IntEnum):
+    NO = 0
+    ABC_N = 1  # at neutral connection of terminal
+    SEPARATE = 2  # separate neutral connection point
+
+
+class ShuntPhaseConnectionType(enum.Enum):
+    THREE_PH_D = "3PH-'D'"
+    THREE_PH_Y = "3PH-'Y'"
+    THREE_PH_YN = "3PH-'YN'"
+    TWO_PH_Y = "2PH-'Y'"
+    TWO_PH_YN = "2PH-'YN'"
+    ONE_PH_PH_PH = "1PH PH-PH"
+    ONE_PH_PH_N = "1PH PH-N"
+    ONE_PH_PH_E = "1PH PH-E"
+
+
+class ShuntType(enum.IntEnum):
+    R_L_C = 0  # in a row: R-L-C
+    R_L = 1  # in a row: R-L
+    C = 2  # C parallel to Gp
+    R_L_C_RP = 3  # in a row: ([R-L] || Rp)-C
+    R_L_C1_C2_RP = 4  # in a row: ([R-L-C1] || Rp)-C2
+
+
+class TemperatureDependencyType(enum.IntEnum):
+    DEFAULT_20_DEGREE = 0
+    MAX_OPERATION_TEMP = 1
+    OPERATION_TEMP = 2
+    USER_TEMP = 3
+
+
+class TerminalPhaseConnectionType(enum.IntEnum):
+    THREE_PH = 0
+    THREE_PH_N = 1
+    BI = 2
+    BI_N = 3
+    TWO_PH = 4
+    TWO_PH_N = 5
+    ONE_PH = 6
+    ONE_PH_N = 7
+    N = 8
+
+
+class TerminalVoltageSystemType(enum.IntEnum):
+    AC = 0
+    DC = 1
+    ACBI = 2
+
+
+class TimeSimulationNetworkCalcType(enum.Enum):
+    AC_SYM_POSITIVE_SEQUENCE = "sym"
+    AC_UNSYM_ABC = "rst"  # unsym. 3-Phase(abc)
+
+
+class TimeSimulationType(enum.Enum):
+    RMS = "rms"
+    EMT = "ins"
+
+
+class TrfNeutralConnectionType(enum.IntEnum):
+    NO = 0
+    ABC_N = 1
+    HV = 2  # separate at HV side
+    LV = 3  # separate at LV side
+    HV_LV = 4  # separate at HV and LV side
+
+
+class TrfPhaseTechnology(enum.IntEnum):
+    SINGLE_PH_E = 1
+    SINGLE_PH = 2
+    THREE_PH = 3
+
+
+class TrfTapSide(enum.IntEnum):
+    HV = 0
+    LV = 1
+
+
+class TrfVectorGroup(enum.Enum):
     Dd0 = "Dd0"
     Yy0 = "Yy0"
     YNy0 = "YNy0"
@@ -357,44 +582,12 @@ class VectorGroup(enum.Enum):
     YNzn11 = "YNzn11"
 
 
-class TrfPhaseTechnology(enum.IntEnum):
-    SINGLE_PH_E = 1
-    SINGLE_PH = 2
-    THREE_PH = 3
-
-
-class TrfTapSide(enum.IntEnum):
-    HV = 0
-    LV = 1
-
-
-class TrfNeutralConnectionType(enum.IntEnum):
-    NO = 0
-    ABC_N = 1
-    HV = 2  # separate at HV side
-    LV = 3  # separate at LV side
-    HV_LV = 4  # separate at HV and LV side
-
-
-class TrfNeutralPointState(enum.IntEnum):
-    EARTHED = 0
-    ISOLATED = 1
-
-
-class ISym(enum.IntEnum):
-    SYM = 0
-    ASYM = 1
-
-
-class VoltageSystemType(enum.IntEnum):
-    AC = 0
-    DC = 1
-
-
-class FuseCharacteristicType(enum.Enum):
-    NS = 0
-    NH = 1
-    HH = 2
+class TrfWindingVector(enum.Enum):
+    Y = "Y"
+    YN = "YN"
+    Z = "Z"
+    ZN = "ZN"
+    D = "D"
 
 
 class UnitSystem(enum.IntEnum):
@@ -403,174 +596,12 @@ class UnitSystem(enum.IntEnum):
     ENG_INDUSTRY = 2
 
 
-class Phase3PH(enum.Enum):
-    A = "L1"
-    B = "L2"
-    C = "L3"
-    N = "N"
-
-
-class Phase2PH(enum.Enum):
-    A = "DP1"
-    B = "DP2"
-    N = "N"
-
-
-class Phase1PH(enum.Enum):
-    A = "SP"
-    N = "N"
-
-
-class TerminalVoltageSystemType(enum.IntEnum):
+class VoltageSystemType(enum.IntEnum):
     AC = 0
     DC = 1
-    ACBI = 2
 
 
-class PowerModelType(enum.IntEnum):
-    COMPOSITE_ZIP = 0  # ZIP load model
-    EXPONENT = 1  # Exponential load model: P = P0 *exp(eP), Q = Q0 *exp(eQ)
-
-
-class HarmonicSourceSystemType(enum.IntEnum):
-    SYMMETIRC = 0
-    UNSYMMETRIC = 1
-    IEC_61000 = 2
-
-
-class HarmonicLoadModelType(enum.IntEnum):
-    IMPEDANCE_TYPE_1 = 0
-    CURRENT_SOURCE = 1
-    IMPEDANCE_TYPE_2 = 2
-
-
-class NetworkCalcType(enum.IntEnum):
-    AC_SYM_POSITIVE_SEQUENCE = 0
-    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
-
-
-class NetworkExtendedCalcType(enum.IntEnum):
-    AC_SYM_POSITIVE_SEQUENCE = 0
-    AC_UNSYM_ABC = 1  # unsym. 3-Phase(abc)
-    DC = 2
-
-
-class TemperatureDependencyType(enum.IntEnum):
-    DEFAULT_20_DEGREE = 0
-    MAX_OPERATION_TEMP = 1
-    OPERATION_TEMP = 2
-    USER_TEMP = 3
-
-
-class TimeSimulationType(enum.Enum):
-    RMS = "rms"
-    EMT = "ins"
-
-
-class TimeSimulationNetworkCalcType(enum.Enum):
-    AC_SYM_POSITIVE_SEQUENCE = "sym"
-    AC_UNSYM_ABC = "rst"  # unsym. 3-Phase(abc)
-
-
-class CalculationType(enum.IntEnum):  # only excerpt
-    ALL_CALCULATIONS = 0
-    RELIABILITY_MONTE_CARLO = 1
-    RELIABILITY_ENUMERATION = 2
-    MODAL_ANALYSIS = 5  # Eigenvalues
-    HARMONICS = 6
-    MONITORING = 7
-    TRIGGERED = 8
-    FREQUENCY_SWEEP = 9
-    VOLTAGE_SAGS = 10
-    SHORT_CIRCUIT_SWEEP = 11
-    ONLINE_PFM = 12
-    CONTINGENCY_ANALYSIS = 13
-    OPF_BEFORE_OPTIMISATION = 14
-    OPF_AFTER_OPTIMISATION = 15
-    SHORT_CIRCUIT = 16
-    FFT_CALCULATION = 17
-    SHORT_CIRCUIT_EMT = 18
-    FLICKER = 19
-    QUASI_DYNAMIC_SIMULATION = 29
-    PROTECTION = 30
-    SENSITIVITY_FACTORS = 31
-
-
-class CalculationCommand(enum.Enum):  # only excerpt
-    CONTINGENCY_ANALYSIS = "ComContingency"
-    FLICKER = "ComFlickermeter"
-    FREQUENCY_SWEEP = "ComFsweep"
-    GRAPHIC_LAYOUT_TOOL = "ComSgllayout"
-    HARMONICS = "ComHldf"
-    LOAD_FLOW = "ComLdf"
-    MODAL_ANALYSIS = "ComMod"
-    QUASI_DYNAMIC_SIMULATION = "ComStatsim"
-    RESULT_EXPORT = "ComRes"
-    SENSITIVITY_ANALYSIS = "ComVstab"
-    SHORT_CIRCUIT = "ComShc"
-    SHORT_CIRCUIT_SWEEP = "ComShctrace"
-    TIME_DOMAIN_SIMULATION = "ComSim"
-    TIME_DOMAIN_SIMULATION_START = "ComInc"
-
-
-class SelectionTarget(enum.IntEnum):  # only excerpt
-    CONTINGENCY_ANALYSIS = 0
-    SHORT_CIRCUIT = 1
-    OUTPUTS = 2
-    GENERAL = 5
-    SGL_LAYOUT = 23
-
-
-class SelectionType(enum.IntEnum):
-    K_NEIGHBORHOOD = 0
-    GRIDS = 1
-    FEEDERS = 2
-    INTERCHANGE_NEIGHBORHOOD = 3
-
-
-class ResultExportMode(enum.IntEnum):
-    INTERNAL_OUTPUT_WINDOW = 0
-    WINDOWS_CLIPBOARD = 1
-    MEASUREMENT_DATA_FILE = 2  # ElmFile
-    COMTRADE = 3
-    TEXT_FILE = 4
-    PSSPLT_VERSION_2 = 5
-    CSV = 6
-    DATABASE = 7
-
-
-class ResultExportVariableSelection(enum.IntEnum):
-    ALL = 0
-    SELECTED = 1
-
-
-class ResultExportColumnHeadingElement(enum.IntEnum):
-    NONE = 0
-    NAME = 1
-    SHORT_PATH_AND_NAME = 2
-    PATH_AND_NAME = 3
-    FOREIGN_KEY = 4
-
-
-class ResultExportColumnHeadingVariable(enum.IntEnum):
-    NONE = 0
-    NAME = 1
-    SHORT_DESCRIPTION = 2
-    FULL_DESCRIPTION = 3
-
-
-class ResultExportIntervalFilter(enum.IntEnum):
-    NONE = 0
-    UNDERSAMPLING = 1
-    SYMMETRIC_MEAN_VALUE = 2
-    FLOATING_SYMMETRIC_MEAN_VALUE = 3
-
-
-class ResultExportNumberFormat(enum.IntEnum):
-    DECIMAL = 0
-    SCIENTIFIC = 1
-
-
+## PowerFactory Element Classes
 class PowerFactoryTypes:
     class AttributeType(enum.Enum):
         INVALID = "INVALID"  # attr does not exist
@@ -709,23 +740,6 @@ class PowerFactoryTypes:
 
     class DataDir(DataObject, t.Protocol): ...
 
-    class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
-        ...
-
-    class Graph(DataObject, t.Protocol):
-        sSymName: str  # noqa: N815
-        pDataObj: PowerFactoryTypes.DataObject | None  # noqa: N815
-        rCenterX: float  # noqa: N815
-        rCenterY: float  # noqa: N815
-        rSizeX: float  # noqa: N815
-        rSizeY: float  # noqa: N815
-        iRot: int  # noqa: N815
-        iLevel: int  # noqa: N815
-        iCol: int  # noqa: N815
-        iCollapsed: bool  # noqa: N815
-        iIndLS: int  # noqa: N815
-        iVis: bool  # noqa: N815
-
     class Project(DataObject, t.Protocol):
         pPrjSettings: PowerFactoryTypes.ProjectSettings  # noqa: N815
 
@@ -809,128 +823,6 @@ class PowerFactoryTypes:
         ufacA: float  # noqa: N815
         ufacB: float  # noqa: N815
 
-    class Substation(DataObject, t.Protocol): ...  # PFClassId.SUBSTATION
-
-    class SubstationField(DataObject, t.Protocol):  # PFClassId.SUBSTATION_FIELD
-        cpBusbar: (  # noqa: N815
-            PowerFactoryTypes.Terminal | None
-        )  # one of the busbars in the substation where this field is connected to
-        cpConBranch: PowerFactoryTypes.Line | None  # connected branch from outside of substation  # noqa: N815
-        swtstate: bool  # switching state
-        Inom: float
-
-    class LoadType(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_GENERAL
-        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
-        systp: VoltageSystemType
-        phtech: LoadPhaseConnectionType
-
-        aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
-        bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
-        cP: float  # noqa: N815  # c-portion of the active power in relation to ZIP load model
-        kpu0: float  # exponent of the a-portion of the active power in relation to ZIP load model
-        kpu1: float  # exponent of the b-portion of the active power in relation to ZIP load model
-        kpu: float  # exponent of the c-portion of the active power in relation to ZIP load model
-
-        aQ: float  # noqa: N815  # a-portion of the reactive power in relation to ZIP load model
-        bQ: float  # noqa: N815  # b-portion of the reactive power in relation to ZIP load model
-        cQ: float  # noqa: N815  # c-portion of the reactive power in relation to ZIP load model
-        kqu0: float  # exponent of the a-portion of the reactive power in relation to ZIP load model
-        kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
-        kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
-
-        i_crsc: HarmonicLoadModelType
-        i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
-        Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
-        pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
-
-    class SourceTypeHarmonicCurrent(DataObject, t.Protocol):  # PFClassId.SOURCE_TYPE_HARMONIC_CURRENT
-        i_usym: HarmonicSourceSystemType
-
-    class LineType(DataObject, t.Protocol):  # PFClassId.LINE_TYPE
-        uline: float  # rated voltage (kV)
-        sline: float  # rated current (kA) when installed in soil
-        InomAir: float  # rated current (kA) when installed in air
-        rline: float  # resistance (Ohm/km) positive sequence components
-        rline0: float  # resistance (Ohm/km) zero sequence components
-        xline: float  # reactance (Ohm/km) positive sequence components
-        xline0: float  # reactance (Ohm/km) zero sequence components
-        gline: float  # conductance (µS/km) positive sequence components
-        gline0: float  # conductance (µS/km) zero sequence components
-        bline: float  # susceptance (µS/km) positive sequence components
-        bline0: float  # susceptance (µS/km) zero sequence components
-
-        nlnph: float  # no. of phase conducters
-        nneutral: float  # no. of neutral conductors
-
-        systp: VoltageSystemType
-        frnom: float  # nominal frequency the values x and b apply
-
-    class LineNType(LineType, t.Protocol):
-        rnline: float  # resistance (Ohm/km) natural neutral components
-        rpnline: float  # resistance (Ohm/km) natural neutral-line couple components
-        xnline: float  # reactance (Ohm/km) natural neutral components
-        xpnline: float  # reactance (Ohm/km) natural neutral-line couple components
-        gnline: float  # conductance (µS/km) natural neutral components
-        gpnline: float  # conductance (µS/km) natural neutral-line couple components
-        bnline: float  # susceptance (µS/km) natural neutral components
-        bpnline: float  # susceptance (µS/km) natural neutral-line couple components
-
-    class Transformer2WType(DataObject, t.Protocol):  # PFClassId.TRANSFORMER_2W_TYPE
-        utrn_l: float  # reference voltage LV side
-        utrn_h: float  # reference voltage HV side
-        pfe: float  # Iron losses
-        curmg: float  # no-load current
-        pcutr: float  # Cupper losses
-        strn: float  # rated power
-        uktr: float  # short-circuit voltage in percentage (pos. seq.)
-        uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
-        ur0tr: float  # real part of uk0tr
-        r1pu: float
-        r0pu: float
-        x1pu: float
-        x0pu: float
-        zx0hl_n: float  # Zero Sequence Magnetising Impedance: Mag. Impedance / uk0
-        rtox0_n: float  # Zero Sequence Magnetising R/X ratio: Mag. R/X
-        itrdr: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. HV-Side
-        itrdr_lv: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. LV-Side
-        itrdl: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. HV-Side
-        itrdl_lv: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. LV-Side
-        zx0hl_h: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. HV-Side
-        zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
-        x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
-
-        vecgrp: VectorGroup
-        tr2cn_l: Vector  # vector at LV side
-        tr2cn_h: Vector  # vector at HV side
-        nt2ag: float
-
-        tap_side: TrfTapSide
-        ntpmn: int
-        ntpmx: int
-        nntap0: int
-        dutap: float
-        phitr: float
-        itapch: int
-        itapch2: int
-
-        nt2ph: TrfPhaseTechnology
-
-    class Transformer3WType(DataObject, t.Protocol):  # PFClassId.TRANSFORMER_3W_TYPE
-        ...
-
-    class SwitchType(DataObject, t.Protocol):  # PFClassId.SWITCH
-        Inom: float
-        R_on: float
-        X_on: float
-
-    class Coupler(DataObject, t.Protocol):  # PFClassId.COUPLER
-        bus1: PowerFactoryTypes.StationCubicle | None
-        bus2: PowerFactoryTypes.StationCubicle | None
-        typ_id: PowerFactoryTypes.SwitchType | None
-        cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
-        isclosed: bool
-        desc: Sequence[str]
-
     class Grid(DataObject, t.Protocol):  # PFClassId.GRID
         pDiagram: PowerFactoryTypes.GridDiagram | None  # noqa: N815
         frnom: float  # nominal frequency
@@ -941,272 +833,22 @@ class PowerFactoryTypes:
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
-    class LineBase(DataObject, t.Protocol):
-        cDisplayName: str  # noqa: N815
-        desc: Sequence[str]
-        outserv: bool
-
-    class Terminal(DataObject, t.Protocol):  # PFClassId.TERMINAL
-        cDisplayName: str  # noqa: N815
-        ciEnergized: bool  # noqa: N815
-        desc: Sequence[str]
-        uknom: float
-        iUsage: NodeType  # noqa: N815
-        outserv: bool
-        cStatName: str  # noqa: N815
-        cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
-        cubics: Sequence[PowerFactoryTypes.StationCubicle]
-        systype: TerminalVoltageSystemType
-        phtech: TerminalPhaseConnectionType
-
-        def GetCalcRelevantCubicles(self) -> Sequence[PowerFactoryTypes.StationCubicle]:  # noqa: N802
-            ...
-
-        def GetConnectedMainBuses(  # noqa: N802
-            self,
-            consider_switches: bool = True,  # noqa: FBT001, FBT002
-        ) -> Sequence[PowerFactoryTypes.StationCubicle]: ...
-
-        def GetEquivalentTerminals(self) -> Sequence[PowerFactoryTypes.Terminal]:  # noqa: N802
-            # Euqivalent means that those terminals are topologically connected only by
-            # - closed switching devices (ElmCoup, RelFuse) or
-            # - lines of zero length (line droppers).
-            # Returns all terminals that are equivalent to current one. Current one is also included so the set is never empty.
-            ...
-
-        def IsInternalNodeInStation(self) -> bool:  # noqa: N802
-            ...
-
-    class StationCubicle(DataObject, t.Protocol):  # PFClassId.CUBICLE
-        cterm: PowerFactoryTypes.Terminal
-        obj_id: PowerFactoryTypes.Line | PowerFactoryTypes.Element | None
-        nphase: int
-        cPhInfo: str  # noqa: N815
-
-    class Transformer2W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_2W
-        buslv: PowerFactoryTypes.StationCubicle | None
-        bushv: PowerFactoryTypes.StationCubicle | None
-        ntnum: int
-        typ_id: PowerFactoryTypes.Transformer2WType | None
-        nntap: int
-
-        cneutcon: TrfNeutralConnectionType
-        cgnd_h: TrfNeutralPointState
-        cgnd_l: TrfNeutralPointState
-        cpeter_h: bool
-        cpeter_l: bool
-        re0tr_h: float
-        re0tr_l: float
-        xe0tr_h: float
-        xe0tr_l: float
-
-    class Transformer3W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_3W
-        buslv: PowerFactoryTypes.StationCubicle | None
-        busmv: PowerFactoryTypes.StationCubicle | None
-        bushv: PowerFactoryTypes.StationCubicle | None
-        nt3nm: int
-        typ_id: PowerFactoryTypes.Transformer3WType | None
-        n3tapl: int
-        n3tapm: int
-        n3taph: int
-
-    class ControllerBase(DataObject, t.Protocol):
-        c_pmod: PowerFactoryTypes.CompoundModel | None
-
-    class SecondaryController(ControllerBase, t.Protocol): ...
-
-    class StationController(ControllerBase, t.Protocol):  # PFClassId.STATION_CONTROLLER
-        i_ctrl: ExternalQCtrlMode
-        qu_char: QChar
-        qsetp: float
-        iQorient: QOrient  # noqa: N815
-        refbar: PowerFactoryTypes.Terminal
-        Srated: float
-        ddroop: float
-        Qmin: float
-        Qmax: float
-        udeadblow: float
-        udeadbup: float
-        cosphi_char: CosPhiChar
-        pfsetp: float
-        pf_recap: PFRecap
-        tansetp: float
-        usetp: float
-        pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
-        p_cub: PowerFactoryTypes.StationCubicle
-        u_under: float
-        u_over: float
-        pf_under: float
-        pf_over: float
-        p_under: float
-        p_over: float
-        i_phase: CtrlVoltageRef
-
-    class Element(DataObject, t.Protocol):
-        desc: Sequence[str]
-
-    class DeviceBase(Element, t.Protocol):
-        pf_recap: PFRecap
-        outserv: bool
-
-    class GeneratorBase(DeviceBase, t.Protocol):
-        bus1: PowerFactoryTypes.StationCubicle | None
-        scale0: float
-
-        ngnum: int
-        sgn: float
-        cosn: float
-        pgini: float
-        qgini: float
-        cosgini: float
-        Kpf: float
-        ddroop: float
-        Qfu_min: float
-        Qfu_max: float
-        udeadblow: float
-        udeadbup: float
-        av_mode: LocalQCtrlMode
-        mode_inp: ModeInpGen
-        sgini_a: float
-        pgini_a: float
-        qgini_a: float
-        cosgini_a: float
-        pf_recap_a: PFRecap
-        scale0_a: float
-        c_pstac: PowerFactoryTypes.StationController | None
-        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
-        pQPcurve: PowerFactoryTypes.QPCharacteristic | None  # noqa: N815 # Q(P)-characteristic curve
-        pf_under: float
-        pf_over: float
-        p_under: float
-        p_over: float
-        usetp: float
-        phtech: GeneratorPhaseConnectionType
-
-    class QPCharacteristic(DataObject, t.Protocol):
-        inputmod: bool
-
-    class Generator(GeneratorBase, t.Protocol):  # PFClassId.GENERATOR
-        aCategory: GeneratorSystemType  # noqa: N815
-        c_psecc: PowerFactoryTypes.SecondaryController | None
-
-    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PVSYSTEM
-        uk: float
-        Pcu: float
-
-    class LoadBase(DeviceBase, t.Protocol):
-        typ_id: PowerFactoryTypes.LoadType | PowerFactoryTypes.LoadTypeLV | PowerFactoryTypes.LoadTypeMV | None
-
-    class LoadBase3Ph(LoadBase, t.Protocol):
-        bus1: PowerFactoryTypes.StationCubicle | None
-        scale0: float
-
-        slini: float
-        slinir: float
-        slinis: float
-        slinit: float
-        plini: float
-        plinir: float
-        plinis: float
-        plinit: float
-        qlini: float
-        qlinir: float
-        qlinis: float
-        qlinit: float
-        ilini: float
-        ilinir: float
-        ilinis: float
-        ilinit: float
-        coslini: float
-        coslinir: float
-        coslinis: float
-        coslinit: float
-
-    class Load(LoadBase3Ph, t.Protocol):  # PFClassId.LOAD
-        typ_id: PowerFactoryTypes.LoadType | None
-        mode_inp: ModeInpLoad
-        i_sym: ISym
-        u0: float
-        phtech: LoadPhaseConnectionType
-
-    class Switch(DataObject, t.Protocol):  # PFClassId.SWITCH
-        fold_id: PowerFactoryTypes.StationCubicle
-        isclosed: bool  # 0:open; 1:closed
-
-    class Line(LineBase, t.Protocol):  # PFClassId.LINE
-        bus1: PowerFactoryTypes.StationCubicle | None
-        bus2: PowerFactoryTypes.StationCubicle | None
-        nlnum: int  # no. of parallel lines
-        dline: float  # line length (km)
-        fline: float  # installation factor
-        inAir: bool  # noqa: N815 # 0:soil; 1:air
-        Inom_a: float  # nominal current (actual)
-        typ_id: PowerFactoryTypes.LineType | None
-
-    class FuseType(DataObject, t.Protocol):  # PFClassId.FUSE_TYPE
-        urat: float  # rated voltage
-        irat: float  # rated current
-        frq: float  # nominal frequency
-        itype: FuseCharacteristicType
-
-    class Fuse(DataObject, t.Protocol):  # PFClassId.FUSE
-        desc: Sequence[str]
-        typ_id: PowerFactoryTypes.FuseType | None
-        on_off: bool  # closed = 1; open = 0
-        outserv: bool
-        bus1: PowerFactoryTypes.StationCubicle | None
-        bus2: PowerFactoryTypes.StationCubicle | None
-
-    class BFuse(Fuse, t.Protocol): ...
-
-    class EFuse(Fuse, t.Protocol):
-        fold_id: PowerFactoryTypes.StationCubicle
-        cn_bus: PowerFactoryTypes.Terminal
-        cbranch: PowerFactoryTypes.LineBase | PowerFactoryTypes.Element | PowerFactoryTypes.Fuse
-        bus1: None
-        bus2: None
-
-    class ExternalGrid(DataObject, t.Protocol):  # PFClassId.EXTERNAL_GRID
-        bustp: BusType
-        bus1: PowerFactoryTypes.StationCubicle | None
-        desc: Sequence[str]
-        usetp: float  # in p.u.
-        pgini: float  # in MW
-        qgini: float  # in Mvar
-        phiini: float  # in deg
-        snss: float  # in MVA
-        snssmin: float  # in MVA
-        outserv: bool
-
-    class SourceBase(DataObject, t.Protocol):
-        bus1: PowerFactoryTypes.StationCubicle | None
-        outserv: bool
-        nphase: int
-        desc: Sequence[str]
-        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
-
-    class AcCurrentSource(SourceBase, t.Protocol):  # PFClassId.CURRENT_SOURCE_AC
-        Ir: float
-        isetp: float
-        cosini: float
-        i_cap: PFRecap
-        G1: float
-        B1: float
-        isetp2: float
-        phisetp2: float
-        G2: float
-        B2: float
-        isetp0: float
-        phisetp0: float
-        G0: float
-        B0: float
-        phmc: PowerFactoryTypes.SourceTypeHarmonicCurrent | None
-
-    class Template(DataObject, t.Protocol):  # PFClassId.TEMPLATE
+    class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
         ...
 
-    class CompoundModel(DataObject, t.Protocol):  # PFClassId.COMPOUND_MODEL
-        ...
+    class Graph(DataObject, t.Protocol):
+        sSymName: str  # noqa: N815
+        pDataObj: PowerFactoryTypes.DataObject | None  # noqa: N815
+        rCenterX: float  # noqa: N815
+        rCenterY: float  # noqa: N815
+        rSizeX: float  # noqa: N815
+        rSizeY: float  # noqa: N815
+        iRot: int  # noqa: N815
+        iLevel: int  # noqa: N815
+        iCol: int  # noqa: N815
+        iCollapsed: bool  # noqa: N815
+        iIndLS: int  # noqa: N815
+        iVis: bool  # noqa: N815
 
     class DslModel(DataObject, t.Protocol):  # PFClassId.DSL_MODEL
         ...
@@ -1609,6 +1251,10 @@ class PowerFactoryTypes:
         def ResetCalculation(self) -> None:  # noqa: N802
             ...
 
+    class PowerFactoryExitError(Exception):
+        code: int
+        args: tuple[t.Any, ...]
+
     class PowerFactoryModule(Protocol):
         ExitError: tuple[type[PowerFactoryTypes.PowerFactoryExitError], ...]
 
@@ -1620,11 +1266,425 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.Application: ...
 
-    class PowerFactoryExitError(Exception):
-        code: int
-        args: tuple[t.Any, ...]
+    ## Physical Elements
+
+    class Element(DataObject, t.Protocol):
+        desc: Sequence[str]
+
+    class DeviceBase(Element, t.Protocol):
+        pf_recap: PFRecap
+        outserv: bool
+
+    class Substation(DataObject, t.Protocol): ...  # PFClassId.SUBSTATION
+
+    class SubstationField(DataObject, t.Protocol):  # PFClassId.SUBSTATION_FIELD
+        cpBusbar: (  # noqa: N815
+            PowerFactoryTypes.Terminal | None
+        )  # one of the busbars in the substation where this field is connected to
+        cpConBranch: PowerFactoryTypes.Line | None  # connected branch from outside of substation  # noqa: N815
+        swtstate: bool  # switching state
+        Inom: float
+
+    class LoadType(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_GENERAL
+        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
+        systp: VoltageSystemType
+        phtech: LoadPhaseConnectionType
+
+        aP: float  # noqa: N815  # a-portion of the active power in relation to ZIP load model
+        bP: float  # noqa: N815  # b-portion of the active power in relation to ZIP load model
+        cP: float  # noqa: N815  # c-portion of the active power in relation to ZIP load model
+        kpu0: float  # exponent of the a-portion of the active power in relation to ZIP load model
+        kpu1: float  # exponent of the b-portion of the active power in relation to ZIP load model
+        kpu: float  # exponent of the c-portion of the active power in relation to ZIP load model
+
+        aQ: float  # noqa: N815  # a-portion of the reactive power in relation to ZIP load model
+        bQ: float  # noqa: N815  # b-portion of the reactive power in relation to ZIP load model
+        cQ: float  # noqa: N815  # c-portion of the reactive power in relation to ZIP load model
+        kqu0: float  # exponent of the a-portion of the reactive power in relation to ZIP load model
+        kqu1: float  # exponent of the b-portion of the reactive power in relation to ZIP load model
+        kqu: float  # exponent of the c-portion of the reactive power in relation to ZIP load model
+
+        i_crsc: HarmonicLoadModelType
+        i_pure: int  # for harmonic load model type IMPEDANCE_TYPE_1; 0 - pure inductive/capacitive; 1 - mixed inductive/capacitive
+        Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
+        pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
+
+    class SourceTypeHarmonicCurrent(DataObject, t.Protocol):  # PFClassId.SOURCE_TYPE_HARMONIC_CURRENT
+        i_usym: HarmonicSourceSystemType
+
+    class LineType(DataObject, t.Protocol):  # PFClassId.LINE_TYPE
+        uline: float  # rated voltage (kV)
+        sline: float  # rated current (kA) when installed in soil
+        InomAir: float  # rated current (kA) when installed in air
+        rline: float  # resistance (Ohm/km) positive sequence components
+        rline0: float  # resistance (Ohm/km) zero sequence components
+        xline: float  # reactance (Ohm/km) positive sequence components
+        xline0: float  # reactance (Ohm/km) zero sequence components
+        gline: float  # conductance (µS/km) positive sequence components
+        gline0: float  # conductance (µS/km) zero sequence components
+        bline: float  # susceptance (µS/km) positive sequence components
+        bline0: float  # susceptance (µS/km) zero sequence components
+
+        nlnph: float  # no. of phase conducters
+        nneutral: float  # no. of neutral conductors
+
+        systp: VoltageSystemType
+        frnom: float  # nominal frequency the values x and b apply
+
+    class LineNType(LineType, t.Protocol):
+        rnline: float  # resistance (Ohm/km) natural neutral components
+        rpnline: float  # resistance (Ohm/km) natural neutral-line couple components
+        xnline: float  # reactance (Ohm/km) natural neutral components
+        xpnline: float  # reactance (Ohm/km) natural neutral-line couple components
+        gnline: float  # conductance (µS/km) natural neutral components
+        gpnline: float  # conductance (µS/km) natural neutral-line couple components
+        bnline: float  # susceptance (µS/km) natural neutral components
+        bpnline: float  # susceptance (µS/km) natural neutral-line couple components
+
+    class Transformer2WType(DataObject, t.Protocol):  # PFClassId.TRANSFORMER_2W_TYPE
+        utrn_l: float  # reference voltage LV side
+        utrn_h: float  # reference voltage HV side
+        pfe: float  # Iron losses
+        curmg: float  # no-load current
+        pcutr: float  # Cupper losses
+        strn: float  # rated power
+        uktr: float  # short-circuit voltage in percentage (pos. seq.)
+        uk0tr: float  # short-circuit voltage in percentage (zero. seq.)
+        ur0tr: float  # real part of uk0tr
+        r1pu: float
+        r0pu: float
+        x1pu: float
+        x0pu: float
+        zx0hl_n: float  # Zero Sequence Magnetising Impedance: Mag. Impedance / uk0
+        rtox0_n: float  # Zero Sequence Magnetising R/X ratio: Mag. R/X
+        itrdr: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. HV-Side
+        itrdr_lv: float  # Distribution of Leakage Resistances (p.u.): r, Pos.Seq. LV-Side
+        itrdl: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. HV-Side
+        itrdl_lv: float  # Distribution of Leakage Reactances (p.u.): x, Pos.Seq. LV-Side
+        zx0hl_h: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. HV-Side
+        zx0hl_l: float  # Distribution of Zero Sequ. Leakage-Impedances: z, Zero Seq. LV-Side
+        x0tor0: float  # Zero Sequence Impedance: Ratio X0/R0
+
+        vecgrp: TrfVectorGroup
+        tr2cn_l: TrfWindingVector  # vector at LV side
+        tr2cn_h: TrfWindingVector  # vector at HV side
+        nt2ag: float
+
+        tap_side: TrfTapSide
+        ntpmn: int
+        ntpmx: int
+        nntap0: int
+        dutap: float
+        phitr: float
+        itapch: int
+        itapch2: int
+
+        nt2ph: TrfPhaseTechnology
+
+    class Transformer3WType(DataObject, t.Protocol):  # PFClassId.TRANSFORMER_3W_TYPE
+        ...
+
+    class Shunt(Element, t.Protocol):  # PFClassId.SHUNT
+        bus1: PowerFactoryTypes.StationCubicle | None
+        systp: VoltageSystemType
+        ctech: ShuntPhaseConnectionType
+        shtype: ShuntType
+        bcap: float  # suszeptance of a single block
+        c1: float  # capacitance C1 of a single block; for R-L-C1-C2-Rp type
+        c2: float  # capacitance C1 of a single block; for R-L-C1-C2-Rp type
+        xrea: float  # reactance of a single block
+        rrea: float  # resistance of a single block
+        rpara: float  # parallel resistance of a single block
+        gparac: float  # parallel conductance of a single block; for C tpye
+
+        iintgnd: ShuntNeutralConnectionType  # neutral connection
+        Bg: float  # susceptance against earth
+        cgnd: NeutralPointEarthing
+        Re: float  # resistance from internal star/neutral point against earth
+        Xe: float  # reactance from internal star/neutral point against earth
+        iZeConfig: bool  # 0: Re and Xe related to single block; 1: Re and Xe related to whole shunt  # noqa: N815
+        R0toR1: float  # ratio of zero sequence resistance to positive sequence resistance
+        X0toX1: float  # ratio of zero sequence reactance to positive sequence reactance
+
+        ncapx: int  # number of single blocks in a row
+        ncapa: int  # amount of actual seclected blocks
+        c_pctrl: PowerFactoryTypes.DataObject | None
+
+    class SwitchType(DataObject, t.Protocol):  # PFClassId.SWITCH
+        Inom: float
+        R_on: float
+        X_on: float
+
+    class Coupler(DataObject, t.Protocol):  # PFClassId.COUPLER
+        bus1: PowerFactoryTypes.StationCubicle | None
+        bus2: PowerFactoryTypes.StationCubicle | None
+        typ_id: PowerFactoryTypes.SwitchType | None
+        cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
+        isclosed: bool
+        desc: Sequence[str]
+
+    class LineBase(DataObject, t.Protocol):
+        cDisplayName: str  # noqa: N815
+        desc: Sequence[str]
+        outserv: bool
+
+    class Terminal(DataObject, t.Protocol):  # PFClassId.TERMINAL
+        cDisplayName: str  # noqa: N815
+        ciEnergized: bool  # noqa: N815
+        desc: Sequence[str]
+        uknom: float
+        iUsage: NodeType  # noqa: N815
+        outserv: bool
+        cStatName: str  # noqa: N815
+        cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
+        cubics: Sequence[PowerFactoryTypes.StationCubicle]
+        systype: TerminalVoltageSystemType
+        phtech: TerminalPhaseConnectionType
+
+        def GetCalcRelevantCubicles(self) -> Sequence[PowerFactoryTypes.StationCubicle]:  # noqa: N802
+            ...
+
+        def GetConnectedMainBuses(  # noqa: N802
+            self,
+            consider_switches: bool = True,  # noqa: FBT001, FBT002
+        ) -> Sequence[PowerFactoryTypes.StationCubicle]: ...
+
+        def GetEquivalentTerminals(self) -> Sequence[PowerFactoryTypes.Terminal]:  # noqa: N802
+            # Euqivalent means that those terminals are topologically connected only by
+            # - closed switching devices (ElmCoup, RelFuse) or
+            # - lines of zero length (line droppers).
+            # Returns all terminals that are equivalent to current one. Current one is also included so the set is never empty.
+            ...
+
+        def IsInternalNodeInStation(self) -> bool:  # noqa: N802
+            ...
+
+    class StationCubicle(DataObject, t.Protocol):  # PFClassId.CUBICLE
+        cterm: PowerFactoryTypes.Terminal
+        obj_id: PowerFactoryTypes.Line | PowerFactoryTypes.Element | None
+        nphase: int
+        cPhInfo: str  # noqa: N815
+
+    class Transformer2W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_2W
+        buslv: PowerFactoryTypes.StationCubicle | None
+        bushv: PowerFactoryTypes.StationCubicle | None
+        ntnum: int
+        typ_id: PowerFactoryTypes.Transformer2WType | None
+        nntap: int
+
+        cneutcon: TrfNeutralConnectionType
+        cgnd_h: NeutralPointEarthing
+        cgnd_l: NeutralPointEarthing
+        cpeter_h: bool
+        cpeter_l: bool
+        re0tr_h: float
+        re0tr_l: float
+        xe0tr_h: float
+        xe0tr_l: float
+
+    class Transformer3W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_3W
+        buslv: PowerFactoryTypes.StationCubicle | None
+        busmv: PowerFactoryTypes.StationCubicle | None
+        bushv: PowerFactoryTypes.StationCubicle | None
+        nt3nm: int
+        typ_id: PowerFactoryTypes.Transformer3WType | None
+        n3tapl: int
+        n3tapm: int
+        n3taph: int
+
+    class ControllerBase(DataObject, t.Protocol):
+        c_pmod: PowerFactoryTypes.CompoundModel | None
+
+    class SecondaryController(ControllerBase, t.Protocol): ...
+
+    class StationController(ControllerBase, t.Protocol):  # PFClassId.STATION_CONTROLLER
+        i_ctrl: ExternalQCtrlMode
+        qu_char: QChar
+        qsetp: float
+        iQorient: QOrient  # noqa: N815
+        refbar: PowerFactoryTypes.Terminal
+        Srated: float
+        ddroop: float
+        Qmin: float
+        Qmax: float
+        udeadblow: float
+        udeadbup: float
+        cosphi_char: CosPhiChar
+        pfsetp: float
+        pf_recap: PFRecap
+        tansetp: float
+        usetp: float
+        pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
+        p_cub: PowerFactoryTypes.StationCubicle
+        u_under: float
+        u_over: float
+        pf_under: float
+        pf_over: float
+        p_under: float
+        p_over: float
+        i_phase: CtrlVoltageRef
+
+    class GeneratorBase(DeviceBase, t.Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        scale0: float
+
+        ngnum: int
+        sgn: float
+        cosn: float
+        pgini: float
+        qgini: float
+        cosgini: float
+        Kpf: float
+        ddroop: float
+        Qfu_min: float
+        Qfu_max: float
+        udeadblow: float
+        udeadbup: float
+        av_mode: LocalQCtrlMode
+        mode_inp: ModeInpGen
+        sgini_a: float
+        pgini_a: float
+        qgini_a: float
+        cosgini_a: float
+        pf_recap_a: PFRecap
+        scale0_a: float
+        c_pstac: PowerFactoryTypes.StationController | None
+        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
+        pQPcurve: PowerFactoryTypes.QPCharacteristic | None  # noqa: N815 # Q(P)-characteristic curve
+        pf_under: float
+        pf_over: float
+        p_under: float
+        p_over: float
+        usetp: float
+        phtech: GeneratorPhaseConnectionType
+
+    class QPCharacteristic(DataObject, t.Protocol):
+        inputmod: bool
+
+    class Generator(GeneratorBase, t.Protocol):  # PFClassId.GENERATOR
+        aCategory: GeneratorSystemType  # noqa: N815
+        c_psecc: PowerFactoryTypes.SecondaryController | None
+
+    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PVSYSTEM
+        uk: float
+        Pcu: float
+
+    class LoadBase(DeviceBase, t.Protocol):
+        typ_id: PowerFactoryTypes.LoadType | PowerFactoryTypes.LoadTypeLV | PowerFactoryTypes.LoadTypeMV | None
+
+    class LoadBase3Ph(LoadBase, t.Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        scale0: float
+
+        slini: float
+        slinir: float
+        slinis: float
+        slinit: float
+        plini: float
+        plinir: float
+        plinis: float
+        plinit: float
+        qlini: float
+        qlinir: float
+        qlinis: float
+        qlinit: float
+        ilini: float
+        ilinir: float
+        ilinis: float
+        ilinit: float
+        coslini: float
+        coslinir: float
+        coslinis: float
+        coslinit: float
+
+    class Load(LoadBase3Ph, t.Protocol):  # PFClassId.LOAD
+        typ_id: PowerFactoryTypes.LoadType | None
+        mode_inp: ModeInpLoad
+        i_sym: ISym
+        u0: float
+        phtech: LoadPhaseConnectionType
+
+    class Switch(DataObject, t.Protocol):  # PFClassId.SWITCH
+        fold_id: PowerFactoryTypes.StationCubicle
+        isclosed: bool  # 0:open; 1:closed
+
+    class Line(LineBase, t.Protocol):  # PFClassId.LINE
+        bus1: PowerFactoryTypes.StationCubicle | None
+        bus2: PowerFactoryTypes.StationCubicle | None
+        nlnum: int  # no. of parallel lines
+        dline: float  # line length (km)
+        fline: float  # installation factor
+        inAir: bool  # noqa: N815 # 0:soil; 1:air
+        Inom_a: float  # nominal current (actual)
+        typ_id: PowerFactoryTypes.LineType | None
+
+    class FuseType(DataObject, t.Protocol):  # PFClassId.FUSE_TYPE
+        urat: float  # rated voltage
+        irat: float  # rated current
+        frq: float  # nominal frequency
+        itype: FuseCharacteristicType
+
+    class Fuse(DataObject, t.Protocol):  # PFClassId.FUSE
+        desc: Sequence[str]
+        typ_id: PowerFactoryTypes.FuseType | None
+        on_off: bool  # closed = 1; open = 0
+        outserv: bool
+        bus1: PowerFactoryTypes.StationCubicle | None
+        bus2: PowerFactoryTypes.StationCubicle | None
+
+    class BFuse(Fuse, t.Protocol): ...
+
+    class EFuse(Fuse, t.Protocol):
+        fold_id: PowerFactoryTypes.StationCubicle
+        cn_bus: PowerFactoryTypes.Terminal
+        cbranch: PowerFactoryTypes.LineBase | PowerFactoryTypes.Element | PowerFactoryTypes.Fuse
+        bus1: None
+        bus2: None
+
+    class ExternalGrid(DataObject, t.Protocol):  # PFClassId.EXTERNAL_GRID
+        bustp: BusType
+        bus1: PowerFactoryTypes.StationCubicle | None
+        desc: Sequence[str]
+        usetp: float  # in p.u.
+        pgini: float  # in MW
+        qgini: float  # in Mvar
+        phiini: float  # in deg
+        snss: float  # in MVA
+        snssmin: float  # in MVA
+        outserv: bool
+
+    class SourceBase(DataObject, t.Protocol):
+        bus1: PowerFactoryTypes.StationCubicle | None
+        outserv: bool
+        nphase: int
+        desc: Sequence[str]
+        c_pmod: PowerFactoryTypes.CompoundModel | None  # Compound Parent Model/Template
+
+    class AcCurrentSource(SourceBase, t.Protocol):  # PFClassId.CURRENT_SOURCE_AC
+        Ir: float
+        isetp: float
+        cosini: float
+        i_cap: PFRecap
+        G1: float
+        B1: float
+        isetp2: float
+        phisetp2: float
+        G2: float
+        B2: float
+        isetp0: float
+        phisetp0: float
+        G0: float
+        B0: float
+        phmc: PowerFactoryTypes.SourceTypeHarmonicCurrent | None
+
+    class Template(DataObject, t.Protocol):  # PFClassId.TEMPLATE
+        ...
+
+    class CompoundModel(DataObject, t.Protocol):  # PFClassId.COMPOUND_MODEL
+        ...
 
     ## The following may be part of version inconsistent behavior
+
     class LoadTypeLV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_LV
         Smax: float  # maximum apparent power for a single residential unit, per default in kVA
         cosphi: float  # power factor

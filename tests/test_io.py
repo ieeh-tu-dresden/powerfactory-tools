@@ -1,6 +1,7 @@
 from contextlib import nullcontext as does_not_raise
 
 import pytest
+
 from powerfactory_tools.utils.io import ExportHandler
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.utils.io import ImportHandler
@@ -24,7 +25,7 @@ test_data3 = {
 }
 
 
-@pytest.fixture()
+@pytest.fixture
 def fake_path(tmp_path):
     return tmp_path
 
