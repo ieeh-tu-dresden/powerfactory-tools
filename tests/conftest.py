@@ -3,7 +3,7 @@ import pytest
 from _pytest.logging import LogCaptureFixture
 
 
-@pytest.fixture()
+@pytest.fixture
 def caplog(caplog: LogCaptureFixture):
     handler_id = loguru.logger.add(
         caplog.handler,

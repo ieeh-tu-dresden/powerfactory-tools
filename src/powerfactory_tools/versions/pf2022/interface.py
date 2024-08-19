@@ -20,6 +20,8 @@ from collections.abc import Sequence
 
 import loguru
 import pydantic
+from psdm.base import AttributeData
+
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import ExportHandler
 from powerfactory_tools.utils.io import FileType
@@ -37,7 +39,6 @@ from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcTy
 from powerfactory_tools.versions.pf2022.types import TimeSimulationType
 from powerfactory_tools.versions.pf2022.types import UnitSystem
 from powerfactory_tools.versions.pf2022.types import ValidPFValue
-from psdm.base import AttributeData
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable

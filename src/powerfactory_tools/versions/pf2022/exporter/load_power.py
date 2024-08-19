@@ -12,9 +12,6 @@ import typing as t
 from dataclasses import dataclass
 
 import loguru
-from powerfactory_tools.versions.pf2022.constants import DecimalDigits
-from powerfactory_tools.versions.pf2022.constants import Exponents
-from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
 from psdm.quantities.multi_phase import ActivePower
 from psdm.quantities.multi_phase import ApparentPower
 from psdm.quantities.multi_phase import CosPhi
@@ -35,6 +32,10 @@ from psdm.steadystate_case.controller import ControlTanPhiConst
 from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import RatedPower
+
+from powerfactory_tools.versions.pf2022.constants import DecimalDigits
+from powerfactory_tools.versions.pf2022.constants import Exponents
+from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
 
 if t.TYPE_CHECKING:
     from typing import TypedDict
