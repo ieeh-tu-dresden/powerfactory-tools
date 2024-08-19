@@ -35,4 +35,5 @@ class PowerFactoryData:
     bfuses: cabc.Sequence[PFTypes.BFuse]
     efuses: cabc.Sequence[PFTypes.EFuse]
     ac_current_sources: cabc.Sequence[PFTypes.AcCurrentSource]
+    ac_voltage_sources: cabc.Sequence[PFTypes.AcVoltageSource]
     shunts: cabc.Sequence[PFTypes.Shunt]

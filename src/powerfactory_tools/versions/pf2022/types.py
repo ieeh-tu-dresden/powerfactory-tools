@@ -34,6 +34,7 @@ class PFClassId(enum.Enum):
     LINE = "ElmLne"
     LINE_TYPE = "TypLne"
     LOAD = "ElmLod"
+    LOAD_FLOW_CONTROLLER = "ElmLdfctrl"
     LOAD_LV = "ElmLodlv"
     LOAD_LV_PART = "ElmLodlvp"
     LOAD_MV = "ElmLodmv"
@@ -70,6 +71,7 @@ class PFClassId(enum.Enum):
     VARIANT = "IntScheme"
     VARIANT_CONFIG = "IntAcscheme"
     VARIANT_STAGE = "IntSstage"
+    VOLTAGE_SOURCE_AC = "ElmVac"
     ZONE = "ElmZone"
 
 
@@ -265,6 +267,13 @@ class IOpt(enum.IntEnum):
     P_COSPHI = 1
     U_I_COSPHI = 2
     E_COSPHI = 3
+
+
+class LoadFlowCtrlMode(enum.IntEnum):
+    VOLTAGE_MAGNITUDE = 0
+    VOLTAGE_ANGLE = 1
+    ACTIVE_POWER = 2
+    REACTIVE_POWER = 3
 
 
 class LoadLVPhaseConnectionType(enum.IntEnum):
@@ -594,6 +603,13 @@ class UnitSystem(enum.IntEnum):
     METRIC = 0
     ENG_TRANSMISSION = 1
     ENG_INDUSTRY = 2
+
+
+class VoltageSourceType(enum.IntEnum):
+    VOLTAGE_SOURCE = 0
+    IDEAL_TF_SOURCE = 1
+    WARD_EQUIVALENT = 2
+    EXTENDED_WARD_EQUIVALENT = 3
 
 
 class VoltageSystemType(enum.IntEnum):
@@ -1492,12 +1508,12 @@ class PowerFactoryTypes:
         n3tapm: int
         n3taph: int
 
-    class ControllerBase(DataObject, t.Protocol):
+    class GeneratorControllerBase(DataObject, t.Protocol):
         c_pmod: PowerFactoryTypes.CompoundModel | None
 
-    class SecondaryController(ControllerBase, t.Protocol): ...
+    class SecondaryController(GeneratorControllerBase, t.Protocol): ...
 
-    class StationController(ControllerBase, t.Protocol):  # PFClassId.STATION_CONTROLLER
+    class StationController(GeneratorControllerBase, t.Protocol):  # PFClassId.STATION_CONTROLLER
         i_ctrl: ExternalQCtrlMode
         qu_char: QChar
         qsetp: float
@@ -1523,6 +1539,18 @@ class PowerFactoryTypes:
         p_under: float
         p_over: float
         i_phase: CtrlVoltageRef
+
+    class LoadFlowController(Element, t.Protocol):  # PFClassId.LOAD_FLOW_CONTROLLER
+        outserv: bool
+        i_ctrl: LoadFlowCtrlMode
+
+        usetp: float  # voltage magnitude setpoint in p.u.
+        phiusetp: float  # voltage angle setpoint in deg
+        p_bar: PowerFactoryTypes.Terminal  # controlled terminal
+
+        Psetp: float  # active power setpoint in MW
+        Qsetp: float  # reactive power setpoint in Mvar
+        p_cub: PowerFactoryTypes.StationCubicle  # controlled cubicle
 
     class GeneratorBase(DeviceBase, t.Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
@@ -1662,6 +1690,7 @@ class PowerFactoryTypes:
 
     class AcCurrentSource(SourceBase, t.Protocol):  # PFClassId.CURRENT_SOURCE_AC
         Ir: float
+
         isetp: float
         cosini: float
         i_cap: PFRecap
@@ -1676,6 +1705,27 @@ class PowerFactoryTypes:
         G0: float
         B0: float
         phmc: PowerFactoryTypes.SourceTypeHarmonicCurrent | None
+
+    class AcVoltageSource(SourceBase, t.Protocol):  # PFClassId.VOLTAGE_SOURCE_AC
+        Unom: float
+        itype: VoltageSourceType
+
+        usetp: float  # positive sequence voltage magniutde in p.u.
+        phisetp: float  # positive sequence voltage angle in p.u.
+        contbar: PowerFactoryTypes.Terminal | None  # controlled terminal
+        R1: float  # positive sequence resistance in Ohm
+        X1: float  # positive sequence reactance in Ohm
+        p_uctrl: PowerFactoryTypes.LoadFlowController | None
+        p_phictrl: PowerFactoryTypes.LoadFlowController | None
+
+        usetp0: float  # zero sequence voltage magniutde in p.u.
+        phisetp0: float  # zero sequence voltage angle in p.u.
+        R0: float  # zero sequence resistance in Ohm
+        X0: float  # zero sequence reactance in Ohm
+        usetp2: float  # negative sequence voltage magniutde in p.u.
+        phisetp2: float  # negative sequence voltage angle in p.u.
+        R2: float  # negative sequence resistance in Ohm
+        X2: float  # negative sequence reactance in Ohm
 
     class Template(DataObject, t.Protocol):  # PFClassId.TEMPLATE
         ...
