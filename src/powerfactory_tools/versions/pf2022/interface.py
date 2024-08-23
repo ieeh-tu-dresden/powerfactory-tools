@@ -388,6 +388,7 @@ class PowerFactoryInterface:
             bfuses=self.bfuses(grid_name=grid_name, calc_relevant=True),
             efuses=self.efuses(grid_name=grid_name, calc_relevant=True),
             ac_current_sources=self.ac_current_sources(grid_name=grid_name, calc_relevant=True),
+            ac_voltage_sources=self.ac_voltage_sources(grid_name=grid_name, calc_relevant=True),
             shunts=self.shunts(grid_name=grid_name, calc_relevant=True),
         )
 
@@ -1414,6 +1415,31 @@ class PowerFactoryInterface:
             include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.AcCurrentSource", element) for element in elements]
+
+    def ac_voltage_source(
+        self,
+        name: str = "*",
+        grid_name: str = "*",
+    ) -> PFTypes.AcVoltageSource | None:
+        return self.first_of(self.ac_voltage_sources(name, grid_name=grid_name))
+
+    def ac_voltage_sources(
+        self,
+        name: str = "*",
+        /,
+        *,
+        grid_name: str = "*",
+        calc_relevant: bool = False,
+        include_out_of_service: bool = True,
+    ) -> Sequence[PFTypes.AcVoltageSource]:
+        elements = self.grid_elements(
+            class_name=PFClassId.VOLTAGE_SOURCE_AC.value,
+            name=name,
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
+        )
+        return [t.cast("PFTypes.AcVoltageSource", element) for element in elements]
 
     def grid(
         self,
