@@ -5,15 +5,17 @@
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
-  - [Field of Application](#application)
-  - [PowerFactory Interface](#interface)
-  - [General Remarks on Export](#remarks)
-  - [Tutorials](#tutorials)
-  - [Installation](#installation)
-  - [Compatibility](#compatibility)
-  - [Development](#development)
-  - [Acknowledgement](#acknowledgement)
-  - [Attribution](#attribution)
+  - [ Field of Application](#-field-of-application)
+  - [ PowerFactory Interface](#-powerfactory-interface)
+  - [ General Remarks](#-general-remarks)
+    - [General](#general)
+    - [Exporter](#exporter)
+  - [ Tutorials](#-tutorials)
+  - [ Installation](#-installation)
+  - [ Compatibility](#-compatibility)
+  - [ Development](#-development)
+  - [ Acknowledgement](#-acknowledgement)
+  - [ Attribution](#-attribution)
 
 ## <div id="application" /> Field of Application
 
@@ -50,7 +52,7 @@ During an active connection, the following units apply:
 - power in MW
 - voltage in kV
 - current in kA
-- length in km  
+- length in km
 
 ### Exporter
 
@@ -63,7 +65,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
   - Assets can be excluded by writing `do_not_export` in the first line of the description field.
 
 - The following type of elements are supported:
-  - `ElmLne` - a symmetrical overhead line / cable  
+  - `ElmLne` - a symmetrical overhead line / cable
   - `ElmTerm` - a network terminal / bus
   - `ElmCoup` - a bus-bus switch (e.g. a circuit breaker in a detailed switching gear)
   - `ElmTr2` - a symmetrical 2-winding transformers
@@ -118,12 +120,6 @@ Install via pip:
 pip install ieeh-powerfactory-tools
 ```
 
-Install via pdm:
-
-```bash
-pdm add ieeh-powerfactory-tools
-```
-
 ## <div id="compatibility" /> Compatibility
 
 | Tools Version | PSDM Version | PowerFactory Version | Python Version |
@@ -137,7 +133,7 @@ Starting with `PowerFactory 2023`, a new model for LV and MV loads is available 
 
 ## <div id="development" /> Development
 
-[Install rye](https://rye.astral.sh)
+[Install uv](https://github.com/astral-sh/uv)
 
 
 Clone `powerfactory-tools`
@@ -153,13 +149,13 @@ cd powerfactory-tools
 Install `powerfactory-tools` as a production tool
 
 ```bash
-rye sync --no-dev
+uv sync --no-dev
 ```
 
 Install `powerfactory-tools` in development mode
 
 ```bash
-rye sync
+uv sync
 ```
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
