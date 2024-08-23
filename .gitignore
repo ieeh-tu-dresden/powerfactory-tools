@@ -125,6 +125,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
+*.ipynb
 
 # IPython
 
@@ -234,5 +235,6 @@ $RECYCLE.BIN/
 
 examples/export/*
 examples/control_action_results/*
-scratchboard.ipynb
-.vscode
+!examples\powerfactory_control.ipynb
+!examples\powerfactory_export.ipynb
+!examples\powerfactory_import.ipynb
