@@ -2,13 +2,27 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_7_LV",
+      "name": "Node_9/Field_3/QB1",
       "open_switches": [],
       "optional_data": null
     },
     {
       "disabled": true,
-      "name": "LV_Load_7b__Niederspannungs-Teillast__NIGHT_STORAGE",
+      "name": "LV_Load_7b__Niederspannungs-Teillast__FIXED_CONSUMPTION",
+      "open_switches": [],
+      "optional_data": null
+    },
+    {
+      "disabled": false,
+      "name": "MV_Load_6__CONSUMER",
+      "open_switches": [
+        "Node_6_MV"
+      ],
+      "optional_data": null
+    },
+    {
+      "disabled": true,
+      "name": "Fuse_Node_8",
       "open_switches": [],
       "optional_data": null
     },
@@ -26,7 +40,13 @@
     },
     {
       "disabled": true,
-      "name": "LV_Load_7b__Niederspannungs-Teillast__FIXED_CONSUMPTION",
+      "name": "Transformer_2w_110/20",
+      "open_switches": [],
+      "optional_data": null
+    },
+    {
+      "disabled": true,
+      "name": "LV_Load_7b__Niederspannungs-Teillast__NIGHT_STORAGE",
       "open_switches": [],
       "optional_data": null
     },
@@ -38,13 +58,7 @@
     },
     {
       "disabled": true,
-      "name": "Node_9/Field_1/QB1",
-      "open_switches": [],
-      "optional_data": null
-    },
-    {
-      "disabled": true,
-      "name": "Fuse_Node_8",
+      "name": "Node_7_LV",
       "open_switches": [],
       "optional_data": null
     },
@@ -52,14 +66,14 @@
       "disabled": false,
       "name": "Line_56",
       "open_switches": [
-        "Node_6_MV",
-        "Node_5_MV"
+        "Node_5_MV",
+        "Node_6_MV"
       ],
       "optional_data": null
     },
     {
       "disabled": true,
-      "name": "Node_9/Field_3/QB1",
+      "name": "Node_9/Field_1/QB1",
       "open_switches": [],
       "optional_data": null
     },
@@ -68,20 +82,6 @@
       "name": "Line_23",
       "open_switches": [
         "Node_3"
-      ],
-      "optional_data": null
-    },
-    {
-      "disabled": true,
-      "name": "Load_1",
-      "open_switches": [],
-      "optional_data": null
-    },
-    {
-      "disabled": false,
-      "name": "MV_Load_6__CONSUMER",
-      "open_switches": [
-        "Node_6_MV"
       ],
       "optional_data": null
     },
@@ -95,7 +95,7 @@
     },
     {
       "disabled": true,
-      "name": "Transformer_2w_110/20",
+      "name": "Load_1",
       "open_switches": [],
       "optional_data": null
     }
@@ -103,9 +103,9 @@
   "meta": {
     "case": "Outage",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-08",
+    "date": "2024-08-23",
     "grid": "HV_9_Bus",
-    "id": "ddedc9fd-79ed-442f-b7c7-f4c93a591794",
+    "id": "03bfa3dc-7879-475d-9550-9b86cf48ce53",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
@@ -115,7 +115,7 @@
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.0"
+    "version": "2.3.1"
   },
   "optional_data": null
 }

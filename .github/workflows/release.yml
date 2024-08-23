@@ -55,15 +55,25 @@ jobs:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
 
-      - name: Set up rye
-        uses: eifinger/setup-rye@v4.2.1
-        id: setup-rye
+      - id: cache-cargo-bin
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin
 
-      - name: Pin python-version @ ${{ env.PYTHON_VERSION }}
-        run: rye pin ${{ env.PYTHON_VERSION }}
+      - id: cache-uv-python
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.local/share/uv
+          key: ${{ runner.os }}-uv-python-${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        if: steps.cache-cargo-bin.outputs.cache-hit != 'true'
+        run: |
+          curl -LsSf https://github.com/astral-sh/uv/releases/download/0.3.1/uv-installer.sh | sh
 
       - name: Install dependencies
-        run: rye sync
+        run: uv venv --python ${{ env.PYTHON_VERSION }} && uv sync
 
       - name: Get current date
         id: get_date
@@ -90,10 +100,13 @@ jobs:
           enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
 
       - name: Build Python packages
-        run: rye build
+        run: uvx --from build pyproject-build --installer uv
 
       - name: Publish Python packages
-        run: rye publish --repository pypi --username __token__ --token ${{ secrets.PYPI_TOKEN }} --yes
+        run: uvx twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
       - name: Create release
         uses: softprops/action-gh-release@v1

@@ -8,7 +8,7 @@
     { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
-    "ieeh-power-system-data-model>=2.3.0",
+    "ieeh-power-system-data-model>=2.3.1",
     "loguru>=0.7.2",
     "pydantic>=2.8.2",
   ]
@@ -30,7 +30,7 @@
   build-backend = "hatchling.build"
   requires      = ["hatchling"]
 
-[tool.rye]
+[tool.uv]
   dev-dependencies = [
     "commitizen>=3.28.0",
     "ipykernel>=6.29.5",
@@ -42,7 +42,6 @@
     "pytest>=8.3.1",
     "ruff>=0.5.5",
   ]
-  managed = true
 
 [tool.hatch.metadata]
   allow-direct-references = true

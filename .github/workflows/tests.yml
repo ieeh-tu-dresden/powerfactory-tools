@@ -26,15 +26,25 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Set up rye
-        uses: eifinger/setup-rye@v4.2.1
-        id: setup-rye
+      - id: cache-cargo-bin
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin
 
-      - name: Pin python-version @ ${{ matrix.python-version }}
-        run: rye pin ${{ matrix.python-version }}
+      - id: cache-uv-python
+        uses: actions/cache@v4.0.2
+        with:
+          path: ~/.local/share/uv
+          key: ${{ runner.os }}-uv-python-${{ matrix.python-version }}
+
+      - name: Install uv
+        if: steps.cache-cargo-bin.outputs.cache-hit != 'true'
+        run: |
+          curl -LsSf https://github.com/astral-sh/uv/releases/download/0.3.1/uv-installer.sh | sh
 
       - name: Install dependencies
-        run: rye sync --features=io-feather
+        run: uv venv --python ${{ matrix.python-version }} && uv sync
 
       - name: Unit test using pytest
-        run: rye test
+        run: uv run pytest

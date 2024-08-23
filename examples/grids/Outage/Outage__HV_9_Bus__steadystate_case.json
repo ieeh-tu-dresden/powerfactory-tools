@@ -1273,9 +1273,9 @@
   "meta": {
     "case": "Outage",
     "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-08",
+    "date": "2024-08-23",
     "grid": "HV_9_Bus",
-    "id": "ddedc9fd-79ed-442f-b7c7-f4c93a591794",
+    "id": "03bfa3dc-7879-475d-9550-9b86cf48ce53",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
@@ -1285,7 +1285,7 @@
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.0"
+    "version": "2.3.1"
   },
   "optional_data": null,
   "transformers": [
