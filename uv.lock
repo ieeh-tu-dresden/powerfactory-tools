@@ -331,15 +331,15 @@ wheels = [
 
 [[package]]
 name = "ieeh-power-system-data-model"
-version = "2.3.0"
+version = "2.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "loguru" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/6a/48ee6772e06d07edfc0c731416f1726cc1e15efc5851ef760883f4945a71/ieeh_power_system_data_model-2.3.0.tar.gz", hash = "sha256:6937db312526c4fc3543446a39bceded79531f7804f93336bbb288d90bb207b5", size = 11789482 }
+sdist = { url = "https://files.pythonhosted.org/packages/a8/3d/a67044518d3df2dc3eaf110d665f8e153f0929ca6f1fc95ea53ffcb5d616/ieeh_power_system_data_model-2.3.1.tar.gz", hash = "sha256:e3ea1857418ae338b1de89e560e562e814ab8f8ea7aa8bc62a28d76a3e395286", size = 13315839 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/12/63/db3f564c3b0825119a140a815cb22069e8ddefe15d68bffe84f37bce3bd8/ieeh_power_system_data_model-2.3.0-py3-none-any.whl", hash = "sha256:ccbfefdcae8773a651788b52023e9cd3a04213eb6ed2eb8fa3af44c2de5936ea", size = 30267 },
+    { url = "https://files.pythonhosted.org/packages/7e/60/cf514326557c0e0d5e732dbed893df1c2b3316d3ecccebeced641cb77268/ieeh_power_system_data_model-2.3.1-py3-none-any.whl", hash = "sha256:cd9824552876ada2219e2ed193b766fbe018493eb38f89c4ac7a0729efba9707", size = 30287 },
 ]
 
 [[package]]
@@ -376,7 +376,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ieeh-power-system-data-model", specifier = ">=2.3.0" },
+    { name = "ieeh-power-system-data-model", specifier = ">=2.3.1" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "pandas", marker = "extra == 'io-basic'" },
     { name = "pandas", marker = "extra == 'io-feather'" },
