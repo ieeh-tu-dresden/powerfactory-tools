@@ -29,7 +29,7 @@ The following functionalities are provided:
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
 - **Importer**: import from external grid data into the PowerFactory environment [intended in future release]
 
-**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`) of PowerFactory, all functionalities are set up individual for main versions.
+**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`) of PowerFactory, all functionalities are set up individual for main versions.
 
 
 ## <div id="interface" /> PowerFactory Interface
@@ -129,8 +129,9 @@ pip install ieeh-powerfactory-tools
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
 | 2.1.0         | 2.2.0        | 2022                 | 3.10           |
+| 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
 
-Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed. Also `Python 3.11` can be used. Related adjustments are on schedule for the next mayor release 3.x
+Remark: Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed.
 
 ## <div id="development" /> Development
 
@@ -169,7 +170,7 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 
 Please note that this work is part of research activities and is still under active development.
 
-This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4) and `DIgSILENT PowerFactory 2022 SP2`.
+This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4), `DIgSILENT PowerFactory 2022 SP2` (version < 3.0) and `DIgSILENT PowerFactory 2024 SP2`.
 
 ## <div id="attribution" /> Attribution
 
