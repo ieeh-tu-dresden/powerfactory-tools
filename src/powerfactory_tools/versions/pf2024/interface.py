@@ -23,6 +23,7 @@ import pydantic
 from psdm.base import AttributeData
 
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
+from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import BaseUnits
 from powerfactory_tools.versions.pf2024.data import PowerFactoryData
 from powerfactory_tools.versions.pf2024.types import CalculationCommand
@@ -38,7 +39,6 @@ from powerfactory_tools.versions.pf2024.types import TimeSimulationType
 from powerfactory_tools.versions.pf2024.types import UnitSystem
 from powerfactory_tools.versions.pf2024.types import ValidPFValue
 from powerfactory_tools.versions.pf2024.utils.io import ExportHandler
-from powerfactory_tools.versions.pf2024.utils.io import FileType
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -61,7 +61,7 @@ class ValidPythonVersion(enum.Enum):
 PATH_SEP = "/"
 POWERFACTORY_VERSION = "PowerFactory 2024"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_10
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_12
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -156,6 +156,12 @@ class PowerFactoryInterface:
 
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         loguru.logger.debug("Loading PowerFactory Python module...")
+        if sys.version_info.major != int(self.python_version.value.split(".")[0]) or sys.version_info.minor != int(
+            self.python_version.value.split(".")[1]
+        ):
+            msg = f"The Python version of your code environment ({sys.version_info.major}.{sys.version_info.minor}) does not match with the Python version you selected for the PowerFactory API ({self.python_version.value})."
+            raise RuntimeError(msg)
+
         module_path = (
             self.powerfactory_path / POWERFACTORY_VERSION / "Python" / self.python_version.value
             if self.powerfactory_service_pack is None

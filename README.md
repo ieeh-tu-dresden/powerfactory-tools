@@ -5,20 +5,20 @@
 A toolbox for Python based control of DIgSILENT PowerFactory.
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
-  - [ Field of Application](#-field-of-application)
-  - [ PowerFactory Interface](#-powerfactory-interface)
-  - [ General Remarks](#-general-remarks)
-    - [General](#general)
+  - [ Field of Application](#field-of-application)
+  - [ PowerFactory Interface](#powerfactory-interface)
+  - [ General Remarks](#general-remarks)
+    - [General Unit Conversion](#general-unit-conversion)
     - [Exporter](#exporter)
-  - [ Tutorials](#-tutorials)
-  - [ Installation](#-installation)
-  - [ Compatibility](#-compatibility)
-  - [ Development](#-development)
-  - [ Acknowledgement](#-acknowledgement)
-  - [ Attribution](#-attribution)
+  - [ Tutorials](#tutorials)
+  - [ Installation](#installation)
+  - [ Compatibility](#compatibility)
+  - [ Development](#development)
+  - [ Acknowledgement](#acknowledgement)
+  - [ Attribution](#attribution)
 
 
-## <div id="application" /> Field of Application
+## Field of Application
 
 This application is intended to use for an external usage ('engine mode') of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
 Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
@@ -32,7 +32,7 @@ The following functionalities are provided:
 **Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`) of PowerFactory, all functionalities are set up individual for main versions.
 
 
-## <div id="interface" /> PowerFactory Interface
+## PowerFactory Interface
 The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py), that provides comfort functions to:
 - connect to PowerFactory
 - create and alter PowerFactory elements ("physical" elements, "organizational" elements, commands, etc.)
@@ -40,11 +40,11 @@ The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versio
 - execute PowerFactory commands
 - ...
 
-## <div id="remarks" /> General Remarks
+## General Remarks
 
 Please find below some important general remarks and assumptions to consider for the application.
 
-### General
+### General Unit Conversion
 
 A connection to PowerFactory is established via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
 After this initialization, a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
@@ -92,7 +92,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./powerfactory_tools/versions/pf2022/exporter/exporter.py).
+  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./src/powerfactory_tools/versions/pf2022/exporter/exporter.py).
 
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
@@ -104,7 +104,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
   - It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
   The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported operating point of *Q* is the same that set by the station controller.
 
-## <div id="tutorials" /> Tutorials
+## Tutorials
 
 Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
@@ -113,7 +113,7 @@ Please consider the [README](./examples/README.md) in the example section. Here,
 
 In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
 
-## <div id="installation" /> Installation
+## Installation
 
 Install via pip:
 
@@ -121,19 +121,21 @@ Install via pip:
 pip install ieeh-powerfactory-tools
 ```
 
-## <div id="compatibility" /> Compatibility
+## Compatibility
 
-| Tools Version | PSDM Version | PowerFactory Version | Python Version |
+| Tools Version | PSDM Version | PowerFactory Version | Recommended Python Version |
 |---------------|:------------:|:--------------------:|:--------------:|
-| <= 1.3.1      | 1.1.0        | 2022                 | 3.9, 3.10      |
+| <= 1.3.1      | 1.1.0        | 2022                 | 3.10      |
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
 | 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 | 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
 
-Remark: Starting with `PowerFactory 2023`, a new model for LV and MV loads is available as well as e.g. the result structure of harmonic load flow has changed.
+**Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
 
-## <div id="development" /> Development
+**The correct Python version**: Be aware, that the Python version of your code environment must match the selected Python version of the PowerFactory API!
+
+## Development
 
 [Install uv](https://github.com/astral-sh/uv)
 
@@ -166,13 +168,13 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 - [mypy](https://github.com/python/mypy)
 
 
-## <div id="acknowledgement" /> Acknowledgement
+## Acknowledgement
 
 Please note that this work is part of research activities and is still under active development.
 
 This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4), `DIgSILENT PowerFactory 2022 SP2` (version < 3.0) and `DIgSILENT PowerFactory 2024 SP2`.
 
-## <div id="attribution" /> Attribution
+## Attribution
 
 Please provide a link to this repository:
 
