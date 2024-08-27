@@ -157,7 +157,7 @@ class PowerFactoryInterface:
     def load_powerfactory_module_from_path(self) -> PFTypes.PowerFactoryModule:
         loguru.logger.debug("Loading PowerFactory Python module...")
         if sys.version_info.major != int(self.python_version.value.split(".")[0]) or sys.version_info.minor != int(
-            self.python_version.value.split(".")[1]
+            self.python_version.value.split(".")[1],
         ):
             msg = f"The Python version of your code environment ({sys.version_info.major}.{sys.version_info.minor}) does not match with the Python version you selected for the PowerFactory API ({self.python_version.value})."
             raise RuntimeError(msg)
