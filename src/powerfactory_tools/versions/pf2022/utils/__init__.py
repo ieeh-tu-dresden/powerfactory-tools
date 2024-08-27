@@ -3,9 +3,7 @@
 # :license: BSD 3-Clause
 
 from powerfactory_tools.versions.pf2022.utils.io import ExportHandler
-from powerfactory_tools.versions.pf2022.utils.io import ImportHandler
 
 __all__ = [
     "ExportHandler",
-    "ImportHandler",
 ]

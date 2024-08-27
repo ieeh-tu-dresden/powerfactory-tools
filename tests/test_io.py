@@ -2,9 +2,9 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
+from powerfactory_tools.utils.io import ImportHandler
 from powerfactory_tools.versions.pf2024.utils.io import ExportHandler
 from powerfactory_tools.versions.pf2024.utils.io import FileType
-from powerfactory_tools.versions.pf2024.utils.io import ImportHandler
 
 test_data = {
     "name": ["Alice", "Bob", "Charlie"],
