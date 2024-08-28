@@ -1272,6 +1272,10 @@ class PowerFactoryTypes:
             """
             ...
 
+        def Hide(self) -> None:  # noqa: N802
+            """Hides the PowerFactory application window."""
+            ...
+
         def PostCommand(  # noqa: N802
             self,
             command: t.Literal["exit"],
@@ -1279,6 +1283,13 @@ class PowerFactoryTypes:
         ) -> None: ...
 
         def ResetCalculation(self) -> None:  # noqa: N802
+            ...
+
+        def SetGuiUpdateEnabled(self, enabled: int) -> bool:  # noqa: N802
+            ...
+
+        def Show(self) -> None:  # noqa: N802
+            """Shows the PowerFactory application window. Not for engine-only licenses."""
             ...
 
     class PowerFactoryExitError(Exception):

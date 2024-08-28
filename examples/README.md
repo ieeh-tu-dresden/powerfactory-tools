@@ -2,15 +2,17 @@
 
 Examples for application of powerfactory exporter and controller.
 
-- [Application Examples](#application-examples)
-  - [Export Functionalities](#export-functionalities)
-  - [Control Functionalities](#control-functionalities)
-  - [Raw PSDM Import](#import-functionalities)
-  - [PowerFactory Example Project](#powerfactory-example-project)
+- [Export Functionalities](#export-functionalities)
+  - [Usage](#usage)
+  - [Extended Attributes Export](#extended-attributes-export)
+- [Control Functionalities](#control-functionalities)
+  - [Non-Interactive Display Mode](#non-interactive-display-mode)
+- [Raw PSDM Import](#raw-psdm-import)
+- [PowerFactory Example Project](#powerfactory-example-project)
 
-The whole examples are based on the PowerFactory version `2022`!
+The whole examples are based on the PowerFactory version `2024`, but should also work with `2022`.
 
-## <div id="export-functionalities" /> Export Functionalities
+## Export Functionalities
 
 The jupyter notebook [powerfactory_export.ipynb](powerfactory_export.ipynb) is provided to get in touch with the usage of the powerfactory exporter.
 This example is based on the [PowerFactory example project](#-powerfactory-example-project).
@@ -44,9 +46,10 @@ The following figure provides a short overview of the dependencies within a Powe
 In the case an export of additional attribute data is required for elements of specified types, one can specify a dictionary and pass this as aditional parameter to the `Exporter` class.
 In our [export example](powerfactory_export.ipynb) such a request is performed by specifying  the dict `element_specific_attrs`.
 
-## <div id="control-functionalities" /> Control Functionalities
+## Control Functionalities
 
 The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
+First the simple grid HV_3_Bus is manipulated, then a more sophisticated control is exceuted at HV_9_Bus grid.
 
 The example includes:
 
@@ -59,14 +62,26 @@ The example includes:
 - Export of results objects as well as user defined data to json or csv
 - Request and change study cases, operation scenarios and network variations
 
-## <div id="import-functionalities" /> Raw PSDM Import
+### Non-Interactive Display Mode
+  As PowerFactory is started in engine mode, the user may want to take a quick look at the PowerFactory application GUI at runtime.
+  To do so, insert the following code into your script to open the PF application window in non-interavtive mode. Attention: do not close the window by your own by clicking on the red cross, but process via the user input request.
+
+  See commented code in function `run_three_bus_control_example()` in [powerfactory_import.ipynb](powerfactory_import.ipynb):
+
+    pfi.app.Show()
+    time.sleep(5)   # wait for 5 seconds
+    input("Press Enter to continue...")  # Wait for user input before proceeding
+    pfi.app.Hide()
+
+
+## Raw PSDM Import
 
 The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is provided to see how to apply a raw import of a given (exported) PSDM grid representation.
 
 Here, `PSDM class objects` are generated out of a given `json`-file.
 
-## <div id="powerfactory-example-project" /> PowerFactory Example Project
-The related PowerFactory example project `PF2022_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
+## PowerFactory Example Project
+The related PowerFactory example project `PF2024_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
 The project contains:
 - 3-bus high voltage grid
 - a composition of a 9-bus high voltage grid and a 2-bus medium voltage industry grid
@@ -129,5 +144,5 @@ This grid is an extension to the 'HV_9_Bus' grid and contains:
 ![MV_2_Bus grid](./grids/MV_2_Bus.png)
 
 [link_to_example_grids]: ./grids
-[link_to_exporter]: ../powerfactory_tools/versions/pf2022/exporter/exporter.py
+[link_to_exporter]: ../powerfactory_tools/versions/pf2024/exporter/exporter.py
 [link_to_psdm]: https://github.com/ieeh-tu-dresden/power-system-data-model
