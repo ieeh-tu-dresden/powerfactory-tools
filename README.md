@@ -162,6 +162,12 @@ Install `powerfactory-tools` in development mode
 uv sync
 ```
 
+Optional: As [pyproject.toml](pyproject.toml) allows different python versions -> specify the Python version (e.g. 3.12) to be used for your local virtual environment `.venv`
+
+```bash
+uv sync --python 3.12
+```
+
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
 
 - [ruff](https://github.com/astral-sh/ruff)
