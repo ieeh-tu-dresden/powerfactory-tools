@@ -48,7 +48,7 @@ class FileType(enum.Enum):
 
 
 @pydantic.dataclasses.dataclass
-class BaseExportHandler(abc.ABC):
+class ExportHandler(abc.ABC):
     directory_path: pathlib.Path
 
     def export_user_data(
