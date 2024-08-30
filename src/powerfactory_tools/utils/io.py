@@ -98,7 +98,7 @@ class BaseExportHandler(abc.ABC):
         file_name: str | None = None,
         active_study_case: PFTypes.StudyCase | None = None,  # type: ignore # noqa: F821 , PGH003
     ) -> pathlib.Path:
-        msg = "This method should be overridden in a subclass"
+        msg = "This method should be implemented in a subclass"
         raise NotImplementedError(msg)
 
     @staticmethod
