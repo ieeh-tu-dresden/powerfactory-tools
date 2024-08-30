@@ -651,6 +651,14 @@ class PowerFactoryTypes:
             /,
         ) -> PowerFactoryTypes.DataObject | None: ...
 
+        def CreateProject(  # noqa: N802
+            self,
+            projectName: str,  # noqa: N803
+            gridName: str,  # noqa: N803
+            parent: PowerFactoryTypes.DataObject | None = None,  # None to use logged on user
+            /,
+        ) -> PowerFactoryTypes.DataObject: ...
+
         def CopyData(self, source: PowerFactoryTypes.DataObject) -> int:  # noqa: N802
             ...
 
@@ -722,6 +730,12 @@ class PowerFactoryTypes:
 
         def GetClassName(self) -> str:  # noqa: N802
             ...
+
+        def GetClassDescription(  # noqa: N802
+            self,
+            name: str,  # name of the class (see PFClassId)
+            /,
+        ) -> str: ...
 
         def GetContents(  # noqa: N802
             self,
@@ -1747,10 +1761,7 @@ class PowerFactoryTypes:
     ## The following may be part of version inconsistent behavior
 
     class LoadTypeLV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_LV
-        Smax: float  # maximum apparent power for a single residential unit, per default in kVA
-        cosphi: float  # power factor
-        ginf: float  # simultaneity factor
-
+        # voltage dependency of load
         iLodTyp: PowerModelType  # composite (ZIP) / exponent  # noqa: N815
         aP: float  # noqa: N815  # const. power part of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # const. current part of the active power in relation to ZIP load model
@@ -1758,9 +1769,13 @@ class PowerFactoryTypes:
         aQ: float  # noqa: N815  # const. power part of the reactive power in relation to ZIP load model
         bQ: float  # noqa: N815  # const. current part of the reactive power in relation to ZIP load model
         cQ: float  # noqa: N815  # const. impedance part of the reactive power in relation to ZIP load model
-
         eP: float  # noqa: N815  # exponent of the active power in relation to exponential load model
         eQ: float  # noqa: N815  # exponent of the reactive power in relation to exponential load model
+
+        # addtional load characteristics for single customer (flexible load)
+        Smax: float  # maximum apparent power for a single residential unit, per default in kVA
+        cosphi: float  # power factor
+        ginf: float  # simultaneity factor
 
     # LoadTypeMV is an equivalent of a distribution transformer
     class LoadTypeMV(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_MV
@@ -1782,6 +1797,7 @@ class PowerFactoryTypes:
         ntpmn: int  # lowest position of tap changer
         ntpmx: int  # highest position of tap changer
 
+        # voltage dependency of load
         LodTyp: PowerModelType  # composite (ZIP) / exponent
         aP: float  # noqa: N815  # const. power part of the active power in relation to ZIP load model
         bP: float  # noqa: N815  # const. current part of the active power in relation to ZIP load model
@@ -1789,12 +1805,15 @@ class PowerFactoryTypes:
         aQ: float  # noqa: N815  # const. power part of the reactive power in relation to ZIP load model
         bQ: float  # noqa: N815  # const. current part of the reactive power in relation to ZIP load model
         cQ: float  # noqa: N815  # const. impedance part of the reactive power in relation to ZIP load model
-
         eP: float  # noqa: N815  # exponent of the active power in relation to exponential load model
         eQ: float  # noqa: N815  # exponent of the reactive power in relation to exponential load model
 
     class LoadLVP(LoadBase, t.Protocol):  # PFClassId.LOAD_LV_PART
         typ_id: PowerFactoryTypes.LoadTypeLV | None
+        phtech: LoadLVPhaseConnectionType
+        NrCust: int  # number of customers
+
+        # Fixed customer load
         iopt_inp: IOpt
         elini: float
         cplinia: float
@@ -1804,17 +1823,22 @@ class PowerFactoryTypes:
         ilini: float
         coslini: float
         ulini: float
+
+        # Nigth storage heating
         pnight: float
+
+        # Flexible customer load
         cSav: float  # noqa: N815
         cSmax: float  # noqa: N815
         ccosphi: float
-        phtech: LoadLVPhaseConnectionType
 
     class LoadLV(LoadBase3Ph, LoadLVP, t.Protocol):  # PFClassId.LOAD_LV
         typ_id: PowerFactoryTypes.LoadTypeLV | None
-        i_sym: ISym
-        lodparts: Sequence[PowerFactoryTypes.LoadLVP]
         phtech: LoadLVPhaseConnectionType
+        classif: int  # classification of load
+
+        i_sym: ISym  # symmetry of load. 0: symmetrical; 1: asymmetrical
+        lodparts: Sequence[PowerFactoryTypes.LoadLVP]
 
     class LoadMV(LoadBase3Ph, t.Protocol):  # PFClassId.LOAD_MV
         typ_id: PowerFactoryTypes.LoadTypeMV | None

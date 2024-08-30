@@ -2,9 +2,9 @@ from contextlib import nullcontext as does_not_raise
 
 import pytest
 
-from powerfactory_tools.utils.io import ExportHandler
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.utils.io import ImportHandler
+from powerfactory_tools.versions.pf2024.utils.io import ExportHandler
 
 test_data = {
     "name": ["Alice", "Bob", "Charlie"],
@@ -56,7 +56,7 @@ class TestExportImportData:
         with expectation:
             eh = ExportHandler(directory_path=fake_path)
             # Export data to file
-            eh.export_user_data(data=data, file_type=file_type, file_name=file_name)
+            eh.export_user_data(data, file_type=file_type, file_name=file_name)
 
             # Import data from file
             file_name = f"{file_name}{file_type.value}"

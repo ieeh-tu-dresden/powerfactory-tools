@@ -24,22 +24,22 @@ from psdm.base import AttributeData
 
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022.constants import PATH_SEPARATOR
-from powerfactory_tools.versions.pf2022.constants import BaseUnits
-from powerfactory_tools.versions.pf2022.data import PowerFactoryData
-from powerfactory_tools.versions.pf2022.types import CalculationCommand
-from powerfactory_tools.versions.pf2022.types import Currency
-from powerfactory_tools.versions.pf2022.types import FolderType
-from powerfactory_tools.versions.pf2022.types import MetricPrefix
-from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
-from powerfactory_tools.versions.pf2022.types import PFClassId
-from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.versions.pf2022.types import ResultExportMode
-from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
-from powerfactory_tools.versions.pf2022.types import TimeSimulationType
-from powerfactory_tools.versions.pf2022.types import UnitSystem
-from powerfactory_tools.versions.pf2022.types import ValidPFValue
-from powerfactory_tools.versions.pf2022.utils.io import ExportHandler
+from powerfactory_tools.versions.pf2024.constants import PATH_SEPARATOR
+from powerfactory_tools.versions.pf2024.constants import BaseUnits
+from powerfactory_tools.versions.pf2024.data import PowerFactoryData
+from powerfactory_tools.versions.pf2024.types import CalculationCommand
+from powerfactory_tools.versions.pf2024.types import Currency
+from powerfactory_tools.versions.pf2024.types import FolderType
+from powerfactory_tools.versions.pf2024.types import MetricPrefix
+from powerfactory_tools.versions.pf2024.types import NetworkExtendedCalcType
+from powerfactory_tools.versions.pf2024.types import PFClassId
+from powerfactory_tools.versions.pf2024.types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.versions.pf2024.types import ResultExportMode
+from powerfactory_tools.versions.pf2024.types import TimeSimulationNetworkCalcType
+from powerfactory_tools.versions.pf2024.types import TimeSimulationType
+from powerfactory_tools.versions.pf2024.types import UnitSystem
+from powerfactory_tools.versions.pf2024.types import ValidPFValue
+from powerfactory_tools.versions.pf2024.utils.io import ExportHandler
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -52,16 +52,16 @@ if t.TYPE_CHECKING:
 
 # allowed Python versions
 class ValidPythonVersion(enum.Enum):
-    VERSION_3_6 = "3.6"
-    VERSION_3_7 = "3.7"
     VERSION_3_8 = "3.8"
     VERSION_3_9 = "3.9"
     VERSION_3_10 = "3.10"
+    VERSION_3_11 = "3.11"
+    VERSION_3_12 = "3.12"
 
 
-POWERFACTORY_VERSION = "PowerFactory 2022"
+POWERFACTORY_VERSION = "PowerFactory 2024"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_10
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_12
 
 config = pydantic.ConfigDict(use_enum_values=True)
 

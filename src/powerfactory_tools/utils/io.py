@@ -5,8 +5,8 @@
 
 from __future__ import annotations
 
+import abc
 import csv
-import datetime as dt
 import enum
 import json
 import pathlib
@@ -23,8 +23,6 @@ except ModuleNotFoundError:
 
 if t.TYPE_CHECKING:
     import collections.abc as cabc
-
-    from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
 
     PrimitiveType = (
         str | bool | int | float | None | cabc.Sequence["PrimitiveType"] | cabc.Mapping[str, "PrimitiveType"]
@@ -50,12 +48,14 @@ class FileType(enum.Enum):
 
 
 @pydantic.dataclasses.dataclass
-class ExportHandler:
+class ExportHandler(abc.ABC):
     directory_path: pathlib.Path
 
     def export_user_data(
         self,
         data: dict[str, PrimitiveType],
+        /,
+        *,
         file_type: FileType,
         file_name: str | None = None,
     ) -> None:
@@ -90,33 +90,16 @@ class ExportHandler:
         elif file_type is FileType.PICKLE:
             self.to_pickle(file_path, data=data)
 
+    @abc.abstractmethod
     def create_file_path(
         self,
         *,
         file_type: FileType,
         file_name: str | None = None,
-        active_study_case: PFTypes.StudyCase | None = None,
+        active_study_case: PFTypes.StudyCase | None = None,  # type: ignore # noqa: F821 , PGH003
     ) -> pathlib.Path:
-        timestamp = dt.datetime.now().astimezone()
-        timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
-        study_case_name = active_study_case.loc_name if active_study_case is not None else ""
-        filename = (
-            f"{study_case_name}__{timestamp_string}{file_type.value}"
-            if file_name is None
-            else f"{file_name}{file_type.value}"
-        )
-        file_path = self.directory_path / filename
-        # Formal validation of path
-        try:
-            file_path.resolve()
-        except OSError as e:
-            msg = f"File path {file_path} is not a valid path."
-            raise FileNotFoundError(msg) from e
-
-        # Create (sub)direcotries if not existing
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-
-        return file_path
+        msg = "This method should be implemented in a subclass"
+        raise NotImplementedError(msg)
 
     @staticmethod
     def _format_dict(data: dict[str, PrimitiveType]) -> dict[str, PrimitiveType]:

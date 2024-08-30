@@ -67,53 +67,52 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
-from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2022.constants import NAME_SEPARATOR
-from powerfactory_tools.versions.pf2022.constants import STRING_SEPARATOR
-from powerfactory_tools.versions.pf2022.constants import DecimalDigits
-from powerfactory_tools.versions.pf2022.constants import Exponents
-from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFactory
-from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
-from powerfactory_tools.versions.pf2022.interface import POWERFACTORY_VERSION
-from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
-from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
-from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
-from powerfactory_tools.versions.pf2022.types import CosPhiChar
-from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
-from powerfactory_tools.versions.pf2022.types import ExternalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import GeneratorPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import GeneratorSystemType
-from powerfactory_tools.versions.pf2022.types import IOpt
-from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import NeutralPointEarthing
-from powerfactory_tools.versions.pf2022.types import PFClassId
-from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
-from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
-from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
-from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.versions.pf2022.types import PowerModelType
-from powerfactory_tools.versions.pf2022.types import QChar
-from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
-from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
-from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
-from powerfactory_tools.versions.pf2022.types import TrfTapSide
-from powerfactory_tools.versions.pf2022.types import TrfVectorGroup
-from powerfactory_tools.versions.pf2022.types import TrfWindingVector
-from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
+from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
+from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
+from powerfactory_tools.versions.pf2024.constants import DecimalDigits
+from powerfactory_tools.versions.pf2024.constants import Exponents
+from powerfactory_tools.versions.pf2024.exporter.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.versions.pf2024.exporter.load_power import ControlTypeFactory
+from powerfactory_tools.versions.pf2024.exporter.load_power import LoadPower
+from powerfactory_tools.versions.pf2024.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2024.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2024.interface import POWERFACTORY_VERSION
+from powerfactory_tools.versions.pf2024.interface import PowerFactoryInterface
+from powerfactory_tools.versions.pf2024.interface import ValidPythonVersion
+from powerfactory_tools.versions.pf2024.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2024.types import CosPhiChar
+from powerfactory_tools.versions.pf2024.types import CtrlVoltageRef
+from powerfactory_tools.versions.pf2024.types import ExternalQCtrlMode
+from powerfactory_tools.versions.pf2024.types import GeneratorPhaseConnectionType
+from powerfactory_tools.versions.pf2024.types import GeneratorSystemType
+from powerfactory_tools.versions.pf2024.types import IOpt
+from powerfactory_tools.versions.pf2024.types import LoadLVPhaseConnectionType
+from powerfactory_tools.versions.pf2024.types import LoadPhaseConnectionType
+from powerfactory_tools.versions.pf2024.types import LocalQCtrlMode
+from powerfactory_tools.versions.pf2024.types import NeutralPointEarthing
+from powerfactory_tools.versions.pf2024.types import PFClassId
+from powerfactory_tools.versions.pf2024.types import Phase1PH as PFPhase1PH
+from powerfactory_tools.versions.pf2024.types import Phase2PH as PFPhase2PH
+from powerfactory_tools.versions.pf2024.types import Phase3PH as PFPhase3PH
+from powerfactory_tools.versions.pf2024.types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.versions.pf2024.types import PowerModelType
+from powerfactory_tools.versions.pf2024.types import QChar
+from powerfactory_tools.versions.pf2024.types import TerminalPhaseConnectionType
+from powerfactory_tools.versions.pf2024.types import TerminalVoltageSystemType
+from powerfactory_tools.versions.pf2024.types import TrfNeutralConnectionType
+from powerfactory_tools.versions.pf2024.types import TrfPhaseTechnology
+from powerfactory_tools.versions.pf2024.types import TrfTapSide
+from powerfactory_tools.versions.pf2024.types import TrfVectorGroup
+from powerfactory_tools.versions.pf2024.types import TrfWindingVector
+from powerfactory_tools.versions.pf2024.types import VoltageSystemType as ElementVoltageSystemType
 
 if t.TYPE_CHECKING:
     from types import TracebackType
 
     import typing_extensions as te
 
-    from powerfactory_tools.versions.pf2022.data import PowerFactoryData
+    from powerfactory_tools.versions.pf2024.data import PowerFactoryData
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
@@ -420,11 +419,11 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
+                filename = f"{data.meta.case}__{grid_name}__{data_type}.json"
             else:
-                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{NAME_SEPARATOR}{timestamp_string}{FileType.JSON}"
+                filename = f"{data.meta.case}__{grid_name}__{data_type}__{timestamp_string}.json"
         else:
-            filename = f"{data_name}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
+            filename = f"{data_name}__{grid_name}__{data_type}.json"
 
         file_path = export_path / filename
         try:

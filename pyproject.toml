@@ -16,7 +16,7 @@
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
   readme = "README.md"
-  requires-python = ">=3.10,<3.11"
+  requires-python = ">=3.10,<3.13"
   version = "2.1.0"
 
   [project.optional-dependencies]

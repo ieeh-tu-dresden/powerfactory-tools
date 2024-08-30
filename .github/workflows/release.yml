@@ -75,6 +75,31 @@ jobs:
       - name: Install dependencies
         run: uv venv --python ${{ env.PYTHON_VERSION }} && uv sync
 
+      - name: Update year in copyright notice in all files
+        run: |
+          uv run python -c 'import datetime as dt
+          import os
+          import re
+          from pathlib import Path
+
+          def update_year_in_copyright_notice(directory: str) -> None:
+              year_pattern = re.compile(
+                  r"(Copyright \(c\) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, \d{4}-)\d{4}",
+              )
+              for root, _, files in os.walk(directory):
+                  for file in files:
+                      if file.endswith(".py"):
+                          file_path = Path(root) / file
+                          with file_path.open("r", encoding="utf-8") as f:
+                              content = f.read()
+                          updated_content = year_pattern.sub(rf"\g<1>{dt.datetime.now(dt.timezone.utc).year}", content)
+                          with Path(file_path).open("w", encoding="utf-8") as f:
+                              f.write(updated_content)
+
+          dirs = ["src", "tests"]
+          for d in dirs:
+              update_year_in_copyright_notice(d)'
+
       - name: Get current date
         id: get_date
         run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
