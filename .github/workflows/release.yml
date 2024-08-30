@@ -84,7 +84,7 @@ jobs:
 
           def update_year_in_copyright_notice(directory: str) -> None:
               year_pattern = re.compile(
-                  r"(Copyright \(c\) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, \d{4}-)\d{4}"
+                  r"(Copyright \(c\) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, \d{4}-)\d{4}",
               )
               for root, _, files in os.walk(directory):
                   for file in files:

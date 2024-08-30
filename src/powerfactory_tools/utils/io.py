@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import abc
 import csv
 import enum
 import json
@@ -47,12 +48,14 @@ class FileType(enum.Enum):
 
 
 @pydantic.dataclasses.dataclass
-class BaseExportHandler:
+class BaseExportHandler(abc.ABC):
     directory_path: pathlib.Path
 
     def export_user_data(
         self,
         data: dict[str, PrimitiveType],
+        /,
+        *,
         file_type: FileType,
         file_name: str | None = None,
     ) -> None:
@@ -87,12 +90,13 @@ class BaseExportHandler:
         elif file_type is FileType.PICKLE:
             self.to_pickle(file_path, data=data)
 
+    @abc.abstractmethod
     def create_file_path(
         self,
         *,
-        file_type: FileType,  # noqa: ARG002
-        file_name: str | None = None,  # noqa: ARG002
-        active_study_case: PFTypes.StudyCase | None = None,  # type: ignore  # noqa: F821, PGH003, ARG002
+        file_type: FileType,
+        file_name: str | None = None,
+        active_study_case: PFTypes.StudyCase | None = None,  # type: ignore # noqa: F821 , PGH003
     ) -> pathlib.Path:
         msg = "This method should be overridden in a subclass"
         raise NotImplementedError(msg)
