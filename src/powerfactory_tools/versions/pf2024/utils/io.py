@@ -10,7 +10,7 @@ import typing as t
 
 import pydantic
 
-from powerfactory_tools.utils.io import BaseExportHandler
+from powerfactory_tools.utils.io import ExportHandler as BaseExportHandler
 from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
 
 if t.TYPE_CHECKING:
