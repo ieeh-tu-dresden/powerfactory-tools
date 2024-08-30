@@ -67,7 +67,10 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2022.constants import NAME_SEPARATOR
+from powerfactory_tools.versions.pf2022.constants import STRING_SEPARATOR
 from powerfactory_tools.versions.pf2022.constants import DecimalDigits
 from powerfactory_tools.versions.pf2022.constants import Exponents
 from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
@@ -117,8 +120,6 @@ if t.TYPE_CHECKING:
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
-NAME_SEPARATOR = "__"
-STRING_SEPARATOR = " || "
 STRING_DO_NOT_EXPORT = "do_not_export"
 STRING_SUBCONSUMER_START = "subconsumer_follows" + STRING_SEPARATOR
 
@@ -419,11 +420,11 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{data.meta.case}__{grid_name}__{data_type}.json"
+                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
             else:
-                filename = f"{data.meta.case}__{grid_name}__{data_type}__{timestamp_string}.json"
+                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{NAME_SEPARATOR}{timestamp_string}{FileType.JSON}"
         else:
-            filename = f"{data_name}__{grid_name}__{data_type}.json"
+            filename = f"{data_name}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
 
         file_path = export_path / filename
         try:

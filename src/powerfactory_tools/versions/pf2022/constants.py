@@ -17,6 +17,10 @@ if t.TYPE_CHECKING:
 
 DEFAULT_PHASE_QUANTITY = 3
 
+NAME_SEPARATOR = "__"
+PATH_SEPARATOR = "/"
+STRING_SEPARATOR = " || "
+
 
 class Exponents:
     CONDUCTANCE: float = 10**-6

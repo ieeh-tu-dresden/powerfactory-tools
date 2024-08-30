@@ -68,6 +68,8 @@ from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
 from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
+from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import DecimalDigits
 from powerfactory_tools.versions.pf2024.constants import Exponents
 from powerfactory_tools.versions.pf2024.exporter.load_power import ConsolidatedLoadPhaseConnectionType
@@ -117,8 +119,6 @@ if t.TYPE_CHECKING:
 
 FULL_DYNAMIC = 100
 M_TAB2015_MIN_THRESHOLD = 0.01
-NAME_SEPARATOR = "__"
-STRING_SEPARATOR = " || "
 STRING_DO_NOT_EXPORT = "do_not_export"
 STRING_SUBCONSUMER_START = "subconsumer_follows" + STRING_SEPARATOR
 

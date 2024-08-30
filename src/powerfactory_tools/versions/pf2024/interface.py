@@ -24,6 +24,7 @@ from psdm.base import AttributeData
 
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.utils.io import FileType
+from powerfactory_tools.versions.pf2024.constants import PATH_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import BaseUnits
 from powerfactory_tools.versions.pf2024.data import PowerFactoryData
 from powerfactory_tools.versions.pf2024.types import CalculationCommand
@@ -58,7 +59,6 @@ class ValidPythonVersion(enum.Enum):
     VERSION_3_12 = "3.12"
 
 
-PATH_SEP = "/"
 POWERFACTORY_VERSION = "PowerFactory 2024"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_12
@@ -2379,7 +2379,7 @@ class PowerFactoryInterface:
         if generator.c_pmod is None:  # if generator is not part of higher model
             return generator_name
 
-        return generator.c_pmod.loc_name + PATH_SEP + generator_name
+        return generator.c_pmod.loc_name + PATH_SEPARATOR + generator_name
 
     @staticmethod
     def is_within_substation(
@@ -2572,11 +2572,11 @@ class PowerFactoryInterface:
             cp_substat: PFTypes.Substation | None = getattr(element, "cpSubstat", None)
             if cp_substat is not None:
                 if PowerFactoryInterface.is_of_type(parent, PFClassId.SUBSTATION_FIELD):
-                    return cp_substat.loc_name + PATH_SEP + parent.loc_name + PATH_SEP + element_name
+                    return cp_substat.loc_name + PATH_SEPARATOR + parent.loc_name + PATH_SEPARATOR + element_name
 
-                return cp_substat.loc_name + PATH_SEP + element_name
+                return cp_substat.loc_name + PATH_SEPARATOR + element_name
 
-            return parent.loc_name + PATH_SEP + element_name
+            return parent.loc_name + PATH_SEPARATOR + element_name
 
         return element_name
 

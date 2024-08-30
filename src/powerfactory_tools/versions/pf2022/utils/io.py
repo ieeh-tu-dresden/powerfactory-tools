@@ -11,6 +11,7 @@ import typing as t
 import pydantic
 
 from powerfactory_tools.utils.io import BaseExportHandler
+from powerfactory_tools.versions.pf2022.constants import NAME_SEPARATOR
 
 if t.TYPE_CHECKING:
     import pathlib
@@ -30,11 +31,11 @@ class ExportHandler(BaseExportHandler):
     ) -> pathlib.Path:
         timestamp = dt.datetime.now().astimezone()
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
-        study_case_name = active_study_case.loc_name if active_study_case is not None else ""
+        study_case_name = f"{active_study_case.loc_name}{NAME_SEPARATOR}" if active_study_case is not None else ""
         filename = (
-            f"{study_case_name}__{timestamp_string}{file_type.value}"
+            f"{study_case_name}{timestamp_string}{file_type.value}"
             if file_name is None
-            else f"{file_name}{file_type.value}"
+            else f"{study_case_name}{file_name}{file_type.value}"
         )
         file_path = self.directory_path / filename
         # Formal validation of path
