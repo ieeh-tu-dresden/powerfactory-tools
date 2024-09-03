@@ -2,15 +2,15 @@
   "elements": [],
   "meta": {
     "case": "Industry_Park",
-    "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-23",
+    "creator": "powerfactory-tools @ version 3.0.0",
+    "date": "2024-09-03",
     "grid": "MV_2_Bus",
-    "id": "a16a5ede-03e6-4628-b8f3-43734baa847b",
+    "id": "cc5f324d-dac5-4ab4-95c8-c6b54aca815b",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2022 || SP2"
+        "value": "PowerFactory 2024 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",
