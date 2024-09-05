@@ -21,15 +21,15 @@
   ],
   "meta": {
     "case": "Base",
-    "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-23",
+    "creator": "powerfactory-tools @ version 3.0.0",
+    "date": "2024-09-03",
     "grid": "HV_9_Bus",
-    "id": "97a18101-5dd1-4cf8-b716-8d739234de92",
+    "id": "a7e50600-34a1-4a4c-a5ba-9c9f9a56c2c3",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2022 || SP2"
+        "value": "PowerFactory 2024 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",
