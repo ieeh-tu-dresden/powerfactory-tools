@@ -544,8 +544,7 @@ class PowerFactoryExporter:
             bus=ext_grid.bus1,
         )
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(ext_grid, self.element_specific_attrs, grid_name=grid_name)
+        extra_meta_data = self.get_extra_element_attrs(ext_grid, self.element_specific_attrs, grid_name=grid_name)
 
         return ExternalGrid(
             name=name,
@@ -592,8 +591,7 @@ class PowerFactoryExporter:
 
         phases = self.get_terminal_phases(TerminalPhaseConnectionType(terminal.phtech))
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
+        extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
 
         return Node(name=name, u_n=u_n, phases=phases, description=description, optional_data=extra_meta_data)
 
@@ -704,8 +702,8 @@ class PowerFactoryExporter:
             bus=line.bus2,
             grid_name=grid_name,
         )
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(line, self.element_specific_attrs, grid_name=grid_name)
+
+        extra_meta_data = self.get_extra_element_attrs(line, self.element_specific_attrs, grid_name=grid_name)
 
         return Branch(
             name=name,
@@ -810,8 +808,7 @@ class PowerFactoryExporter:
         phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
         phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(coupler, self.element_specific_attrs, grid_name=grid_name)
+        extra_meta_data = self.get_extra_element_attrs(coupler, self.element_specific_attrs, grid_name=grid_name)
 
         return Branch(
             name=name,
@@ -894,8 +891,7 @@ class PowerFactoryExporter:
         phases_1 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t1.phtech))
         phases_2 = self.get_terminal_phases(phase_connection_type=TerminalPhaseConnectionType(t2.phtech))
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(fuse, self.element_specific_attrs, grid_name=grid_name)
+        extra_meta_data = self.get_extra_element_attrs(fuse, self.element_specific_attrs, grid_name=grid_name)
 
         return Branch(
             name=name,
@@ -1126,12 +1122,11 @@ class PowerFactoryExporter:
                 neutral_connected=neutral_connected_l,
             )
 
-            if self.element_specific_attrs is not None:
-                extra_meta_data = self.get_extra_element_attrs(
-                    transformer_2w,
-                    self.element_specific_attrs,
-                    grid_name=grid_name,
-                )
+            extra_meta_data = self.get_extra_element_attrs(
+                transformer_2w,
+                self.element_specific_attrs,
+                grid_name=grid_name,
+            )
 
             return Transformer(
                 node_1=t_high_name,
@@ -1781,8 +1776,7 @@ class PowerFactoryExporter:
             load_name=l_name,
         )
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(load, self.element_specific_attrs, grid_name=grid_name)
+        extra_meta_data = self.get_extra_element_attrs(load, self.element_specific_attrs, grid_name=grid_name)
 
         return Load(
             name=l_name,
@@ -2090,12 +2084,11 @@ class PowerFactoryExporter:
         )
         load_type = LoadType.STORAGE if system_type in STORAGE_SYSTEM_TYPES else LoadType.PRODUCER
 
-        if self.element_specific_attrs is not None:
-            extra_meta_data = self.get_extra_element_attrs(
-                generator,
-                self.element_specific_attrs,
-                grid_name=grid_name,
-            )
+        extra_meta_data = self.get_extra_element_attrs(
+            generator,
+            self.element_specific_attrs,
+            grid_name=grid_name,
+        )
 
         return Load(
             name=gen_name,
@@ -4132,7 +4125,7 @@ class PowerFactoryExporter:
     def get_extra_element_attrs(
         self,
         element: PFTypes.DataObject,
-        element_specific_attrs: dict[PFClassId, Sequence[str | dict]],  # dict[PFClassId, set[str]]
+        element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None,  # dict[PFClassId, set[str]]
         /,
         *,
         grid_name: str | None = None,
@@ -4149,6 +4142,9 @@ class PowerFactoryExporter:
         Returns:
             Sequence[AttributeData] | None: list of AttributeData or None if no attributes have been defined for this element type
         """
+        if element_specific_attrs is None:
+            return None
+
         for elm_type, attributes in element_specific_attrs.items():
             if self.pfi.is_of_type(element, elm_type):
                 attribute_data = [
