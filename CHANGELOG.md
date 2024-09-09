@@ -1,3 +1,9 @@
+## 3.0.1 (2024-09-09)
+
+### Fix
+
+- export without extra meta data (#275)
+
 ## 3.0.0 (2024-09-05)
 
 ### BREAKING CHANGE
