@@ -2,15 +2,15 @@
   "elements": [],
   "meta": {
     "case": "3_Bus",
-    "creator": "powerfactory-tools @ version 2.1.0",
-    "date": "2024-08-23",
+    "creator": "powerfactory-tools @ version 3.0.0",
+    "date": "2024-09-03",
     "grid": "HV_3_Bus",
-    "id": "b213d59f-fbf1-4bab-bd39-718907856508",
+    "id": "ade4fb63-9722-4b56-929b-45e08f70de02",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2022 || SP2"
+        "value": "PowerFactory 2024 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",
