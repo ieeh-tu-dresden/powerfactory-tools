@@ -125,7 +125,8 @@ class PowerFactoryInterface:
             self.close()
 
     def _set_logging_handler(self, log_file_path: pathlib.Path | None) -> None:
-        loguru.logger.remove(handler_id=0)
+        with contextlib.suppress(ValueError):
+            loguru.logger.remove(handler_id=0)
         if log_file_path is None:
             loguru.logger.add(
                 sink=sys.stdout,
