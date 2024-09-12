@@ -179,7 +179,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             project_name=self.project_name,
             powerfactory_user_profile=self.powerfactory_user_profile,
             powerfactory_path=self.powerfactory_path,
-            powerfactory_service_pack = self.powerfactory_service_pack,
+            powerfactory_service_pack=self.powerfactory_service_pack,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
