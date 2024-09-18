@@ -28,15 +28,14 @@ from psdm.quantities.multi_phase import PowerFactorDirection
 from psdm.quantities.single_phase import AdmittanceNat
 from psdm.quantities.single_phase import AdmittancePosSeq
 from psdm.quantities.single_phase import AdmittanceZerSeq
-from psdm.quantities.single_phase import Angle as AngleSP
 from psdm.quantities.single_phase import ImpedanceNat
 from psdm.quantities.single_phase import ImpedancePosSeq
 from psdm.quantities.single_phase import ImpedanceZerSeq
 from psdm.quantities.single_phase import Length
 from psdm.quantities.single_phase import PhaseAngleClock
-from psdm.quantities.single_phase import Voltage as VoltageSP
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
+from psdm.steadystate_case.characteristic import Characteristic
 from psdm.steadystate_case.controller import ControlledVoltageRef
 from psdm.steadystate_case.controller import ControlQP
 from psdm.steadystate_case.controller import PController
@@ -1166,7 +1165,7 @@ class PowerFactoryExporter:
         voltage_ref_lv: float,
         voltage_ref_ter: float | None,  # tertiary reference voltage (only for 3w transformers)
         name: str,
-    ) -> tuple[TapSide | None, VoltageSP | None, AngleSP | None, float | None, float | None, float | None]:
+    ) -> tuple[TapSide | None, float | None, float | None, int | None, int | None, int | None]:
         voltage_ref_hv = round(voltage_ref_hv, DecimalDigits.VOLTAGE)
         voltage_ref_lv = round(voltage_ref_lv, DecimalDigits.VOLTAGE)
 
@@ -3440,7 +3439,7 @@ class PowerFactoryExporter:
         export, _ = self.get_description(generator)
         if not export:
             loguru.logger.warning(
-                "Generator {producer_name} not set for export. Skipping.",
+                "Generator {producer_name} is not set for export. Skipping.",
                 producer_name=producer_name,
             )
             return None
@@ -3448,7 +3447,7 @@ class PowerFactoryExporter:
         bus = generator.bus1
         if bus is None:
             loguru.logger.warning(
-                "Generator {producer_name} not connected to any bus. Skipping.",
+                "Generator {producer_name} is not connected to any bus. Skipping.",
                 producer_name=producer_name,
             )
             return None
@@ -3506,14 +3505,15 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadPower,
-    ) -> PController | None:
+    ) -> PController:
         loguru.logger.debug("Creating consumer {load_name} internal P controller...", load_name=load.loc_name)
-        if load.bus1 is not None:
-            node_target_name = self.pfi.create_name(load.bus1.cterm, grid_name=grid_name)
-        else:
-            return None
+        bus = load.bus1
+        if bus is None:
+            msg = f"Load {load.loc_name} is not connected to any bus."
+            raise RuntimeError(msg)
+        node_target_name = self.pfi.create_name(bus.cterm, grid_name=grid_name)
 
-        # at the moment there is only controller of type PConst
+        # at this stage of libary version, there is only controller of type PConst
         p_control_type = ControlTypeFactory.create_p_const(power)
         return PController(node_target=node_target_name, control_type=p_control_type)
 
@@ -3524,15 +3524,12 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         power: LoadPower,
-    ) -> QController | None:
+    ) -> QController:
         loguru.logger.debug("Creating consumer {load_name} internal Q controller...", load_name=load.loc_name)
         bus = load.bus1
         if bus is None:
-            loguru.logger.warning(
-                "Consumer {load_name}: controller has no connected node. Skipping.",
-                load_name=load.loc_name,
-            )
-            return None
+            msg = f"Consumer {load.loc_name} is not connected to any bus."
+            raise RuntimeError(msg)
 
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
@@ -3548,24 +3545,22 @@ class PowerFactoryExporter:
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def create_q_controller_builtin(  # noqa: PLR0911
+    def create_q_controller_builtin(  # noqa: PLR0915
         self,
         gen: PFTypes.GeneratorBase,
         /,
         *,
         grid_name: str,
-    ) -> QController | None:
+    ) -> QController:
         loguru.logger.debug("Creating Producer {gen_name} internal Q controller...", gen_name=gen.loc_name)
         scaling = gen.scale0
 
         # Controlled node
         bus = gen.bus1
         if bus is None:
-            loguru.logger.warning(
-                "Producer {gen_name}: controller has no connected node. Skipping.",
-                gen_name=gen.loc_name,
-            )
-            return None
+            msg = f"Producer {gen.loc_name} is not connected to any bus."
+            raise RuntimeError(msg)
+
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
@@ -3633,9 +3628,15 @@ class PowerFactoryExporter:
 
         if av_mode == LocalQCtrlMode.Q_P:
             if gen.pQPcurve is None:
-                return None
-
-            q_control_type = ControlQP(q_p_characteristic_name=gen.pQPcurve.loc_name)
+                msg = f"Producer {gen.loc_name} has no specified pQPcurve."
+                raise RuntimeError(msg)
+            q_max_ue = None
+            q_max_oe = None
+            q_control_type = ControlQP(
+                q_p_characteristic=Characteristic(name=gen.pQPcurve.loc_name),
+                q_max_ue=q_max_ue,
+                q_max_oe=q_max_oe,
+            )
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
@@ -3653,17 +3654,19 @@ class PowerFactoryExporter:
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
             loguru.logger.warning(
-                "Generator {gen_name}: Voltage control with Q-droop is not implemented yet. Skipping.",
+                "Generator {gen_name}: Voltage control with Q-droop is not implemented yet. Raising error.",
                 gen_name=gen.loc_name,
             )
-            return None
+            msg = f"Producer {gen.loc_name}: U_Q_DROOP is not implemented yet."
+            raise RuntimeError(msg)
 
         if av_mode == LocalQCtrlMode.U_I_DROOP:
             loguru.logger.warning(
-                "Generator {gen_name}: Voltage control with I-droop is not implemented yet. Skipping.",
+                "Generator {gen_name}: Voltage control with I-droop is not implemented yet. Raising error.",
                 gen_name=gen.loc_name,
             )
-            return None
+            msg = f"Producer {gen.loc_name}: U_I_DROOP is not implemented yet."
+            raise RuntimeError(msg)
 
         msg = "unreachable"
         raise RuntimeError(msg)
@@ -3675,7 +3678,7 @@ class PowerFactoryExporter:
         *,
         grid_name: str,
         controller: PFTypes.StationController,
-    ) -> QController | None:
+    ) -> QController:
         controller_name = self.pfi.create_generator_name(gen, generator_name=controller.loc_name)
         loguru.logger.debug(
             "Creating producer {gen_name} external Q controller {controller_name}...",
@@ -3686,11 +3689,8 @@ class PowerFactoryExporter:
         # Controlled node
         bus = controller.p_cub  # target node
         if bus is None:
-            loguru.logger.warning(
-                "Generator {gen_name}: external controller has no target node. Skipping.",
-                gen_name=gen.loc_name,
-            )
-            return None
+            msg = f"Producer {gen.loc_name} is not connected to any bus."
+            raise RuntimeError(msg)
         terminal = bus.cterm
         node_target_name = self.pfi.create_name(terminal, grid_name=grid_name)
         u_n = terminal.uknom * Exponents.VOLTAGE  # voltage in V
@@ -3836,6 +3836,7 @@ class PowerFactoryExporter:
                     cos_phi_oe=controller.pf_over,
                     u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
                     u_threshold_oe=controller.u_over * u_n,  # U-threshold for cosphi_oe
+                    node_ref_u_name=self.pfi.create_name(controller.p_cub.cterm, grid_name=grid_name),
                 )
                 return QController(
                     node_target=node_target_name,

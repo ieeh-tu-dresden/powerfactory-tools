@@ -1542,7 +1542,7 @@ class PowerFactoryTypes:
         tansetp: float
         usetp: float
         pQPcurve: PowerFactoryTypes.QPCharacteristic  # noqa: N815 # Q(P)-characteristic curve
-        p_cub: PowerFactoryTypes.StationCubicle
+        p_cub: PowerFactoryTypes.StationCubicle  # cubicle where power is measured for the controlled generator
         u_under: float
         u_over: float
         pf_under: float

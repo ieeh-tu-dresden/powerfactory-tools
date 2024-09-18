@@ -818,17 +818,19 @@ class ControlTypeFactory:
         cos_phi_oe: float,
         u_threshold_ue: float,
         u_threshold_oe: float,
+        node_ref_u_name: str,
     ) -> ControlCosPhiU:
         return ControlCosPhiU(
             cos_phi_ue=Qc.sym_three_phase_cos_phi(cos_phi_ue),
             cos_phi_oe=Qc.sym_three_phase_cos_phi(cos_phi_oe),
             u_threshold_ue=Qc.sym_three_phase_voltage(u_threshold_ue),
             u_threshold_oe=Qc.sym_three_phase_voltage(u_threshold_oe),
+            node_ref_u=node_ref_u_name,
         )
 
     @staticmethod
     def create_q_p_sym(
-        q_p_characteristic_name: Characteristic,
+        q_p_characteristic_name: str,
         q_max_ue: float | None,
         q_max_oe: float | None,
     ) -> ControlQP:
