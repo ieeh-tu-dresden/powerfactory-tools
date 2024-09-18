@@ -145,8 +145,8 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
     def __init__(  # noqa: PLR0913
         self,
         *,
-        export_path: pathlib.Path,
         project_name: str,
+        export_path: pathlib.Path,
         powerfactory_user_profile: str = "",
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
