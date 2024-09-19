@@ -1,3 +1,11 @@
+## 3.0.2 (2024-09-19)
+
+### Fix
+
+- apply Python version when using ExporterProcess (#279)
+- typing in exporter and load_power (#282)
+- setup logging (#278)
+
 ## 3.0.1 (2024-09-09)
 
 ### Fix
