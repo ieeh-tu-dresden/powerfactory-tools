@@ -421,11 +421,13 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
+                filename = (
+                    f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON.value}"
+                )
             else:
-                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{NAME_SEPARATOR}{timestamp_string}{FileType.JSON}"
+                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{NAME_SEPARATOR}{timestamp_string}{FileType.JSON.value}"
         else:
-            filename = f"{data_name}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON}"
+            filename = f"{data_name}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON.value}"
 
         file_path = export_path / filename
         try:

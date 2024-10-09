@@ -66,6 +66,7 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
 from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
@@ -420,11 +421,13 @@ class PowerFactoryExporter:
         timestamp_string = timestamp.isoformat(sep="T", timespec="seconds").replace(":", "")
         if data_name is None:
             if data.meta.case is not None:
-                filename = f"{data.meta.case}__{grid_name}__{data_type}.json"
+                filename = (
+                    f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON.value}"
+                )
             else:
-                filename = f"{data.meta.case}__{grid_name}__{data_type}__{timestamp_string}.json"
+                filename = f"{data.meta.case}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{NAME_SEPARATOR}{timestamp_string}{FileType.JSON.value}"
         else:
-            filename = f"{data_name}__{grid_name}__{data_type}.json"
+            filename = f"{data_name}{NAME_SEPARATOR}{grid_name}{NAME_SEPARATOR}{data_type}{FileType.JSON.value}"
 
         file_path = export_path / filename
         try:
