@@ -35,7 +35,7 @@ If necessary, one can adapt `powerfactory_path`, `powerfactory_service_pack` and
 
 By default, **all assests of all active grids** within the selected PowerFactory project are to be exported.
 - The preferred way for export is to assign the desired study cases to the `export()` function call, see [export example](powerfactory_export.ipynb).
-- Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control example 7-9](powerfactory_control.ipynb).
+- Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control "base" example 7-9](powerfactory_control__base.ipynb).
 
 The following figure provides a short overview of the dependencies within a PowerFactory project.
 
@@ -48,7 +48,8 @@ In our [export example](powerfactory_export.ipynb) such a request is performed b
 
 ## Control Functionalities
 
-The jupyter notebook [powerfactory_control.ipynb](powerfactory_control.ipynb) is provided to get in touch with the usage of the powerfactory control possibilities.
+### Control Example "Basic"
+The jupyter notebook [powerfactory_control__basic.ipynb](powerfactory_control__basic.ipynb) is provided to get in touch with the usage of the basic powerfactory control possibilities.
 First the simple grid HV_3_Bus is manipulated, then a more sophisticated control is exceuted at HV_9_Bus grid.
 
 The example includes:
@@ -61,6 +62,10 @@ The example includes:
 - Preparation and execution of RMS/EMT simulations
 - Export of results objects as well as user defined data to json or csv
 - Request and change study cases, operation scenarios and network variations
+
+### Control Example "Add Loads"
+jupyter notebook [powerfactory_control__add_loads.ipynb](powerfactory_control__add_loads.ipynb) is provided to show how to simply add loads in the grid `3_Bus`.
+Here, a grid variant is created first. Then, at all loads except the slack a new load is added with specified characteristics.
 
 ### Non-Interactive Display Mode
   As PowerFactory is started in engine mode, the user may want to take a quick look at the PowerFactory application GUI at runtime.
