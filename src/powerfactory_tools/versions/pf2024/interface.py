@@ -2014,7 +2014,7 @@ class PowerFactoryInterface:
         data: dict[str, ValidPFValue],
     ) -> PFTypes.DataObject:
         for key, value in data.items():
-            if getattr(element, key, None) is not None:
+            if hasattr(element, key):
                 setattr(element, key, value)
 
         self.load_project_folders_from_pf_db()
