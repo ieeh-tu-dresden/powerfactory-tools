@@ -1485,7 +1485,7 @@ class PowerFactoryInterface:
         study_case = self.study_case(only_active=True)
         if study_case is not None:
             superior_grids = self.elements_of(study_case, pattern="*." + PFClassId.GRID.value)
-            return list(filter(lambda g: g not in superior_grids, self.grids(name, calc_relevant=calc_relevant)))
+            return list(filter(lambda g: g not in superior_grids, self.grids(name_filter, calc_relevant=calc_relevant)))
 
         return []
 
