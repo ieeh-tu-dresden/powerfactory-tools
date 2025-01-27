@@ -27,6 +27,7 @@ from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import PATH_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import BaseUnits
 from powerfactory_tools.versions.pf2024.data import PowerFactoryData
+from powerfactory_tools.versions.pf2024.types import BusType
 from powerfactory_tools.versions.pf2024.types import CalculationCommand
 from powerfactory_tools.versions.pf2024.types import Currency
 from powerfactory_tools.versions.pf2024.types import FolderType
@@ -1467,16 +1468,16 @@ class PowerFactoryInterface:
 
     def independent_grids(
         self,
-        name: str = "*",
         /,
         *,
+        name_filter: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Grid]:
         """Gets all grid entities except the superior summary grid stored at the study case level.
 
         Keyword Arguments:
-            name -- Name of grid to be accessed (default: {"*"})
-            calc_relevant -- Flag, if only calc relevant (active) grids should be accessed (default: {False})
+            name_filer (str, optional) -- Name of grid to be accessed. Defaults to "*"
+            calc_relevant (bool, optional) -- Flag, if only calc relevant (active) grids should be accessed. Defaults to False.
 
         Returns:
             Sequence of grids without superior summary grid entitiy.
@@ -1487,6 +1488,37 @@ class PowerFactoryInterface:
             return list(filter(lambda g: g not in superior_grids, self.grids(name, calc_relevant=calc_relevant)))
 
         return []
+
+    def slack_terminals(
+        self,
+        grid_name: str,
+        /,
+        *,
+        calc_relevant: bool = False,
+        include_out_of_service: bool = True,
+    ) -> Sequence[PFTypes.Terminal]:
+        """Get all slack terminals of the specified grid based on the ExternalGrid objects.
+
+        Args:
+            grid_name (str):  Name of grid to be accessed.
+            calc_relevant (bool, optional): Flag, if only calc relevant (active) external_grids should be accessed. Defaults to False.
+            include_out_of_service (bool, optional): Extension flag to the calc_relevant flag. Flag if out-of-service elements should be accessed. Defaults to True.
+
+        Returns:
+            Sequence[PFTypes.Terminal]: List of terminals that can be seen as slack buses.
+        """
+        external_grids = self.external_grids(
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
+        )
+        return self.filter_none(
+            [
+                grid.bus1.cterm if grid.bus1 is not None else None
+                for grid in external_grids
+                if grid.bustp == BusType.SL.value
+            ],
+        )
 
     def grid_elements(
         self,
