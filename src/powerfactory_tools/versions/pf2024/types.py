@@ -864,7 +864,7 @@ class PowerFactoryTypes:
             ...
 
     class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
-        ...
+        iFrzPerm: int  # noqa: N815
 
     class Graph(DataObject, t.Protocol):
         sSymName: str  # noqa: N815
@@ -1051,7 +1051,18 @@ class PowerFactoryTypes:
         def GetActivePage(self) -> PowerFactoryTypes.DataObject:  # noqa: N802
             ...
 
+        def GetPage(  # noqa: N802
+            self,
+            name: str,
+            create: bool,  # noqa: FBT001;  optional
+            class_name: str,  # optional
+            /,
+        ) -> PowerFactoryTypes.DataObject: ...
+
         def IsFrozen(self) -> bool:  # noqa: N802
+            ...
+
+        def Show(self) -> bool:  # noqa: N802
             ...
 
         def Unfreeze(self) -> bool:  # noqa: N802
