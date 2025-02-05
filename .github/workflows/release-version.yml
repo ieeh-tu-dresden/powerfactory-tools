@@ -6,12 +6,12 @@ on:
     types: [closed]
 
 jobs:
-  tests:
-    uses: ./.github/workflows/tests.yml
+  test-code:
+    uses: ./.github/workflows/test-code.yml
   release:
     name: Release a new version
     runs-on: ubuntu-latest
-    needs: [tests]
+    needs: [test-code]
     env:
       PYTHON_VERSION: "3.10"
 
@@ -54,23 +54,29 @@ jobs:
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
           fetch-depth: 0
-
-      - id: cache-cargo-bin
-        uses: actions/cache@v4.0.2
+      
+      - name: Cache the default location where Cargo installs the binaries for Rust tools (uv) and dependencies
+        id: cache-cargo-bin
+        uses: actions/cache@v4.2.0
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-
-      - id: cache-uv-python
-        uses: actions/cache@v4.0.2
+  
+      - name: Cache the uv python dependencies 
+        id: cache-uv-python
+        uses: actions/cache@v4.2.0
         with:
           path: ~/.local/share/uv
           key: ${{ runner.os }}-uv-python-${{ env.PYTHON_VERSION }}
 
-      - name: Install uv
-        if: steps.cache-cargo-bin.outputs.cache-hit != 'true'
-        run: |
-          curl -LsSf https://github.com/astral-sh/uv/releases/download/0.3.1/uv-installer.sh | sh
+      - name: Install uv and set the python version
+        id: setup-uv
+        if: steps.setup-uv.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.28"  # install a specific version of uv
+          enable-cache: true
+          python-version: ${{ env.PYTHON_VERSION  }}
 
       - name: Install dependencies
         run: uv venv --python ${{ env.PYTHON_VERSION }} && uv sync

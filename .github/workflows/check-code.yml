@@ -1,0 +1,58 @@
+name: Check cocde
+
+on:
+  workflow_call:
+
+jobs:
+  check-code:
+    name: Check code
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Check if commit messages are compliant
+        uses: webiny/action-conventional-commits@v1.3.0
+        with:
+          allowed-commit-types: "feat,fix,docs,style,refactor,perf,test,chore,bug,build,ci,bump"
+
+      - name: Cache the default location where Cargo installs the binaries for Rust tools (uv) and dependencies
+        id: cache-cargo-bin
+        uses: actions/cache@v4.2.0
+        with:
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bin
+  
+      - name: Cache the uv python dependencies 
+        id: cache-uv-python
+        uses: actions/cache@v4.2.0
+        with:
+          path: ~/.local/share/uv
+          key: ${{ runner.os }}-uv-python-${{ matrix.python-version }}
+      
+      - id: setup-uv
+        name: Install uv and set the python version
+        if: steps.cache-cargo-bin.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.28"  # install a specific version of uv
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies with python ${{ matrix.python-version }}
+        run: uv venv --python ${{ matrix.python-version }} && uv sync
+      
+      - name: Check code
+        run: uv run ruff check .
+
+      - name: Check code format
+        run: uv run ruff format --check .
+
+      - name: Type check using mypy
+        run: uv run mypy .
