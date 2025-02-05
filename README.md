@@ -1,8 +1,14 @@
 # IEEH PowerFactory Tools
 
+[![image](https://img.shields.io/pypi/v/ieeh-powerfactory-tools.svg)](https://pypi.python.org/pypi/ieeh-powerfactory-tools)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
 
-A toolbox for Python based control of DIgSILENT PowerFactory.
+
+
+A toolbox for Python based control of DIgSILENT PowerFactory (> 2022).
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#field-of-application)
@@ -108,8 +114,13 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 
 Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
-- for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-- for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+- for export to [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model): 
+  - [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
+- for import from [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model): 
+  - [powerfactory_import.ipynb](./examples/powerfactory_import.ipynb)
+- for control: 
+  - [powerfactory_control__basic.ipynb](./examples/powerfactory_control__basic.ipynb)
+  - [powerfactory_control__add_loads.ipynb](./examples/powerfactory_control__add_loads.ipynb)
 
 In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
 
@@ -191,3 +202,6 @@ Please cite as:
 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
+
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+

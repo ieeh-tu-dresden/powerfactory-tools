@@ -9,8 +9,8 @@
   ]
   dependencies = [
     "ieeh-power-system-data-model>=2.3.1",
-    "loguru>=0.7.2",
-    "pydantic>=2.8.2",
+    "loguru>=0.7.3",
+    "pydantic>=2.10.6",
   ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
@@ -40,7 +40,7 @@
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
     "pytest>=8.3.1",
-    "ruff>=0.5.5",
+    "ruff>=0.9.4",
   ]
 
 [tool.hatch.metadata]
@@ -56,8 +56,6 @@
     ignore = [
       "ANN002",
       "ANN003",
-      "ANN101",
-      "ANN102",
       "C901",
       "D100",
       "D101",
