@@ -29,8 +29,8 @@ jobs:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
       
-      - id: setup-uv
-        name: Install uv and set the python version
+      - name: Install uv and set the python version
+        id: setup-uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.5.28"  # install a specific version of uv
