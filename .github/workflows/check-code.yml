@@ -28,17 +28,9 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-  
-      - name: Cache the uv python dependencies 
-        id: cache-uv-python
-        uses: actions/cache@v4.2.0
-        with:
-          path: ~/.local/share/uv
-          key: ${{ runner.os }}-uv-python-${{ matrix.python-version }}
       
       - id: setup-uv
         name: Install uv and set the python version
-        if: steps.cache-cargo-bin.outputs.cache-hit != 'true'
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.5.28"  # install a specific version of uv

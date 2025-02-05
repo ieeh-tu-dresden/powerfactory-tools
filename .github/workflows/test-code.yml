@@ -32,13 +32,6 @@ jobs:
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
-  
-      - name: Cache the uv python dependencies 
-        id: cache-uv-python
-        uses: actions/cache@v4.2.0
-        with:
-          path: ~/.local/share/uv
-          key: ${{ runner.os }}-uv-python-${{ matrix.python-version }}
       
       - name: Install uv and set the python version
         id: setup-uv
