@@ -34,7 +34,7 @@
   dev-dependencies = [
     "commitizen>=3.28.0",
     "ipykernel>=6.29.5",
-    "mypy>=1.11.0",
+    "mypy>=1.15.0",
     "pandas>=2.2.2",
     "pyarrow>=17.0.0",
     "pytest-cov>=5.0.0",
@@ -54,6 +54,7 @@
 
   [tool.ruff.lint]
     ignore = [
+      "A005",
       "ANN002",
       "ANN003",
       "C901",
