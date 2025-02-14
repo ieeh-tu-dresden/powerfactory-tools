@@ -1,4 +1,4 @@
-name: Check cocde
+name: Check code
 
 on:
   workflow_call:

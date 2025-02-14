@@ -1,19 +1,21 @@
-name: test-code
+name: Test code
 
 on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
+
   workflow_call:
 
 jobs:
   check-code:
     uses: ./.github/workflows/check-code.yml
   test-code:
-    name: Run tests
+    name: Test code
     runs-on: ubuntu-latest
     needs: [check-code]
     strategy:
@@ -28,7 +30,7 @@ jobs:
 
       - name: Cache the default location where Cargo installs the binaries for Rust tools (uv) and dependencies
         id: cache-cargo-bin
-        uses: actions/cache@v4.2.0
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/bin
           key: ${{ runner.os }}-cargo-bin
