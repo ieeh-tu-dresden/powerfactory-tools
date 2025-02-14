@@ -665,6 +665,8 @@ class PowerFactoryTypes:
         def Delete(self) -> int:  # noqa: N802
             ...
 
+        def GetAttribute(self, name: str, /) -> ValidPFPrimitive | list[ValidPFPrimitive]: ...  # noqa: N802
+
         def GetAttributeDescription(  # noqa: N802
             self,
             name: str,
