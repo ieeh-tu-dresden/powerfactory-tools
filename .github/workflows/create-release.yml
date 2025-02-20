@@ -111,7 +111,6 @@ jobs:
 
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@a49cac8e98f3954a16e107f026f71cf84b17706c  # 0.23.1
-          id: commitizen
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           changelog_increment_filename: body.md
