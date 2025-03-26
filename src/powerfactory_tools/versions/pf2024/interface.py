@@ -1476,7 +1476,7 @@ class PowerFactoryInterface:
         """Gets all grid entities except the superior summary grid stored at the study case level.
 
         Keyword Arguments:
-            name_filer (str, optional) -- Name of grid to be accessed. Defaults to "*"
+            name_filter (str, optional) -- Name of grid to be accessed. Defaults to "*"
             calc_relevant (bool, optional) -- Flag, if only calc relevant (active) grids should be accessed. Defaults to False.
 
         Returns:
