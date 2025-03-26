@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2024.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2025.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -2046,7 +2046,7 @@ class PowerFactoryInterface:
         data: dict[str, ValidPFValue],
     ) -> PFTypes.DataObject:
         for key, value in data.items():
-            if getattr(element, key, None) is not None:
+            if hasattr(element, key):
                 setattr(element, key, value)
 
         self.load_project_folders_from_pf_db()
@@ -2364,6 +2364,42 @@ class PowerFactoryInterface:
             raise ValueError(msg)
 
         return sim_start_cmd.p_resvar
+
+    def create_sgl_layout_selection(
+        self,
+        /,
+        *,
+        data: Sequence[PFTypes.Element],
+        location: PFTypes.StudyCase | None = None,
+    ) -> PFTypes.Selection | None:
+        """Create a selection object for a list of elements.
+
+        Args:
+            data (Sequence[PFTypes.Element]): list of elements to be selected.
+            location (PFTypes.StudyCase | None, optional): StudyCase the selection belongs to. Defaults to None.
+
+        Returns:
+            PFTypes.Selection | None: Selection object or None if creation failed.
+        """
+        if location is None:
+            loguru.logger.debug("Get active StudyCase specified for selection object.")
+            location = self.app.GetActiveStudyCase()
+        if location is None:
+            loguru.logger.warning("No location (StudyCase) specified for selection object. Quitting.")
+            return None
+        selection = self.create_object(
+            name="SGL-Layout-Selection",
+            class_name=PFClassId.SELECTION.value,
+            location=location,
+        )
+
+        if selection is None:
+            return None
+        selection = t.cast("PFTypes.Selection", selection)
+
+        selection.AddRef(data)  # type: ignore [arg-type]
+
+        return selection
 
     @staticmethod
     def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:

@@ -1,3 +1,13 @@
+## 3.1.0 (2025-02-06)
+
+### Feat
+
+- add control example "add_loads" (#290)
+
+### Fix
+
+- file name for exporter in pf2022 (#285)
+
 ## 3.0.2 (2024-09-19)
 
 ### Fix
