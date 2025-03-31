@@ -6,6 +6,8 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#field-of-application)
+    - [Why to Use](#why-to-use)
+    - [Provided Functionalities](#provided-functionalities)
   - [ PowerFactory Interface](#powerfactory-interface)
   - [ General Remarks](#general-remarks)
     - [General Unit Conversion](#general-unit-conversion)
@@ -23,7 +25,29 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 This application is intended to use for an external usage ('engine mode') of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
 Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
 
-The following functionalities are provided:
+### Why to Use
+- **Simplify Your Workflow with Type Hints and Autocompletion**
+
+  >Say goodbye to tedious coding and hello to efficient development with our software's type hints and autocompletion features. These tools enable you to write more accurate and readable code, saving you time and reducing the risk of errors.
+
+- **Unlock the Full Potential by Use of our PowerFactory Interface**
+
+  >Are you a PowerFactory user looking to streamline your workflow, reduce errors, and boost productivity? Our toolbox is designed to help you achieve just that. It simplifies the [Python interface of PowerFactory](#powerfactory-interface), allowing you to avoid common pitfalls and errors that other users may encounter.
+
+- **Establish a Standardized Workflow**
+  >We makes it easier to collaborate with colleagues by providing you a standard *toolbox-way* of doing things in your organization, including a standard way to easily export simulation results e.g. to pandas dataframe or feather. 
+
+- **Get the Most Out of PowerFactory with Our Comfort [Functions](#provided-functionalities)**
+  >Take advantage of our reviewed comfort functions, which provide a wide range of benefits, including: simplified grid export, enhanced PowerFactory automation, easy object replacements
+
+- **Get Started with Confidence**
+
+  >We offer helpful [tutorials](#tutorials) to guide you through the learning process, ensuring that you can quickly get up to speed and start achieving your goals.
+
+
+
+
+### Provided functionalities
 
 - **Interface**: collection of comfort functions for the work with the PowerFactory API
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
