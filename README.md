@@ -108,8 +108,10 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 
 Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
-- for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-- for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+- for control basics: [powerfactory_control__basic.ipynb](./examples/powerfactory_control__basic.ipynb)
+- for control purpose "add loads": [powerfactory_control__add_loads.ipynb](./examples/powerfactory_control__add_loads.ipynb)
+- for export to [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks): [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
+- for import from [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks): [powerfactory_import.ipynb](./examples/powerfactory_import.ipynb)
 
 In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
 
@@ -125,11 +127,12 @@ pip install ieeh-powerfactory-tools
 
 | Tools Version | PSDM Version | PowerFactory Version | Recommended Python Version |
 |---------------|:------------:|:--------------------:|:--------------:|
-| <= 1.3.1      | 1.1.0        | 2022                 | 3.10      |
+| <= 1.3.1      | 1.1.0        | 2022                 | 3.10           |
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
 | 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 | 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
+| 3.2.0         | 2.3.2        | 2022, 2024           | 3.10, 3.12     |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
 
