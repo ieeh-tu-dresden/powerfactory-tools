@@ -501,11 +501,11 @@ class PowerFactoryExporter:
 
         return Topology(
             meta=meta,
-            nodes=nodes,
-            branches=branches,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            nodes=tuple(nodes),
+            branches=tuple(branches),
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
     def create_external_grids(
@@ -2161,7 +2161,7 @@ class PowerFactoryExporter:
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
-        tc = TopologyCase(meta=meta, elements=power_on_states)
+        tc = TopologyCase(meta=meta, elements=tuple(power_on_states))
 
         if not tc.matches_topology(topology):
             msg = "Topology case does not match specified topology."
@@ -2555,9 +2555,9 @@ class PowerFactoryExporter:
 
         sc = SteadystateCase(
             meta=meta,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
         if not sc.matches_topology(topology):
@@ -3901,83 +3901,83 @@ class PowerFactoryExporter:
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_D:
             return PhaseConnections(
-                value=[  # type: ignore[assignment]
-                    [Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E:
             return PhaseConnections(
-                value=[  # type: ignore[assignment]
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.E],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.E),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_YN:
             return PhaseConnections(
-                value=[  # type: ignore[assignment]
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.N],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.N),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.E],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.E),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                ]
-            return PhaseConnections(value=_phase_connections)  # type: ignore[assignment]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                )
+            return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_YN:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.N],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.N),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                ]
-            return PhaseConnections(value=_phase_connections)  # type: ignore[assignment]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                )
+            return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]]]
-            return PhaseConnections(value=_phase_connections)  # type: ignore[assignment]
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.E),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.E),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.E]]
-            return PhaseConnections(value=_phase_connections)  # type: ignore[assignment]
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.E),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.N),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.N),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.N]]
-            return PhaseConnections(value=_phase_connections)  # type: ignore[assignment]
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.N),)
+            return PhaseConnections(value=_phase_connection)
 
         msg = "unreachable"
         raise RuntimeError(msg)
@@ -4076,7 +4076,7 @@ class PowerFactoryExporter:
                 Phase[PFPhase2PH.N.name],
             )
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH:
-            return [Phase[PFPhase1PH.A.name]]  # type: ignore[return-value]
+            return (Phase[PFPhase1PH.A.name],)
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH_N:
             return (
                 Phase[PFPhase1PH.A.name],
@@ -4110,7 +4110,7 @@ class PowerFactoryExporter:
             )
         if phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return [Phase[PFPhase1PH(phases[0]).name]]  # type: ignore[return-value]
+            return (Phase[PFPhase1PH(phases[0]).name],)
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Implementation unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
@@ -4131,7 +4131,7 @@ class PowerFactoryExporter:
         if winding_vector_group in (WVectorGroup.YN, WVectorGroup.ZN):
             phases = [*phases, Phase.N]
 
-        return phases  # type: ignore[return-value]
+        return tuple(phases)
 
     def get_extra_element_attrs(
         self,

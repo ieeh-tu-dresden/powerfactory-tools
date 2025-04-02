@@ -834,14 +834,10 @@ class ControlTypeFactory:
         q_max_ue: float | None,
         q_max_oe: float | None,
     ) -> ControlQP:
-        if q_max_ue is not None:
-            q_max_ue = Qc.sym_three_phase_reactive_power(q_max_ue)
-        if q_max_oe is not None:
-            q_max_oe = Qc.sym_three_phase_reactive_power(q_max_oe)
         return ControlQP(
             q_p_characteristic=Characteristic(name=q_p_characteristic_name),
-            q_max_ue=q_max_ue,
-            q_max_oe=q_max_oe,
+            q_max_ue=Qc.sym_three_phase_reactive_power(q_max_ue) if q_max_ue is not None else None,
+            q_max_oe=Qc.sym_three_phase_reactive_power(q_max_oe) if q_max_oe is not None else None,
         )
 
     @staticmethod

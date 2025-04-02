@@ -71,7 +71,7 @@ jobs:
           enable-cache: true
           python-version: ${{ env.PYTHON_VERSION  }}
 
-      - name: Install dependencies
+      - name: Install the project including dependencies
         run: uv venv --python ${{ env.PYTHON_VERSION }} && uv sync
 
       - name: Update year in copyright notice in all files
