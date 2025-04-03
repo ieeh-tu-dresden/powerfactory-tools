@@ -8,7 +8,7 @@
 
 
 
-A toolbox for Python based control of DIgSILENT PowerFactory (> 2022).
+A toolbox for Python based control and automation of DIgSILENT PowerFactory (> 2022).
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#field-of-application)
@@ -28,8 +28,9 @@ A toolbox for Python based control of DIgSILENT PowerFactory (> 2022).
 
 ## Field of Application
 
-This application is intended to use for an external usage ('engine mode') of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
-Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
+This toolbox is intended for automation of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
+Therefore, the Python-API of PowerFactory, provided by the company, is utilized.
+The interaction is recommended via the external usage of PowerFactory ('engine mode'), i.e. PowerFactory is started based on a Python script.
 
 ### Why to Use
 - **Simplify Your Workflow with Type Hints and Autocompletion**
@@ -166,9 +167,11 @@ pip install ieeh-powerfactory-tools
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
 | 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 | 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
-| 3.2.0         | 2.3.2        | 2022, 2024           | 3.10, 3.12     |
+| 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12     |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
+
+In Addition, one can easily use PowerFactory main versions (e.g. 2023) which are not yet preimplemented. Just copy a "pf202x" directory within [src/versions](./src/powerfactory_tools/versions/) and adapt the version specific toolbox import paths and powerfactory installation path.
 
 **The correct Python version**: Be aware, that the Python version of your code environment must match the selected Python version of the PowerFactory API!
 
