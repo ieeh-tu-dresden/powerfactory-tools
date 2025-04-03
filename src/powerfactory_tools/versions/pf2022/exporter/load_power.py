@@ -72,7 +72,7 @@ class LoadPower:
     pow_react_control_type: QControlStrategy
 
     @staticmethod
-    def _is_symmetrical(values: tuple[float, ...]) -> bool:
+    def _is_symmetrical(values: tuple[float, ...] | tuple[str, ...]) -> bool:
         return len(list(itertools.groupby(values))) in (0, 1)
 
     @property
@@ -524,7 +524,7 @@ class LoadPower:
             cls.calc_pq(pow_act=pow_act, pow_react=pow_react, scaling=scaling)
             for pow_act, pow_react in zip(pow_acts, pow_reacts, strict=True)
         )
-        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"].value for e in power_dicts)):
             msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
@@ -621,7 +621,7 @@ class LoadPower:
             cls.calc_qc(pow_react=pow_react, cos_phi=cos_phi, scaling=scaling)
             for pow_react, cos_phi in zip(pow_reacts, cos_phis, strict=True)
         )
-        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"].value for e in power_dicts)):
             msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
@@ -695,7 +695,7 @@ class LoadPower:
             cls.calc_sq(pow_app=pow_app, pow_react=pow_react, scaling=scaling)
             for pow_app, pow_react in zip(pow_apps, pow_reacts, strict=True)
         )
-        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"] for e in power_dicts)):
+        if not cls._is_symmetrical(values=tuple(e["power_factor_direction"].value for e in power_dicts)):
             msg = "CosPhi directions do not match."
             raise ValueError(msg)
 
@@ -712,14 +712,14 @@ class LoadPower:
 
     def as_active_power_ssc(self) -> ActivePower:
         return ActivePower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_acts),
+            value=tuple(round(e, DecimalDigits.POWER) for e in self.pow_acts),
             system_type=SystemType.NATURAL,
         )
 
     def as_reactive_power_ssc(self) -> ReactivePower:
         # remark: actual reactive power indirectly (Q(U); Q(P)) set by external controller is not shown in ReactivePower
         return ReactivePower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_reacts),
+            value=tuple(round(e, DecimalDigits.POWER) for e in self.pow_reacts),
             system_type=SystemType.NATURAL,
         )
 
@@ -729,10 +729,10 @@ class LoadPower:
         # * as loads don't have rated power in a classic way
         # An adaption may be necessary in the future if inductive coils or capacitor banks are considered.
         pow_apps = ApparentPower(
-            value=(round(e, DecimalDigits.POWER) for e in self.pow_apps),
+            value=tuple(round(e, DecimalDigits.POWER) for e in self.pow_apps),
             system_type=SystemType.NATURAL,
         )
-        cos_phis = CosPhi(value=(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
+        cos_phis = CosPhi(value=tuple(round(e, DecimalDigits.POWERFACTOR) for e in self.cos_phis))
         return RatedPower.from_apparent_power(pow_apps, cos_phis)
 
     def limit_phases(self, n_phases: int) -> LoadPower:
@@ -764,7 +764,7 @@ class ControlTypeFactory:
     def create_cos_phi_const(power: LoadPower) -> ControlCosPhiConst:
         return ControlCosPhiConst(
             cos_phi_set=CosPhi(
-                value=(e for e in power.cos_phis),
+                value=tuple(e for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -773,7 +773,7 @@ class ControlTypeFactory:
     def create_tan_phi_const(power: LoadPower) -> ControlTanPhiConst:
         return ControlTanPhiConst(
             tan_phi_set=TanPhi(
-                value=(math.tan(math.acos(e)) for e in power.cos_phis),
+                value=tuple(math.tan(math.acos(e)) for e in power.cos_phis),
                 direction=power.pow_fac_dir,
             ),
         )
@@ -834,14 +834,10 @@ class ControlTypeFactory:
         q_max_ue: float | None,
         q_max_oe: float | None,
     ) -> ControlQP:
-        if q_max_ue is not None:
-            q_max_ue = Qc.sym_three_phase_reactive_power(q_max_ue)
-        if q_max_oe is not None:
-            q_max_oe = Qc.sym_three_phase_reactive_power(q_max_oe)
         return ControlQP(
             q_p_characteristic=Characteristic(name=q_p_characteristic_name),
-            q_max_ue=q_max_ue,
-            q_max_oe=q_max_oe,
+            q_max_ue=Qc.sym_three_phase_reactive_power(q_max_ue) if q_max_ue is not None else None,
+            q_max_oe=Qc.sym_three_phase_reactive_power(q_max_oe) if q_max_oe is not None else None,
         )
 
     @staticmethod

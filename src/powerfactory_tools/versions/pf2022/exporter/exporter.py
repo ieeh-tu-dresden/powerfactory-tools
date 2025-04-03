@@ -501,11 +501,11 @@ class PowerFactoryExporter:
 
         return Topology(
             meta=meta,
-            nodes=nodes,
-            branches=branches,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            nodes=tuple(nodes),
+            branches=tuple(branches),
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
     def create_external_grids(
@@ -1446,7 +1446,7 @@ class PowerFactoryExporter:
                 "Consumer {load_name} is not connected to any bus. Skipping.",
                 load_name=self.pfi.create_name(load, grid_name=grid_name),
             )
-            return [None]
+            return None
 
         terminal = bus.cterm
 
@@ -1569,7 +1569,7 @@ class PowerFactoryExporter:
         bus = load.bus1
         if bus is None:
             loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=load_name)
-            return [None]
+            return None
         terminal = bus.cterm
 
         # PhaseConnectionType: either based on load type or on terminal phase connection type
@@ -2161,7 +2161,7 @@ class PowerFactoryExporter:
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
-        tc = TopologyCase(meta=meta, elements=power_on_states)
+        tc = TopologyCase(meta=meta, elements=tuple(power_on_states))
 
         if not tc.matches_topology(topology):
             msg = "Topology case does not match specified topology."
@@ -2555,9 +2555,9 @@ class PowerFactoryExporter:
 
         sc = SteadystateCase(
             meta=meta,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
         if not sc.matches_topology(topology):
@@ -3543,7 +3543,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            control_type = ControlTypeFactory.create_cos_phi_const(power)
+            control_type = ControlTypeFactory.create_cos_phi_const(power)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=control_type)
 
         msg = "unreachable"
@@ -3604,7 +3604,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlTypeFactory.create_q_const(power)
+            q_control_type = ControlTypeFactory.create_q_const(power)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_U:
@@ -3619,7 +3619,7 @@ class PowerFactoryExporter:
                 u_n=u_n,
             )
 
-            q_control_type = ControlTypeFactory.create_q_u_sym(
+            q_control_type = ControlTypeFactory.create_q_u_sym(  # type: ignore[assignment]
                 q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
                 q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
                 u_q0=u_q0 * u_n,
@@ -3636,7 +3636,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
             q_max_ue = None
             q_max_oe = None
-            q_control_type = ControlQP(
+            q_control_type = ControlQP(  # type: ignore[assignment]
                 q_p_characteristic=Characteristic(name=gen.pQPcurve.loc_name),
                 q_max_ue=q_max_ue,
                 q_max_oe=q_max_oe,
@@ -3644,7 +3644,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
+            q_control_type = ControlTypeFactory.create_cos_phi_p_sym(  # type: ignore[assignment]
                 cos_phi_ue=gen.pf_under,
                 cos_phi_oe=gen.pf_over,
                 p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3653,7 +3653,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
-            q_control_type = ControlTypeFactory.create_u_const_sym(u_set=gen.usetp * u_n)
+            q_control_type = ControlTypeFactory.create_u_const_sym(u_set=gen.usetp * u_n)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
@@ -3737,7 +3737,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlTypeFactory.create_q_const(power)
+                q_control_type = ControlTypeFactory.create_q_const(power)  # type: ignore[assignment]
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3770,7 +3770,7 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_control_type = ControlTypeFactory.create_q_u_sym(
+                q_control_type = ControlTypeFactory.create_q_u_sym(  # type: ignore[assignment]
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                     u_q0=u_q0 * u_n,
@@ -3787,7 +3787,7 @@ class PowerFactoryExporter:
 
             if controller.qu_char == QChar.P:  # Q(P)
                 q_dir = -1 if controller.iQorient else 1
-                q_control_type = ControlTypeFactory.create_q_p_sym(
+                q_control_type = ControlTypeFactory.create_q_p_sym(  # type: ignore[assignment]
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
@@ -3814,7 +3814,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlTypeFactory.create_cos_phi_const(power)
+                q_control_type = ControlTypeFactory.create_cos_phi_const(power)  # type: ignore[assignment]
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3822,7 +3822,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.P:  # cos_phi(P)
-                q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_p_sym(  # type: ignore[assignment]
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3835,7 +3835,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.U:  # cos_phi(U)
-                q_control_type = ControlTypeFactory.create_cos_phi_u_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_u_sym(  # type: ignore[assignment]
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
@@ -3862,7 +3862,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlTypeFactory.create_tan_phi_const(power)
+            q_control_type = ControlTypeFactory.create_tan_phi_const(power)  # type: ignore[assignment]
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3901,88 +3901,88 @@ class PowerFactoryExporter:
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_D:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.E],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.E),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_YN:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.N],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.N),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.E],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.E),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                )
             return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_YN:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.N],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.N),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                )
             return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.E),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.E),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.E]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.E),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.N),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.N),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.N]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.N),)
+            return PhaseConnections(value=_phase_connection)
 
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_branch_phases(
+    def get_branch_phases(  # noqa: PLR0912
         self,
         *,
         l_type: PFTypes.LineType,
@@ -4017,6 +4017,9 @@ class PowerFactoryExporter:
                     Phase[PFPhase2PH(phases[0]).name],
                     Phase[PFPhase2PH(phases[1]).name],
                 ]
+            else:
+                msg = "unreachable"
+                raise RuntimeError(msg)
         elif l_type.nlnph == 1:  # 1 phase conductors
             if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
                 phases = textwrap.wrap(bus.cPhInfo, 2)
@@ -4033,49 +4036,52 @@ class PowerFactoryExporter:
                 phases_tuple = [
                     Phase[PFPhase1PH(phases[0]).name],
                 ]
+            else:
+                msg = "unreachable"
+                raise RuntimeError(msg)
         else:
             msg = "unreachable"
             raise RuntimeError(msg)
 
         if l_type.nneutral == 1:
             phases_tuple = [*phases_tuple, Phase.N]
-        return phases_tuple
+        return phases_tuple  # type: ignore[return-value]
 
     def get_terminal_phases(
         self,
         phase_connection_type: TerminalPhaseConnectionType,
     ) -> UniqueTuple[Phase]:
         if phase_connection_type is TerminalPhaseConnectionType.THREE_PH:
-            return [
+            return (
                 Phase[PFPhase3PH.A.name],
                 Phase[PFPhase3PH.B.name],
                 Phase[PFPhase3PH.C.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.THREE_PH_N:
-            return [
+            return (
                 Phase[PFPhase3PH.A.name],
                 Phase[PFPhase3PH.B.name],
                 Phase[PFPhase3PH.C.name],
                 Phase[PFPhase3PH.N.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.TWO_PH:
-            return [
+            return (
                 Phase[PFPhase2PH.A.name],
                 Phase[PFPhase2PH.B.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.TWO_PH_N:
-            return [
+            return (
                 Phase[PFPhase2PH.A.name],
                 Phase[PFPhase2PH.B.name],
                 Phase[PFPhase2PH.N.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH:
-            return [Phase[PFPhase1PH.A.name]]
+            return (Phase[PFPhase1PH.A.name],)
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH_N:
-            return [
+            return (
                 Phase[PFPhase1PH.A.name],
                 Phase[PFPhase1PH.N.name],
-            ]
+            )
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Implementation unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
@@ -4090,21 +4096,21 @@ class PowerFactoryExporter:
     ) -> UniqueTuple[Phase]:
         if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return [
+            return (
                 Phase[PFPhase3PH(phases[0]).name],
                 Phase[PFPhase3PH(phases[1]).name],
                 Phase[PFPhase3PH(phases[2]).name],
-            ]
+            )
 
         if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 3)
-            return [
+            return (
                 Phase[PFPhase2PH(phases[0]).name],
                 Phase[PFPhase2PH(phases[1]).name],
-            ]
+            )
         if phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return [Phase[PFPhase1PH(phases[0]).name]]
+            return (Phase[PFPhase1PH(phases[0]).name],)
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Implementation unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
@@ -4125,7 +4131,7 @@ class PowerFactoryExporter:
         if winding_vector_group in (WVectorGroup.YN, WVectorGroup.ZN):
             phases = [*phases, Phase.N]
 
-        return phases
+        return tuple(phases)
 
     def get_extra_element_attrs(
         self,

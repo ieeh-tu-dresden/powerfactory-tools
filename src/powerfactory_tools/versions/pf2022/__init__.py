@@ -7,7 +7,7 @@ from powerfactory_tools.versions.pf2022.exporter.exporter import export_powerfac
 from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
 
 __all__ = [
-    "PowerFactoryInterface",
     "PowerFactoryExporter",
+    "PowerFactoryInterface",
     "export_powerfactory_data",
 ]

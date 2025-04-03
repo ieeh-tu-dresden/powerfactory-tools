@@ -1056,7 +1056,7 @@ class PowerFactoryTypes:
         def GetPage(  # noqa: N802
             self,
             name: str,
-            create: bool,  # noqa: FBT001;  optional
+            create: bool,  # noqa: FBT001  # optional
             class_name: str,  # optional
             /,
         ) -> PowerFactoryTypes.DataObject: ...

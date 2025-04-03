@@ -57,7 +57,7 @@ class QuantityConverter:
     def sym_three_phase_angle(value: float, modal_system_type: SystemType = SystemType.NATURAL) -> Angle:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return Angle(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -65,7 +65,7 @@ class QuantityConverter:
     def sym_three_phase_active_power(value: float, modal_system_type: SystemType = SystemType.NATURAL) -> ActivePower:
         values = QuantityConverter._sym_three_phase_power(value)
         return ActivePower(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -76,7 +76,7 @@ class QuantityConverter:
     ) -> ApparentPower:
         values = QuantityConverter._sym_three_phase_power(value)
         return ApparentPower(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -84,7 +84,7 @@ class QuantityConverter:
     def sym_three_phase_current(value: float, modal_system_type: SystemType = SystemType.NATURAL) -> Current:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return Current(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -92,7 +92,7 @@ class QuantityConverter:
     def sym_three_phase_droop(value: float, modal_system_type: SystemType = SystemType.NATURAL) -> Droop:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return Droop(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -100,21 +100,21 @@ class QuantityConverter:
     def sym_three_phase_power_factor(value: float) -> PowerFactor:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return PowerFactor(
-            value=list(values),
+            value=tuple(values),
         )
 
     @staticmethod
     def sym_three_phase_cos_phi(value: float) -> CosPhi:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return CosPhi(
-            value=list(values),
+            value=tuple(values),
         )
 
     @staticmethod
     def sym_three_phase_tan_phi(value: float) -> TanPhi:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return TanPhi(
-            value=list(values),
+            value=tuple(values),
         )
 
     @staticmethod
@@ -124,7 +124,7 @@ class QuantityConverter:
     ) -> ReactivePower:
         values = QuantityConverter._sym_three_phase_power(value)
         return ReactivePower(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
 
@@ -132,6 +132,6 @@ class QuantityConverter:
     def sym_three_phase_voltage(value: float, modal_system_type: SystemType = SystemType.NATURAL) -> Voltage:
         values = QuantityConverter._sym_three_phase_no_power(value)
         return Voltage(
-            value=list(values),
+            value=tuple(values),
             system_type=modal_system_type,
         )
