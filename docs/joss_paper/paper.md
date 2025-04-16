@@ -88,6 +88,9 @@ A broad range of application examples is provided in the repository (@pftools), 
 
 The software is written in Python and uses the data validation library pydantic [@pydantic].
 In respect to the export functionality, the power system data model [@psdm] is used as schema for network entity relations.
+Ultimately, the responsibility falls upon the user to ensure the accurate compilation of software versions. 
+Should any reader require assistance with this topic, they will find an up-to-date list of compatible software available at the repositories readme.
+For example, the _PowerFactory-Tools_ version 3.2.0 is related to the _PSDM_ version 2.3.3 and brings built-in support for PowerFactory version 2022 and 2024.
 
 # Acknowledgements
 
