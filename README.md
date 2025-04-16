@@ -42,7 +42,7 @@ The interaction is recommended via the external usage of PowerFactory ('engine m
   >Are you a PowerFactory user looking to streamline your workflow, reduce errors, and boost productivity? Our toolbox is designed to help you achieve just that. It simplifies the [Python interface of PowerFactory](#powerfactory-interface), allowing you to avoid common pitfalls and errors that other users may encounter.
 
 - **Establish a Standardized Workflow**
-  >We makes it easier to collaborate with colleagues by providing you a standard *toolbox-way* of doing things in your organization, including a standard way to easily export simulation results e.g. to pandas dataframe or feather. 
+  >We make it easier to collaborate with colleagues by providing you a standard *toolbox-way* of doing things in your organization, including a standard way to easily export simulation results e.g. to pandas dataframe or feather. 
 
 - **Get the Most Out of PowerFactory with Our Comfort [Functions](#provided-functionalities)**
   >Take advantage of our reviewed comfort functions, which provide a wide range of benefits, including: simplified grid export, enhanced PowerFactory automation, easy object replacements
