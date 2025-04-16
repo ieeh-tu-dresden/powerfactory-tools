@@ -82,7 +82,7 @@ A temporary unit conversion to default values is automatically performed to have
 The units are reset when the interface is closed. 
 During an active connection to PowerFactory, the following units apply: power in MVA (resp. MW, Mvar), voltage in kV, current in kA and length in km.
 
-A broad range of application examples is provided in the repository (@pftools), which supports beginners.
+A broad range of application examples is provided in the repository (@pftools), which encourage beginners.
 
 # Software Dependencies
 
