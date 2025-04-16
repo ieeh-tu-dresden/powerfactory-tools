@@ -2,8 +2,8 @@ name: Draft PDF
 on:
     push:
         paths:
-        - ./docs/paper/**
-        - ./.github/workflows/draft-pdf.yml
+        - docs/paper/**
+        - .github/workflows/draft-pdf.yml
 
 jobs:
   paper:
@@ -19,7 +19,7 @@ jobs:
         with:
           journal: joss
           # This should be the path to the paper within your repo.
-          paper-path: ./docs/paper/paper.md
+          paper-path: docs/paper/paper.md
 
       - name: Upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
@@ -27,5 +27,5 @@ jobs:
           name: paper
           # This is the output path where Pandoc will write the compiled PDF. 
           # Note, this should be the same directory as the input paper.md.
-          path: ./docs/paper/joss_paper.pdf
+          path: docs/paper/joss_paper.pdf
 
