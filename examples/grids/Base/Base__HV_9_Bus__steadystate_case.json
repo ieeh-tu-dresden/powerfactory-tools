@@ -1226,10 +1226,10 @@
   ],
   "meta": {
     "case": "Base",
-    "creator": "powerfactory-tools @ version 3.0.0",
-    "date": "2024-09-03",
+    "creator": "powerfactory-tools @ version 3.1.0",
+    "date": "2025-04-16",
     "grid": "HV_9_Bus",
-    "id": "a7e50600-34a1-4a4c-a5ba-9c9f9a56c2c3",
+    "id": "2788c08e-ee7d-4f0c-a4f1-af2b780134be",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
@@ -1239,7 +1239,7 @@
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.1"
+    "version": "2.3.3"
   },
   "optional_data": null,
   "transformers": [

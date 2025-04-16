@@ -421,9 +421,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": "Load_const_power",
         "optional_data": null,
         "u_0": {
@@ -536,9 +536,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": "Load_const_power",
         "optional_data": null,
         "u_0": {
@@ -565,9 +565,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": "Load_const_power",
         "optional_data": null,
         "u_0": {
@@ -680,9 +680,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": "Load_const_power",
         "optional_data": null,
         "u_0": {
@@ -709,9 +709,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": null,
         "optional_data": null,
         "u_0": {
@@ -830,9 +830,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": null,
         "optional_data": null,
         "u_0": {
@@ -859,9 +859,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": null,
         "optional_data": null,
         "u_0": {
@@ -980,9 +980,9 @@
         "c_i": 0.0,
         "c_p": 1.0,
         "c_z": 0.0,
-        "exp_i": 1,
-        "exp_p": 0,
-        "exp_z": 2,
+        "exp_i": 1.0,
+        "exp_p": 0.0,
+        "exp_z": 2.0,
         "name": null,
         "optional_data": null,
         "u_0": {
@@ -1007,10 +1007,10 @@
   ],
   "meta": {
     "case": "3_Bus",
-    "creator": "powerfactory-tools @ version 3.0.0",
-    "date": "2024-09-03",
+    "creator": "powerfactory-tools @ version 3.1.0",
+    "date": "2025-04-16",
     "grid": "HV_3_Bus",
-    "id": "ade4fb63-9722-4b56-929b-45e08f70de02",
+    "id": "60d76039-3f09-4115-be0d-c403c444423f",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
@@ -1020,7 +1020,7 @@
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.1"
+    "version": "2.3.3"
   },
   "nodes": [
     {
