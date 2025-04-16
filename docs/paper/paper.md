@@ -51,7 +51,7 @@ When it comes to calculations based on use case variations or the need for repro
 PowerFactory-Tools eases developing, testing and verification by providing a well-structured and type-safe Python interface for PowerFactory.
 This interface is established on top of the PowerFactory-Python-API, but has undergone a process of refinement and augmentation through the incorporation of customisation options that prove to be of considerable practical benefit.
 
-Furhtermore, a main functionality is the network exporter from PowerFactory to the open-source _Power System Data Model_ (PSDM) [@psdm].
+Furthermore, a main functionality is the network exporter from PowerFactory to the open-source _Power System Data Model_ (PSDM) [@psdm].
 In terms of a network optimisation request, user-defined network reduction or stability analysis, users may need explicitly access to the nodal admittance matrix (NAM) of the network. 
 Since access to this is still restricted for PowerFactory users, exporting the PowerFactory network to a well structured and human readable exchange format is a huge benefit.
 Due to this, users can (a) export to _PSDM_ Python objects and build the NAM by your own without changing the programming language or (b) export to _PSDM_-formatted JSON files, then import these files using the programming language of your choice and build the NAM.
