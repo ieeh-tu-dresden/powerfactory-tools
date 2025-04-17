@@ -92,7 +92,6 @@ pip install ieeh-powerfactory-tools
 
 ```python
 import pathlib
-
 from powerfactory_tools.versions.pf2024 import PowerFactoryExporter
 from powerfactory_tools.versions.pf2024.interface import ValidPythonVersion
 
@@ -119,11 +118,16 @@ project_name=PROJECT_NAME,
 
         # Create the three PSDM base classes
         topology = self.create_topology(meta=meta, data=data)
-        topology_case = self.create_topology_case(meta=meta, data=data, topology=topology)
-        steadystate_case = self.create_steadystate_case(meta=meta, data=data, topology=topology)
+        topology_case = self.create_topology_case(meta=meta, data=data, 
+            topology=topology)
+        steadystate_case = self.create_steadystate_case(meta=meta, data=data, 
+            topology=topology)
 
     # Option II: Export to PSDM-formatted JSON files
-    exporter.export(export_path = pathlib.Path("export_dir"), study_case_names=["study_case_name"])
+    exporter.export(
+        export_path = pathlib.Path("export_dir"), 
+        study_case_names=["study_case_name"],
+    )
 ```
 
 # Software Dependencies
