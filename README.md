@@ -1,11 +1,19 @@
 # IEEH PowerFactory Tools
 
+[![image](https://img.shields.io/pypi/v/ieeh-powerfactory-tools.svg)](https://pypi.python.org/pypi/ieeh-powerfactory-tools)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
 
-A toolbox for Python based control of DIgSILENT PowerFactory.
+
+
+A toolbox for Python based control and automation of DIgSILENT PowerFactory (> 2022).
 
 - [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#field-of-application)
+    - [Why to Use](#why-to-use)
+    - [Provided Functionalities](#provided-functionalities)
   - [ PowerFactory Interface](#powerfactory-interface)
   - [ General Remarks](#general-remarks)
     - [General Unit Conversion](#general-unit-conversion)
@@ -20,10 +28,33 @@ A toolbox for Python based control of DIgSILENT PowerFactory.
 
 ## Field of Application
 
-This application is intended to use for an external usage ('engine mode') of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
-Therefore, the Python-PowerFactory-API, provided by the company, is utilized.
+This toolbox is intended for automation of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
+Therefore, the Python-API of PowerFactory, provided by the company, is utilized.
+The interaction is recommended via the external usage of PowerFactory ('engine mode'), i.e. PowerFactory is started based on a Python script.
 
-The following functionalities are provided:
+### Why to Use
+- **Simplify Your Workflow with Type Hints and Autocompletion**
+
+  >Say goodbye to tedious coding and hello to efficient development with our software's type hints and autocompletion features. These tools enable you to write more accurate and readable code, saving you time and reducing the risk of errors.
+
+- **Unlock the Full Potential by Use of our PowerFactory Interface**
+
+  >Are you a PowerFactory user looking to streamline your workflow, reduce errors, and boost productivity? Our toolbox is designed to help you achieve just that. It simplifies the [Python interface of PowerFactory](#powerfactory-interface), allowing you to avoid common pitfalls and errors that other users may encounter.
+
+- **Establish a Standardized Workflow**
+  >We make it easier to collaborate with colleagues by providing you a standard *toolbox-way* of doing things in your organization, including a standard way to easily export simulation results e.g. to pandas dataframe or feather. 
+
+- **Get the Most Out of PowerFactory with Our Comfort [Functions](#provided-functionalities)**
+  >Take advantage of our reviewed comfort functions, which provide a wide range of benefits, including: simplified grid export, enhanced PowerFactory automation, easy object replacements
+
+- **Get Started with Confidence**
+
+  >We offer helpful [tutorials](#tutorials) to guide you through the learning process, ensuring that you can quickly get up to speed and start achieving your goals.
+
+
+
+
+### Provided functionalities
 
 - **Interface**: collection of comfort functions for the work with the PowerFactory API
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
@@ -108,8 +139,14 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 
 Please consider the [README](./examples/README.md) in the example section. Here, Jupyter notebooks are provided to get in touch with the usage of this toolbox:
 
-- for export: [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-- for control: [powerfactory_control.ipynb](./examples/powerfactory_control.ipynb)
+- for control 
+  - basics: [powerfactory_control__basic.ipynb](./examples/powerfactory_control__basic.ipynb)
+  - purpose "add loads": [powerfactory_control__add_loads.ipynb](./examples/powerfactory_control__add_loads.ipynb)
+- for export to [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks):
+  - [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
+- for import from [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks): 
+  - [powerfactory_import.ipynb](./examples/powerfactory_import.ipynb)
+
 
 In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
 
@@ -125,13 +162,16 @@ pip install ieeh-powerfactory-tools
 
 | Tools Version | PSDM Version | PowerFactory Version | Recommended Python Version |
 |---------------|:------------:|:--------------------:|:--------------:|
-| <= 1.3.1      | 1.1.0        | 2022                 | 3.10      |
+| <= 1.3.1      | 1.1.0        | 2022                 | 3.10           |
 | 1.4.x         | 1.1.0        | 2022                 | 3.10           |
 | 1.5.1         | 1.3.0        | 2022                 | 3.10           |
 | 2.1.0         | 2.2.0        | 2022                 | 3.10           |
 | 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
+| 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12     |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
+
+In Addition, one can easily use PowerFactory main versions (e.g. 2023) which are not yet preimplemented. Just copy a "pf202x" directory within [src/versions](./src/powerfactory_tools/versions/) and adapt the version specific toolbox import paths and powerfactory installation path.
 
 **The correct Python version**: Be aware, that the Python version of your code environment must match the selected Python version of the PowerFactory API!
 
@@ -191,3 +231,6 @@ Please cite as:
 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
+
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
