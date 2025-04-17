@@ -8,7 +8,7 @@ tags:
   - Automation
 authors:
   - name: Sebastian Krahmer
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0002-3940-3398
     corresponding: true
     equal-contrib: true
     affiliation: 1
