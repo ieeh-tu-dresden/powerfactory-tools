@@ -47,13 +47,13 @@ This software is a valuable tool for power system engineers and researchers who 
 # Statement of need
 
 _PowerFactory-Tools_ is a power system affiliated Python package for the control of the commercial network calculation program PowerFactory [@powerfactory].
-When it comes to calculations based on use case variations or the need for reproducible control actions, PowerFactory can to be called and controlled via user-defined Python scripts.
+When it comes to calculations based on use case variations or the need for reproducible control actions, PowerFactory can be called and controlled via user-defined Python scripts.
 PowerFactory-Tools eases developing, testing and verification by providing a well-structured and type-safe Python interface for PowerFactory.
-This interface is established on top of the PowerFactory-Python-API, but has undergone a process of refinement and augmentation through the incorporation of customisation options that prove to be of considerable practical benefit.
+This interface is established on top of the PowerFactory-Python-API, but has undergone a process of refinement and augmentation through the incorporation of individually parameterisable functions that prove to be of considerable practical benefit.
 A common task in respect to case studies that can be implemented more conveniently with _PowerFactory-Tools_ is, for example, the automated replacement of generators with one's own templates and their parameterisation.
 
 Furthermore, a main functionality is the network exporter from PowerFactory to the open-source _Power System Data Model_ (PSDM) [-@psdm].
-In terms of a network optimisation request, user-defined network reduction or stability analysis, users may need explicitly access to the nodal admittance matrix (NAM) of the network. 
+In terms of network optimisation, user-defined network reduction or stability analysis, users may require an explicitly accessible nodal admittance matrix (NAM) of the network. 
 Since access to this is still restricted for PowerFactory users, exporting the PowerFactory network to a well structured and human readable exchange format is a huge benefit.
 Due to this, users can (a) export to _PSDM_ Python objects and build the NAM by your own without changing the programming language or (b) export to _PSDM_-formatted JSON files, then import these files using the programming language of your choice and build the NAM.
 It has to mention, that PowerFactory provides a built-in export with DGS, the bidirectional, flexible DIgSILENT data exchange format (ascii, xml, csv, odbc). 
@@ -75,15 +75,15 @@ A broad range of application examples is provided in the _PowerFactory-Tools_ re
 
 # Power System Data Model
 
-As previously stated, the _PSDM_ constitutes a secondary open-source toolbox that has been developed in relation to, though not exclusively for, the _PowerFactory-Tools_.
+As previously stated, the _PSDM_ constitutes a secondary open-source toolbox that has been developed in conjunction with the _PowerFactory-Tools_, but not exclusively for them.
 It utilizes a hierarchical structure/schema to describe unique entity relations as well as parameter sets. 
 _PSDM_ uses the BaseModel class from Pydantic as a technique for defining schema classes.
 The PSDM consists of three parts covering different types of information and each part can be stored as a human-readable JSON file:
 - Topology: plain network model with nodes, edges and connected devices
-- TopologyCase: information about element that are disconnected, e. g. out-of-service or via open switches
-- SteadystateCase: operational case specific information
+- TopologyCase: information about elements that are disconnected, e. g. out-of-service or via open switches
+- SteadystateCase: operational case specific information.
 
-A full PSDM-representation of a network can be seen in the example section of the _PowerFactory-Tools_ repository [-@pftools].
+A full PSDM-representation of a network can be viewed in the example section of the _PowerFactory-Tools_ repository [-@pftools].
 The following code snippet shows how to use the library to export a PowerFactory 2024 network to the _PSDM_ format.
 
 ```shell
