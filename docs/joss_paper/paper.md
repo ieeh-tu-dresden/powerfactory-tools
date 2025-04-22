@@ -1,5 +1,5 @@
 ---
-title: 'PowerFactory-Tools: A toolbox to facilitate the control of DIgSILENT PowerFactory, written in Python'
+title: 'PowerFactory-Tools: A Python Package to Facilitate the Control of DIgSILENT PowerFactory'
 tags:
   - Python
   - Electrical Power System
@@ -36,7 +36,7 @@ bibliography: paper.bib
 
 # Summary
 
-_PowerFactory-Tools_ is a Python package that facilitates the control of PowerFactory, a network calculation program. 
+_PowerFactory-Tools_ is a Python package that facilitates the control of PowerFactory, a worldwide used network calculation program. 
 The software provides a well-structured and type-safe interface for PowerFactory, thereby simplifying the development, testing and verification of custom Python scripts. 
 The package also includes a network exporter that converts PowerFactory data into the open-source _Power System Data Model_ format. 
 This enables users to access the nodal admittance matrix of the network, which is restricted in PowerFactory. 
