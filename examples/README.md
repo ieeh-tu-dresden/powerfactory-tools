@@ -33,7 +33,7 @@ to three different json files using the [power system data model (psdm)][link_to
 **Please note**, that default values for the PowerFactory installation path and the Python version are used.
 If necessary, one can adapt `powerfactory_path`, `powerfactory_service_pack` and `python_version` when initializing the [PowerFactoryExporter][link_to_exporter].
 
-By default, **all assests of all active grids** within the selected PowerFactory project are to be exported.
+By default, **all assets of all active grids** within the selected PowerFactory project are to be exported.
 - The preferred way for export is to assign the desired study cases to the `export()` function call, see [export example](powerfactory_export.ipynb).
 - Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control "base" example 7-9](powerfactory_control__base.ipynb).
 
