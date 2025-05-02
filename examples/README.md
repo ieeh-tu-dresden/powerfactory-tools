@@ -39,7 +39,7 @@ By default, **all assests of all active grids** within the selected PowerFactory
 
 The following figure provides a short overview of the dependencies within a PowerFactory project.
 
-![PowerFactory_StudyCase_Dependencies](./PowerFactory_StudyCase_Dependencies.png)
+![PowerFactory_StudyCase_Dependencies](../docs/static/PowerFactory_StudyCase_Dependencies.png)
 
 ### Extended Attributes Export
 

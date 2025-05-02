@@ -2,11 +2,12 @@
 
 [![image](https://img.shields.io/pypi/v/ieeh-powerfactory-tools.svg)](https://pypi.python.org/pypi/ieeh-powerfactory-tools)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
 
-
+<div align="center">
+  <img src="./docs/static/PFT_icon_extended_360px.png" width="200">
+</div>
 
 A toolbox for Python based control and automation of DIgSILENT PowerFactory (> 2022).
 
@@ -33,6 +34,8 @@ Therefore, the Python-API of PowerFactory, provided by the company, is utilized.
 The interaction is recommended via the external usage of PowerFactory ('engine mode'), i.e. PowerFactory is started based on a Python script.
 
 ### Why to Use
+Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automate-powerfactory-with-python-and-powerfactory-tools-e96d33adda74) about the toolbox.
+
 - **Simplify Your Workflow with Type Hints and Autocompletion**
 
   >Say goodbye to tedious coding and hello to efficient development with our software's type hints and autocompletion features. These tools enable you to write more accurate and readable code, saving you time and reducing the risk of errors.
@@ -87,6 +90,8 @@ During an active connection, the following units apply:
 - length in km
 
 ### Exporter
+
+Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/export-a-network-from-powerfactory-to-the-power-system-data-model-db46103bdabe) about the exporter.
 
 The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
 
@@ -177,6 +182,7 @@ In Addition, one can easily use PowerFactory main versions (e.g. 2023) which are
 
 ## Development
 
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
 [Install uv](https://github.com/astral-sh/uv)
 
 
