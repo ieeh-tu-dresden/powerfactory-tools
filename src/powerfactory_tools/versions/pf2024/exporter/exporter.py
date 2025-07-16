@@ -146,9 +146,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         *,
         project_name: str,
         export_path: pathlib.Path,
-        powerfactory_user_profile: str = "",
+        powerfactory_ini_name: str | None = None,
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
+        powerfactory_user_profile: str = "",
+        powerfactory_user_password: str | None = None,
         python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
@@ -161,9 +163,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         super().__init__()
         self.export_path = export_path
         self.project_name = project_name
-        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_ini_name = powerfactory_ini_name
         self.powerfactory_path = powerfactory_path
         self.powerfactory_service_pack = powerfactory_service_pack
+        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_user_password = powerfactory_user_password
         self.python_version = python_version
         self.logging_level = logging_level
         self.log_file_path = log_file_path
@@ -176,9 +180,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
     def run(self) -> None:
         pfe = PowerFactoryExporter(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -196,9 +202,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
 @pydantic.dataclasses.dataclass
 class PowerFactoryExporter:
     project_name: str
-    powerfactory_user_profile: str = ""
+    powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
+    powerfactory_user_profile: str = ""
+    powerfactory_user_password: str | None = None
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -207,9 +215,11 @@ class PowerFactoryExporter:
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -4176,9 +4186,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     *,
     export_path: pathlib.Path,
     project_name: str,
-    powerfactory_user_profile: str = "",
+    powerfactory_ini_name: str | None = None,
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
+    powerfactory_user_profile: str = "",
+    powerfactory_user_password: str | None = None,
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
@@ -4198,9 +4210,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     Arguments:
         export_path {pathlib.Path} -- the directory where the exported json files are saved
         project_name {str} -- project name in PowerFactory to which the grid belongs
-        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_ini_name {str | None} -- the name of the PowerFactory ini file to be used (default: {None})
         powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
         powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
+        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_user_password {str | None} -- user password for login in PowerFactory (default: {None})
         python_version {PYTHON_VERSIONS} -- the version of Python to be used for PowerFactory (default: {DEFAULT_PYTHON_VERSION})
         logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
         log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
@@ -4217,9 +4231,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     process = PowerFactoryExporterProcess(
         project_name=project_name,
         export_path=export_path,
-        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_ini_name=powerfactory_ini_name,
         powerfactory_path=powerfactory_path,
         powerfactory_service_pack=powerfactory_service_pack,
+        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_user_password=powerfactory_user_password,
         python_version=python_version,
         logging_level=logging_level,
         log_file_path=log_file_path,
