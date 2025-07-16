@@ -137,7 +137,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 - Remarks on export of the `TopologyCase`:
   - In the case that an element, which is not part of the exported topology as it is not supported by the exporter so far, has an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check. To avoid this, the user has two options:
     - Change in PowerFactory: Close the open switch and set the connected element out of service instead
-    - Turn of plausibility check in Exporter: Set the `plausibility_check` parameter of the `export()` function to `False`
+    - Turn off plausibility check in Exporter: Set the `plausibility_check` parameter of the `export()` function to `False`
 
 - Remarks on export of the `SteadyStateCase`:
   - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
