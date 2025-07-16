@@ -497,7 +497,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
-            optional_data=[pf_version_data],  # type: ignore[reportArgumentType]
+            optional_data=[pf_version_data],
         )
 
     def create_topology(
@@ -589,7 +589,7 @@ class PowerFactoryExporter:
             type=GridType(ext_grid.bustp),
             short_circuit_power_max=Qc.single_phase_apparent_power(ext_grid.snss * Exponents.POWER),
             short_circuit_power_min=Qc.single_phase_apparent_power(ext_grid.snssmin * Exponents.POWER),
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def create_nodes(
@@ -633,7 +633,7 @@ class PowerFactoryExporter:
             u_n=u_n,
             phases=phases,
             description=description,
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def create_branches(
@@ -775,7 +775,7 @@ class PowerFactoryExporter:
             type=BranchType.LINE,
             voltage_system_type=u_system_type,
             length=Length(value=line_len * Exponents.LENGTH),
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     @staticmethod
@@ -866,7 +866,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.COUPLER,
             voltage_system_type=voltage_system_type,
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def create_fuse(
@@ -949,7 +949,7 @@ class PowerFactoryExporter:
             u_n=Qc.single_phase_voltage(u_nom),
             type=BranchType.FUSE,
             voltage_system_type=voltage_system_type,
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def get_element_description(
@@ -1189,8 +1189,8 @@ class PowerFactoryExporter:
                 tap_side=tap_side,
                 description=description,
                 phase_technology_type=ph_technology,
-                windings=[wh, wl],  # type: ignore[reportArgumentType]
-                optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+                windings=(wh, wl),
+                optional_data=extra_meta_data,
             )
 
         loguru.logger.warning(
@@ -1830,7 +1830,7 @@ class PowerFactoryExporter:
             type=LoadType.CONSUMER,
             system_type=system_type,
             voltage_system_type=voltage_system_type,
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def reference_voltage_for_load_model_of(
@@ -2142,7 +2142,7 @@ class PowerFactoryExporter:
             type=load_type,
             system_type=system_type,
             voltage_system_type=VoltageSystemType.AC,
-            optional_data=extra_meta_data,  # type: ignore[reportArgumentType]
+            optional_data=extra_meta_data,
         )
 
     def create_topology_case(
@@ -4180,7 +4180,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str | None = None,
-    ) -> Sequence[AttributeData] | None:
+    ) -> tuple[AttributeData, ...] | None:
         """Creates a list of AttributeData for the given element based on given attrs_dict.
 
         In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
@@ -4192,7 +4192,7 @@ class PowerFactoryExporter:
             grid_name {str | None} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
-            {Sequence[AttributeData] | None} -- list of AttributeData or None if no attributes have been defined for this element type
+            {tuple[AttributeData] | None} -- list (tuple) of AttributeData or None if no attributes have been defined for this element type
         """
         if element_specific_attrs is None:
             return None
@@ -4206,9 +4206,10 @@ class PowerFactoryExporter:
                         key=lambda x: x.lower() if isinstance(x, str) else next(iter(x)).lower(),
                     )
                 ]
-                return self.pfi.filter_none_attributes(
-                    attribute_data,
-                    self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
+                return tuple(
+                    self.pfi.filter_none_attributes(
+                        attribute_data, self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name)
+                    ),
                 )
         return None
 
