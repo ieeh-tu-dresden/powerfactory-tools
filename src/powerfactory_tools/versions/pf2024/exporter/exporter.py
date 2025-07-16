@@ -4208,7 +4208,8 @@ class PowerFactoryExporter:
                 ]
                 return tuple(
                     self.pfi.filter_none_attributes(
-                        attribute_data, self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name)
+                        attribute_data,
+                        self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
                     ),
                 )
         return None
