@@ -101,7 +101,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 - By default, all assests of all active grids within the selected study case are to be exported, see [example readme](./examples/README.md).
   - Assets can be excluded by writing `do_not_export` in the first line of the description field.
 
-- The following type of elements are supported:
+- The following type of elements are supported so far:
   - `ElmLne` - a symmetrical overhead line / cable
   - `ElmTerm` - a network terminal / bus
   - `ElmCoup` - a bus-bus switch (e.g. a circuit breaker in a detailed switching gear)
@@ -133,6 +133,11 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
+
+- Remarks on export of the `TopologyCase`:
+  - In the case that an element, which is not part of the exported topology as it is not supported by the exporter so far, has an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check. To avoid this, the user has two options:
+    - Change in PowerFactory: Close the open switch and set the connected element out of service instead
+    - Turn of plausibility check in Exporter: Set the `plausibility_check` parameter of the `export()` function to `False`
 
 - Remarks on export of the `SteadyStateCase`:
   - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
@@ -237,6 +242,3 @@ Please cite as:
 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
-
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-
