@@ -21,7 +21,7 @@ class PFClassId(enum.Enum):
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
-    EXTERNAL_GRID = "ElmXNet"
+    EXTERNAL_GRID = "ElmXnet"
     DATETIME = "SetTime"
     DESKTOP = "SetDesktop"
     DSL_MODEL = "ElmDsl"
