@@ -100,6 +100,3 @@ class TestExportImportData:
                 pd.testing.assert_frame_equal(origin_dataframe, imported_dataframe)
             else:
                 pd.testing.assert_frame_equal(data, imported_dataframe)
-
-                origin_dataframe = convert_dict_to_dataframe(data)
-                pd.testing.assert_frame_equal(origin_dataframe, imported_dataframe)
