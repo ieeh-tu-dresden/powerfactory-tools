@@ -121,23 +121,23 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
   - The default load model of medium-voltage loads (`ElmLodmv`) is of type `const. power`.
   - The default load model of low-voltage loads (`ElmLodlv`, `ElmLodlvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower - as_rated_power()](./powerfactory_tools/versions/pf2022/exporter/load_power.py).
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./powerfactory_tools/versions/pf2022/exporter/load_power.py).
   - Connected consumer loads with an active and reactive power of zero leads to a RatedPower of `NaN`. Consider to exclude them for export.
 
 - Remarks on export of `transformer`:
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter - create_transformer_2w()](./src/powerfactory_tools/versions/pf2022/exporter/exporter.py).
+  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter:create_transformer_2w()](./src/powerfactory_tools/versions/pf2024/exporter/exporter.py).
 
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
   - Element fuses does not apply a switching state by their own in PowerFactory but considered in export as applicable switching state.
 
 - Remarks on export of the `TopologyCase`:
-  - In the case that an element, which is not part of the exported topology as it is not supported by the exporter so far, has an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check. To avoid this, the user has two options:
-    - Change in PowerFactory: Close the open switch and set the connected element out of service instead
-    - Turn off plausibility check in Exporter: Set the `plausibility_check` parameter of the `export()` function to `False`
+  - In case that there is an element in the PowerFactory network that cannot be considered/exported by the PowerFactoryExporter according to the current version (e.g. `.ElmVsc`). If this element is connected to an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check of the export process and the run is terminated. To avoid this, the user has two options:
+    - Manual change in PowerFactory: Close the relevant open switch and set the connected element out of service instead.
+    - Turn off plausibility check in PowerFactoryExporter: Set the `plausibility_check` parameter of the [PowerFactoryExporter:export()](./src/powerfactory_tools/versions/pf2024/exporter/exporter.py) to `False`.
 
 - Remarks on export of the `SteadyStateCase`:
   - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
