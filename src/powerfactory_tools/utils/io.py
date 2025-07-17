@@ -160,14 +160,6 @@ class ExportHandler(abc.ABC):
         try:
             with pathlib.Path(file_path).open("w", encoding="utf-8", newline="") as file_handle:
                 dataframe.to_csv(file_handle, index=False)
-        # padded_data = format_dict(data)  # noqa: ERA001
-        # list_of_dicts = [dict(zip(padded_data, t, strict=False)) for t in zip(*padded_data.values(), strict=False)]  # noqa: ERA001
-
-        # try:  # noqa: ERA001
-        #     with pathlib.Path(file_path).open("w+", encoding="utf-8", newline="") as csvfile:
-        #         writer = csv.DictWriter(csvfile, fieldnames=data.keys())  # noqa: ERA001
-        #         writer.writeheader()  # noqa: ERA001
-        #         writer.writerows(list_of_dicts)  # noqa: ERA001
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
