@@ -2632,7 +2632,7 @@ class PowerFactoryInterface:
             elm_type{PFClassId} -- the type of the element
             attribute {str} -- key of the attribute
         Keyword Arguments:
-            grid_name {str | None, optional} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. {default: {None})
+            grid_name {str | None, optional} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
             {AttributeData | None} -- instance of AttributeData or None if attribute does not exist within the element
