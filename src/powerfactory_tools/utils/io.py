@@ -145,7 +145,7 @@ class ExportHandler(abc.ABC):
     def to_json(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame, indent: int = 2) -> bool:
         dataframe = convert_dict_to_dataframe(data)
         try:
-            with pathlib.Path(file_path).open("wb+") as file_handle:
+            with pathlib.Path(file_path).open("w+") as file_handle:
                 dataframe.to_json(file_handle, indent=indent)
 
         except Exception as e:  # noqa: BLE001
