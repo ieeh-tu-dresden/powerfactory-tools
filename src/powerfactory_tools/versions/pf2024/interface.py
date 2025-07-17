@@ -2158,7 +2158,7 @@ class PowerFactoryInterface:
         )
         cmd.iopt_mde = method.value  # type: ignore[assignment]
         cmd.iopt_shc = fault_type.value  # type: ignore[assignment]
-        cmd.iopt_mct = current_type.value  # type: ignore[assignment]
+        cmd.iopt_cur = current_type.value  # type: ignore[assignment]
         cmd.iopt_allbus = fault_location.value  # type: ignore[assignment]
         cmd.iopt_asc = terminal_output
 

@@ -510,7 +510,7 @@ class ShortCircuitPosition(enum.IntEnum):
 
 
 class ShortCircuitReportParameter(enum.IntEnum):
-    FAULT_LOCATIONS = 0  #
+    FAULT_LOCATIONS = 0
     FAULT_LOCATIONS_WITH_FEEDER = 1
     CURRENTS_AND_VOLTAGES = 2
     PROTECTION = 3
@@ -1187,7 +1187,7 @@ class PowerFactoryTypes:
         iopt_mde: ShortCircuitCalcType  # calculation method
         iec_pub: int  # IEC publication year, e.g. 1990, 2001, 2016
         iopt_shc: ShortCircuitFaultType  # fault type
-        iopt_mct: ShortCircuitCurrentType  # current type
+        iopt_cur: ShortCircuitCurrentType  # current type
         i_lvtol: int  # low voltage grid voltage tolerance in percent: eg. 6, 10
 
         Ta: float  # Tripping time of the circuit breaker in seconds
