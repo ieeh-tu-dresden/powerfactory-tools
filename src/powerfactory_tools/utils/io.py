@@ -96,7 +96,7 @@ class ExportHandler(abc.ABC):
         *,
         file_type: FileType,
         file_name: str | None = None,
-        active_study_case: PFTypes.StudyCase | None = None,  # type: ignore # noqa: F821 , PGH003
+        active_study_case: PFTypes.StudyCase | None = None,  # type: ignore # noqa: F821, PGH003
     ) -> pathlib.Path:
         msg = "This method should be implemented in a subclass"
         raise NotImplementedError(msg)

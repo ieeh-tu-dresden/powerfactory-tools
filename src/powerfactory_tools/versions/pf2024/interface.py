@@ -100,11 +100,11 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
+    powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
-    powerfactory_ini_name: str | None = None
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
