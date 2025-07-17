@@ -3,14 +3,14 @@
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2025.
 # :license: BSD 3-Clause
 
+# pyright: reportPossiblyUnboundVariable=false
+
 from __future__ import annotations
 
 import abc
-import csv
+import ast
 import enum
-import json
 import pathlib
-import pickle
 import typing as t
 
 import loguru
@@ -47,13 +47,53 @@ class FileType(enum.Enum):
         return value in cls.values()
 
 
+def _format_dict(data: dict[str, PrimitiveType]) -> dict[str, PrimitiveType]:
+    # Convert dictionary to list of dictionaries
+    max_length = max(len(v) if isinstance(v, list) else 1 for v in data.values())
+    # Convert non-list values to lists with repeated values and pad shorter lists with None
+    return {
+        key: (v + [None] * (max_length - len(v))) if isinstance(v, list) else ([v] + [None] * (max_length - 1))
+        for key, v in data.items()
+    }
+
+
+def convert_dataframe_to_dict(dataframe: pd.DataFrame) -> dict[str, PrimitiveType]:
+    """Convert a pandas DataFrame to a dict."""
+    # Drop NaN values from each column
+    data = {col: dataframe[col].dropna().tolist() for col in dataframe.columns}
+    # Unmap lists with a single value back to a single value
+    for key, value in data.items():
+        if all(v == value[0] for v in value):
+            data[key] = value[0]
+
+    return data
+
+
+def convert_dict_to_dataframe(data: dict[str, PrimitiveType] | pd.DataFrame) -> pd.DataFrame:
+    """Convert dict to a pandas DataFrame."""
+    if isinstance(data, dict):
+        padded_data = _format_dict(data)
+        return pd.DataFrame.from_dict(padded_data)
+
+    return data
+
+
+def convert_str_lists_to_lists(df: pd.DataFrame, columns: cabc.Sequence[str]) -> pd.DataFrame:
+    """Convert string representations of lists in specified columns to actual lists."""
+    for col in columns:
+        df[col] = df[col].apply(
+            lambda x: ast.literal_eval(x) if isinstance(x, str) and x.startswith("[") and x.endswith("]") else x,
+        )
+    return df
+
+
 @pydantic.dataclasses.dataclass
 class ExportHandler(abc.ABC):
     directory_path: pathlib.Path
 
     def export_user_data(
         self,
-        data: dict[str, PrimitiveType],
+        data: dict[str, PrimitiveType] | pd.DataFrame,
         /,
         *,
         file_type: FileType,
@@ -102,20 +142,11 @@ class ExportHandler(abc.ABC):
         raise NotImplementedError(msg)
 
     @staticmethod
-    def _format_dict(data: dict[str, PrimitiveType]) -> dict[str, PrimitiveType]:
-        # Convert dictionary to list of dictionaries
-        max_length = max(len(v) if isinstance(v, list) else 1 for v in data.values())
-        # Convert non-list values to lists with repeated values and pad shorter lists with None
-        return {
-            key: (v + [None] * (max_length - len(v))) if isinstance(v, list) else ([v] + [None] * (max_length - 1))
-            for key, v in data.items()
-        }
-
-    def to_json(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType], indent: int = 2) -> bool:
-        padded_data = self._format_dict(data)
+    def to_json(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame, indent: int = 2) -> bool:
+        dataframe = convert_dict_to_dataframe(data)
         try:
-            with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
-                json.dump(padded_data, file_handle, indent=indent, sort_keys=True)
+            with pathlib.Path(file_path).open("wb+") as file_handle:
+                dataframe.to_json(file_handle, indent=indent)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to JSON failed at {file_path!s} with error {e}")
@@ -123,15 +154,20 @@ class ExportHandler(abc.ABC):
 
         return True
 
-    def to_csv(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
-        padded_data = self._format_dict(data)
-        list_of_dicts = [dict(zip(padded_data, t, strict=False)) for t in zip(*padded_data.values(), strict=False)]
-
+    @staticmethod
+    def to_csv(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame) -> bool:
+        dataframe = convert_dict_to_dataframe(data)
         try:
-            with pathlib.Path(file_path).open("w+", encoding="utf-8", newline="") as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=data.keys())
-                writer.writeheader()
-                writer.writerows(list_of_dicts)
+            with pathlib.Path(file_path).open("w", encoding="utf-8", newline="") as file_handle:
+                dataframe.to_csv(file_handle, index=False)
+        # padded_data = format_dict(data)  # noqa: ERA001
+        # list_of_dicts = [dict(zip(padded_data, t, strict=False)) for t in zip(*padded_data.values(), strict=False)]  # noqa: ERA001
+
+        # try:  # noqa: ERA001
+        #     with pathlib.Path(file_path).open("w+", encoding="utf-8", newline="") as csvfile:
+        #         writer = csv.DictWriter(csvfile, fieldnames=data.keys())  # noqa: ERA001
+        #         writer.writeheader()  # noqa: ERA001
+        #         writer.writerows(list_of_dicts)  # noqa: ERA001
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
@@ -139,10 +175,9 @@ class ExportHandler(abc.ABC):
 
         return True
 
-    def to_feather(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
-        padded_data = self._format_dict(data)
-        dataframe = pd.DataFrame.from_dict(padded_data)
-
+    @staticmethod
+    def to_feather(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame) -> bool:
+        dataframe = convert_dict_to_dataframe(data)
         try:
             with pathlib.Path(file_path).open("wb+") as file_handle:
                 dataframe.to_feather(file_handle)
@@ -156,11 +191,12 @@ class ExportHandler(abc.ABC):
 
         return True
 
-    def to_pickle(self, file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType]) -> bool:
-        padded_data = self._format_dict(data)
+    @staticmethod
+    def to_pickle(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame) -> bool:
+        dataframe = convert_dict_to_dataframe(data)
         try:
             with pathlib.Path(file_path).open("wb+") as file_handle:
-                pickle.dump(padded_data, file_handle)
+                dataframe.to_pickle(file_handle)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to PICKLE failed at {file_path!s} with error {e}")
@@ -185,11 +221,11 @@ class ImportHandler:
 
     def import_user_data(
         self,
-    ) -> dict[str, PrimitiveType] | None:
+    ) -> pd.DataFrame | None:
         """Import different file types as raw data.
 
         Returns:
-            {dict[str, PrimitiveType]} -- the imported data as a dict
+            {pd.DataFrame} -- the imported data as a pandas DataFrame or None if import failed
         """
 
         loguru.logger.debug(
@@ -209,45 +245,28 @@ class ImportHandler:
 
         return None
 
-    @staticmethod
-    def _format_dataframe(dataframe: pd.DataFrame) -> dict[str, PrimitiveType]:
-        # Drop NaN values from each column
-        data = {col: dataframe[col].dropna().tolist() for col in dataframe.columns}
-        # Unmap lists with a single value back to a single value
-        for key, value in data.items():
-            if all(v == value[0] for v in value):
-                data[key] = value[0]
-
-        return data
-
-    def from_csv(self) -> dict[str, PrimitiveType] | None:
+    def from_csv(self) -> pd.DataFrame | None:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
-                dataframe = pd.read_csv(file_handle)
-                return self._format_dataframe(dataframe)
+                return pd.read_csv(file_handle)
 
-        except ImportError:
-            loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
-            return None
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Import from CSV failed at {self.file_path!s} with error {e}")
             return None
 
-    def from_json(self) -> dict[str, PrimitiveType] | None:
+    def from_json(self) -> pd.DataFrame | None:
         try:
             with pathlib.Path(self.file_path).open("r+", encoding="utf-8") as file_handle:
-                dataframe = pd.read_json(file_handle)
-                return self._format_dataframe(dataframe)
+                return pd.read_json(file_handle)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Import from JSON failed at {self.file_path!s} with error {e}")
             return None
 
-    def from_feather(self) -> dict[str, PrimitiveType] | None:
+    def from_feather(self) -> pd.DataFrame | None:
         try:
             with pathlib.Path(self.file_path).open("rb") as file_handle:
-                dataframe = pd.read_feather(file_handle)
-                return self._format_dataframe(dataframe)
+                return pd.read_feather(file_handle)
 
         except ImportError:
             loguru.logger.error("Missing optional dependency 'pyarrow'. Use pip or conda to install pyarrow.")
