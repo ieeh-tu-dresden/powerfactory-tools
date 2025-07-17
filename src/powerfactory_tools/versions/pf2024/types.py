@@ -1791,7 +1791,7 @@ class PowerFactoryTypes:
         ikss: float  # max Ik in kA
         rntxn: float  # X/R ratio in Ohm
         snssmin: float  # min Sk in MVA
-        ikssmin: float  # max Ik in kA
+        ikssmin: float  # min Ik in kA
         rntxnmin: float  # X/R ratio in Ohm
 
         outserv: bool
