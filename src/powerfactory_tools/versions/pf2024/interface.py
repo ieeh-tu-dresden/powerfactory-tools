@@ -23,8 +23,9 @@ import pydantic
 from psdm.base import AttributeData
 
 from powerfactory_tools.powerfactory_error_codes import ErrorCode
+from powerfactory_tools.str_constants import PATH_SEPARATOR
+from powerfactory_tools.utils.io import BaseIoHandler
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2024.constants import PATH_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import BaseUnits
 from powerfactory_tools.versions.pf2024.data import PowerFactoryData
 from powerfactory_tools.versions.pf2024.types import BusType
@@ -40,7 +41,6 @@ from powerfactory_tools.versions.pf2024.types import TimeSimulationNetworkCalcTy
 from powerfactory_tools.versions.pf2024.types import TimeSimulationType
 from powerfactory_tools.versions.pf2024.types import UnitSystem
 from powerfactory_tools.versions.pf2024.types import ValidPFValue
-from powerfactory_tools.versions.pf2024.utils.io import ExportHandler
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -363,7 +363,7 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def compile_powerfactory_data(self, grid: PFTypes.Grid) -> PowerFactoryData:
-        """Read out all relevant data from PowerFactory for a given grid and store as typed dataclass PowerFactroyData.
+        """Read out all relevant data from PowerFactory for a given grid and store as typed dataclass PowerFactoryData.
 
         Args:
             grid (PFTypes.Grid): the grid object to be read out
@@ -894,8 +894,7 @@ class PowerFactoryInterface:
         return self.first_of(self.templates(name=name))
 
     def templates(self, name: str = "*") -> Sequence[PFTypes.Template]:
-        elements = self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
-        return [t.cast("PFTypes.Template", element) for element in elements]
+        return self.elements_of(self.templates_dir, pattern=name + "." + PFClassId.TEMPLATE.value)
 
     def dsl_model(
         self,
@@ -915,8 +914,7 @@ class PowerFactoryInterface:
     ) -> Sequence[PFTypes.DslModel]:
         if location is None:
             location = self.grid_data_dir
-        elements = self.elements_of(location, pattern=name + "." + PFClassId.DSL_MODEL.value)
-        return [t.cast("PFTypes.DslModel", element) for element in elements]
+        return self.elements_of(location, pattern=name + "." + PFClassId.DSL_MODEL.value)
 
     def line_type(
         self,
@@ -1182,8 +1180,7 @@ class PowerFactoryInterface:
             include_out_of_service=include_out_of_service,
         )
         fuses = [t.cast("PFTypes.Fuse", element) for element in elements]
-        bfuses = [fuse for fuse in fuses if self.is_bfuse(fuse)]
-        return [t.cast("PFTypes.BFuse", fuse) for fuse in bfuses]
+        return [fuse for fuse in fuses if self.is_bfuse(fuse)]
 
     def efuse(
         self,
@@ -2055,9 +2052,9 @@ class PowerFactoryInterface:
     # WARNING: does not work properly for now
     def update_value(
         self,
-        element: str | float | bool | enum.Enum,
         /,
         *,
+        element: str | float | bool | enum.Enum,
         value: str | float | bool | enum.Enum,
     ) -> str | float | bool | enum.Enum:
         match value:
@@ -2234,11 +2231,13 @@ class PowerFactoryInterface:
             elif export_mode is ResultExportMode.CSV:
                 file_type = FileType.CSV
 
-            export_handler = ExportHandler(directory_path=export_path)
-            file_path = export_handler.create_file_path(
-                file_type=file_type,
+            file_path = BaseIoHandler.create_file_path(
+                root_path=export_path,
+                file_type=file_type,  # pyright: ignore[reportPossiblyUnboundVariable]
                 file_name=file_name,
-                active_study_case=self.app.GetActiveStudyCase(),
+                study_case_name=(
+                    self.app.GetActiveStudyCase().loc_name if self.app.GetActiveStudyCase() is not None else None  # type: ignore[union-attr]
+                ),
             )
             data["f_name"] = str(file_path.resolve())
 
@@ -2603,7 +2602,7 @@ class PowerFactoryInterface:
         return AttributeData(
             name=next(iter(attribute)),
             description=element.GetAttributeDescription(next(iter(attribute))),
-            value=self.filter_none_attributes(
+            value=self.filter_none_attributes(  # pyright: ignore[reportArgumentType]
                 nested_value,
                 self.pf_dataobject_to_name_string(obj, grid_name=grid_name),
             ),

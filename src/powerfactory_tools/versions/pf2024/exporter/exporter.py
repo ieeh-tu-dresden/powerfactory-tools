@@ -66,10 +66,10 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.str_constants import NAME_SEPARATOR
+from powerfactory_tools.str_constants import STRING_SEPARATOR
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
-from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import DecimalDigits
 from powerfactory_tools.versions.pf2024.constants import Exponents
 from powerfactory_tools.versions.pf2024.exporter.load_power import ConsolidatedLoadPhaseConnectionType
@@ -480,14 +480,16 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
-        pf_version_data = AttributeData(
-            name="PowerFactoryVersion",
-            value=(
-                POWERFACTORY_VERSION
-                if self.pfi.powerfactory_service_pack is None
-                else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+        pf_version_data = tuple(
+            AttributeData(
+                name="PowerFactoryVersion",
+                value=(
+                    POWERFACTORY_VERSION
+                    if self.pfi.powerfactory_service_pack is None
+                    else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+                ),
+                description="The version of PowerFactory used for export.",
             ),
-            description="The version of PowerFactory used for export.",
         )
 
         return Meta(
@@ -497,7 +499,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
-            optional_data=[pf_version_data],
+            optional_data=pf_version_data,
         )
 
     def create_topology(
@@ -2226,7 +2228,7 @@ class PowerFactoryExporter:
         *,
         power_on_states: Sequence[ElementState],
     ) -> ElementState:
-        entries = {entry for entry in power_on_states if entry.name == entry_name}
+        entries = {entry for entry in power_on_states if entry.name == entry_name}  # pyright: ignore[reportUnhashable]
         disabled = any(entry.disabled for entry in entries)
         open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
         return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
