@@ -11,7 +11,6 @@
 
 A toolbox for Python based control and automation of DIgSILENT PowerFactory (> 2022).
 
-- [IEEH PowerFactory Tools](#ieeh-powerfactory-tools)
   - [ Field of Application](#field-of-application)
     - [Why to Use](#why-to-use)
     - [Provided Functionalities](#provided-functionalities)
@@ -159,6 +158,9 @@ Please consider the [README](./examples/README.md) in the example section. Here,
 
 
 In addition, please see this interactive example [![Code Ocean Capsule](https://codeocean.com/codeocean-assets/badge/open-in-code-ocean.svg)](https://codeocean.com/capsule/4423034/tree/v1) how to import a PSDM grid representation in `Matlab` for grid calculation purposes.
+
+Also, take a look into our hands-on blog post [Automate PowerFactory with Python and PowerFactory Tools](https://medium.com/@Sebastian-DD/automate-powerfactory-with-python-and-powerfactory-tools-e96d33adda74) to get a better understanding of the toolbox.
+
 
 ## Installation
 

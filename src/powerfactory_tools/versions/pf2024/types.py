@@ -131,6 +131,7 @@ class CalculationCommand(enum.Enum):  # only excerpt
     RESULT_EXPORT = "ComRes"
     SENSITIVITY_ANALYSIS = "ComVstab"
     SHORT_CIRCUIT = "ComShc"
+    SHORT_CIRCUIT_REPORT = "ComSh"
     SHORT_CIRCUIT_SWEEP = "ComShctrace"
     TIME_DOMAIN_SIMULATION = "ComSim"
     TIME_DOMAIN_SIMULATION_START = "ComInc"
@@ -470,6 +471,52 @@ class SelectionType(enum.IntEnum):
     GRIDS = 1
     FEEDERS = 2
     INTERCHANGE_NEIGHBORHOOD = 3
+
+
+class ShortCircuitCalcType(enum.IntEnum):
+    VDE_0102_Part_0 = 0  # VDE 0102 Part 0 / DIN EN 60909-0
+    IEC60909 = 1  # IEC 60909
+    ANSI = 2  # ANSI
+    FULL = 3
+    IEC61363 = 4  # IEC 61363
+    IEC61660_DC = 5  # IEC 61660 (DC)
+    ANSI_IEEE_946_DC = 6  # ANSI/IEEE 946 (DC)
+    VDE_0102_Part_10_DC = 7  # VDE 0102 Part 10 (DC) / DIN EN 61660
+
+
+class ShortCircuitCurrentType(enum.IntEnum):
+    MAX_IK = 0  # Maximum short-circuit current
+    MIN_IK = 1  # Minimum short-circuit current
+
+
+class ShortCircuitFaultType(enum.Enum):
+    ONE_PHASE_NEUTRAL_TO_EARTH = "spng"
+    ONE_PHASE_TO_EARTH = "spgf"
+    ONE_PHASE_TO_NEUTRAL = "spnf"
+    THREE_PHASE = "3psc"
+    THREE_PHASE_NEUTRAL_TO_EARTH = "3png"
+    THREE_PHASE_TO_NEUTRAL = "3pnf"
+    THREE_PHASE_UNSYMMETRICAL = "3rst"  # unsymmetrical 3-Phase(abc)
+    TWO_PHASE = "2psc"
+    TWO_PHASE_NEUTRAL_TO_EARTH = "2png"
+    TWO_PHASE_TO_EARTH = "2pgf"
+    TWO_PHASE_TO_NEUTRAL = "2pnf"
+
+
+class ShortCircuitPosition(enum.IntEnum):
+    USER_SELECTION = 0  # user selection
+    BUSBARS_AND_JUNCTION_NODES = 1  # busbars and junction nodes
+    BUSBARS = 2  # busbars only
+
+
+class ShortCircuitReportParameter(enum.IntEnum):
+    FAULT_LOCATIONS = 0
+    FAULT_LOCATIONS_WITH_FEEDER = 1
+    CURRENTS_AND_VOLTAGES = 2
+    PROTECTION = 3
+    EDGE_ELEMENTS = 4
+    RELAIS = 5
+    ENGINE_RAMP_UP = 6
 
 
 class ShuntNeutralConnectionType(enum.IntEnum):
@@ -994,6 +1041,7 @@ class PowerFactoryTypes:
             'Flush' copies all data buffered in memory to the disk.
             After calling 'Flush'all data is available to be read from the file.
             """
+            ...
 
         def GetNumberOfColumns(self) -> None:  # noqa: N802
             ...
@@ -1134,6 +1182,29 @@ class PowerFactoryTypes:
         nodeDispersion: int  # noqa: N815
         neighborhoodSize: int  # noqa: N815
         neighborStartElems: PowerFactoryTypes.Selection  # noqa: N815
+
+    class CommandShortCircuitCalculation(CommandBase, t.Protocol):  # CalculationCommand.SHORT_CIRCUIT
+        iopt_mde: ShortCircuitCalcType  # calculation method
+        iec_pub: int  # IEC publication year, e.g. 1990, 2001, 2016
+        iopt_shc: ShortCircuitFaultType  # fault type
+        iopt_cur: ShortCircuitCurrentType  # current type
+        i_lvtol: int  # low voltage grid voltage tolerance in percent: eg. 6, 10
+
+        Ta: float  # Tripping time of the circuit breaker in seconds
+        Tk: float  # Total time of fault in seconds
+        iBrkTime: int  # Used Tripping time: 0 - global; 1 - min local; 2 - local  # noqa: N815
+
+        Rf: float  # fault resistance in Ohm
+        Xf: float  # fault reactance in Ohm
+
+        iopt_allbus: ShortCircuitPosition  # position of short circuit to be evaluated
+
+        iopt_asc: bool  # flag to indicate if report should be generated
+        outcmd: PowerFactoryTypes.CommandShortCircuitReport  # command to be executed after short circuit calculation
+        iopt_out: bool  # Output type: 0 - ACSII; 1 - tabular
+
+    class CommandShortCircuitReport(CommandBase, t.Protocol):  # CalculationCommand.SHORT_CIRCUIT_REPORT
+        iopt_shc: ShortCircuitReportParameter  # report parameter
 
     class CommandTimeSimulationStart(CommandBase, t.Protocol):  # CalculationCommand.TIME_DOMAIN_SIMULATION_START
         iopt_sim: TimeSimulationType
@@ -1715,8 +1786,14 @@ class PowerFactoryTypes:
         pgini: float  # in MW
         qgini: float  # in Mvar
         phiini: float  # in deg
-        snss: float  # in MVA
-        snssmin: float  # in MVA
+
+        snss: float  # max Sk in MVA
+        ikss: float  # max Ik in kA
+        rntxn: float  # X/R ratio in Ohm
+        snssmin: float  # min Sk in MVA
+        ikssmin: float  # min Ik in kA
+        rntxnmin: float  # X/R ratio in Ohm
+
         outserv: bool
 
     class SourceBase(DataObject, t.Protocol):
