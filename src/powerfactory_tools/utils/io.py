@@ -28,7 +28,7 @@ if t.TYPE_CHECKING:
 class FileType(enum.Enum):
     CSV = ".csv"
     DAT = ".dat"  # e.g. for COMTRADE
-    FEATHER = ".fea"  # exchange format for dataframes using pyarrow internally
+    FEATHER = ".arrow"  # exchange format for dataframes using pyarrow (Feather (V2) is a full set of the Arrow IPC file format)
     JSON = ".json"
     PICKLE = ".pkl"
     RAW = ".raw"  # e.g. for PSSPLT_VERSION_2
