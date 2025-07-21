@@ -199,11 +199,17 @@ class PandasIoHandler(BaseIoHandler):
         return True
 
     @staticmethod
-    def to_csv(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pd.DataFrame) -> bool:
+    def to_csv(
+        file_path: pathlib.Path,
+        /,
+        *,
+        data: dict[str, PrimitiveType] | pd.DataFrame,
+        separator: str = ",",
+    ) -> bool:
         dataframe = PandasIoHandler.convert_dict_to_dataframe(data)
         try:
             with pathlib.Path(file_path).open("w", encoding="utf-8", newline="") as file_handle:
-                dataframe.to_csv(file_handle, index=False)
+                dataframe.to_csv(file_handle, sep=separator, index=False)
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
@@ -280,7 +286,7 @@ class PandasIoHandler(BaseIoHandler):
 
     def from_csv(self, file_path: pathlib.Path, separator: str = ",") -> pd.DataFrame | None:
         try:
-            with pathlib.Path(file_path).open("rb") as file_handle:
+            with pathlib.Path(file_path).open("r") as file_handle:
                 return PandasIoHandler.pd.read_csv(file_handle, sep=separator)
 
         except Exception as e:  # noqa: BLE001
@@ -376,7 +382,6 @@ class PolarsIoHandler(BaseIoHandler):
         indent: int = 2,
     ) -> bool:
         dataframe = PolarsIoHandler.convert_dict_to_dataframe(data)
-        # datadict = dataframe.to_dict(as_series=False)
         datadict = dataframe.to_dicts()
         try:
             with pathlib.Path(file_path).open("w+", encoding="utf-8") as file_handle:
@@ -391,11 +396,17 @@ class PolarsIoHandler(BaseIoHandler):
         return True
 
     @staticmethod
-    def to_csv(file_path: pathlib.Path, /, *, data: dict[str, PrimitiveType] | pl.DataFrame) -> bool:
+    def to_csv(
+        file_path: pathlib.Path,
+        /,
+        *,
+        data: dict[str, PrimitiveType] | pl.DataFrame,
+        separator: str = ",",
+    ) -> bool:
         dataframe = PolarsIoHandler.convert_dict_to_dataframe(data)
         try:
             with pathlib.Path(file_path).open("w", encoding="utf-8", newline="") as file_handle:
-                dataframe.write_csv(file_handle)
+                dataframe.write_csv(file_handle, separator=separator, quote_style="non_numeric")
 
         except Exception as e:  # noqa: BLE001
             loguru.logger.error(f"Export to CSV failed at {file_path!s} with error {e}")
@@ -459,7 +470,7 @@ class PolarsIoHandler(BaseIoHandler):
 
     def from_csv(self, file_path: pathlib.Path, separator: str = ",") -> pl.DataFrame | None:
         try:
-            with pathlib.Path(file_path).open("rb", encoding="utf-8") as file_handle:
+            with pathlib.Path(file_path).open("r+", encoding="utf-8") as file_handle:
                 return PolarsIoHandler.pl.read_csv(file_handle, separator=separator)
 
         except Exception as e:  # noqa: BLE001

@@ -1,24 +1,26 @@
+import typing as t
 from contextlib import nullcontext as does_not_raise
 
 import pandas as pd
 import polars as pl
-import json
 import pytest
+from polars.testing import assert_frame_equal as pl_assert_frame_equal
 
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.utils.io import PandasIoHandler
 from powerfactory_tools.utils.io import PolarsIoHandler
 
+# Test data for export and import tests
 test_dict1 = {
     "name": ["Alice", "Bob", "Charlie"],
     "age": [25, 30, 35],
-    "city": ["New York", "Los Angeles", "nn"],
+    "city": ["New York", "Los Angeles"],
 }
 test_pd_df1 = pd.DataFrame(
     {
         "name": ["Alice", "Bob", "Charlie"],
         "age": [25, 30, 35],
-        "city": ["New York", "Los Angeles", None],  # Fill missing value with None/NaN
+        "city": ["New York", "Los Angeles", None],  # Fill missing value with None
     },
 )
 test_pl_df1 = pl.from_pandas(test_pd_df1)
@@ -26,15 +28,9 @@ test_pl_df1 = pl.from_pandas(test_pd_df1)
 test_dict2 = {
     "name": "Alice",
     "age": 25,
-    "city": ["New York", "Los Angeles"],
+    "city": ["New York", "Los Angeles"],  # List as a single cell
 }
-test_pd_df2 = pd.DataFrame(
-    {
-        "name": ["Alice"],
-        "age": [25],
-        "city": [["New York", "Los Angeles"]],  # List as a single cell
-    },
-)
+test_pd_df2 = pd.DataFrame.from_dict(test_dict2)
 test_pl_df2 = pl.from_pandas(test_pd_df2)
 
 test_dict3 = {
@@ -59,12 +55,24 @@ test_nested_dict1 = {
 }
 
 
+def sort_nested_dict(d):
+    """Recursively sorts all dictionary keys at every level.
+
+    Leaves lists and other types unchanged, except that if a list contains dicts, those dicts are sorted too.
+    """
+    if isinstance(d, dict):
+        return {k: sort_nested_dict(d[k]) for k in sorted(d)}
+    if isinstance(d, list):
+        return [sort_nested_dict(item) for item in d]
+    return d
+
+
 @pytest.fixture
 def fake_path(tmp_path):
     return tmp_path
 
 
-class TestExportImportDataPandas1:
+class TestExportImportDataPandas:
     @pytest.mark.parametrize(
         ("data", "file_type", "expectation"),
         [
@@ -126,24 +134,24 @@ class TestExportImportDataPolars:
     @pytest.mark.parametrize(
         ("data", "file_type", "expectation"),
         [
-            # (test_dict1, FileType.CSV, does_not_raise()),
+            (test_dict1, FileType.CSV, does_not_raise()),
             (test_dict1, FileType.JSON, does_not_raise()),
             (test_dict1, FileType.FEATHER, does_not_raise()),
-            # (test_dict2, FileType.CSV, does_not_raise()),
-            # (test_dict2, FileType.JSON, does_not_raise()),
-            # (test_dict2, FileType.FEATHER, does_not_raise()),
-            # (test_dict3, FileType.CSV, does_not_raise()),
-            # (test_dict3, FileType.JSON, does_not_raise()),
-            # (test_dict3, FileType.FEATHER, does_not_raise()),
-            # (test_pl_df1, FileType.CSV, does_not_raise()),
-            # (test_pl_df1, FileType.JSON, does_not_raise()),
-            # (test_pl_df1, FileType.FEATHER, does_not_raise()),
-            # (test_pl_df2, FileType.CSV, does_not_raise()),
-            # (test_pl_df2, FileType.JSON, does_not_raise()),
-            # (test_pl_df2, FileType.FEATHER, does_not_raise()),
-            # (test_nested_dict1, FileType.CSV, does_not_raise()),
-            # (test_nested_dict1, FileType.JSON, does_not_raise()),
-            # (test_nested_dict1, FileType.FEATHER, does_not_raise()),
+            (test_dict2, FileType.CSV, does_not_raise()),
+            (test_dict2, FileType.JSON, does_not_raise()),
+            (test_dict2, FileType.FEATHER, does_not_raise()),
+            (test_dict3, FileType.CSV, does_not_raise()),
+            (test_dict3, FileType.JSON, does_not_raise()),
+            (test_dict3, FileType.FEATHER, does_not_raise()),
+            (test_pl_df1, FileType.CSV, does_not_raise()),
+            (test_pl_df1, FileType.JSON, does_not_raise()),
+            (test_pl_df1, FileType.FEATHER, does_not_raise()),
+            (test_pl_df2, FileType.CSV, does_not_raise()),
+            (test_pl_df2, FileType.JSON, does_not_raise()),
+            (test_pl_df2, FileType.FEATHER, does_not_raise()),
+            # (test_nested_dict1, FileType.CSV, does_not_raise()),  # not natively supported by Polars, as nested dict must be serialized manully before  # noqa: ERA001
+            (test_nested_dict1, FileType.JSON, does_not_raise()),
+            (test_nested_dict1, FileType.FEATHER, does_not_raise()),
         ],
     )
     def test_export_import_user_data(
@@ -167,15 +175,9 @@ class TestExportImportDataPolars:
                 pytest.fail("Import returned None, expected a DataFrame.")
 
             if isinstance(data, dict):
-                imported_dict = imported_dataframe.to_dict(
-                    as_series=False
-                )  # TODO not working as nulls are not droped the same way in Polars
                 if file_type == FileType.JSON:
-                    assert json.dumps(data, sort_keys=True) == json.dumps(imported_dict, sort_keys=True)
-                else:
-                    assert data == imported_dict
-
+                    data = t.cast("dict", sort_nested_dict(data))
                 origin_dataframe = ioh.convert_dict_to_dataframe(data)
-                pl.testing.assert_frame_equal(origin_dataframe, imported_dataframe)
+                pl_assert_frame_equal(origin_dataframe, imported_dataframe, check_column_order=False)
             else:
-                pl.testing.assert_frame_equal(data, imported_dataframe)
+                pl_assert_frame_equal(data, imported_dataframe, check_column_order=False)
