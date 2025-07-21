@@ -149,7 +149,7 @@ class TestExportImportDataPolars:
             (test_pl_df2, FileType.CSV, does_not_raise()),
             (test_pl_df2, FileType.JSON, does_not_raise()),
             (test_pl_df2, FileType.FEATHER, does_not_raise()),
-            # (test_nested_dict1, FileType.CSV, does_not_raise()),  # not natively supported by Polars, as nested dict must be serialized manully before  # noqa: ERA001
+            # (test_nested_dict1, FileType.CSV, does_not_raise()),  # not natively supported by Polars, as nested dict must be serialized manually before  # noqa: ERA001
             (test_nested_dict1, FileType.JSON, does_not_raise()),
             (test_nested_dict1, FileType.FEATHER, does_not_raise()),
         ],

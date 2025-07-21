@@ -78,7 +78,7 @@ class BaseIoHandler:
             msg = f"File path {file_path} is not a valid path."
             raise FileNotFoundError(msg) from e
 
-        # Create (sub)direcotries if not existing
+        # Create (sub)directories if not existing
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         return file_path
@@ -316,7 +316,7 @@ class PandasIoHandler(BaseIoHandler):
 
 
 class PolarsIoHandler(BaseIoHandler):
-    """Handler for importing and exporting data using pandas."""
+    """Handler for importing and exporting data using polars."""
 
     try:
         import polars as pl  # noqa: PLC0415
