@@ -66,10 +66,10 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.str_constants import NAME_SEPARATOR
+from powerfactory_tools.str_constants import STRING_SEPARATOR
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
-from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import DecimalDigits
 from powerfactory_tools.versions.pf2024.constants import Exponents
 from powerfactory_tools.versions.pf2024.exporter.load_power import ConsolidatedLoadPhaseConnectionType
@@ -480,14 +480,16 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
-        pf_version_data = AttributeData(
-            name="PowerFactoryVersion",
-            value=(
-                POWERFACTORY_VERSION
-                if self.pfi.powerfactory_service_pack is None
-                else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+        pf_version_data = tuple(
+            AttributeData(
+                name="PowerFactoryVersion",
+                value=(
+                    POWERFACTORY_VERSION
+                    if self.pfi.powerfactory_service_pack is None
+                    else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+                ),
+                description="The version of PowerFactory used for export.",
             ),
-            description="The version of PowerFactory used for export.",
         )
 
         return Meta(
@@ -497,7 +499,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
-            optional_data=[pf_version_data],
+            optional_data=pf_version_data,
         )
 
     def create_topology(
@@ -4180,7 +4182,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str | None = None,
-    ) -> tuple[AttributeData, ...] | None:
+    ) -> Sequence[AttributeData] | None:
         """Creates a list of AttributeData for the given element based on given attrs_dict.
 
         In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
@@ -4192,7 +4194,7 @@ class PowerFactoryExporter:
             grid_name {str | None} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
-            {tuple[AttributeData] | None} -- list (tuple) of AttributeData or None if no attributes have been defined for this element type
+            {Sequence[AttributeData] | None} -- list of AttributeData or None if no attributes have been defined for this element type
         """
         if element_specific_attrs is None:
             return None
@@ -4206,12 +4208,11 @@ class PowerFactoryExporter:
                         key=lambda x: x.lower() if isinstance(x, str) else next(iter(x)).lower(),
                     )
                 ]
-                return tuple(
-                    self.pfi.filter_none_attributes(
-                        attribute_data,
-                        self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
-                    ),
+                return self.pfi.filter_none_attributes(
+                    attribute_data,
+                    self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
                 )
+
         return None
 
 

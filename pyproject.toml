@@ -20,8 +20,8 @@
   version = "3.1.0"
 
   [project.optional-dependencies]
-    io-basic   = ["pandas"]
-    io-feather = ["pandas", "pyarrow"]
+    io-pandas   = ["pandas", "pyarrow"]
+    io-polars   = ["polars", "pyarrow"]
 
   [project.urls]
     Source = "https://github.com/ieeh-tu-dresden/powerfactory-tools"
@@ -34,13 +34,14 @@
   dev = [
     "commitizen>=3.28.0",
     "ipykernel>=6.29.5",
-    "mypy>=1.15.0",
+    "mypy>=1.17.0",
     "pandas>=2.2.2",
-    "pyarrow>=17.0.0",
+    "polars>=1.31.0",
+    "pyarrow>=20.0.0",
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.1",
     "pytest>=8.3.1",
-    "ruff>=0.9.4",
+    "ruff>=0.12.4",
   ]
 [tool.uv]
   default-groups = ["dev"]
@@ -97,6 +98,8 @@
       "datetime"         = "dt"
       "geopandas"        = "gpd"
       "numpy.typing"     = "npt"
+      "pandas"           = "pd"
+      "polars"           = "pl"
       "rasterio"         = "rio"
       "shapely.geometry" = "shg"
       "typing"           = "t"
@@ -146,3 +149,6 @@
 
 [tool.pyright]
   exclude = ["**/__pycache__"]
+  reportPossiblyUnboundVariable = false
+  reportArgumentType = false
+  reportUnhashable = false
