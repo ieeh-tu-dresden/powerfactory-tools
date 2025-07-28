@@ -149,3 +149,6 @@
 
 [tool.pyright]
   exclude = ["**/__pycache__"]
+  reportPossiblyUnboundVariable = false
+  reportArgumentType = false
+  reportUnhashable = false

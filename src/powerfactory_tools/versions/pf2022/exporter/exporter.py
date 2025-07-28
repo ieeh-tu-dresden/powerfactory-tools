@@ -2186,7 +2186,7 @@ class PowerFactoryExporter:
         *,
         power_on_states: Sequence[ElementState],
     ) -> ElementState:
-        entries = {entry for entry in power_on_states if entry.name == entry_name}  # pyright: ignore[reportUnhashable]
+        entries = {entry for entry in power_on_states if entry.name == entry_name}
         disabled = any(entry.disabled for entry in entries)
         open_switches = tuple(itertools.chain.from_iterable([entry.open_switches for entry in entries]))
         return ElementState(name=entry_name, disabled=disabled, open_switches=open_switches)
@@ -4142,7 +4142,7 @@ class PowerFactoryExporter:
         /,
         *,
         grid_name: str | None = None,
-    ) -> tuple[AttributeData, ...] | None:
+    ) -> Sequence[AttributeData] | None:
         """Creates a list of AttributeData for the given element based on given attrs_dict.
 
         In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
@@ -4154,7 +4154,7 @@ class PowerFactoryExporter:
             grid_name {str | None} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
-            {tuple[AttributeData] | None} -- list (tuple) of AttributeData or None if no attributes have been defined for this element type
+            {Sequence[AttributeData] | None} -- list of AttributeData or None if no attributes have been defined for this element type
         """
         if element_specific_attrs is None:
             return None
@@ -4168,11 +4168,9 @@ class PowerFactoryExporter:
                         key=lambda x: x.lower() if isinstance(x, str) else next(iter(x)).lower(),
                     )
                 ]
-                return tuple(
-                    self.pfi.filter_none_attributes(
-                        attribute_data,
-                        self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
-                    ),
+                return self.pfi.filter_none_attributes(
+                    attribute_data,
+                    self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
                 )
         return None
 

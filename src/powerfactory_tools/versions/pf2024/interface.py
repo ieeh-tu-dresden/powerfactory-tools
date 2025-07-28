@@ -2233,7 +2233,7 @@ class PowerFactoryInterface:
 
             file_path = BaseIoHandler.create_file_path(
                 root_path=export_path,
-                file_type=file_type,  # pyright: ignore[reportPossiblyUnboundVariable]
+                file_type=file_type,
                 file_name=file_name,
                 study_case_name=(
                     self.app.GetActiveStudyCase().loc_name if self.app.GetActiveStudyCase() is not None else None  # type: ignore[union-attr]
@@ -2602,7 +2602,7 @@ class PowerFactoryInterface:
         return AttributeData(
             name=next(iter(attribute)),
             description=element.GetAttributeDescription(next(iter(attribute))),
-            value=self.filter_none_attributes(  # pyright: ignore[reportArgumentType]
+            value=self.filter_none_attributes(
                 nested_value,
                 self.pf_dataobject_to_name_string(obj, grid_name=grid_name),
             ),

@@ -101,7 +101,7 @@ class PandasIoHandler(BaseIoHandler):
     }
 
     @staticmethod
-    def convert_dataframe_to_dict(dataframe: pd.DataFrame) -> dict[str, PrimitiveType]:
+    def convert_dataframe_to_dict(dataframe: pd.DataFrame) -> cabc.Mapping[str, PrimitiveType]:
         """Convert a pandas DataFrame to a dict."""
         # Drop NaN values from each column
         data = {col: dataframe[col].dropna().tolist() for col in dataframe.columns}
@@ -110,7 +110,7 @@ class PandasIoHandler(BaseIoHandler):
             if all(v == value[0] for v in value):
                 data[key] = value[0]
 
-        return data  # pyright: ignore[reportReturnType]
+        return data
 
     @staticmethod
     def convert_dict_to_dataframe(data: dict[str, PrimitiveType] | pd.DataFrame) -> pd.DataFrame:
