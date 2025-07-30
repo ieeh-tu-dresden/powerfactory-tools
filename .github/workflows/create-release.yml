@@ -25,6 +25,7 @@ jobs:
 
       - name: Temporarily disable 'include administrators' default branch protection
         uses: benjefferies/branch-protection-bot@af281f37de86139d1c7a27b91176b5dc1c2c827c  # v1.1.2
+        id: disable-include-admins
         if: always()
         with:
           access_token: ${{ secrets.ACCESS_TOKEN }}
@@ -111,6 +112,7 @@ jobs:
 
       - name: Bump version and create changelog
         uses: commitizen-tools/commitizen-action@a49cac8e98f3954a16e107f026f71cf84b17706c  # 0.23.1
+        id: commitizen
         with:
           github_token: ${{ secrets.ACCESS_TOKEN }}
           changelog_increment_filename: body.md
@@ -121,16 +123,15 @@ jobs:
         with:
           access_token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ github.event.repository.default_branch }}
-          enforce_admins: ${{ steps.disable_include_admins.outputs.initial_status }}
+          enforce_admins: ${{ steps.disable-include-admins.outputs.initial_status }}
 
-      - name: Build Python packages
-        run: uvx --from build pyproject-build --installer uv
+      - name: Build python packages
+        run: uv build
 
-      - name: Publish Python packages
-        run: uvx twine upload dist/*
+      - name: Publish python packages
+        run: uv publish
         env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
       - name: Create release
         uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda  # v2.2.1
