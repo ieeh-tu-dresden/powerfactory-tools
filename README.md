@@ -231,7 +231,11 @@ For development in [Visual Studio Code](https://github.com/microsoft/vscode), al
 
 Please note that this work is part of research activities and is still under active development.
 
-This code was tested with `DIgSILENT PowerFactory 2021 SP5` (version < 1.4), `DIgSILENT PowerFactory 2022 SP2` (version < 3.0) and `DIgSILENT PowerFactory 2024 SP2`.
+This code was tested with:
+- `DIgSILENT PowerFactory 2021 SP5` (version < 1.4)
+- `DIgSILENT PowerFactory 2022 SP2` (version < 3.0.0)
+- `DIgSILENT PowerFactory 2024 SP2` (version >= 3.0.0)
+- `DIgSILENT PowerFactory 2024 SP6` (version >= 3.2.0)
 
 ## Attribution
 
