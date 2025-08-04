@@ -1,3 +1,9 @@
+## 3.2.1 (2025-08-04)
+
+### Fix
+
+- update readme and prepare new pypi release (#314)
+
 ## 3.2.0 (2025-08-04)
 
 ### Feat

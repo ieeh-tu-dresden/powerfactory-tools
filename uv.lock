@@ -313,7 +313,7 @@ wheels = [
 
 [[package]]
 name = "ieeh-powerfactory-tools"
-version = "3.1.0"
+version = "3.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "ieeh-power-system-data-model" },
