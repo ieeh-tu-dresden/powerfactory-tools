@@ -2,12 +2,6 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_9/Field_1/QB1",
-      "open_switches": [],
-      "optional_data": null
-    },
-    {
-      "disabled": true,
       "name": "Node_9/Field_3/QB1",
       "open_switches": [],
       "optional_data": null
@@ -17,19 +11,25 @@
       "name": "Node_9/Field_2/QB1",
       "open_switches": [],
       "optional_data": null
+    },
+    {
+      "disabled": true,
+      "name": "Node_9/Field_1/QB1",
+      "open_switches": [],
+      "optional_data": null
     }
   ],
   "meta": {
     "case": "Base",
-    "creator": "powerfactory-tools @ version 3.1.0",
-    "date": "2025-04-16",
+    "creator": "powerfactory-tools @ version 3.2.1",
+    "date": "2025-08-26",
     "grid": "HV_9_Bus",
-    "id": "2788c08e-ee7d-4f0c-a4f1-af2b780134be",
+    "id": "55128236-627e-44e5-842b-a75713f113f5",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP2"
+        "value": "PowerFactory 2024 || SP6"
       }
     ],
     "project": "PowerFactory-Tools",
