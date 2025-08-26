@@ -1,3 +1,9 @@
+## 3.2.2 (2025-08-26)
+
+### Fix
+
+- pydantic validation error when creating meta data for export (#317)
+
 ## 3.2.1 (2025-08-04)
 
 ### Fix
