@@ -1272,15 +1272,15 @@
   ],
   "meta": {
     "case": "Outage",
-    "creator": "powerfactory-tools @ version 3.1.0",
-    "date": "2025-04-16",
+    "creator": "powerfactory-tools @ version 3.2.1",
+    "date": "2025-08-26",
     "grid": "HV_9_Bus",
-    "id": "a2d6ff94-0d93-4e48-822a-58e7287924c1",
+    "id": "841a4b22-8b0d-4e00-8a2a-ecaaf4dfa3e4",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP2"
+        "value": "PowerFactory 2024 || SP6"
       }
     ],
     "project": "PowerFactory-Tools",

@@ -480,7 +480,7 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
-        pf_version_data = tuple(
+        pf_version_data = (
             AttributeData(
                 name="PowerFactoryVersion",
                 value=(
