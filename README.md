@@ -62,7 +62,8 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
 - **Importer**: import from external grid data into the PowerFactory environment [intended in future release]
 
-**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`) of PowerFactory, all functionalities are set up individual for main versions.
+**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`, `2025`) of PowerFactory, all functionalities are set up individual for main versions.
+ - Update version >= `3.2.3`: new features are added only for PowerFactory `2024` and higher.
 
 
 ## PowerFactory Interface
@@ -173,13 +174,14 @@ pip install ieeh-powerfactory-tools
 ## Compatibility
 
 | Tools Version | PSDM Version | PowerFactory Version | Recommended Python Version |
-|---------------|:------------:|:--------------------:|:--------------:|
-| <= 1.3.1      | 1.1.0        | 2022                 | 3.10           |
-| 1.4.x         | 1.1.0        | 2022                 | 3.10           |
-| 1.5.1         | 1.3.0        | 2022                 | 3.10           |
-| 2.1.0         | 2.2.0        | 2022                 | 3.10           |
-| 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12     |
-| 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12     |
+|---------------|:------------:|:--------------------:|:----------------:|
+| <= 1.3.1      | 1.1.0        | 2022                 | 3.10             |
+| 1.4.x         | 1.1.0        | 2022                 | 3.10             |
+| 1.5.1         | 1.3.0        | 2022                 | 3.10             |
+| 2.1.0         | 2.2.0        | 2022                 | 3.10             |
+| 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12       |
+| 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12       |
+| 3.2.3         | 2.3.3        | 2022, 2024, 2025     | 3.10, 3.12, 3.13 |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
 
@@ -215,10 +217,10 @@ Install `powerfactory-tools` in development mode
 uv sync
 ```
 
-Optional: As [pyproject.toml](pyproject.toml) allows different python versions -> specify the Python version (e.g. 3.12) to be used for your local virtual environment `.venv`
+Optional: As [pyproject.toml](pyproject.toml) allows different python versions -> specify the Python version (e.g. 3.13) to be used for your local virtual environment `.venv`
 
 ```bash
-uv sync --python 3.12
+uv sync --python 3.13
 ```
 
 For development in [Visual Studio Code](https://github.com/microsoft/vscode), all configurations are already provided:
@@ -236,6 +238,7 @@ This code was tested with:
 - `DIgSILENT PowerFactory 2022 SP2` (version < 3.0.0)
 - `DIgSILENT PowerFactory 2024 SP2` (version >= 3.0.0)
 - `DIgSILENT PowerFactory 2024 SP6` (version >= 3.2.0)
+- `DIgSILENT PowerFactory 2025 SP2` (version >= 3.2.3)
 
 ## Attribution
 

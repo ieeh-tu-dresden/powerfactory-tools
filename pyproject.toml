@@ -5,18 +5,17 @@
     { name = "Sebastian Krahmer", email = "sebastian.krahmer@tu-dresden.de" },
 
     { name = "Laura Fiedler", email = "laura.fiedler@tu-dresden.de" },
-    { name = "Maximilian Schmidt", email = "maximilian.schmidt@tu-dresden.de" },
   ]
   dependencies = [
     "ieeh-power-system-data-model>=2.3.3",
     "loguru>=0.7.3",
-    "pydantic>=2.10.6",
+    "pydantic>=2.11.0",
   ]
   description = "A toolbox for Python based control of DIgSILENT PowerFactory"
   license = { file = "LICENSE" }
   name = "ieeh-powerfactory-tools"
   readme = "README.md"
-  requires-python = ">=3.10,<3.13"
+  requires-python = ">3.10,<3.14"
   version = "3.2.2"
 
   [project.optional-dependencies]
