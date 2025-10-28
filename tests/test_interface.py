@@ -1,6 +1,6 @@
 import logging
 
-from powerfactory_tools.versions.pf2024 import PowerFactoryInterface
+from powerfactory_tools.versions.pf2025 import PowerFactoryInterface
 
 
 class TestInterface:
