@@ -1,7 +1,7 @@
 {
   "description": "PowerFactory Tools is a toolbox for external use ('engine mode') of the power flow calculation program DIgSILENT PowerFactory. For that, the Python-PowerFactory-API which is provided by the company is utilized.",
   "title": "PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "upload_type": "software",
   "keywords": [
     "Toolbox",
@@ -10,7 +10,7 @@
     "Python",
     "Grid Model"
   ],
-  "publication_date": "2025-08-26",
+  "publication_date": "2025-10-30",
   "creators": [
     {
       "name": "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
@@ -22,7 +22,7 @@
   "related_identifiers": [
     {
       "scheme": "url",
-      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-tools/tree/3.2.2",
+      "identifier": "https://github.com/ieeh-tu-dresden/powerfactory-tools/tree/3.3.0",
       "relation": "isSupplementTo"
     }
   ]
