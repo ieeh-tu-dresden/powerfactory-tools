@@ -63,11 +63,11 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 - **Importer**: import from external grid data into the PowerFactory environment [intended in future release]
 
 **Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`, `2025`) of PowerFactory, all functionalities are set up individual for main versions.
- - Update version >= `3.2.3`: new features are added only for PowerFactory `2024` and higher.
+ - Update version >= `3.3.0`: new features are added only for PowerFactory `2024` and higher.
 
 
 ## PowerFactory Interface
-The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py), that provides comfort functions to:
+The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py), that provides comfort functions to:
 - connect to PowerFactory
 - create and alter PowerFactory elements ("physical" elements, "organizational" elements, commands, etc.)
 - collect PowerFactory elements of specific types
@@ -80,7 +80,7 @@ Please find below some important general remarks and assumptions to consider for
 
 ### General Unit Conversion
 
-A connection to PowerFactory is established via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
+A connection to PowerFactory is established via [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py).
 After this initialization, a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
 During an active connection, the following units apply:
 
@@ -93,7 +93,7 @@ During an active connection, the following units apply:
 
 Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/export-a-network-from-powerfactory-to-the-power-system-data-model-db46103bdabe) about the exporter.
 
-The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/versions/pf2022/interface.py).
+The [PowerFactoryExporter](./powerfactory_tools/versions/pf2024/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py).
 
 - The grid export follows the rules of usage recommended by [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
   - The passive sign convention is used for all types of loads (consumer as well as producer).
@@ -121,7 +121,7 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2022/exporter/exporte
   - The default load model of medium-voltage loads (`ElmLodmv`) is of type `const. power`.
   - The default load model of low-voltage loads (`ElmLodlv`, `ElmLodlvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./powerfactory_tools/versions/pf2022/exporter/load_power.py).
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./powerfactory_tools/versions/pf2024/exporter/load_power.py).
   - Connected consumer loads with an active and reactive power of zero leads to a RatedPower of `NaN`. Consider to exclude them for export.
 
 - Remarks on export of `transformer`:
@@ -181,7 +181,7 @@ pip install ieeh-powerfactory-tools
 | 2.1.0         | 2.2.0        | 2022                 | 3.10             |
 | 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12       |
 | 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12       |
-| 3.2.3         | 2.3.3        | 2022, 2024, 2025     | 3.10, 3.12, 3.13 |
+| 3.3.0         | 2.3.3        | 2022, 2024, 2025     | 3.10, 3.12, 3.13 |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
 
@@ -238,7 +238,7 @@ This code was tested with:
 - `DIgSILENT PowerFactory 2022 SP2` (version < 3.0.0)
 - `DIgSILENT PowerFactory 2024 SP2` (version >= 3.0.0)
 - `DIgSILENT PowerFactory 2024 SP6` (version >= 3.2.0)
-- `DIgSILENT PowerFactory 2025 SP2` (version >= 3.2.3)
+- `DIgSILENT PowerFactory 2025 SP2` (version >= 3.3.0)
 
 ## Attribution
 
