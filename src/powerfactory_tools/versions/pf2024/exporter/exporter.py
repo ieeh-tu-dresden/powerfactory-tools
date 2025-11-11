@@ -66,10 +66,10 @@ from psdm.topology_case.case import Case as TopologyCase
 from psdm.topology_case.element_state import ElementState
 
 from powerfactory_tools.__version__ import VERSION
+from powerfactory_tools.str_constants import NAME_SEPARATOR
+from powerfactory_tools.str_constants import STRING_SEPARATOR
 from powerfactory_tools.utils.io import FileType
 from powerfactory_tools.versions.pf2024.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2024.constants import NAME_SEPARATOR
-from powerfactory_tools.versions.pf2024.constants import STRING_SEPARATOR
 from powerfactory_tools.versions.pf2024.constants import DecimalDigits
 from powerfactory_tools.versions.pf2024.constants import Exponents
 from powerfactory_tools.versions.pf2024.exporter.load_power import ConsolidatedLoadPhaseConnectionType
@@ -146,9 +146,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         *,
         project_name: str,
         export_path: pathlib.Path,
-        powerfactory_user_profile: str = "",
+        powerfactory_ini_name: str | None = None,
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
+        powerfactory_user_profile: str = "",
+        powerfactory_user_password: str | None = None,
         python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
@@ -157,13 +159,16 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
         element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
+        plausibility_check: bool = True,
     ) -> None:
         super().__init__()
         self.export_path = export_path
         self.project_name = project_name
-        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_ini_name = powerfactory_ini_name
         self.powerfactory_path = powerfactory_path
         self.powerfactory_service_pack = powerfactory_service_pack
+        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_user_password = powerfactory_user_password
         self.python_version = python_version
         self.logging_level = logging_level
         self.log_file_path = log_file_path
@@ -172,13 +177,16 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.steadystate_case_name = steadystate_case_name
         self.study_case_names = study_case_names
         self.element_specific_attrs = element_specific_attrs
+        self.plausibility_check = plausibility_check
 
     def run(self) -> None:
         pfe = PowerFactoryExporter(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -190,15 +198,18 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             topology_case_name=self.topology_case_name,
             steadystate_case_name=self.steadystate_case_name,
             study_case_names=self.study_case_names,
+            plausibility_check=self.plausibility_check,
         )
 
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryExporter:
     project_name: str
-    powerfactory_user_profile: str = ""
+    powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
+    powerfactory_user_profile: str = ""
+    powerfactory_user_password: str | None = None
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -207,9 +218,11 @@ class PowerFactoryExporter:
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -235,6 +248,7 @@ class PowerFactoryExporter:
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
+        plausibility_check: bool = True,
     ) -> None:
         """Export grid topology, topology_case and steadystate_case to json files.
 
@@ -248,6 +262,7 @@ class PowerFactoryExporter:
             topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
             study_case_names {list[str]} -- a list of study cases to export (default: {None})
+            plausibility_check {bool} -- flag to turn on/off the plausibility check of the exported topology_case (default: {True})
         """
         if study_case_names is not None:
             self.export_study_cases(
@@ -256,6 +271,7 @@ class PowerFactoryExporter:
                 topology_name=topology_name,
                 topology_case_name=topology_case_name,
                 steadystate_case_name=steadystate_case_name,
+                plausibility_check=plausibility_check,
             )
         else:
             act_sc = self.pfi.app.GetActiveStudyCase()
@@ -266,6 +282,7 @@ class PowerFactoryExporter:
                     topology_name=topology_name,
                     topology_case_name=topology_case_name,
                     steadystate_case_name=steadystate_case_name,
+                    plausibility_check=plausibility_check,
                 )
             else:
                 msg = "Could not export. There is neither a study case defined nor is one activated"
@@ -279,6 +296,7 @@ class PowerFactoryExporter:
         topology_name: str | None,
         topology_case_name: str | None,
         steadystate_case_name: str | None,
+        plausibility_check: bool = True,
     ) -> None:
         for study_case_name in study_case_names:
             study_case = self.pfi.study_case(study_case_name)
@@ -290,6 +308,7 @@ class PowerFactoryExporter:
                     topology_name=topology_name,
                     topology_case_name=topology_case_name,
                     steadystate_case_name=steadystate_case_name,
+                    plausibility_check=plausibility_check,
                 )
             else:
                 loguru.logger.warning(
@@ -305,6 +324,7 @@ class PowerFactoryExporter:
         topology_name: str | None,
         topology_case_name: str | None,
         steadystate_case_name: str | None,
+        plausibility_check: bool = True,
     ) -> None:
         grids = self.pfi.independent_grids(calc_relevant=True)
 
@@ -322,7 +342,12 @@ class PowerFactoryExporter:
 
             topology = self.create_topology(meta=meta, data=data)
 
-            topology_case = self.create_topology_case(meta=meta, data=data, topology=topology)
+            topology_case = self.create_topology_case(
+                meta=meta,
+                data=data,
+                topology=topology,
+                plausibility_check=plausibility_check,
+            )
 
             steadystate_case = self.create_steadystate_case(meta=meta, data=data, topology=topology)
 
@@ -342,6 +367,13 @@ class PowerFactoryExporter:
                 steadystate_case=steadystate_case,
                 steadystate_case_name=steadystate_case_name,
                 export_path=export_path,
+                grid_name=grid_name,
+            )
+
+            loguru.logger.info(
+                "Exporting {project_name} - study case '{study_case_name}' - grid {grid_name}... Done.",
+                project_name=self.project_name,
+                study_case_name=study_case_name,
                 grid_name=grid_name,
             )
 
@@ -448,14 +480,16 @@ class PowerFactoryExporter:
         grid_name = data.grid_name.replace(" ", "-")
         project_name = data.project_name.replace(" ", "-")
         date = data.date
-        pf_version_data = AttributeData(
-            name="PowerFactoryVersion",
-            value=(
-                POWERFACTORY_VERSION
-                if self.pfi.powerfactory_service_pack is None
-                else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+        pf_version_data = (
+            AttributeData(
+                name="PowerFactoryVersion",
+                value=(
+                    POWERFACTORY_VERSION
+                    if self.pfi.powerfactory_service_pack is None
+                    else POWERFACTORY_VERSION + STRING_SEPARATOR + "SP" + str(self.pfi.powerfactory_service_pack)
+                ),
+                description="The version of PowerFactory used for export.",
             ),
-            description="The version of PowerFactory used for export.",
         )
 
         return Meta(
@@ -465,7 +499,7 @@ class PowerFactoryExporter:
             project=project_name,
             sign_convention=SignConvention.PASSIVE,
             creator=f"powerfactory-tools @ version {VERSION}",
-            optional_data=[pf_version_data],
+            optional_data=pf_version_data,
         )
 
     def create_topology(
@@ -501,11 +535,11 @@ class PowerFactoryExporter:
 
         return Topology(
             meta=meta,
-            nodes=nodes,
-            branches=branches,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            nodes=tuple(nodes),
+            branches=tuple(branches),
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
     def create_external_grids(
@@ -596,7 +630,13 @@ class PowerFactoryExporter:
 
         extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
 
-        return Node(name=name, u_n=u_n, phases=phases, description=description, optional_data=extra_meta_data)
+        return Node(
+            name=name,
+            u_n=u_n,
+            phases=phases,
+            description=description,
+            optional_data=extra_meta_data,
+        )
 
     def create_branches(
         self,
@@ -1151,7 +1191,7 @@ class PowerFactoryExporter:
                 tap_side=tap_side,
                 description=description,
                 phase_technology_type=ph_technology,
-                windings=[wh, wl],
+                windings=(wh, wl),
                 optional_data=extra_meta_data,
             )
 
@@ -1446,7 +1486,7 @@ class PowerFactoryExporter:
                 "Consumer {load_name} is not connected to any bus. Skipping.",
                 load_name=self.pfi.create_name(load, grid_name=grid_name),
             )
-            return [None]
+            return None
 
         terminal = bus.cterm
 
@@ -1569,7 +1609,7 @@ class PowerFactoryExporter:
         bus = load.bus1
         if bus is None:
             loguru.logger.warning("Consumer {load_name} is not connected to any bus. Skipping.", load_name=load_name)
-            return [None]
+            return None
         terminal = bus.cterm
 
         # PhaseConnectionType: either based on load type or on terminal phase connection type
@@ -2113,6 +2153,7 @@ class PowerFactoryExporter:
         meta: Meta,
         data: PowerFactoryData,
         topology: Topology,
+        plausibility_check: bool = True,
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(
@@ -2161,11 +2202,14 @@ class PowerFactoryExporter:
         )
         power_on_states = self.merge_power_on_states(power_on_states)
 
-        tc = TopologyCase(meta=meta, elements=power_on_states)
+        tc = TopologyCase(meta=meta, elements=tuple(power_on_states))
 
         if not tc.matches_topology(topology):
+            # This may happen, if the real grid contains elements that are not part of the exported topology (as supported so far).
             msg = "Topology case does not match specified topology."
-            raise ValueError(msg)
+            loguru.logger.warning(msg)
+            if plausibility_check:
+                raise ValueError(msg)
 
         return tc
 
@@ -2203,14 +2247,12 @@ class PowerFactoryExporter:
 
         Arguments:
             switches {Sequence[PFTypes.Switch]} -- sequence of PowerFactory objects of type Switch
-
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
             topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
 
-
         Returns:
-            Sequence[ElementState] -- set of element states
+            {Sequence[ElementState]} -- set of element states
         """
 
         loguru.logger.info("Creating switch states...")
@@ -2555,9 +2597,9 @@ class PowerFactoryExporter:
 
         sc = SteadystateCase(
             meta=meta,
-            loads=loads,
-            transformers=transformers,
-            external_grids=external_grids,
+            loads=tuple(loads),
+            transformers=tuple(transformers),
+            external_grids=tuple(external_grids),
         )
 
         if not sc.matches_topology(topology):
@@ -3543,7 +3585,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=control_type)
 
         if power.pow_react_control_type == QControlStrategy.COSPHI_CONST:
-            control_type = ControlTypeFactory.create_cos_phi_const(power)
+            control_type = ControlTypeFactory.create_cos_phi_const(power)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=control_type)
 
         msg = "unreachable"
@@ -3604,7 +3646,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlTypeFactory.create_q_const(power)
+            q_control_type = ControlTypeFactory.create_q_const(power)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.Q_U:
@@ -3619,7 +3661,7 @@ class PowerFactoryExporter:
                 u_n=u_n,
             )
 
-            q_control_type = ControlTypeFactory.create_q_u_sym(
+            q_control_type = ControlTypeFactory.create_q_u_sym(  # type: ignore[assignment]
                 q_max_ue=abs(gen.Qfu_min) * Exponents.POWER * gen.ngnum,
                 q_max_oe=abs(gen.Qfu_max) * Exponents.POWER * gen.ngnum,
                 u_q0=u_q0 * u_n,
@@ -3636,7 +3678,7 @@ class PowerFactoryExporter:
                 raise RuntimeError(msg)
             q_max_ue = None
             q_max_oe = None
-            q_control_type = ControlQP(
+            q_control_type = ControlQP(  # type: ignore[assignment]
                 q_p_characteristic=Characteristic(name=gen.pQPcurve.loc_name),
                 q_max_ue=q_max_ue,
                 q_max_oe=q_max_oe,
@@ -3644,7 +3686,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.COSPHI_P:
-            q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
+            q_control_type = ControlTypeFactory.create_cos_phi_p_sym(  # type: ignore[assignment]
                 cos_phi_ue=gen.pf_under,
                 cos_phi_oe=gen.pf_over,
                 p_threshold_ue=gen.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3653,7 +3695,7 @@ class PowerFactoryExporter:
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_CONST:
-            q_control_type = ControlTypeFactory.create_u_const_sym(u_set=gen.usetp * u_n)
+            q_control_type = ControlTypeFactory.create_u_const_sym(u_set=gen.usetp * u_n)  # type: ignore[assignment]
             return QController(node_target=node_target_name, control_type=q_control_type)
 
         if av_mode == LocalQCtrlMode.U_Q_DROOP:
@@ -3737,7 +3779,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlTypeFactory.create_q_const(power)
+                q_control_type = ControlTypeFactory.create_q_const(power)  # type: ignore[assignment]
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3770,7 +3812,7 @@ class PowerFactoryExporter:
                     m_tg_2015 = float("inf")
                     m_tg_2018 = float("inf")
 
-                q_control_type = ControlTypeFactory.create_q_u_sym(
+                q_control_type = ControlTypeFactory.create_q_u_sym(  # type: ignore[assignment]
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
                     u_q0=u_q0 * u_n,
@@ -3787,7 +3829,7 @@ class PowerFactoryExporter:
 
             if controller.qu_char == QChar.P:  # Q(P)
                 q_dir = -1 if controller.iQorient else 1
-                q_control_type = ControlTypeFactory.create_q_p_sym(
+                q_control_type = ControlTypeFactory.create_q_p_sym(  # type: ignore[assignment]
                     q_p_characteristic_name=controller.pQPcurve.loc_name,
                     q_max_ue=abs(controller.Qmin) * Exponents.POWER * gen.ngnum,
                     q_max_oe=abs(controller.Qmax) * Exponents.POWER * gen.ngnum,
@@ -3814,7 +3856,7 @@ class PowerFactoryExporter:
                     phase_connection_type=phase_connection_type,
                 )
                 power = power.limit_phases(n_phases=phase_connections.n_phases)
-                q_control_type = ControlTypeFactory.create_cos_phi_const(power)
+                q_control_type = ControlTypeFactory.create_cos_phi_const(power)  # type: ignore[assignment]
                 return QController(
                     node_target=node_target_name,
                     control_type=q_control_type,
@@ -3822,7 +3864,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.P:  # cos_phi(P)
-                q_control_type = ControlTypeFactory.create_cos_phi_p_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_p_sym(  # type: ignore[assignment]
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     p_threshold_ue=controller.p_under * -1 * Exponents.POWER * gen.ngnum,  # P-threshold for cosphi_ue
@@ -3835,7 +3877,7 @@ class PowerFactoryExporter:
                 )
 
             if controller.cosphi_char == CosPhiChar.U:  # cos_phi(U)
-                q_control_type = ControlTypeFactory.create_cos_phi_u_sym(
+                q_control_type = ControlTypeFactory.create_cos_phi_u_sym(  # type: ignore[assignment]
                     cos_phi_ue=controller.pf_under,
                     cos_phi_oe=controller.pf_over,
                     u_threshold_ue=controller.u_under * u_n,  # U-threshold for cosphi_ue
@@ -3862,7 +3904,7 @@ class PowerFactoryExporter:
                 phase_connection_type=phase_connection_type,
             )
             power = power.limit_phases(n_phases=phase_connections.n_phases)
-            q_control_type = ControlTypeFactory.create_tan_phi_const(power)
+            q_control_type = ControlTypeFactory.create_tan_phi_const(power)  # type: ignore[assignment]
             return QController(
                 node_target=node_target_name,
                 control_type=q_control_type,
@@ -3901,88 +3943,88 @@ class PowerFactoryExporter:
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_D:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase[PFPhase3PH(phases[2]).name]),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase[PFPhase3PH(phases[0]).name]),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.E],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.E),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.THREE_PH_YN:
             return PhaseConnections(
-                value=[
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[2]).name], Phase.N],
-                ],
+                value=(
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[2]).name], Phase.N),
+                ),
             )
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.E],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.E),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.E],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.E],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.E),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.E),
+                )
             return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.TWO_PH_YN:
             if t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [
-                    [Phase[PFPhase2PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase2PH(phases[1]).name], Phase.N],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase2PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase2PH(phases[1]).name], Phase.N),
+                )
             else:
-                _phase_connections = [
-                    [Phase[PFPhase3PH(phases[0]).name], Phase.N],
-                    [Phase[PFPhase3PH(phases[1]).name], Phase.N],
-                ]
+                _phase_connections = (
+                    (Phase[PFPhase3PH(phases[0]).name], Phase.N),
+                    (Phase[PFPhase3PH(phases[1]).name], Phase.N),
+                )
             return PhaseConnections(value=_phase_connections)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_PH:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase[PFPhase1PH(phases[1]).name]),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase[PFPhase2PH(phases[1]).name]),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase[PFPhase3PH(phases[1]).name]),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_E:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.E),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.E]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.E),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.E]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.E),)
+            return PhaseConnections(value=_phase_connection)
 
         if phase_connection_type == ConsolidatedLoadPhaseConnectionType.ONE_PH_PH_N:
             if t_phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
-                _phase_connections = [[Phase[PFPhase1PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase1PH(phases[0]).name], Phase.N),)
             elif t_phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
-                _phase_connections = [[Phase[PFPhase2PH(phases[0]).name], Phase.N]]
+                _phase_connection = ((Phase[PFPhase2PH(phases[0]).name], Phase.N),)
             else:
-                _phase_connections = [[Phase[PFPhase3PH(phases[0]).name], Phase.N]]
-            return PhaseConnections(value=_phase_connections)
+                _phase_connection = ((Phase[PFPhase3PH(phases[0]).name], Phase.N),)
+            return PhaseConnections(value=_phase_connection)
 
         msg = "unreachable"
         raise RuntimeError(msg)
 
-    def get_branch_phases(
+    def get_branch_phases(  # noqa: PLR0912
         self,
         *,
         l_type: PFTypes.LineType,
@@ -4017,6 +4059,9 @@ class PowerFactoryExporter:
                     Phase[PFPhase2PH(phases[0]).name],
                     Phase[PFPhase2PH(phases[1]).name],
                 ]
+            else:
+                msg = "unreachable"
+                raise RuntimeError(msg)
         elif l_type.nlnph == 1:  # 1 phase conductors
             if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
                 phases = textwrap.wrap(bus.cPhInfo, 2)
@@ -4033,49 +4078,52 @@ class PowerFactoryExporter:
                 phases_tuple = [
                     Phase[PFPhase1PH(phases[0]).name],
                 ]
+            else:
+                msg = "unreachable"
+                raise RuntimeError(msg)
         else:
             msg = "unreachable"
             raise RuntimeError(msg)
 
         if l_type.nneutral == 1:
             phases_tuple = [*phases_tuple, Phase.N]
-        return phases_tuple
+        return phases_tuple  # type: ignore[return-value]
 
     def get_terminal_phases(
         self,
         phase_connection_type: TerminalPhaseConnectionType,
     ) -> UniqueTuple[Phase]:
         if phase_connection_type is TerminalPhaseConnectionType.THREE_PH:
-            return [
+            return (
                 Phase[PFPhase3PH.A.name],
                 Phase[PFPhase3PH.B.name],
                 Phase[PFPhase3PH.C.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.THREE_PH_N:
-            return [
+            return (
                 Phase[PFPhase3PH.A.name],
                 Phase[PFPhase3PH.B.name],
                 Phase[PFPhase3PH.C.name],
                 Phase[PFPhase3PH.N.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.TWO_PH:
-            return [
+            return (
                 Phase[PFPhase2PH.A.name],
                 Phase[PFPhase2PH.B.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.TWO_PH_N:
-            return [
+            return (
                 Phase[PFPhase2PH.A.name],
                 Phase[PFPhase2PH.B.name],
                 Phase[PFPhase2PH.N.name],
-            ]
+            )
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH:
-            return [Phase[PFPhase1PH.A.name]]
+            return (Phase[PFPhase1PH.A.name],)
         if phase_connection_type is TerminalPhaseConnectionType.ONE_PH_N:
-            return [
+            return (
                 Phase[PFPhase1PH.A.name],
                 Phase[PFPhase1PH.N.name],
-            ]
+            )
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Implementation unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
@@ -4090,21 +4138,21 @@ class PowerFactoryExporter:
     ) -> UniqueTuple[Phase]:
         if phase_connection_type in (TerminalPhaseConnectionType.THREE_PH, TerminalPhaseConnectionType.THREE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return [
+            return (
                 Phase[PFPhase3PH(phases[0]).name],
                 Phase[PFPhase3PH(phases[1]).name],
                 Phase[PFPhase3PH(phases[2]).name],
-            ]
+            )
 
         if phase_connection_type in (TerminalPhaseConnectionType.TWO_PH, TerminalPhaseConnectionType.TWO_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 3)
-            return [
+            return (
                 Phase[PFPhase2PH(phases[0]).name],
                 Phase[PFPhase2PH(phases[1]).name],
-            ]
+            )
         if phase_connection_type in (TerminalPhaseConnectionType.ONE_PH, TerminalPhaseConnectionType.ONE_PH_N):
             phases = textwrap.wrap(bus.cPhInfo, 2)
-            return [Phase[PFPhase1PH(phases[0]).name]]
+            return (Phase[PFPhase1PH(phases[0]).name],)
         if phase_connection_type in (TerminalPhaseConnectionType.BI, TerminalPhaseConnectionType.BI_N):
             msg = "Implementation unclear. Please extend exporter by your own."
             raise RuntimeError(msg)
@@ -4125,7 +4173,7 @@ class PowerFactoryExporter:
         if winding_vector_group in (WVectorGroup.YN, WVectorGroup.ZN):
             phases = [*phases, Phase.N]
 
-        return phases
+        return tuple(phases)
 
     def get_extra_element_attrs(
         self,
@@ -4139,13 +4187,14 @@ class PowerFactoryExporter:
 
         In case of the occurence of DataObject as value (return type) of a requested attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
 
-        Args:
-            element (PFTypes.DataObject): the element of interest
-            element_specific_attrs (dict[PFClassId, set[str]]): a dictionary with PFClassIds as keys and a set of attribute names as value
-            grid_name (str | None, optional): the name of the grid related to the element, relevant if converting a PFTypes.DataObject. Defaults to None.
+        Arguments:
+            element {PFTypes.DataObject} -- the element of interest
+            element_specific_attrs {dict[PFClassId, set[str]]} -- a dictionary with PFClassIds as keys and a set of attribute names as value
+        Keyword Arguments:
+            grid_name {str | None} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
-            Sequence[AttributeData] | None: list of AttributeData or None if no attributes have been defined for this element type
+            {Sequence[AttributeData] | None} -- list of AttributeData or None if no attributes have been defined for this element type
         """
         if element_specific_attrs is None:
             return None
@@ -4163,6 +4212,7 @@ class PowerFactoryExporter:
                     attribute_data,
                     self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
                 )
+
         return None
 
 
@@ -4170,9 +4220,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     *,
     export_path: pathlib.Path,
     project_name: str,
-    powerfactory_user_profile: str = "",
+    powerfactory_ini_name: str | None = None,
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
+    powerfactory_user_profile: str = "",
+    powerfactory_user_password: str | None = None,
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
@@ -4181,6 +4233,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     steadystate_case_name: str | None = None,
     study_case_names: list[str] | None = None,
     element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
+    plausibility_check: bool = True,
 ) -> None:
     """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
@@ -4192,9 +4245,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     Arguments:
         export_path {pathlib.Path} -- the directory where the exported json files are saved
         project_name {str} -- project name in PowerFactory to which the grid belongs
-        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_ini_name {str | None} -- the name of the PowerFactory ini file to be used (default: {None})
         powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
         powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
+        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_user_password {str | None} -- user password for login in PowerFactory (default: {None})
         python_version {PYTHON_VERSIONS} -- the version of Python to be used for PowerFactory (default: {DEFAULT_PYTHON_VERSION})
         logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
         log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
@@ -4203,6 +4258,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
         study_case_names {list[str]} -- a list of study cases to export (default: {None})
         element_specific_attrs {dict[PFClassId, Sequence[str | dict]]} -- a dictionary with PFClassIds as keys and a set of attribute names as value (default: {None})
+        plausibility_check {bool} -- flag for the plausibility check of the exported TopologyCase (default: {True})
 
     Returns:
         None
@@ -4211,9 +4267,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     process = PowerFactoryExporterProcess(
         project_name=project_name,
         export_path=export_path,
-        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_ini_name=powerfactory_ini_name,
         powerfactory_path=powerfactory_path,
         powerfactory_service_pack=powerfactory_service_pack,
+        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_user_password=powerfactory_user_password,
         python_version=python_version,
         logging_level=logging_level,
         log_file_path=log_file_path,
@@ -4222,6 +4280,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         steadystate_case_name=steadystate_case_name,
         study_case_names=study_case_names,
         element_specific_attrs=element_specific_attrs,
+        plausibility_check=plausibility_check,
     )
     process.start()
     process.join()

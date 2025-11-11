@@ -2,7 +2,7 @@
   "elements": [
     {
       "disabled": true,
-      "name": "Node_9/Field_1/QB1",
+      "name": "Node_9/Field_3/QB1",
       "open_switches": [],
       "optional_data": null
     },
@@ -14,27 +14,27 @@
     },
     {
       "disabled": true,
-      "name": "Node_9/Field_3/QB1",
+      "name": "Node_9/Field_1/QB1",
       "open_switches": [],
       "optional_data": null
     }
   ],
   "meta": {
     "case": "Industry_Park",
-    "creator": "powerfactory-tools @ version 3.0.0",
-    "date": "2024-09-03",
+    "creator": "powerfactory-tools @ version 3.2.1",
+    "date": "2025-08-26",
     "grid": "HV_9_Bus",
-    "id": "e2cc3c89-a7d0-4427-b532-89bc04b66090",
+    "id": "d74e7306-8683-4208-8820-f3fb0808ce89",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP2"
+        "value": "PowerFactory 2024 || SP6"
       }
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.1"
+    "version": "2.3.3"
   },
   "optional_data": null
 }

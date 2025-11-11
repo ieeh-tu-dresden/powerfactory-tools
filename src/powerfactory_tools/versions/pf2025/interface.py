@@ -26,20 +26,25 @@ from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.str_constants import PATH_SEPARATOR
 from powerfactory_tools.utils.io import BaseIoHandler
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022.constants import BaseUnits
-from powerfactory_tools.versions.pf2022.data import PowerFactoryData
-from powerfactory_tools.versions.pf2022.types import CalculationCommand
-from powerfactory_tools.versions.pf2022.types import Currency
-from powerfactory_tools.versions.pf2022.types import FolderType
-from powerfactory_tools.versions.pf2022.types import MetricPrefix
-from powerfactory_tools.versions.pf2022.types import NetworkExtendedCalcType
-from powerfactory_tools.versions.pf2022.types import PFClassId
-from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.versions.pf2022.types import ResultExportMode
-from powerfactory_tools.versions.pf2022.types import TimeSimulationNetworkCalcType
-from powerfactory_tools.versions.pf2022.types import TimeSimulationType
-from powerfactory_tools.versions.pf2022.types import UnitSystem
-from powerfactory_tools.versions.pf2022.types import ValidPFValue
+from powerfactory_tools.versions.pf2025.constants import BaseUnits
+from powerfactory_tools.versions.pf2025.data import PowerFactoryData
+from powerfactory_tools.versions.pf2025.types import BusType
+from powerfactory_tools.versions.pf2025.types import CalculationCommand
+from powerfactory_tools.versions.pf2025.types import Currency
+from powerfactory_tools.versions.pf2025.types import FolderType
+from powerfactory_tools.versions.pf2025.types import MetricPrefix
+from powerfactory_tools.versions.pf2025.types import NetworkExtendedCalcType
+from powerfactory_tools.versions.pf2025.types import PFClassId
+from powerfactory_tools.versions.pf2025.types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.versions.pf2025.types import ResultExportMode
+from powerfactory_tools.versions.pf2025.types import ShortCircuitCalcType
+from powerfactory_tools.versions.pf2025.types import ShortCircuitCurrentType
+from powerfactory_tools.versions.pf2025.types import ShortCircuitFaultType
+from powerfactory_tools.versions.pf2025.types import ShortCircuitPosition
+from powerfactory_tools.versions.pf2025.types import TimeSimulationNetworkCalcType
+from powerfactory_tools.versions.pf2025.types import TimeSimulationType
+from powerfactory_tools.versions.pf2025.types import UnitSystem
+from powerfactory_tools.versions.pf2025.types import ValidPFValue
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -52,16 +57,15 @@ if t.TYPE_CHECKING:
 
 # allowed Python versions
 class ValidPythonVersion(enum.Enum):
-    VERSION_3_6 = "3.6"
-    VERSION_3_7 = "3.7"
-    VERSION_3_8 = "3.8"
-    VERSION_3_9 = "3.9"
     VERSION_3_10 = "3.10"
+    VERSION_3_11 = "3.11"
+    VERSION_3_12 = "3.12"
+    VERSION_3_13 = "3.13"
 
 
-POWERFACTORY_VERSION = "PowerFactory 2022"
+POWERFACTORY_VERSION = "PowerFactory 2025"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_10
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_13
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -99,11 +103,11 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
     project_name: str
+    powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str | None = None
     powerfactory_user_password: str | None = None
-    powerfactory_ini_name: str | None = None
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -362,13 +366,13 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
     def compile_powerfactory_data(self, grid: PFTypes.Grid) -> PowerFactoryData:
-        """Read out all relevant data from PowerFactory for a given grid and store as typed dataclass PowerFactroyData.
+        """Read out all relevant data from PowerFactory for a given grid and store as typed dataclass PowerFactoryData.
 
-        Args:
-            grid (PFTypes.Grid): the grid object to be read out
+        Arguments:
+            grid {PFTypes.Grid} -- the grid object to be read out
 
         Returns:
-            PowerFactoryData: a dataclass containing typed lists with all relevant data from PowerFactory
+            {PowerFactoryData} -- a dataclass containing typed lists with all relevant data from PowerFactory
         """
         grid_name = grid.loc_name
         loguru.logger.debug("Compiling data from PowerFactory for grid {grid_name}...", grid_name=grid_name)
@@ -408,10 +412,10 @@ class PowerFactoryInterface:
     ) -> None:
         """Adds variables to a result object for a given list of elements.
 
-        Args:
-            result (PFTypes.Result): the result object to be written to
-            elements (Sequence[PFTypes.DataObject]): list of elements for which variables has to be added to the result object
-            variables (Sequence[str]): list of variables (string identifiers) to be added for each element
+        Arguments:
+            result {PFTypes.Result} -- the result object to be written to
+            elements {Sequence[PFTypes.DataObject]} -- list of elements for which variables has to be added to the result object
+            variables {Sequence[str]} -- list of variables (string identifiers) to be added for each element
         """
         loguru.logger.debug("Set Variables for result object {result_name} ...", result_name=result.loc_name)
         for elm in elements:
@@ -425,11 +429,11 @@ class PowerFactoryInterface:
         In case of load flow calculation, these variable monitors can be written (kind of making visible)
         as result variables to the result itself.
 
-        Args:
-            result (PFTypes.Result): the result object to be written
+        Arguments:
+            result {PFTypes.Result} -- the result object to be written
 
         Raises:
-            RuntimeError: if the writing of the variable monitors fails
+            {RuntimeError} -- if the writing of the variable monitors fails
         """
         loguru.logger.debug(
             f"Write all in the result object {result.loc_name} containing variable monitors (IntMon) as result variables ...",
@@ -1015,7 +1019,8 @@ class PowerFactoryInterface:
         name: str = "*",
         /,
     ) -> Sequence[PFTypes.GridDiagram]:
-        return self.grid_model_elements(class_name=PFClassId.GRID_GRAPHIC.value, name=name)
+        elements = self.grid_model_elements(class_name=PFClassId.GRID_GRAPHIC.value, name=name)
+        return [t.cast("PFTypes.GridDiagram", element) for element in elements]
 
     def external_grid(
         self,
@@ -1463,16 +1468,16 @@ class PowerFactoryInterface:
 
     def independent_grids(
         self,
-        name: str = "*",
         /,
         *,
+        name_filter: str = "*",
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.Grid]:
         """Gets all grid entities except the superior summary grid stored at the study case level.
 
         Keyword Arguments:
-            name -- Name of grid to be accessed (default: {"*"})
-            calc_relevant -- Flag, if only calc relevant (active) grids should be accessed (default: {False})
+            name_filter (str, optional) -- Name of grid to be accessed. Defaults to "*"
+            calc_relevant (bool, optional) -- Flag, if only calc relevant (active) grids should be accessed. Defaults to False.
 
         Returns:
             Sequence of grids without superior summary grid entitiy.
@@ -1480,9 +1485,41 @@ class PowerFactoryInterface:
         study_case = self.study_case(only_active=True)
         if study_case is not None:
             superior_grids = self.elements_of(study_case, pattern="*." + PFClassId.GRID.value)
-            return list(filter(lambda g: g not in superior_grids, self.grids(name, calc_relevant=calc_relevant)))
+            return list(filter(lambda g: g not in superior_grids, self.grids(name_filter, calc_relevant=calc_relevant)))
 
         return []
+
+    def slack_terminals(
+        self,
+        grid_name: str,
+        /,
+        *,
+        calc_relevant: bool = False,
+        include_out_of_service: bool = True,
+    ) -> Sequence[PFTypes.Terminal]:
+        """Get all slack terminals of the specified grid based on the ExternalGrid objects.
+
+        Arguments:
+            grid_name {str} -- name of grid to be accessed.
+        Keyword Arguments:
+            calc_relevant {bool, optional} -- flag, if only calc relevant (active) external_grids should be accessed. (default: {False})
+            include_out_of_service {bool, optional)} -- extension flag to the calc_relevant flag. Flag if out-of-service elements should be accessed. (default: {True})
+
+        Returns:
+            {Sequence[PFTypes.Terminal]} -- list of terminals that can be seen as slack buses.
+        """
+        external_grids = self.external_grids(
+            grid_name=grid_name,
+            calc_relevant=calc_relevant,
+            include_out_of_service=include_out_of_service,
+        )
+        return self.filter_none(
+            [
+                grid.bus1.cterm if grid.bus1 is not None else None
+                for grid in external_grids
+                if grid.bustp == BusType.SL.value
+            ],
+        )
 
     def grid_elements(
         self,
@@ -2010,7 +2047,7 @@ class PowerFactoryInterface:
         data: dict[str, ValidPFValue],
     ) -> PFTypes.DataObject:
         for key, value in data.items():
-            if getattr(element, key, None) is not None:
+            if hasattr(element, key):
                 setattr(element, key, value)
 
         self.load_project_folders_from_pf_db()
@@ -2064,7 +2101,7 @@ class PowerFactoryInterface:
     ) -> PFTypes.CommandLoadFlow:
         """Creates a new / collect a command object of type ComLdf.
 
-        Args:
+        Keyword Arguments:
             ac {bool} -- flag for AC or DC load flow. (default: {True})
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
@@ -2080,6 +2117,46 @@ class PowerFactoryInterface:
                 cmd.iopt_net = NetworkExtendedCalcType.AC_UNSYM_ABC.value  # type: ignore[assignment]
         else:
             cmd.iopt_net = NetworkExtendedCalcType.DC.value  # type: ignore[assignment]
+
+        # update further attributes if needed
+        if data is not None:
+            self.update_object(cmd, data=data)
+
+        return cmd
+
+    def create_short_circuit_command(
+        self,
+        /,
+        *,
+        method: ShortCircuitCalcType,
+        fault_type: ShortCircuitFaultType,
+        current_type: ShortCircuitCurrentType,
+        fault_location: ShortCircuitPosition,
+        terminal_output: bool,
+        data: dict[str, ValidPFValue] | None = None,
+    ) -> PFTypes.CommandBase:
+        """Creates a new / collects a command object of type ComShc.
+
+        Keyword Arguments:
+            method {ShortCircuitCalcType}: method of short circuit calculation, e.g. VDE 0102 Part 0
+            fault_type {ShortCircuitFaultType}: fault type to be examined, e.g. three-phase short circuit
+            current_type {ShortCircuitCurrentType}: flag to indicate minimum or maximum short circuit current to be used
+            fault_location {ShortCircuitPosition}: fault locations to be considered, e.g. busbars and junction nodes
+            terminal_output {bool}: flag if results should be displayed in the PowerFactory terminal
+            data {dict[str, ValidPFValue] | None, optional}: a dictionary with name-value-pairs of object attributes. (default: {None})
+
+        Returns:
+            {PFTypes.CommandBase} -- the command object
+        """
+        cmd = t.cast(
+            "PFTypes.CommandShortCircuitCalculation",
+            self.create_command(CalculationCommand.SHORT_CIRCUIT),
+        )
+        cmd.iopt_mde = method.value  # type: ignore[assignment]
+        cmd.iopt_shc = fault_type.value  # type: ignore[assignment]
+        cmd.iopt_cur = current_type.value  # type: ignore[assignment]
+        cmd.iopt_allbus = fault_location.value  # type: ignore[assignment]
+        cmd.iopt_asc = terminal_output
 
         # update further attributes if needed
         if data is not None:
@@ -2162,7 +2239,7 @@ class PowerFactoryInterface:
     ) -> PFTypes.CommandResultExport | None:
         """Creates a new result export command object.
 
-        Args:
+        Keyword Arguments:
             result {PFTypes.Result} -- the result to be exported
             study_case {PFTypes.StudyCase} -- the study case this export command is related to (resp. the loaction)
             export_path {pathlib.Path} -- relative or absolute path for export
@@ -2262,14 +2339,14 @@ class PowerFactoryInterface:
         """Wrapper to easily run RMS time simulation.
 
         Arguments:
-            time (float): simualtion time in s
+            time (float): simulation time in s
         Keyword Arguments:
             symmetrical {bool} -- positive sequence based ldf (symmetrical) or 3phase natural components based (unsymmetrical). (default: {True})
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
-            {PFTypes.Result | None} -- The result object related to the RMS simualtion.
+            {PFTypes.Result | None} -- The result object related to the RMS simulation.
         """
         # Setup simulation start command
         sim_start_cmd = self.create_time_sim_start_command(
@@ -2302,13 +2379,13 @@ class PowerFactoryInterface:
         """Wrapper to easily run EMT time simulation.
 
         Arguments:
-            time {float}: simualtion time in seconds
+            time {float}: simulation time in seconds
         Keyword Arguments:
             result {PFTypes.Result | None} -- the result object to write simulation results to. (default: {None})
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes. (default: {None})
 
         Returns:
-            {PFTypes.Result | None} -- the result object related to the EMT simualtion.
+            {PFTypes.Result | None} -- the result object related to the EMT simulation.
         """
         # Setup simulation start command
         # Unsymmetric is set by PowerFactory!
@@ -2330,6 +2407,85 @@ class PowerFactoryInterface:
             raise ValueError(msg)
 
         return sim_start_cmd.p_resvar
+
+    def run_short_circuit_calculation(
+        self,
+        /,
+        *,
+        method: ShortCircuitCalcType = ShortCircuitCalcType.VDE_0102_Part_0,  # default method is VDE 0102 Part 0
+        fault_type: ShortCircuitFaultType = ShortCircuitFaultType.THREE_PHASE,  # type of fault to be examined
+        current_type: ShortCircuitCurrentType = ShortCircuitCurrentType.MAX_IK,  # max Ik / max Sk
+        fault_location: ShortCircuitPosition = ShortCircuitPosition.BUSBARS_AND_JUNCTION_NODES,
+        terminal_output: bool = False,
+        data: dict[str, ValidPFValue] | None = None,
+    ) -> PFTypes.Result | None:
+        """Wrapper for the short circuit calculation command.
+
+        Keyword Arguments:
+            method {ShortCircuitCalcType} -- method of short circuit calculation (default: {ShortCircuitCalcType.VDE_0102_Part_0})
+            fault_type {ShortCircuitFaultType} -- fault type to be examined (default: {ShortCircuitFaultType.THREE_PHASE})
+            current_type {ShortCircuitCurrentType} -- flag to indicate minimum or maximum short circuit current to be used (default: {ShortCircuitCurrentType.MAX_IK})
+            fault_location {ShortCircuitPosition} -- fault locations to be considered (default: {ShortCircuitPosition.BUSBARS_AND_JUNCTION_NODES})
+            terminal_output {bool} -- flag if results should be displayed as report in the PowerFactory terminal (default: {False})
+            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None})
+
+        Raises:
+            ValueError: If the short circuit calculation command execution fails.
+
+        Returns:
+            {PFTypes.Result | None}: The (default) result object related to the short circuit simulation
+        """
+
+        short_circuit_cmd = self.create_short_circuit_command(
+            method=method,
+            fault_type=fault_type,
+            current_type=current_type,
+            fault_location=fault_location,
+            terminal_output=terminal_output,
+            data=data,
+        )
+
+        if short_circuit_cmd.Execute():
+            msg = "Short Circuit Calculation execution failed."
+            raise ValueError(msg)
+
+        return self.result("All*", study_case_name=self.app.GetActiveStudyCase().loc_name)  # type: ignore [union-attr]
+
+    def create_sgl_layout_selection(
+        self,
+        /,
+        *,
+        data: Sequence[PFTypes.Element],
+        location: PFTypes.StudyCase | None = None,
+    ) -> PFTypes.Selection | None:
+        """Create a selection object for a list of elements.
+
+        Keyword Arguments:
+            data (Sequence[PFTypes.Element]) -- list of elements to be selected.
+            location (PFTypes.StudyCase | None, optional) -- StudyCase the selection belongs to. (default: {None})
+
+        Returns:
+            {PFTypes.Selection | None} -- Selection object or None if creation failed.
+        """
+        if location is None:
+            loguru.logger.debug("Get active StudyCase specified for selection object.")
+            location = self.app.GetActiveStudyCase()
+        if location is None:
+            loguru.logger.warning("No location (StudyCase) specified for selection object. Quitting.")
+            return None
+        selection = self.create_object(
+            name="SGL-Layout-Selection",
+            class_name=PFClassId.SELECTION.value,
+            location=location,
+        )
+
+        if selection is None:
+            return None
+        selection = t.cast("PFTypes.Selection", selection)
+
+        selection.AddRef(data)  # type: ignore [arg-type]
+
+        return selection
 
     @staticmethod
     def run_result_export(result_export_command: PFTypes.CommandResultExport, /) -> None:
@@ -2469,14 +2625,15 @@ class PowerFactoryInterface:
         In case that the given attribute is a dictionary, the function is called recursively to get nested attributes.
         In case of the occurence of DataObject as value (return type) of a requesetd attribute: If the grid_name is given, the DataObject is converted to its unique_name + class_name , otherwise the full name is used.
 
-        Args:
-            element (PFTypes.DataObject): the element of interest
-            elm_type(PFClassId): the type of the element
-            attribute (str): key of the attribute
-            grid_name (str | None, optional): the name of the grid related to the element, relevant if converting a PFTypes.DataObject. Defaults to None.
+        Arguments:
+            element {PFTypes.DataObject} -- the element of interest
+            elm_type{PFClassId} -- the type of the element
+            attribute {str} -- key of the attribute
+        Keyword Arguments:
+            grid_name {str | None, optional} -- the name of the grid related to the element, relevant if converting a PFTypes.DataObject. (default: {None})
 
         Returns:
-            AttributeData | None: instance of AttributeData or None if attribute does not exist within the element
+            {AttributeData | None} -- instance of AttributeData or None if attribute does not exist within the element
         """
         # if given attribute is just a simple string key
         if not isinstance(attribute, dict):

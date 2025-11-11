@@ -7,8 +7,8 @@ from __future__ import annotations
 
 import typing as t
 
-from powerfactory_tools.versions.pf2024.types import Currency
-from powerfactory_tools.versions.pf2024.types import MetricPrefix
+from powerfactory_tools.versions.pf2025.types import Currency
+from powerfactory_tools.versions.pf2025.types import MetricPrefix
 
 if t.TYPE_CHECKING:
     from collections.abc import Sequence

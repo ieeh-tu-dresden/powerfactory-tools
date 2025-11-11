@@ -69,50 +69,50 @@ from powerfactory_tools.__version__ import VERSION
 from powerfactory_tools.str_constants import NAME_SEPARATOR
 from powerfactory_tools.str_constants import STRING_SEPARATOR
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2022.constants import DEFAULT_PHASE_QUANTITY
-from powerfactory_tools.versions.pf2022.constants import DecimalDigits
-from powerfactory_tools.versions.pf2022.constants import Exponents
-from powerfactory_tools.versions.pf2022.exporter.load_power import ConsolidatedLoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.exporter.load_power import ControlTypeFactory
-from powerfactory_tools.versions.pf2022.exporter.load_power import LoadPower
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_POWERFACTORY_PATH
-from powerfactory_tools.versions.pf2022.interface import DEFAULT_PYTHON_VERSION
-from powerfactory_tools.versions.pf2022.interface import POWERFACTORY_VERSION
-from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
-from powerfactory_tools.versions.pf2022.interface import ValidPythonVersion
-from powerfactory_tools.versions.pf2022.quantities import QuantityConverter as Qc
-from powerfactory_tools.versions.pf2022.types import CosPhiChar
-from powerfactory_tools.versions.pf2022.types import CtrlVoltageRef
-from powerfactory_tools.versions.pf2022.types import ExternalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import GeneratorPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import GeneratorSystemType
-from powerfactory_tools.versions.pf2022.types import IOpt
-from powerfactory_tools.versions.pf2022.types import LoadLVPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LoadPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import LocalQCtrlMode
-from powerfactory_tools.versions.pf2022.types import NeutralPointEarthing
-from powerfactory_tools.versions.pf2022.types import PFClassId
-from powerfactory_tools.versions.pf2022.types import Phase1PH as PFPhase1PH
-from powerfactory_tools.versions.pf2022.types import Phase2PH as PFPhase2PH
-from powerfactory_tools.versions.pf2022.types import Phase3PH as PFPhase3PH
-from powerfactory_tools.versions.pf2022.types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.versions.pf2022.types import PowerModelType
-from powerfactory_tools.versions.pf2022.types import QChar
-from powerfactory_tools.versions.pf2022.types import TerminalPhaseConnectionType
-from powerfactory_tools.versions.pf2022.types import TerminalVoltageSystemType
-from powerfactory_tools.versions.pf2022.types import TrfNeutralConnectionType
-from powerfactory_tools.versions.pf2022.types import TrfPhaseTechnology
-from powerfactory_tools.versions.pf2022.types import TrfTapSide
-from powerfactory_tools.versions.pf2022.types import TrfVectorGroup
-from powerfactory_tools.versions.pf2022.types import TrfWindingVector
-from powerfactory_tools.versions.pf2022.types import VoltageSystemType as ElementVoltageSystemType
+from powerfactory_tools.versions.pf2025.constants import DEFAULT_PHASE_QUANTITY
+from powerfactory_tools.versions.pf2025.constants import DecimalDigits
+from powerfactory_tools.versions.pf2025.constants import Exponents
+from powerfactory_tools.versions.pf2025.exporter.load_power import ConsolidatedLoadPhaseConnectionType
+from powerfactory_tools.versions.pf2025.exporter.load_power import ControlTypeFactory
+from powerfactory_tools.versions.pf2025.exporter.load_power import LoadPower
+from powerfactory_tools.versions.pf2025.interface import DEFAULT_POWERFACTORY_PATH
+from powerfactory_tools.versions.pf2025.interface import DEFAULT_PYTHON_VERSION
+from powerfactory_tools.versions.pf2025.interface import POWERFACTORY_VERSION
+from powerfactory_tools.versions.pf2025.interface import PowerFactoryInterface
+from powerfactory_tools.versions.pf2025.interface import ValidPythonVersion
+from powerfactory_tools.versions.pf2025.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2025.types import CosPhiChar
+from powerfactory_tools.versions.pf2025.types import CtrlVoltageRef
+from powerfactory_tools.versions.pf2025.types import ExternalQCtrlMode
+from powerfactory_tools.versions.pf2025.types import GeneratorPhaseConnectionType
+from powerfactory_tools.versions.pf2025.types import GeneratorSystemType
+from powerfactory_tools.versions.pf2025.types import IOpt
+from powerfactory_tools.versions.pf2025.types import LoadLVPhaseConnectionType
+from powerfactory_tools.versions.pf2025.types import LoadPhaseConnectionType
+from powerfactory_tools.versions.pf2025.types import LocalQCtrlMode
+from powerfactory_tools.versions.pf2025.types import NeutralPointEarthing
+from powerfactory_tools.versions.pf2025.types import PFClassId
+from powerfactory_tools.versions.pf2025.types import Phase1PH as PFPhase1PH
+from powerfactory_tools.versions.pf2025.types import Phase2PH as PFPhase2PH
+from powerfactory_tools.versions.pf2025.types import Phase3PH as PFPhase3PH
+from powerfactory_tools.versions.pf2025.types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.versions.pf2025.types import PowerModelType
+from powerfactory_tools.versions.pf2025.types import QChar
+from powerfactory_tools.versions.pf2025.types import TerminalPhaseConnectionType
+from powerfactory_tools.versions.pf2025.types import TerminalVoltageSystemType
+from powerfactory_tools.versions.pf2025.types import TrfNeutralConnectionType
+from powerfactory_tools.versions.pf2025.types import TrfPhaseTechnology
+from powerfactory_tools.versions.pf2025.types import TrfTapSide
+from powerfactory_tools.versions.pf2025.types import TrfVectorGroup
+from powerfactory_tools.versions.pf2025.types import TrfWindingVector
+from powerfactory_tools.versions.pf2025.types import VoltageSystemType as ElementVoltageSystemType
 
 if t.TYPE_CHECKING:
     from types import TracebackType
 
     import typing_extensions as te
 
-    from powerfactory_tools.versions.pf2022.data import PowerFactoryData
+    from powerfactory_tools.versions.pf2025.data import PowerFactoryData
 
     ElementBase = PFTypes.GeneratorBase | PFTypes.LoadBase3Ph | PFTypes.ExternalGrid
 
@@ -146,9 +146,11 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         *,
         project_name: str,
         export_path: pathlib.Path,
-        powerfactory_user_profile: str = "",
+        powerfactory_ini_name: str | None = None,
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
+        powerfactory_user_profile: str = "",
+        powerfactory_user_password: str | None = None,
         python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
         logging_level: int = logging.DEBUG,
         log_file_path: pathlib.Path | None = None,
@@ -157,13 +159,16 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
         element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
+        plausibility_check: bool = True,
     ) -> None:
         super().__init__()
         self.export_path = export_path
         self.project_name = project_name
-        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_ini_name = powerfactory_ini_name
         self.powerfactory_path = powerfactory_path
         self.powerfactory_service_pack = powerfactory_service_pack
+        self.powerfactory_user_profile = powerfactory_user_profile
+        self.powerfactory_user_password = powerfactory_user_password
         self.python_version = python_version
         self.logging_level = logging_level
         self.log_file_path = log_file_path
@@ -172,13 +177,16 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.steadystate_case_name = steadystate_case_name
         self.study_case_names = study_case_names
         self.element_specific_attrs = element_specific_attrs
+        self.plausibility_check = plausibility_check
 
     def run(self) -> None:
         pfe = PowerFactoryExporter(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -190,15 +198,18 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
             topology_case_name=self.topology_case_name,
             steadystate_case_name=self.steadystate_case_name,
             study_case_names=self.study_case_names,
+            plausibility_check=self.plausibility_check,
         )
 
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryExporter:
     project_name: str
-    powerfactory_user_profile: str = ""
+    powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
+    powerfactory_user_profile: str = ""
+    powerfactory_user_password: str | None = None
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION
     logging_level: int = logging.DEBUG
     log_file_path: pathlib.Path | None = None
@@ -207,9 +218,11 @@ class PowerFactoryExporter:
     def __post_init__(self) -> None:
         self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
-            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_ini_name=self.powerfactory_ini_name,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
+            powerfactory_user_profile=self.powerfactory_user_profile,
+            powerfactory_user_password=self.powerfactory_user_password,
             python_version=self.python_version,
             logging_level=self.logging_level,
             log_file_path=self.log_file_path,
@@ -235,6 +248,7 @@ class PowerFactoryExporter:
         topology_case_name: str | None = None,
         steadystate_case_name: str | None = None,
         study_case_names: list[str] | None = None,
+        plausibility_check: bool = True,
     ) -> None:
         """Export grid topology, topology_case and steadystate_case to json files.
 
@@ -248,6 +262,7 @@ class PowerFactoryExporter:
             topology_case_name {str} -- the chosen file name for related 'topology_case' data (default: {None})
             steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
             study_case_names {list[str]} -- a list of study cases to export (default: {None})
+            plausibility_check {bool} -- flag to turn on/off the plausibility check of the exported topology_case (default: {True})
         """
         if study_case_names is not None:
             self.export_study_cases(
@@ -256,6 +271,7 @@ class PowerFactoryExporter:
                 topology_name=topology_name,
                 topology_case_name=topology_case_name,
                 steadystate_case_name=steadystate_case_name,
+                plausibility_check=plausibility_check,
             )
         else:
             act_sc = self.pfi.app.GetActiveStudyCase()
@@ -266,6 +282,7 @@ class PowerFactoryExporter:
                     topology_name=topology_name,
                     topology_case_name=topology_case_name,
                     steadystate_case_name=steadystate_case_name,
+                    plausibility_check=plausibility_check,
                 )
             else:
                 msg = "Could not export. There is neither a study case defined nor is one activated"
@@ -279,6 +296,7 @@ class PowerFactoryExporter:
         topology_name: str | None,
         topology_case_name: str | None,
         steadystate_case_name: str | None,
+        plausibility_check: bool = True,
     ) -> None:
         for study_case_name in study_case_names:
             study_case = self.pfi.study_case(study_case_name)
@@ -290,6 +308,7 @@ class PowerFactoryExporter:
                     topology_name=topology_name,
                     topology_case_name=topology_case_name,
                     steadystate_case_name=steadystate_case_name,
+                    plausibility_check=plausibility_check,
                 )
             else:
                 loguru.logger.warning(
@@ -305,6 +324,7 @@ class PowerFactoryExporter:
         topology_name: str | None,
         topology_case_name: str | None,
         steadystate_case_name: str | None,
+        plausibility_check: bool = True,
     ) -> None:
         grids = self.pfi.independent_grids(calc_relevant=True)
 
@@ -322,7 +342,12 @@ class PowerFactoryExporter:
 
             topology = self.create_topology(meta=meta, data=data)
 
-            topology_case = self.create_topology_case(meta=meta, data=data, topology=topology)
+            topology_case = self.create_topology_case(
+                meta=meta,
+                data=data,
+                topology=topology,
+                plausibility_check=plausibility_check,
+            )
 
             steadystate_case = self.create_steadystate_case(meta=meta, data=data, topology=topology)
 
@@ -342,6 +367,13 @@ class PowerFactoryExporter:
                 steadystate_case=steadystate_case,
                 steadystate_case_name=steadystate_case_name,
                 export_path=export_path,
+                grid_name=grid_name,
+            )
+
+            loguru.logger.info(
+                "Exporting {project_name} - study case '{study_case_name}' - grid {grid_name}... Done.",
+                project_name=self.project_name,
+                study_case_name=study_case_name,
                 grid_name=grid_name,
             )
 
@@ -598,7 +630,13 @@ class PowerFactoryExporter:
 
         extra_meta_data = self.get_extra_element_attrs(terminal, self.element_specific_attrs, grid_name=grid_name)
 
-        return Node(name=name, u_n=u_n, phases=phases, description=description, optional_data=extra_meta_data)
+        return Node(
+            name=name,
+            u_n=u_n,
+            phases=phases,
+            description=description,
+            optional_data=extra_meta_data,
+        )
 
     def create_branches(
         self,
@@ -2115,6 +2153,7 @@ class PowerFactoryExporter:
         meta: Meta,
         data: PowerFactoryData,
         topology: Topology,
+        plausibility_check: bool = True,
     ) -> TopologyCase:
         loguru.logger.debug("Creating topology case...")
         switch_states = self.create_switch_states(
@@ -2166,8 +2205,11 @@ class PowerFactoryExporter:
         tc = TopologyCase(meta=meta, elements=tuple(power_on_states))
 
         if not tc.matches_topology(topology):
+            # This may happen, if the real grid contains elements that are not part of the exported topology (as supported so far).
             msg = "Topology case does not match specified topology."
-            raise ValueError(msg)
+            loguru.logger.warning(msg)
+            if plausibility_check:
+                raise ValueError(msg)
 
         return tc
 
@@ -2205,14 +2247,12 @@ class PowerFactoryExporter:
 
         Arguments:
             switches {Sequence[PFTypes.Switch]} -- sequence of PowerFactory objects of type Switch
-
         Keyword Arguments:
             grid_name {str} -- the name of the related grid
             topology_loads {Sequence[Load]} -- the loads of the topology case for comparison of the names (relevant for LV- and MV-loads)
 
-
         Returns:
-            Sequence[ElementState] -- set of element states
+            {Sequence[ElementState]} -- set of element states
         """
 
         loguru.logger.info("Creating switch states...")
@@ -4172,6 +4212,7 @@ class PowerFactoryExporter:
                     attribute_data,
                     self.pfi.pf_dataobject_to_name_string(element, grid_name=grid_name),
                 )
+
         return None
 
 
@@ -4179,9 +4220,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     *,
     export_path: pathlib.Path,
     project_name: str,
-    powerfactory_user_profile: str = "",
+    powerfactory_ini_name: str | None = None,
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
+    powerfactory_user_profile: str = "",
+    powerfactory_user_password: str | None = None,
     python_version: ValidPythonVersion = DEFAULT_PYTHON_VERSION,
     logging_level: int = logging.DEBUG,
     log_file_path: pathlib.Path | None = None,
@@ -4190,6 +4233,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     steadystate_case_name: str | None = None,
     study_case_names: list[str] | None = None,
     element_specific_attrs: dict[PFClassId, Sequence[str | dict]] | None = None,
+    plausibility_check: bool = True,
 ) -> None:
     """Export powerfactory data to json files using PowerFactoryExporter running in process.
 
@@ -4201,9 +4245,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     Arguments:
         export_path {pathlib.Path} -- the directory where the exported json files are saved
         project_name {str} -- project name in PowerFactory to which the grid belongs
-        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_ini_name {str | None} -- the name of the PowerFactory ini file to be used (default: {None})
         powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
         powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
+        powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
+        powerfactory_user_password {str | None} -- user password for login in PowerFactory (default: {None})
         python_version {PYTHON_VERSIONS} -- the version of Python to be used for PowerFactory (default: {DEFAULT_PYTHON_VERSION})
         logging_level {int} -- flag for the level of logging criticality (default: {DEBUG})
         log_file_path {pathlib.Path} -- the file path of an external log file (default: {None})
@@ -4212,6 +4258,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         steadystate_case_name {str} -- the chosen file name for related 'steadystate_case' data (default: {None})
         study_case_names {list[str]} -- a list of study cases to export (default: {None})
         element_specific_attrs {dict[PFClassId, Sequence[str | dict]]} -- a dictionary with PFClassIds as keys and a set of attribute names as value (default: {None})
+        plausibility_check {bool} -- flag for the plausibility check of the exported TopologyCase (default: {True})
 
     Returns:
         None
@@ -4220,9 +4267,11 @@ def export_powerfactory_data(  # noqa: PLR0913
     process = PowerFactoryExporterProcess(
         project_name=project_name,
         export_path=export_path,
-        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_ini_name=powerfactory_ini_name,
         powerfactory_path=powerfactory_path,
         powerfactory_service_pack=powerfactory_service_pack,
+        powerfactory_user_profile=powerfactory_user_profile,
+        powerfactory_user_password=powerfactory_user_password,
         python_version=python_version,
         logging_level=logging_level,
         log_file_path=log_file_path,
@@ -4231,6 +4280,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         steadystate_case_name=steadystate_case_name,
         study_case_names=study_case_names,
         element_specific_attrs=element_specific_attrs,
+        plausibility_check=plausibility_check,
     )
     process.start()
     process.join()

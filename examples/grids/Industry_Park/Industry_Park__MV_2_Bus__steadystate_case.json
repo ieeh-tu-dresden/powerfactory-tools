@@ -64,20 +64,20 @@
   ],
   "meta": {
     "case": "Industry_Park",
-    "creator": "powerfactory-tools @ version 3.0.0",
-    "date": "2024-09-03",
+    "creator": "powerfactory-tools @ version 3.2.1",
+    "date": "2025-08-26",
     "grid": "MV_2_Bus",
-    "id": "cc5f324d-dac5-4ab4-95c8-c6b54aca815b",
+    "id": "6278aff0-670b-4055-90d0-7f61701d3d6b",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP2"
+        "value": "PowerFactory 2024 || SP6"
       }
     ],
     "project": "PowerFactory-Tools",
     "sign_convention": "PASSIVE",
-    "version": "2.3.1"
+    "version": "2.3.3"
   },
   "optional_data": null,
   "transformers": [

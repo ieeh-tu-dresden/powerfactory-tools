@@ -2,9 +2,9 @@
 # :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2025.
 # :license: BSD 3-Clause
 
-from powerfactory_tools.versions.pf2022.exporter.exporter import PowerFactoryExporter
-from powerfactory_tools.versions.pf2022.exporter.exporter import export_powerfactory_data
-from powerfactory_tools.versions.pf2022.interface import PowerFactoryInterface
+from powerfactory_tools.versions.pf2025.exporter.exporter import PowerFactoryExporter
+from powerfactory_tools.versions.pf2025.exporter.exporter import export_powerfactory_data
+from powerfactory_tools.versions.pf2025.interface import PowerFactoryInterface
 
 __all__ = [
     "PowerFactoryExporter",

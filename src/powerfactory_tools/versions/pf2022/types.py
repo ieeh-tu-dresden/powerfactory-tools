@@ -21,7 +21,7 @@ class PFClassId(enum.Enum):
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
     CURRENT_SOURCE_AC = "ElmIac"
-    EXTERNAL_GRID = "ElmXNet"
+    EXTERNAL_GRID = "ElmXnet"
     DATETIME = "SetTime"
     DESKTOP = "SetDesktop"
     DSL_MODEL = "ElmDsl"
@@ -1230,7 +1230,7 @@ class PowerFactoryTypes:
         def GetCalcRelevantObjects(  # noqa: N802
             self,
             name_filter: str,
-            include_out_of_service: int,
+            include_out_of_service: int = 1,
             topo_elements_only: int = 0,
             b_ac_schemes: int = 0,
             /,

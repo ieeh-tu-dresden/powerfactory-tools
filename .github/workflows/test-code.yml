@@ -20,11 +20,11 @@ jobs:
     needs: [check-code]
     strategy:
       matrix:
-        python-version: ["3.10", "3.12"]
+        python-version: ["3.10", "3.12", "3.13"]
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
         with:
           fetch-depth: 1
 
@@ -37,9 +37,9 @@ jobs:
       
       - name: Install uv and set the python version
         id: setup-uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
         with:
-          version: "0.5.28"  # install a specific version of uv
+          version: "0.9.4"  # install a specific version of uv
           enable-cache: true
           python-version: ${{ matrix.python-version }}
       

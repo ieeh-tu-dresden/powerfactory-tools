@@ -33,9 +33,9 @@ from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import RatedPower
 
-from powerfactory_tools.versions.pf2024.constants import DecimalDigits
-from powerfactory_tools.versions.pf2024.constants import Exponents
-from powerfactory_tools.versions.pf2024.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2025.constants import DecimalDigits
+from powerfactory_tools.versions.pf2025.constants import Exponents
+from powerfactory_tools.versions.pf2025.quantities import QuantityConverter as Qc
 
 if t.TYPE_CHECKING:
     from typing import TypedDict
