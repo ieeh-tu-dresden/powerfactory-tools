@@ -92,42 +92,42 @@ pip install ieeh-powerfactory-tools
 
 ```python
 import pathlib
-from powerfactory_tools.versions.pf2024 import PowerFactoryExporter
-from powerfactory_tools.versions.pf2024.interface import ValidPythonVersion
+from powerfactory_tools.versions.pf2025 import PowerFactoryExporter
+from powerfactory_tools.versions.pf2025.interface import ValidPythonVersion
 
 PF_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 PF_SERVICE_PACK = 2 # mandatory
 PF_USER_PROFILE = "" # specification may be necessary
-PF_PYTHON_VERSION = ValidPythonVersion.VERSION_3_12
+PF_PYTHON_VERSION = ValidPythonVersion.VERSION_3_13
 # project name may be also full path "dir_name\project_name"
-PROJECT_NAME = "my-pf-project"
+PROJECT_NAME = "my-pf-project_name"
 
 with PowerFactoryExporter(
-powerfactory_path=PF_PATH
-powerfactory_service_pack=PF_SERVICE_PACK,
-powerfactory_user_profile=PF_USER_PROFILE,
-python_version=PF_PYTHON_VERSION,
-project_name=PROJECT_NAME,
-) as exporter:
-    # Option I: Export to PSDM Python objects
-    grids = self.pfi.independent_grids(calc_relevant=True)
-    for grid in grids:
-        grid_name = grid.loc_name
-        data = self.pfi.compile_powerfactory_data(grid)
-        meta = self.create_meta_data(data=data, case_name="study_case_name")
+    powerfactory_path=PF_PATH,
+    powerfactory_service_pack=PF_SERVICE_PACK,
+    powerfactory_user_profile=PF_USER_PROFILE,
+    python_version=PF_PYTHON_VERSION,
+    project_name=PROJECT_NAME,
+    ) as exporter:
+        # Option I: Export to PSDM Python objects
+        grids = exporter.pfi.independent_grids(calc_relevant=True)
+        for grid in grids:
+            grid_name = grid.loc_name
+            data = exporter.pfi.compile_powerfactory_data(grid)
+            meta = exporter.create_meta_data(data=data, case_name="study_case_name")
 
-        # Create the three PSDM base classes
-        topology = self.create_topology(meta=meta, data=data)
-        topology_case = self.create_topology_case(meta=meta, data=data, 
-            topology=topology)
-        steadystate_case = self.create_steadystate_case(meta=meta, data=data, 
-            topology=topology)
+            # Create the three PSDM base classes
+            topology = exporter.create_topology(meta=meta, data=data)
+            topology_case = exporter.create_topology_case(meta=meta, data=data, 
+                topology=topology)
+            steadystate_case = exporter.create_steadystate_case(meta=meta, data=data, 
+                topology=topology)
 
-    # Option II: Export to PSDM-formatted JSON files
-    exporter.export(
-        export_path = pathlib.Path("export_dir"), 
-        study_case_names=["study_case_name"],
-    )
+        # Option II: Export to PSDM-formatted JSON files
+        exporter.export(
+            export_path = pathlib.Path("external_export_directory"), 
+            study_case_names=["study_case_name"],
+        )
 ```
 
 # Software Dependencies
@@ -136,7 +136,7 @@ The software is written in Python and uses the data validation library pydantic 
 In respect to the export functionality, the _PSDM_ [-@psdm] is used as schema for network entity relations.
 Ultimately, the responsibility falls upon the user to ensure the accurate compilation of software versions. 
 Should any reader require assistance with this topic, they will find an up-to-date list of compatible software available at the repositories readme.
-For example, the _PowerFactory-Tools_ version 3.2.0 is related to the _PSDM_ version 2.3.3 and brings built-in support for PowerFactory version 2022 and 2024.
+For example, the _PowerFactory-Tools_ version 3.3.0 is related to the _PSDM_ version 2.3.3 and brings built-in support for PowerFactory version 2022, 2024 and 2025.
 
 # Acknowledgements
 
