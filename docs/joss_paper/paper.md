@@ -97,10 +97,15 @@ from powerfactory_tools.versions.pf2025.interface import ValidPythonVersion
 
 PF_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
 PF_SERVICE_PACK = 2 # mandatory
-PF_USER_PROFILE = "" # specification may be necessary
+PF_USER_PROFILE = "TODO"  # mandatory, name of the user profile in PF data base
 PF_PYTHON_VERSION = ValidPythonVersion.VERSION_3_13
 # project name may be also full path "dir_name\project_name"
-PROJECT_NAME = "my-pf-project_name"
+# (name is choosen related to example PF project in GitHub repository)
+PROJECT_NAME = "PowerFactory-Tools"  
+# a valid study case name in the choosen PF project
+STUDY_CASE_NAME = "Base"  
+# directory, the export results will be saved to
+EXPORT_PATH = pathlib.Path("export") 
 
 with PowerFactoryExporter(
     powerfactory_path=PF_PATH,
@@ -114,7 +119,7 @@ with PowerFactoryExporter(
         for grid in grids:
             grid_name = grid.loc_name
             data = exporter.pfi.compile_powerfactory_data(grid)
-            meta = exporter.create_meta_data(data=data, case_name="study_case_name")
+            meta = exporter.create_meta_data(data=data, case_name=STUDY_CASE_NAME)
 
             # Create the three PSDM base classes
             topology = exporter.create_topology(meta=meta, data=data)
@@ -122,11 +127,12 @@ with PowerFactoryExporter(
                 topology=topology)
             steadystate_case = exporter.create_steadystate_case(meta=meta, data=data, 
                 topology=topology)
+            # Now, the PSDM objects can be used by the user ...
 
         # Option II: Export to PSDM-formatted JSON files
         exporter.export(
-            export_path = pathlib.Path("external_export_directory"), 
-            study_case_names=["study_case_name"],
+            export_path = EXPORT_PATH, 
+            study_case_names=[STUDY_CASE_NAME],
         )
 ```
 
