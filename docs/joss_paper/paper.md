@@ -56,11 +56,11 @@ Furthermore, a main functionality is the network exporter from PowerFactory to t
 In terms of network optimisation, user-defined network reduction or stability analysis, users may require an explicitly accessible nodal admittance matrix (NAM) of the network. 
 Since access to this is still restricted for PowerFactory users, exporting the PowerFactory network to a well structured and human readable exchange format is a huge benefit.
 Due to this, users can (a) export to _PSDM_ Python objects and build the NAM by your own without changing the programming language or (b) export to _PSDM_-formatted JSON files, then import these files using the programming language of your choice and build the NAM.
-It has to mention, that PowerFactory provides a built-in export with DGS, the bidirectional, flexible DIgSILENT data exchange format (ascii, xml, csv, odbc). 
+It has to be mentioned, that PowerFactory provides a built-in export with DGS, the bidirectional, flexible DIgSILENT data exchange format (ascii, xml, csv, odbc). 
 While it is intended to support GIS and SCADA connections, the drawback is that the DGS export is typeless and not Python native. 
 Due to this, a significant effort for parsing may occur.
 
-_PowerFactory-Tools_ was used in @Krahmer:2022, @Krahmer:2023, @Krahmer:2024 and @Fiedler:2024 as well as is currently in use in the research project SysZell, ZellSys and digiTechNetz.
+_PowerFactory-Tools_ was used in @Krahmer:2022, @Krahmer:2023, @Krahmer:2024 and @Fiedler:2024 as well as is currently in use in the research projects SysZell, ZellSys and digiTechNetz.
 
 # Application Benefits
 
