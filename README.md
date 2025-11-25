@@ -4,6 +4,7 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
+[![status](https://joss.theoj.org/papers/eb6a1103393bdef4a1dd02845ecb2141/status.svg)](https://joss.theoj.org/papers/eb6a1103393bdef4a1dd02845ecb2141)
 
 <div align="center">
   <img src="./docs/static/PFT_icon_extended_360px.png" width="200">
