@@ -46,7 +46,7 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 - **Establish a Standardized Workflow**
   >We make it easier to collaborate with colleagues by providing you a standard *toolbox-way* of doing things in your organization, including a standard way to easily export simulation results e.g. to pandas dataframe or feather. 
 
-- **Get the Most Out of PowerFactory with Our Comfort [Functions](#provided-functionalities)**
+- **Get the Most Out of PowerFactory with Our [Comfort Functions](#provided-functionalities)**
   >Take advantage of our reviewed comfort functions, which provide a wide range of benefits, including: simplified grid export, enhanced PowerFactory automation, easy object replacements
 
 - **Get Started with Confidence**
@@ -67,7 +67,7 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 
 
 ## PowerFactory Interface
-The toolbox builds up on the [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py), that provides comfort functions to:
+The toolbox builds up on the [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2025/interface.py), that provides comfort functions to:
 - connect to PowerFactory
 - create and alter PowerFactory elements ("physical" elements, "organizational" elements, commands, etc.)
 - collect PowerFactory elements of specific types
@@ -80,7 +80,7 @@ Please find below some important general remarks and assumptions to consider for
 
 ### General Unit Conversion
 
-A connection to PowerFactory is established via [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py).
+A connection to PowerFactory is established via [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2024/interface.py).
 After this initialization, a **temporary unit conversion to default values is automatically performed** to have a project setting independent behavior. The units are reset when the interface is closed.
 During an active connection, the following units apply:
 
@@ -93,9 +93,9 @@ During an active connection, the following units apply:
 
 Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/export-a-network-from-powerfactory-to-the-power-system-data-model-db46103bdabe) about the exporter.
 
-The [PowerFactoryExporter](./powerfactory_tools/versions/pf2024/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./powerfactory_tools/versions/pf2024/interface.py).
+The [PowerFactoryExporter](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2025/interface.py).
 
-- The grid export follows the rules of usage recommended by [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model#-general-remarks):
+- The grid export follows the rules of usage recommended by [PSDM][link_to_psdm]:
   - The passive sign convention is used for all types of loads (consumer as well as producer).
   - The `Rated Power` is always defined positive (absolute value).
 - By default, all assests of all active grids within the selected study case are to be exported, see [example readme](./examples/README.md).
@@ -121,14 +121,14 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2024/exporter/exporte
   - The default load model of medium-voltage loads (`ElmLodmv`) is of type `const. power`.
   - The default load model of low-voltage loads (`ElmLodlv`, `ElmLodlvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./powerfactory_tools/versions/pf2024/exporter/load_power.py).
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./src/powerfactory_tools/versions/pf2025/exporter/load_power.py).
   - Connected consumer loads with an active and reactive power of zero leads to a RatedPower of `NaN`. Consider to exclude them for export.
 
 - Remarks on export of `transformer`:
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter:create_transformer_2w()](./src/powerfactory_tools/versions/pf2024/exporter/exporter.py).
+  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter:create_transformer_2w()](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py).
 
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
@@ -137,10 +137,10 @@ The [PowerFactoryExporter](./powerfactory_tools/versions/pf2024/exporter/exporte
 - Remarks on export of the `TopologyCase`:
   - In case that there is an element in the PowerFactory network that cannot be considered/exported by the PowerFactoryExporter according to the current version (e.g. `.ElmVsc`). If this element is connected to an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check of the export process and the run is terminated. To avoid this, the user has two options:
     - Manual change in PowerFactory: Close the relevant open switch and set the connected element out of service instead.
-    - Turn off plausibility check in PowerFactoryExporter: Set the `plausibility_check` parameter of the [PowerFactoryExporter:export()](./src/powerfactory_tools/versions/pf2024/exporter/exporter.py) to `False`.
+    - Turn off plausibility check in PowerFactoryExporter: Set the `plausibility_check` parameter of the [PowerFactoryExporter:export()](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py) to `False`.
 
 - Remarks on export of the `SteadyStateCase`:
-  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks).
+  - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM][link_to_psdm].
   - By default a consumer load has a Q-controller of type `CosPhiConst`, except in the case where active and reactive power are explicitly specified in the load flow mask in PowerFactory, then it's `QConst`.
   - It is assumed, that a station controller (if relevant) is exclusively assigned to a single generator.
   The generator itself ought to be parameterized in the same way as the station controller to ensure that the exported operating point of *Q* is the same that set by the station controller.
@@ -152,9 +152,9 @@ Please consider the [README](./examples/README.md) in the example section. Here,
 - for control 
   - basics: [powerfactory_control__basic.ipynb](./examples/powerfactory_control__basic.ipynb)
   - purpose "add loads": [powerfactory_control__add_loads.ipynb](./examples/powerfactory_control__add_loads.ipynb)
-- for export to [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks):
+- for export to [PSDM][link_to_psdm]:
   - [powerfactory_export.ipynb](./examples/powerfactory_export.ipynb)
-- for import from [PSDM](https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks): 
+- for import from [PSDM][link_to_psdm]: 
   - [powerfactory_import.ipynb](./examples/powerfactory_import.ipynb)
 
 
@@ -251,3 +251,5 @@ Please cite as:
 Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
+
+[link_to_psdm]: https://github.com/ieeh-tu-dresden/power-system-data-model?tab=readme-ov-file#-general-remarks

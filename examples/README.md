@@ -10,12 +10,12 @@ Examples for application of powerfactory exporter and controller.
 - [Raw PSDM Import](#raw-psdm-import)
 - [PowerFactory Example Project](#powerfactory-example-project)
 
-The whole examples are based on the PowerFactory version `2024`, but should also work with `2022`.
+The whole examples are based on the PowerFactory version `2025`, but should also work with `2022` and `2024`.
 
 ## Export Functionalities
 
 The jupyter notebook [powerfactory_export.ipynb](powerfactory_export.ipynb) is provided to get in touch with the usage of the powerfactory exporter.
-This example is based on the [PowerFactory example project](#-powerfactory-example-project).
+This example is based on the [PowerFactory example project](#powerfactory-example-project).
 
 
 Within the exporter example three different predefined study cases ("Base", "Industry_Park", "Outage") are to be exported.
@@ -30,12 +30,13 @@ to three different json files using the [power system data model (psdm)][link_to
 
 ### Usage
 
-**Please note**, that default values for the PowerFactory installation path and the Python version are used.
-If necessary, one can adapt `powerfactory_path`, `powerfactory_service_pack` and `python_version` when initializing the [PowerFactoryExporter][link_to_exporter].
+**Please note**, that default values for the PowerFactory installation path, PowerFactory init file name and the Python version are used.
+If necessary, one can adapt `powerfactory_path`, `powerfactory_service_pack`,
+`powerfactory_ini_name` and `python_version` when initializing the [PowerFactoryExporter][link_to_exporter].
 
 By default, **all assets of all active grids** within the selected PowerFactory project are to be exported.
 - The preferred way for export is to assign the desired study cases to the `export()` function call, see [export example](powerfactory_export.ipynb).
-- Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control "base" example 7-9](powerfactory_control__base.ipynb).
+- Alternatively, one can select _study cases_, _operation scenarios_ and _grid variations_ before export for more control, see [control "basic" example 7-9](powerfactory_control__basic.ipynb).
 
 The following figure provides a short overview of the dependencies within a PowerFactory project.
 
@@ -44,7 +45,7 @@ The following figure provides a short overview of the dependencies within a Powe
 ### Extended Attributes Export
 
 In the case an export of additional attribute data is required for elements of specified types, one can specify a dictionary and pass this as aditional parameter to the `Exporter` class.
-In our [export example](powerfactory_export.ipynb) such a request is performed by specifying  the dict `element_specific_attrs`.
+Such a request is performed in our export example [powerfactory_export.ipynb](powerfactory_export.ipynb)  by specifying the dict `element_specific_attrs`.
 
 ## Control Functionalities
 
@@ -64,7 +65,7 @@ The example includes:
 - Request and change study cases, operation scenarios and network variations
 
 ### Control Example "Add Loads"
-jupyter notebook [powerfactory_control__add_loads.ipynb](powerfactory_control__add_loads.ipynb) is provided to show how to simply add loads in the grid `3_Bus`.
+The jupyter notebook [powerfactory_control__add_loads.ipynb](powerfactory_control__add_loads.ipynb) is provided to show how to simply add loads in the grid `3_Bus`.
 Here, a grid variant is created first. Then, at all loads except the slack a new load is added with specified characteristics.
 
 ### Non-Interactive Display Mode
@@ -86,7 +87,7 @@ The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is p
 Here, `PSDM class objects` are generated out of a given `json`-file.
 
 ## PowerFactory Example Project
-The related PowerFactory example project `PF2024_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
+The related PowerFactory example project `PF2025_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
 The project contains:
 - 3-bus high voltage grid
 - a composition of a 9-bus high voltage grid and a 2-bus medium voltage industry grid
@@ -149,5 +150,5 @@ This grid is an extension to the 'HV_9_Bus' grid and contains:
 ![MV_2_Bus grid](./grids/MV_2_Bus.png)
 
 [link_to_example_grids]: ./grids
-[link_to_exporter]: ../powerfactory_tools/versions/pf2024/exporter/exporter.py
+[link_to_exporter]: ../src/powerfactory_tools/versions/pf2025/exporter/exporter.py
 [link_to_psdm]: https://github.com/ieeh-tu-dresden/power-system-data-model
