@@ -46,7 +46,7 @@ This software is a valuable tool for power system engineers and researchers who 
 
 # Statement of need
 
-_PowerFactory-Tools_ is a power system affiliated Python package for the control of the commercial network calculation program PowerFactory [@powerfactory].
+_PowerFactory-Tools_ is a power system affiliated Python package for the control of the commercial electrical power system analysis software PowerFactory [@powerfactory].
 When it comes to calculations based on use case variations or the need for reproducible control actions, PowerFactory can be called and controlled via user-defined Python scripts.
 PowerFactory-Tools eases developing, testing and verification by providing a well-structured and type-safe Python interface for PowerFactory.
 This interface is established on top of the PowerFactory-Python-API, but has undergone a process of refinement and augmentation through the incorporation of individually parameterisable functions that prove to be of considerable practical benefit.
