@@ -85,7 +85,7 @@ The PSDM consists of three parts covering different types of information and eac
 - SteadystateCase: operational case specific information.
 
 A full PSDM-representation of a network can be viewed in the example section of the _PowerFactory-Tools_ repository [-@pftools].
-The following code snippet shows how to use the library to export a PowerFactory 2024 network to the _PSDM_ format.
+The following code snippet shows how to use the library to export a PowerFactory 2025 network to the _PSDM_ format.
 
 ```shell
 pip install ieeh-powerfactory-tools
