@@ -1,3 +1,9 @@
+## 3.3.1 (2025-12-03)
+
+### Fix
+
+- missing pandas import in basic example (#326)
+
 ## 3.3.0 (2025-10-30)
 
 ### Feat

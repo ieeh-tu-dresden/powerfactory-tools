@@ -90,7 +90,9 @@ class PandasIoHandler(BaseIoHandler):
     try:
         import pandas as pd  # noqa: PLC0415
     except ModuleNotFoundError:
-        loguru.logger.error("Missing optional dependency 'pandas'. Use uv pip, pip or conda to install pandas.")
+        loguru.logger.warning(
+            "Missing optional dependency 'pandas'. Use uv pip, pip or conda to install pandas, otherwise errors will occur when using PandasIoHandler() functions.",
+        )
 
     SUPPORTED_FILE_TYPES_IMP: t.ClassVar[set[FileType]] = {FileType.CSV, FileType.FEATHER, FileType.JSON}
     SUPPORTED_FILE_TYPES_EXP: t.ClassVar[set[FileType]] = {
@@ -321,7 +323,9 @@ class PolarsIoHandler(BaseIoHandler):
     try:
         import polars as pl  # noqa: PLC0415
     except ModuleNotFoundError:
-        loguru.logger.error("Missing optional dependency 'polars'. Use uv pip, pip or conda to install polars.")
+        loguru.logger.warning(
+            "Missing optional dependency 'polars'. Use uv pip, pip or conda to install polars, otherwise errors will occur when using PolarsIoHandler() functions.",
+        )
 
     SUPPORTED_FILE_TYPES: t.ClassVar[set[FileType]] = {FileType.CSV, FileType.FEATHER, FileType.JSON}
 
