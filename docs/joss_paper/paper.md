@@ -79,6 +79,7 @@ As previously stated, the _PSDM_ constitutes a secondary open-source toolbox tha
 It utilizes a hierarchical structure/schema to describe unique entity relations as well as parameter sets. 
 _PSDM_ uses the BaseModel class from Pydantic as a technique for defining schema classes.
 The PSDM consists of three parts covering different types of information and each part can be stored as a human-readable JSON file:
+
 - Topology: plain network model with nodes, edges and connected devices
 - TopologyCase: information about elements that are disconnected, e. g. out-of-service or via open switches
 - SteadystateCase: operational case specific information.
