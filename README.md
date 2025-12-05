@@ -4,13 +4,13 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
-[![status](https://joss.theoj.org/papers/eb6a1103393bdef4a1dd02845ecb2141/status.svg)](https://joss.theoj.org/papers/eb6a1103393bdef4a1dd02845ecb2141)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.09281/status.svg)](https://doi.org/10.21105/joss.09281)
 
 <div align="center">
   <img src="./docs/static/PFT_icon_extended_360px.png" width="200">
 </div>
 
-A toolbox for Python based control and automation of DIgSILENT PowerFactory (> 2022).
+A Python Package to Facilitate the Control of DIgSILENT PowerFactory (> 2022).
 
   - [ Field of Application](#field-of-application)
     - [Why to Use](#why-to-use)
@@ -249,7 +249,13 @@ Please provide a link to this repository:
 
 Please cite as:
 
-Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
+S. Krahmer, S. J. Rasti, L. Fiedler and M. Schmidt, „PowerFactory-Tools: A Python Package to Facilitate the Control of DIgSILENT PowerFactory“. Journal of Open Source Software (JOSS), 10(116), 9281, 2025. doi: 10.21105/joss.09281.
+
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.09281/status.svg)](https://doi.org/10.21105/joss.09281)
+
+Alternatively, please link to the Zenodo record:
+
+Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, _PowerFactory-Tools: A Python Package to Facilitate the Control of DIgSILENT PowerFactory_, Zenodo, 2022. <https://doi.org/10.5281/zenodo.7074968>.
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7074968.svg)](https://doi.org/10.5281/zenodo.7074968)
 
