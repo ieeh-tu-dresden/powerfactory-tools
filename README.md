@@ -29,7 +29,7 @@ A Python Package to Facilitate the Control of DIgSILENT PowerFactory (> 2022).
 
 ## Field of Application
 
-This toolbox is intended for automation of the power flow calculation program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
+This toolbox is intended for automation of the power system analysis program [DIgSILENT PowerFactory](https://www.digsilent.de/de/powerfactory.html).
 Therefore, the Python-API of PowerFactory, provided by the company, is utilized.
 The interaction is recommended via the external usage of PowerFactory ('engine mode'), i.e. PowerFactory is started based on a Python script.
 
