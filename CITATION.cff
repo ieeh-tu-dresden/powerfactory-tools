@@ -1,16 +1,56 @@
 cff-version: 3.3.1
-message: "If you use this software, please cite it as below."
 authors:
-  - family-names: "Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden"
-    given-names:
-title: "PowerFactory Tools - A toolbox for Python based control of DIgSILENT PowerFactory"
-doi: 10.5281/zenodo.7074968
-date-released: 2022
-repository-code: "https://github.com/ieeh-tu-dresden/powerfactory-tools"
+- family-names: Krahmer
+  given-names: Sebastian
+  orcid: "https://orcid.org/0000-0002-3940-3398"
+- family-names: Rasti
+  given-names: Sasan Jacob
+  orcid: "https://orcid.org/0000-0002-1190-051X"
+- family-names: Fiedler
+  given-names: Laura
+  orcid: "https://orcid.org/0000-0002-9425-5324"
+- family-names: Schmidt
+  given-names: Maximilian
+  orcid: "https://orcid.org/0000-0003-2509-8342"
+contact:
+- family-names: Krahmer
+  given-names: Sebastian
+  orcid: "https://orcid.org/0000-0002-3940-3398"
+doi: 10.5281/zenodo.17799452
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Krahmer
+    given-names: Sebastian
+    orcid: "https://orcid.org/0000-0002-3940-3398"
+  - family-names: Rasti
+    given-names: Sasan Jacob
+    orcid: "https://orcid.org/0000-0002-1190-051X"
+  - family-names: Fiedler
+    given-names: Laura
+    orcid: "https://orcid.org/0000-0002-9425-5324"
+  - family-names: Schmidt
+    given-names: Maximilian
+    orcid: "https://orcid.org/0000-0003-2509-8342"
+  date-published: 2025-12-05
+  doi: 10.21105/joss.09281
+  issn: 2475-9066
+  issue: 116
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 9281
+  title: "PowerFactory-Tools: A Python Package to Facilitate the Control
+    of DIgSILENT PowerFactory"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.09281"
+  volume: 10
+title: "PowerFactory-Tools: A Python Package to Facilitate the Control
+  of DIgSILENT PowerFactory"
 keywords:
   - "Toolbox"
   - "PowerFactory"
   - "Power System Data Model"
   - "Python"
   - "Grid Model"
-license: BSD 3-Clause
