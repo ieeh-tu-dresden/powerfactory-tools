@@ -1118,8 +1118,10 @@ class PowerFactoryInterface:
         terminal: PFTypes.Terminal,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.StationCubicle]:
-        term_cubics = self.elements_of(terminal, pattern=name + "." + PFClassId.CUBICLE.value)
-        term_cubics = [t.cast("PFTypes.StationCubicle", c) for c in term_cubics]
+        term_cubics: list[PFTypes.StationCubicle] = [
+            t.cast("PFTypes.StationCubicle", c)
+            for c in self.elements_of(terminal, pattern=name + "." + PFClassId.CUBICLE.value)
+        ]
         if calc_relevant:
             calc_cubics = terminal.GetCalcRelevantCubicles()
             return [c for c in term_cubics if c in calc_cubics]
