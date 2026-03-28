@@ -1092,16 +1092,39 @@ class PowerFactoryInterface:
         *,
         grid_name: str = "*",
         calc_relevant: bool = False,
-        include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.StationCubicle]:
         elements = self.grid_elements(
             class_name=PFClassId.CUBICLE.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
-            include_out_of_service=include_out_of_service,
         )
         return [t.cast("PFTypes.StationCubicle", element) for element in elements]
+
+    def cubicle_from_terminal(
+        self,
+        name: str,
+        /,
+        *,
+        terminal: PFTypes.Terminal,
+    ) -> PFTypes.StationCubicle | None:
+        return self.first_of(self.cubicles_from_terminal(name, terminal=terminal))
+
+    def cubicles_from_terminal(
+        self,
+        name: str = "*",
+        /,
+        *,
+        terminal: PFTypes.Terminal,
+        calc_relevant: bool = False,
+    ) -> Sequence[PFTypes.StationCubicle]:
+        term_cubics = self.elements_of(terminal, pattern=name + "." + PFClassId.CUBICLE.value)
+        term_cubics = [t.cast("PFTypes.StationCubicle", c) for c in term_cubics]
+        if calc_relevant:
+            calc_cubics = terminal.GetCalcRelevantCubicles()
+            return [c for c in term_cubics if c in calc_cubics]
+
+        return term_cubics
 
     def coupler(
         self,
@@ -1670,6 +1693,44 @@ class PowerFactoryInterface:
             return [t.cast("PFTypes.UnitConversionSetting", element) for element in elements]
 
         return []
+
+    def create_cubicle(
+        self,
+        name: str | None = None,
+        /,
+        *,
+        terminal: PFTypes.Terminal,
+        data: dict[str, ValidPFValue] | None = None,
+        force: bool = False,
+        update: bool = True,
+    ) -> PFTypes.StationCubicle | None:
+        """Creates a station cubicle object within a grid.
+
+        Arguments:
+            name {str} -- the name of the station cubicle (default: {None}, in this case the name is derived from the existing amount of cubicles at the terminal)
+
+         Keyword Arguments:
+            terminal {PFTypes.Terminal} -- the related terminal the station cubicle is to be created at
+            data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
+            force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
+            update {bool} -- Flag to update object attributes if objects already exists (default: {True})
+
+        Returns:
+            {PFTypes.StationCubicle | None -- the created station cubicle object
+        """
+        if name is None:
+            existing_cubicles = self.cubicles_from_terminal(terminal=terminal)
+            name = f"Cub_{len(existing_cubicles) + 1}"
+        loguru.logger.debug(f"Create station cubicle object {name} ...")
+        element = self.create_object(
+            name=name,
+            class_name=PFClassId.CUBICLE.value,
+            location=terminal,
+            data=data,
+            force=force,
+            update=update,
+        )
+        return t.cast("PFTypes.StationCubicle", element) if element is not None else None
 
     def create_variable_monitor(
         self,

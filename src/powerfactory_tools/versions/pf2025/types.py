@@ -793,6 +793,12 @@ class PowerFactoryTypes:
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
 
+        def GetCubicle(  # noqa: N802
+            self,
+            side: int,  # connection index
+            /,
+        ) -> PowerFactoryTypes.DataObject | None: ...
+
         def GetFullName(  # noqa: N802
             self,
             type: int = 0,  # noqa: A002 # not given: no special formatting; 0: full name incl. path, >0: (but <=190) full name with specific lenght
@@ -1562,7 +1568,6 @@ class PowerFactoryTypes:
         outserv: bool
         cStatName: str  # noqa: N815
         cpSubstat: PowerFactoryTypes.Substation | None  # noqa: N815
-        cubics: Sequence[PowerFactoryTypes.StationCubicle]
         systype: TerminalVoltageSystemType
         phtech: TerminalPhaseConnectionType
 
