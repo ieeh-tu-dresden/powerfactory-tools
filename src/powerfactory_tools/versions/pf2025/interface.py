@@ -1118,15 +1118,15 @@ class PowerFactoryInterface:
         terminal: PFTypes.Terminal,
         calc_relevant: bool = False,
     ) -> Sequence[PFTypes.StationCubicle]:
-        term_cubics: list[PFTypes.StationCubicle] = [
+        term_cubicles: list[PFTypes.StationCubicle] = [
             t.cast("PFTypes.StationCubicle", c)
             for c in self.elements_of(terminal, pattern=name + "." + PFClassId.CUBICLE.value)
         ]
         if calc_relevant:
-            calc_cubics = terminal.GetCalcRelevantCubicles()
-            return [c for c in term_cubics if c in calc_cubics]
+            calc_cubicles = terminal.GetCalcRelevantCubicles()
+            return [c for c in term_cubicles if c in calc_cubicles]
 
-        return term_cubics
+        return term_cubicles
 
     def coupler(
         self,
@@ -1709,21 +1709,28 @@ class PowerFactoryInterface:
         """Creates a station cubicle object within a grid.
 
         Arguments:
-            name {str} -- the name of the station cubicle (default: {None}, in this case the name is derived from the existing amount of cubicles at the terminal)
+            name {str | None} -- the name of the station cubicle (default: {None}, in this case
+            the first unused name `Cub_{i}` at the terminal is chosen)
 
          Keyword Arguments:
             terminal {PFTypes.Terminal} -- the related terminal the station cubicle is to be created at
             data {dict[str, ValidPFValue] | None} -- a dictionary with name-value-pairs of object attributes (default: {None}).
-            force {bool} -- flag to force the creation, nonetheless if variant already exits (default: {False})
-            update {bool} -- Flag to update object attributes if objects already exists (default: {True})
+            force {bool} -- flag to force the creation, nonetheless if variant already exists (default: {False})
+            update {bool} -- Flag to update object attributes if object already exists (default: {True})
 
         Returns:
-            {PFTypes.StationCubicle | None -- the created station cubicle object
+            {PFTypes.StationCubicle | None} -- the created station cubicle object
         """
         if name is None:
-            existing_cubicles = self.cubicles_from_terminal(terminal=terminal)
-            name = f"Cub_{len(existing_cubicles) + 1}"
-        loguru.logger.debug(f"Create station cubicle object {name} ...")
+            existing_names = {cubicle.loc_name for cubicle in self.cubicles_from_terminal(terminal=terminal)}
+            index = 1
+            while True:
+                candidate = f"Cub_{index}"
+                if candidate not in existing_names:
+                    name = candidate
+                    break
+                index += 1
+        loguru.logger.debug("Create station cubicle object {name} ...", name=name)
         element = self.create_object(
             name=name,
             class_name=PFClassId.CUBICLE.value,
