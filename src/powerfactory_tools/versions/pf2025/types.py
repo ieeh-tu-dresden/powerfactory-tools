@@ -45,6 +45,7 @@ class PFClassId(enum.Enum):
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
+    REACTIVE_POWER_CAPABILITY_CURVE = "IntQlim"
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
     SCENARIO = "IntScenario"
@@ -60,6 +61,7 @@ class PFClassId(enum.Enum):
     SUBSTATION = "ElmSubstat"
     SUBSTATION_FIELD = "ElmBay"
     SWITCH = "StaSwitch"
+    SYNCHRONOUS_MACHINE = "ElmSym"
     TEMPLATE = "IntTemplate"
     TERMINAL = "ElmTerm"
     TRANSFORMER_2W = "ElmTr2"
@@ -246,6 +248,21 @@ class GeneratorSystemType(enum.Enum):
     OTHER = "othg"
 
 
+class SynchronousMachineConnectionType(enum.IntEnum):
+    D = 0
+    Y = 1
+    YN = 2
+
+
+class SynchronousMachineModelType(enum.Enum):
+    STANDARD = "det"
+    MODELL_3_3 = "m33"
+    GENQEC = "qec"
+    CLASSIC = "cls"
+    PERMANENT_MAGNET = "pmm"
+    ASYNCHRONOUS_START = "asy"
+
+
 class ISym(enum.IntEnum):
     SYM = 0
     ASYM = 1
@@ -305,6 +322,15 @@ class LocalQCtrlMode(enum.Enum):
     Q_CONST = "constq"
     Q_P = "qpchar"
     Q_U = "qvchar"
+    U_CONST = "constv"
+    U_I_DROOP = "idroop"
+    U_Q_DROOP = "vdroop"
+
+
+class LocalQCtrlModeSynchMach(enum.Enum):
+    COSPHI_CONST = "constc"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
     U_CONST = "constv"
     U_I_DROOP = "idroop"
     U_Q_DROOP = "vdroop"
@@ -1470,6 +1496,16 @@ class PowerFactoryTypes:
 
     class Element(DataObject, t.Protocol):
         desc: Sequence[str]
+        pOperator: PowerFactoryTypes.Operator | None  # noqa: N815
+        pOwner: PowerFactoryTypes.Owner | None  # noqa: N815
+
+    class Operator(DataObject, t.Protocol):
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Owner(DataObject, t.Protocol):
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
 
     class DeviceBase(Element, t.Protocol):
         pf_recap: PFRecap
@@ -1775,6 +1811,72 @@ class PowerFactoryTypes:
     class Generator(GeneratorBase, t.Protocol):  # PFClassId.GENERATOR
         aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
+
+    class SynchronousMachine(DeviceBase, t.Protocol):  # PFClassId.SYNCHRONOUS_MACHINE
+        bus1: PowerFactoryTypes.StationCubicle | None
+        typ_id: PowerFactoryTypes.SynchronousMachineType | None
+        cCategory: GeneratorSystemType  # noqa: N815
+        av_mode: LocalQCtrlModeSynchMach
+        ip_ctrl: bool  # reference machine
+        c_pstac: PowerFactoryTypes.StationController | None
+        c_psecc: PowerFactoryTypes.SecondaryController | None
+
+        # operational limits
+        pQlimType: PowerFactoryTypes.DataObject | None  # REACTIVE_POWER_CAPABILITY_CURVE (IntQlim)  # noqa: N815
+        iqtpye: bool  # True: use limits defined in type
+        q_min: float  # negative limit (underexcited) in pu
+        q_max: float  # in pu
+        cQ_min: float  # negative limit (underexcited) in Mvar  # noqa: N815
+        cQ_max: float  # in Mvar  # noqa: N815
+        scaleQmin: float  # scaling factor for minimum reactive power limit; used if iqtpye is False  # noqa: N815
+        scaleQmax: float  # scaling factor for maximum reactive power limit; used if iqtpye is False  # noqa: N815
+        Pmin_uc: float  # minimum active power limit in MW
+        Pmax_uc: float  # maximum active power limit in MW
+
+        # load flow control
+        sgini: float
+        pgini: float
+        qgini: float
+        cosgini: float
+        usetp: float  # in pu
+        phiini: float  # in deg
+        Kpf: float  # in MW/Hz
+
+        ddroop: float  # droop in percent
+        usp_min: float  # lower voltage limit in pu
+        usp_max: float  # upper voltage limit in pu
+        pQPCurve: PowerFactoryTypes.QPCharacteristic | None  # noqa: N815 # Q(P)-characteristic curve
+
+    class SynchronousMachineType(DataObject, t.Protocol):  # PFClassId.SYNCHRONOUS_MACHINE_TYPE
+        ugn: float
+        sgn: float
+        cosn: float
+        nphase: int  # 1 or 3
+        nslty: SynchronousMachineConnectionType
+        model_inp: SynchronousMachineModelType
+
+        q_min: float  # negative limit (underexcited) in pu
+        q_max: float  # in pu
+        Q_min: float  # negative limit (underexcited) in Mvar
+        Q_max: float  # in Mvar
+
+        i_condenser: bool  # True if used as condenser machine; False if non-condenser machine
+
+        rstr: float  # stator resistance in pu
+        xl: float  # stator reactance in pu
+        tag: float  # start-up time constant (relative to Pgn) in seconds
+
+        xq: float  # quadrature axis reactance in pu
+        xqs: float  # quadrature axis transient reactance in pu
+        xqss: float  # quadrature axis subtransient reactance in pu
+        xd: float  # direct axis reactance in pu
+        xds: float  # direct axis transient reactance in pu
+        xdss: float  # direct axis subtransient reactance in pu
+
+        tds: float  # direct axis transient time constant in seconds
+        tdss: float  # direct axis subtransient time constant in seconds
+        tqs: float  # quadrature axis transient time constant in seconds
+        tqss: float  # quadrature axis subtransient time constant in seconds
 
     class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PVSYSTEM
         uk: float
