@@ -1300,6 +1300,13 @@ class PowerFactoryTypes:
             /,
         ) -> None: ...
 
+        def ClearOutputWindow(self) -> None:  # noqa: N802
+            ...
+
+        def FlushOutputWindow(self) -> None:  # noqa: N802
+            """Calling this function ensures that all previously printed and potentially buffered messages are visible in the output window."""
+            ...
+
         def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
 
@@ -1340,14 +1347,15 @@ class PowerFactoryTypes:
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
 
+        def GetCurrentDiagram(self) -> PowerFactoryTypes.GridDiagram | None:  # noqa: N802
+            ...
+
         def GetCurrentScript(self) -> PowerFactoryTypes.Script | None:  # noqa: N802
             ...
 
-        def GetProjectFolder(  # noqa: N802
-            self,
-            name: str,
-            /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        def GetDesktop(self) -> PowerFactoryTypes.Desktop:  # noqa: N802
+            """Returns the currently active Desktop."""
+            ...
 
         def GetFromStudyCase(  # noqa: N802
             self,
@@ -1362,8 +1370,69 @@ class PowerFactoryTypes:
             """
             ...
 
+        def GetGlobaLibrary(  # noqa: N802
+            self,
+            class_name: str = "",
+            /,
+        ) -> PowerFactoryTypes.DataObject:  # PFClassId.LIBRARY_FOLDER (IntLibrary)
+            """Returns the global library for object-types of class “class_name”.
+
+            class_name may be omitted, in which case the complete global library folder is returned.
+            """
+            ...
+
+        def GetLanguage(self) -> str:  # noqa: N802
+            """Returns a string for the current program language setting.
+
+            en, de, es, fr, ru, cn, tr
+            """
+            ...
+
+        def GetLocalLibrary(  # noqa: N802
+            self,
+            class_name: str = "",
+            /,
+        ) -> PowerFactoryTypes.DataObject:  # PFClassId.LIBRARY_FOLDER (LocLibrary)
+            """Returns the local library for object-types of class “class_name”.
+
+            class_name may be omitted, in which case the complete local library folder is returned.
+            """
+            ...
+
+        def GetProjectFolder(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> PowerFactoryTypes.DataObject: ...
+
+        def GetRecordingStage(self) -> PowerFactoryTypes.GridVariantStage | None:  # noqa: N802
+            ...
+
+        def GetSummaryGrid(self) -> PowerFactoryTypes.Grid | None:  # noqa: N802
+            """Returns the summary grid in the currently active Study Case.
+
+            The summary grid is the combination of all active grids in the study case.
+            """
+            ...
+
         def Hide(self) -> None:  # noqa: N802
             """Hides the PowerFactory application window."""
+            ...
+
+        def PrintInfo(self, message: str) -> None:  # noqa: N802
+            """Prints a message as info into the PowerFactory Output Window."""
+            ...
+
+        def PrintPlain(self, message: str) -> None:  # noqa: N802
+            """Prints a message as normal text into the PowerFactory Output Window."""
+            ...
+
+        def PrintWarn(self, message: str) -> None:  # noqa: N802
+            """Prints a message as warning into the PowerFactory Output Window."""
+            ...
+
+        def PrintError(self, message: str) -> None:  # noqa: N802
+            """Prints a message as error into the PowerFactory Output Window."""
             ...
 
         def PostCommand(  # noqa: N802
