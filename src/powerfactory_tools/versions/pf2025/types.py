@@ -864,6 +864,22 @@ class PowerFactoryTypes:
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
+        def DiscardChanges(  # noqa: N802
+            self,
+            reset_calculation: bool,  # noqa: FBT001
+            /,
+        ) -> bool:
+            """Discards all unsaved changes made to a scenario."""
+            ...
+
+        def GetObjects(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
+            """Returns a set of all objects for which operational data are stored in scenario."""
+            ...
+
+        def Save(self) -> bool:  # noqa: N802
+            """Saves the current active value of all operational attributes for all active network elements to database."""
+            ...
+
     class StudyCase(DataObject, t.Protocol):  # PFClassId.STUDY_CASE
         iStudyTime: int  # noqa: N815
 
