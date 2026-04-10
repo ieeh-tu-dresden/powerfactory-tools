@@ -818,7 +818,7 @@ class PowerFactoryTypes:
 
             In contrast to DataObject.GetContents() this function gives access to objects that are currently hidden due to scheme management.
 
-            Args:
+            Arguments:
                 hiddenMode (int): Determines how hidden objects are handled.
                     0: Hidden objects are ignored. Only nonhidden objects are returned.
                     1: Hidden objects and nonhidden objects are returned.
@@ -878,6 +878,60 @@ class PowerFactoryTypes:
             time: int,  # Time in seconds since 01.01.1970 00:00:00
             /,
         ) -> int: ...
+
+        def MarkInGraphics(  # noqa: N802
+            self,
+            search_all_diagrams_and_select: bool,  # noqa: FBT001
+            /,
+        ) -> int:
+            """Marks the object in the diagram in which the element is found by hatch crossing it.
+
+            By default all the currently opened diagrams are searched for the element to mark beginning with the diagram shown.
+            The first diagram in which the element is found will be opened and the element is marked.
+            Alternatively the search can be extended to all existing diagrams by passing 1 as parameter.
+            If the element exists in more than one diagram the user can select from a list of diagrams which diagram shall be opened.
+
+            Arguments:
+                search_all_diagrams_and_select -- Search can be extended to all diagrams, not only the ones which are currently shown on the desktop.
+            """
+            ...
+
+        def Move(  # noqa: N802
+            self,
+            object_to_move: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            /,
+        ) -> int:
+            """Moves the given object(s) to the object the function was called on (typically a folder)."""
+            ...
+
+        def PasteCopy(  # noqa: N802
+            self,
+            object_to_copy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            reset_missing_references: int = 0,
+            /,
+        ) -> int:
+            """Pastes a copy of a single object or a set of objects to the object the function was called on (= target object).
+
+            It uses the merge tool when source object(s) and target object are inside different projects (equivalent to a manual copy&paste operation).
+
+            Arguments:
+                object_to_copy -- Object or set of objects to copy.
+                reset_missing_references -- 0: No action is taken, the operation is cancelled with an error (default). 1: Missing references are automatically reset.
+
+            Returns:
+                success (int): 0 if the operation was successful, otherwise 1.
+                newObject (DataObject, optional): see official documentation
+            """
+            ...
+
+        def SetAttribute(  # noqa: N802
+            self,
+            name: str,
+            value: ValidPFPrimitive | list[ValidPFPrimitive],
+            /,
+        ) -> None:
+            """Sets the value of an attribute."""
+            ...
 
     class DataDir(DataObject, t.Protocol): ...
 
