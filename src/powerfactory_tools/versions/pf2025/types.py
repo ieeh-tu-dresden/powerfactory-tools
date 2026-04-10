@@ -403,8 +403,8 @@ class NodeType(enum.IntEnum):
 
 
 class PFRecap(enum.IntEnum):
-    OE = 0
-    UE = 1
+    IND = 0  # inductive power factor in PF: for consumer = under excited; for sources/generators = over excited
+    CAP = 1  # capacitive power factor in PF: for consumer = over excited; for sources/generators = under excited
 
 
 class Phase1PH(enum.Enum):
