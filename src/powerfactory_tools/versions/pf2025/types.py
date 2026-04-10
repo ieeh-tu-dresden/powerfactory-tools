@@ -16,7 +16,7 @@ if t.TYPE_CHECKING:
 # High-Level Enums
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
+    COMPOUND_GRID_GRAPHIC = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
     COMPOUND_MODEL = "ElmComp"  # e.g. a compound generator with multiple functional slots as part of a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
@@ -31,6 +31,8 @@ class PFClassId(enum.Enum):
     GENERATOR = "ElmGenstat"
     GRID = "ElmNet"
     GRID_GRAPHIC = "IntGrfnet"
+    GRAPHIC = "IntGrf"
+    LIBRARY_FOLDER = "IntLibrary"
     LINE = "ElmLne"
     LINE_TYPE = "TypLne"
     LOAD = "ElmLod"
@@ -42,6 +44,8 @@ class PFClassId(enum.Enum):
     LOAD_TYPE_LV = "TypLodlv"
     LOAD_TYPE_MV = "TypDistrf"
     MEASUREMENT_FILE = "ElmFile"
+    OPERATOR = "ElmOperator"
+    OWNER = "ElmOwner"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"
@@ -56,12 +60,14 @@ class PFClassId(enum.Enum):
     SETTINGS_FOLDER_UNITS = "IntUnit"
     SHUNT = "ElmShnt"
     SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
+    STATIC_VAR_SYSTEM = "ElmSvs"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
     SUBSTATION = "ElmSubstat"
     SUBSTATION_FIELD = "ElmBay"
     SWITCH = "StaSwitch"
     SYNCHRONOUS_MACHINE = "ElmSym"
+    SYNCHRONOUS_MACHINE_TYPE = "TypSym"
     TEMPLATE = "IntTemplate"
     TERMINAL = "ElmTerm"
     TRANSFORMER_2W = "ElmTr2"
@@ -287,6 +293,11 @@ class IOpt(enum.IntEnum):
     E_COSPHI = 3
 
 
+class LineTechnologyType(enum.IntEnum):
+    UNDERGROUND_CABLE = 0
+    OVERHEAD_LINE = 1
+
+
 class LoadFlowCtrlMode(enum.IntEnum):
     VOLTAGE_MAGNITUDE = 0
     VOLTAGE_ANGLE = 1
@@ -334,6 +345,12 @@ class LocalQCtrlModeSynchMach(enum.Enum):
     U_CONST = "constv"
     U_I_DROOP = "idroop"
     U_Q_DROOP = "vdroop"
+
+
+class LocalQCtrlModeLoad(enum.Enum):
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
 
 
 class MetricPrefix(enum.Enum):
@@ -570,6 +587,12 @@ class ShuntType(enum.IntEnum):
     R_L_C1_C2_RP = 4  # in a row: ([R-L-C1] || Rp)-C2
 
 
+class StaticVarSystemCtrlMode(enum.IntEnum):
+    NONE = 0
+    VOLTAGE = 1
+    REACTIVE_POWER = 2
+
+
 class TemperatureDependencyType(enum.IntEnum):
     DEFAULT_20_DEGREE = 0
     MAX_OPERATION_TEMP = 1
@@ -688,6 +711,13 @@ class VoltageSourceType(enum.IntEnum):
 class VoltageSystemType(enum.IntEnum):
     AC = 0
     DC = 1
+
+
+class LoadModelDependencyType(enum.IntEnum):
+    LINEAR = 0
+    NONLINEAR_U_LINEAR_F = 1
+    NONLINEAR = 2
+    NONLINEAR_CONTROLLED = 3
 
 
 ## PowerFactory Element Classes
@@ -962,6 +992,14 @@ class PowerFactoryTypes:
 
     class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
         iFrzPerm: int  # noqa: N815
+
+        pDataFolder: PowerFactoryTypes.DataObject | None  # noqa: N815  # grid element the graphic is related to
+
+        def Close(self) -> None:  # noqa: N802
+            ...
+
+        def Show(self) -> None:  # noqa: N802
+            ...
 
     class Graph(DataObject, t.Protocol):
         sSymName: str  # noqa: N815
@@ -1514,12 +1552,22 @@ class PowerFactoryTypes:
         desc: Sequence[str]
         pOperator: PowerFactoryTypes.Operator | None  # noqa: N815
         pOwner: PowerFactoryTypes.Owner | None  # noqa: N815
+        cpZone: PowerFactoryTypes.Zone | None  # noqa: N815
+        cpArea: PowerFactoryTypes.Area | None  # noqa: N815
 
-    class Operator(DataObject, t.Protocol):
+    class Area(DataObject, t.Protocol):  # PFClassId.AREA
         desc: Sequence[str]
         iColor: int  # noqa: N815
 
-    class Owner(DataObject, t.Protocol):
+    class Operator(DataObject, t.Protocol):  # PFClassId.OPERATOR
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Owner(DataObject, t.Protocol):  # PFClassId.OWNER
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Zone(DataObject, t.Protocol):  # PFClassId.ZONE
         desc: Sequence[str]
         iColor: int  # noqa: N815
 
@@ -1538,7 +1586,7 @@ class PowerFactoryTypes:
         Inom: float
 
     class LoadType(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_GENERAL
-        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
+        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic, 0 = const. impedance)
         systp: VoltageSystemType
         phtech: LoadPhaseConnectionType
 
@@ -1561,6 +1609,17 @@ class PowerFactoryTypes:
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
 
+        # dynamic load model parameters
+        i_nln: LoadModelDependencyType
+        t1: float  # delay time in seconds
+        tpf: float  # time constant for frequency dependency of active power in seconds
+        tpu: float  # time constant for voltage dependency of active power in seconds
+        tqf: float  # time constant for frequency dependency of reactive power in seconds
+        tqu: float  # time constant for voltage dependency of reactive power in seconds
+
+        kpf: float  # frequency dependency of active power in %/%
+        kqf: float  # frequency dependency of reactive power in %/%
+
     class SourceTypeHarmonicCurrent(DataObject, t.Protocol):  # PFClassId.SOURCE_TYPE_HARMONIC_CURRENT
         i_usym: HarmonicSourceSystemType
 
@@ -1576,12 +1635,16 @@ class PowerFactoryTypes:
         gline0: float  # conductance (µS/km) zero sequence components
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
+        cline: float  # capacitance (µF/km) positive sequence components
+        cline0: float  # capacitance (µF/km) zero sequence components
 
         nlnph: float  # no. of phase conducters
         nneutral: float  # no. of neutral conductors
 
         systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
+
+        cohl: LineTechnologyType
 
     class LineNType(LineType, t.Protocol):
         rnline: float  # resistance (Ohm/km) natural neutral components
@@ -1622,14 +1685,19 @@ class PowerFactoryTypes:
         tr2cn_h: TrfWindingVector  # vector at HV side
         nt2ag: float
 
+        # Tap changer settings
         tap_side: TrfTapSide
-        ntpmn: int
-        ntpmx: int
-        nntap0: int
-        dutap: float
+        itapch: bool  # True if tap changer is active
+        itapch2: bool
+        nntap0: int  # neutral tap changer position
+        ntpmn: int  # minimum tap position
+        ntpmx: int  # maximum tap position
+        dutap: float  # voltage change per tap in percentage
         phitr: float
-        itapch: int
-        itapch2: int
+        ntrcn: bool  # automatic tap changer operation
+        usp_low: float  # lower voltage limit in pu of rated voltage
+        usp_up: float  # upper voltage limit in pu of rated voltage
+        usetp: float  # voltage setpoint in pu of rated voltage
 
         nt2ph: TrfPhaseTechnology
 
@@ -1716,6 +1784,14 @@ class PowerFactoryTypes:
         nphase: int
         cPhInfo: str  # noqa: N815
 
+    class StaticVarSystem(DeviceBase, t.Protocol):  # PFClassId.STATIC_VAR_SYSTEM
+        nxcap: int  # number of capacitor blocks
+        qmin: float  # minimum reactive power in Mvar
+        qmax: float  # maximum reactive power in Mvar
+        tcmax: float
+        qsetp: float  # reactive power setpoint in Mvar
+        i_ctrl: StaticVarSystemCtrlMode
+
     class Transformer2W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_2W
         buslv: PowerFactoryTypes.StationCubicle | None
         bushv: PowerFactoryTypes.StationCubicle | None
@@ -1732,6 +1808,11 @@ class PowerFactoryTypes:
         re0tr_l: float
         xe0tr_h: float
         xe0tr_l: float
+
+        # Tap changer settings
+        optaplimit: bool  # True if tap changer limits are enabled
+        optapmin: int  # minimum operational tap position
+        optapmax: int  # maximum operational tap position
 
     class Transformer3W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_3W
         buslv: PowerFactoryTypes.StationCubicle | None
@@ -1820,6 +1901,11 @@ class PowerFactoryTypes:
         p_over: float
         usetp: float
         phtech: GeneratorPhaseConnectionType
+
+        Pmin_uc: float  # minimum active power limit in MW
+        Pmax_uc: float  # maximum active power limit in MW
+        cQ_min: float  # minimum reactive power limit (negative) in Mvar  # noqa: N815
+        cQ_max: float  # maximum reactive power limit in Mvar  # noqa: N815
 
     class QPCharacteristic(DataObject, t.Protocol):
         inputmod: bool
@@ -1929,6 +2015,7 @@ class PowerFactoryTypes:
     class Load(LoadBase3Ph, t.Protocol):  # PFClassId.LOAD
         typ_id: PowerFactoryTypes.LoadType | None
         mode_inp: ModeInpLoad
+        av_mode: LocalQCtrlMode
         i_sym: ISym
         u0: float
         phtech: LoadPhaseConnectionType
@@ -1971,9 +2058,13 @@ class PowerFactoryTypes:
         bus2: None
 
     class ExternalGrid(DataObject, t.Protocol):  # PFClassId.EXTERNAL_GRID
+        desc: Sequence[str]
+        outserv: bool
+
         bustp: BusType
         bus1: PowerFactoryTypes.StationCubicle | None
-        desc: Sequence[str]
+        tag: float  # start-up time constant (relative to Sns) in seconds
+
         usetp: float  # in p.u.
         pgini: float  # in MW
         qgini: float  # in Mvar
@@ -1986,7 +2077,12 @@ class PowerFactoryTypes:
         ikssmin: float  # min Ik in kA
         rntxnmin: float  # X/R ratio in Ohm
 
-        outserv: bool
+        Pmin_uc: float  # minimum active power limit in MW, if bustp is PQ
+        MaxS: float  # maximum active power limit in MW, if bustp is PQ
+        isLimQmin: bool  # True if minimum reactive power limit is active  # noqa: N815
+        isLimQmax: bool  # True if maximum reactive power limit is active  # noqa: N815
+        cQ_min: float  # minimum reactive power limit (negative) in Mvar  # noqa: N815
+        cQ_max: float  # maximum reactive power limitin Mvar  # noqa: N815
 
     class SourceBase(DataObject, t.Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
