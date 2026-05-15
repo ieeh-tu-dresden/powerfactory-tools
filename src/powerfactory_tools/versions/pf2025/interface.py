@@ -590,8 +590,40 @@ class PowerFactoryInterface:
         if stage_names is not None:
             include_first_stage = False  # if stage name is provided, do not include the first stage per default, but only the explicitly named one
 
-            if len(stage_names) == 0:
-                loguru.logger.info("Attention: No specific stages provided for activation.")
+            self._activate_stages(stage_names=stage_names, grid_variant=grid_variant)
+
+        if include_first_stage:
+            available_stages = self.grid_variant_stages(
+                grid_variant=grid_variant,
+                only_active=False,
+            )
+            if len(available_stages) > 0:
+                first_stage = available_stages[0]
+                if first_stage not in self.app.GetActiveStages():
+                    if first_stage.Activate(1):
+                        msg = f"Could not activate first stage {first_stage.loc_name} of grid variant {grid_variant.loc_name}."
+                        raise RuntimeError(msg)
+                    loguru.logger.debug(
+                        "Activating first stage '{stage_name}' of grid variant '{variant_name}' ... Done.",
+                        stage_name=first_stage.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+                else:
+                    loguru.logger.info(
+                        "Attention: Grid variant '{variant_name}' already has stage '{stage_name}' activated.",
+                        stage_name=first_stage.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+
+    def _activate_stages(
+        self,
+        /,
+        *,
+        stage_names: Sequence[str],
+        grid_variant: PFTypes.GridVariant,
+    ) -> None:
+        if len(stage_names) == 0:
+            loguru.logger.info("Attention: No specific stages provided for activation.")
             available_stages = self.grid_variant_stages(
                 grid_variant=grid_variant,
                 only_active=False,
@@ -618,29 +650,6 @@ class PowerFactoryInterface:
                     loguru.logger.warning(
                         "Stage '{stage_name}' does not exists in grid variant '{variant_name}'. Skipping activation of this stage.",
                         stage_name=stage_name,
-                        variant_name=grid_variant.loc_name,
-                    )
-
-        if include_first_stage:
-            available_stages = self.grid_variant_stages(
-                grid_variant=grid_variant,
-                only_active=False,
-            )
-            if len(available_stages) > 0:
-                first_stage = available_stages[0]
-                if first_stage not in self.app.GetActiveStages():
-                    if first_stage.Activate(1):
-                        msg = f"Could not activate first stage {first_stage.loc_name} of grid variant {grid_variant.loc_name}."
-                        raise RuntimeError(msg)
-                    loguru.logger.debug(
-                        "Activating first stage '{stage_name}' of grid variant '{variant_name}' ... Done.",
-                        stage_name=first_stage.loc_name,
-                        variant_name=grid_variant.loc_name,
-                    )
-                else:
-                    loguru.logger.info(
-                        "Attention: Grid variant '{variant_name}' already has stage '{stage_name}' activated.",
-                        stage_name=first_stage.loc_name,
                         variant_name=grid_variant.loc_name,
                     )
 
