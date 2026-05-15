@@ -889,9 +889,9 @@ class PowerFactoryTypes:
 
         def Activate(  # noqa: N802
             self,
-            iQueryOption: int = 0,  #0: user confirmation needed, 1: yes button applied, 2: no button applied  # noqa: N803
+            iQueryOption: int = 0,  # 0: user confirmation needed, 1: yes button applied, 2: no button applied  # noqa: N803
             /,
-        ) -> bool:...
+        ) -> bool: ...
 
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
