@@ -574,10 +574,10 @@ class PowerFactoryInterface:
             RuntimeError: when griad variant could not be activated or when the stage could not be activated
         """
         loguru.logger.debug(
-            "Activating grid variant {variant_name} application...",
+            "Activating grid variant {variant_name} ...",
             variant_name=grid_variant.loc_name,
         )
-        if grid_variant.isActive():
+        if grid_variant.IsActive():
             loguru.logger.warning(
                 "Grid variant {variant_name} is already active.",
                 variant_name=grid_variant.loc_name,
@@ -599,22 +599,24 @@ class PowerFactoryInterface:
             for stage_name in stage_names:
                 stage_to_activate = next((stage for stage in available_stages if stage.loc_name == stage_name), None)
                 if stage_to_activate is not None:
-                    loguru.logger.debug(
-                        "Activating stage {stage_name} of grid variant {variant_name} ...",
-                        stage_name=stage_to_activate.loc_name,
-                        variant_name=grid_variant.loc_name,
-                    )
-                    if stage_to_activate.Activate():
-                        msg = f"Could not activate stage {stage_to_activate.loc_name} of grid variant {grid_variant.loc_name}."
-                        raise RuntimeError(msg)
-                    loguru.logger.debug(
-                        "Activating stage {stage_name} of grid variant {variant_name} application... Done.",
-                        stage_name=stage_to_activate.loc_name,
-                        variant_name=grid_variant.loc_name,
-                    )
+                    if stage_to_activate not in self.app.GetActiveStages():
+                        if stage_to_activate.Activate(1):
+                            msg = f"Could not activate stage {stage_to_activate.loc_name} of grid variant {grid_variant.loc_name}."
+                            raise RuntimeError(msg)
+                        loguru.logger.debug(
+                            "Activating stage '{stage_name}' of grid variant '{variant_name}' ... Done.",
+                            stage_name=stage_to_activate.loc_name,
+                            variant_name=grid_variant.loc_name,
+                        )
+                    else:
+                        loguru.logger.info(
+                            "Attention: Grid variant '{variant_name}' already has stage '{stage_name}' activated.",
+                            stage_name=stage_to_activate.loc_name,
+                            variant_name=grid_variant.loc_name,
+                        )
                 else:
                     loguru.logger.warning(
-                        "Stage {stage_name} does not exists in grid variant {variant_name}. Skipping activation of this stage.",
+                        "Stage '{stage_name}' does not exists in grid variant '{variant_name}'. Skipping activation of this stage.",
                         stage_name=stage_name,
                         variant_name=grid_variant.loc_name,
                     )
@@ -626,14 +628,21 @@ class PowerFactoryInterface:
             )
             if len(available_stages) > 0:
                 first_stage = available_stages[0]
-                if first_stage.Activate():
-                    msg = f"Could not activate first stage {first_stage.loc_name} of grid variant {grid_variant.loc_name}."
-                    raise RuntimeError(msg)
-                loguru.logger.debug(
-                    "Activating first stage {stage_name} of grid variant {variant_name} application... Done.",
-                    stage_name=first_stage.loc_name,
-                    variant_name=grid_variant.loc_name,
-                )
+                if first_stage not in self.app.GetActiveStages():
+                    if first_stage.Activate(1):
+                        msg = f"Could not activate first stage {first_stage.loc_name} of grid variant {grid_variant.loc_name}."
+                        raise RuntimeError(msg)
+                    loguru.logger.debug(
+                        "Activating first stage '{stage_name}' of grid variant '{variant_name}' ... Done.",
+                        stage_name=first_stage.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+                else:
+                    loguru.logger.info(
+                        "Attention: Grid variant '{variant_name}' already has stage '{stage_name}' activated.",
+                        stage_name=first_stage.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
 
     def deactivate_grid_variant(
         self,
@@ -914,7 +923,7 @@ class PowerFactoryInterface:
         folder: PFTypes.DataObject | None = None,
         only_active: bool = False,
     ) -> Sequence[PFTypes.GridVariantStage]:
-        """Returns grid variant stages specified by affiliation and relenvance.
+        """Returns grid variant stages specified by affiliation and relevance.
 
         Within the root 'grid_variant_dir', subfolders can exist.
         Thus, grid variants with the same name can be stored in different subfolders.
@@ -930,7 +939,7 @@ class PowerFactoryInterface:
             only_active {bool} -- Flag to return only currently ative grid variant stages (default: {False})
 
         Returns:
-            {Sequence[PFTypes.GridVariantStage]} -- A List of existing grid variant stages
+            {Sequence[PFTypes.GridVariantStage]} -- A list of existing grid variant stages
         """
         is_folder_none_and_variant_not_none = False
         if folder is None:
@@ -939,17 +948,17 @@ class PowerFactoryInterface:
                 is_folder_none_and_variant_not_none = True
 
         if grid_variant is None:
-            elements = self.elements_of(folder, pattern=name)
+            elements = self.elements_of(folder, pattern=name + "." + PFClassId.VARIANT_STAGE.value)
         elif is_folder_none_and_variant_not_none:
             # check if unique grid variant is requested be used as parent for the stages or not
-            elements = self.elements_of(grid_variant, pattern=name)
+            elements = self.elements_of(grid_variant, pattern=name + "." + PFClassId.VARIANT_STAGE.value)
         else:
             # get all variants within folder with the requested variant name
-            relevant_variants = self.elements_of(folder, pattern=grid_variant.loc_name)
+            relevant_variants = self.elements_of(folder, pattern=grid_variant.loc_name + "." + PFClassId.VARIANT.value)
             # get all stages for all relevant_variants with the requested stage name
             elements = []
             for variant in relevant_variants:
-                elements += self.elements_of(variant, pattern=name)
+                elements += self.elements_of(variant, pattern=name + "." + PFClassId.VARIANT_STAGE.value)
 
         if only_active:
             active_stages = self.app.GetActiveStages(folder)
