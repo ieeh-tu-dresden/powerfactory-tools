@@ -557,12 +557,27 @@ class PowerFactoryInterface:
         self,
         grid_variant: PFTypes.GridVariant,
         /,
+        *,
+        include_first_stage: bool = True,
+        stage_names: Sequence[str] | None = None,
     ) -> None:
+        """Activate a grid variant , optional ativate explicitely also the related variant stage.
+
+        Arguments:
+            grid_variant {PFTypes.GridVariant} -- The grid variant to activate
+
+        Keyword Arguments:
+            include_first_stage {bool} -- Whether to also activate the first stage (default: {True})
+            stage_name {str | None} -- The name of the stage to activate (default: {None}) --> this leads to neglecting of the 'include_first_stage' argument
+
+        Raises:
+            RuntimeError: when griad variant could not be activated or when the stage could not be activated
+        """
         loguru.logger.debug(
             "Activating grid variant {variant_name} application...",
             variant_name=grid_variant.loc_name,
         )
-        if grid_variant in self.app.GetActiveNetworkVariations():
+        if grid_variant.isActive():
             loguru.logger.warning(
                 "Grid variant {variant_name} is already active.",
                 variant_name=grid_variant.loc_name,
@@ -570,6 +585,55 @@ class PowerFactoryInterface:
         elif grid_variant.Activate():
             msg = "Could not activate grid variant."
             raise RuntimeError(msg)
+
+        # Explicitely activate related variant stages if desired.
+        if stage_names is not None:
+            include_first_stage = False  # if stage name is provided, do not include the first stage per default, but only the explicitly named one
+
+            if len(stage_names) == 0:
+                loguru.logger.info("Attention: No specific stages provided for activation.")
+            available_stages = self.grid_variant_stages(
+                grid_variant=grid_variant,
+                only_active=False,
+            )
+            for stage_name in stage_names:
+                stage_to_activate = next((stage for stage in available_stages if stage.loc_name == stage_name), None)
+                if stage_to_activate is not None:
+                    loguru.logger.debug(
+                        "Activating stage {stage_name} of grid variant {variant_name} ...",
+                        stage_name=stage_to_activate.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+                    if stage_to_activate.Activate():
+                        msg = f"Could not activate stage {stage_to_activate.loc_name} of grid variant {grid_variant.loc_name}."
+                        raise RuntimeError(msg)
+                    loguru.logger.debug(
+                        "Activating stage {stage_name} of grid variant {variant_name} application... Done.",
+                        stage_name=stage_to_activate.loc_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+                else:
+                    loguru.logger.warning(
+                        "Stage {stage_name} does not exists in grid variant {variant_name}. Skipping activation of this stage.",
+                        stage_name=stage_name,
+                        variant_name=grid_variant.loc_name,
+                    )
+
+        if include_first_stage:
+            available_stages = self.grid_variant_stages(
+                grid_variant=grid_variant,
+                only_active=False,
+            )
+            if len(available_stages) > 0:
+                first_stage = available_stages[0]
+                if first_stage.Activate():
+                    msg = f"Could not activate first stage {first_stage.loc_name} of grid variant {grid_variant.loc_name}."
+                    raise RuntimeError(msg)
+                loguru.logger.debug(
+                    "Activating first stage {stage_name} of grid variant {variant_name} application... Done.",
+                    stage_name=first_stage.loc_name,
+                    variant_name=grid_variant.loc_name,
+                )
 
     def deactivate_grid_variant(
         self,

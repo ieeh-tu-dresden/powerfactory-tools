@@ -872,11 +872,14 @@ class PowerFactoryTypes:
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
+        def isActive(self) -> bool:  # noqa: N802
+            ...
+
         def NewStage(  # noqa: N802
             self,
             name: str,
             activation_time: int,  # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
-            activate: int,  # 1 - Activate (should be dafault); 0 - do not activate
+            activate: int,  # 1 - Activate (should be default); 0 - do not activate
             /,
         ) -> bool: ...
 
