@@ -454,8 +454,8 @@ class PowerFactoryInterface:
     ) -> None:
         loguru.logger.debug("Activating grid {grid_name} application...", grid_name=grid.loc_name)
         if grid.IsCalcRelevant():
-            loguru.logger.warning(
-                "Grid {grid_name} is already active.",
+            loguru.logger.info(
+                "ATTENTION: Grid {grid_name} is already active.",
                 grid_name=grid.loc_name,
             )
         elif grid.Activate():
@@ -473,8 +473,8 @@ class PowerFactoryInterface:
     ) -> None:
         loguru.logger.debug("Deactivating grid {grid_name} application...", grid_name=grid.loc_name)
         if not grid.IsCalcRelevant():
-            loguru.logger.warning(
-                "Grid {grid_name} is already inactive.",
+            loguru.logger.info(
+                "ATTENTION: Grid {grid_name} is already inactive.",
                 grid_name=grid.loc_name,
             )
         elif grid.Deactivate():
@@ -491,8 +491,8 @@ class PowerFactoryInterface:
             scenario_name=scenario.loc_name,
         )
         if scenario == self.app.GetActiveScenario():
-            loguru.logger.warning(
-                "Scenario {scenario_name} is already active.",
+            loguru.logger.info(
+                "ATTENTION: Scenario {scenario_name} is already active.",
                 scenario_name=scenario.loc_name,
             )
         elif scenario.Activate():
@@ -509,8 +509,8 @@ class PowerFactoryInterface:
             scenario_name=scenario.loc_name,
         )
         if scenario != self.app.GetActiveScenario():
-            loguru.logger.warning(
-                "Scenario {scenario_name} is already inactive.",
+            loguru.logger.info(
+                "ATTENTION: Scenario {scenario_name} is already inactive.",
                 scenario_name=scenario.loc_name,
             )
         elif scenario.Deactivate():
@@ -527,8 +527,8 @@ class PowerFactoryInterface:
             study_case_name=study_case.loc_name,
         )
         if study_case == self.app.GetActiveStudyCase():
-            loguru.logger.warning(
-                "Study_case {study_case_name} is already inactive.",
+            loguru.logger.info(
+                "ATTENTION: Study_case {study_case_name} is already inactive.",
                 study_case_name=study_case.loc_name,
             )
         elif study_case.Activate():
@@ -545,8 +545,8 @@ class PowerFactoryInterface:
             study_case_name=study_case.loc_name,
         )
         if study_case != self.app.GetActiveStudyCase():
-            loguru.logger.warning(
-                "Study_case {study_case_name} is already inactive.",
+            loguru.logger.info(
+                "ATTENTION: Study_case {study_case_name} is already inactive.",
                 study_case_name=study_case.loc_name,
             )
         elif study_case.Deactivate():
@@ -578,8 +578,8 @@ class PowerFactoryInterface:
             variant_name=grid_variant.loc_name,
         )
         if grid_variant.IsActive():
-            loguru.logger.warning(
-                "Grid variant {variant_name} is already active.",
+            loguru.logger.info(
+                "ATTENTION: Grid variant {variant_name} is already active.",
                 variant_name=grid_variant.loc_name,
             )
         elif grid_variant.Activate():
@@ -663,8 +663,8 @@ class PowerFactoryInterface:
             variant_name=grid_variant.loc_name,
         )
         if grid_variant not in self.app.GetActiveNetworkVariations():
-            loguru.logger.warning(
-                "Grid variant {variant_name} is already inactive.",
+            loguru.logger.info(
+                "ATTENTION: Grid variant {variant_name} is already inactive.",
                 variant_name=grid_variant.loc_name,
             )
         elif grid_variant.Deactivate():
