@@ -528,7 +528,7 @@ class PowerFactoryInterface:
         )
         if study_case == self.app.GetActiveStudyCase():
             loguru.logger.info(
-                "ATTENTION: Study_case {study_case_name} is already inactive.",
+                "ATTENTION: Study_case {study_case_name} is already active.",
                 study_case_name=study_case.loc_name,
             )
         elif study_case.Activate():
@@ -587,7 +587,7 @@ class PowerFactoryInterface:
             raise RuntimeError(msg)
 
         # Explicitely activate related variant stages if desired.
-        if stage_names is not None:
+        if stage_names:
             include_first_stage = False  # if stage name is provided, do not include the first stage per default, but only the explicitly named one
 
             self._activate_stages(stage_names=stage_names, grid_variant=grid_variant)
@@ -648,7 +648,7 @@ class PowerFactoryInterface:
                         )
                 else:
                     loguru.logger.warning(
-                        "Stage '{stage_name}' does not exists in grid variant '{variant_name}'. Skipping activation of this stage.",
+                        "Stage '{stage_name}' does not exist in grid variant '{variant_name}'. Skipping activation of this stage.",
                         stage_name=stage_name,
                         variant_name=grid_variant.loc_name,
                     )
