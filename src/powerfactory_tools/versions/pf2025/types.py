@@ -844,7 +844,7 @@ class PowerFactoryTypes:
 
         def GetContents(  # noqa: N802
             self,
-            name: str,
+            name: str = "*",
             recursive: bool = False,  # noqa: FBT001, FBT002
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
