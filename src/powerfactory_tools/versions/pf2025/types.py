@@ -42,6 +42,7 @@ class PFClassId(enum.Enum):
     LOAD_TYPE_LV = "TypLodlv"
     LOAD_TYPE_MV = "TypDistrf"
     MEASUREMENT_FILE = "ElmFile"
+    PROJECT = "IntPrj"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PVSYSTEM = "ElmPvsys"

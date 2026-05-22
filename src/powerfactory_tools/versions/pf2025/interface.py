@@ -261,12 +261,15 @@ class PowerFactoryInterface:
         Remark: This is more than a normal deactivation, which can be performed via internal _deactivate_project().
         This is the recommended way to release a project when using the PowerFactory interface.
         """
+        _prj_name = self.project_name
+        loguru.logger.debug("Releasing project '{project_name}' ...", project_name=_prj_name)
         with contextlib.suppress(AttributeError):
             self.pop_unit_conversion_settings_stash()
 
         self._deactivate_project()
         del self.project
         self.project_name = None
+        loguru.logger.info("Releasing project '{project_name}' ... Done.", project_name=_prj_name)
 
     def load_project_setting_folders_from_pf_db(self) -> None:
         self.project_settings = self.load_project_settings_dir_from_pf()
@@ -704,7 +707,7 @@ class PowerFactoryInterface:
         loguru.logger.debug("Applying PowerFactory default unit conversion settings ... Done.")
 
     def load_project_settings_dir_from_pf(self) -> PFTypes.ProjectSettings:
-        loguru.logger.debug("Loading project settings dir...")
+        loguru.logger.debug("Loading project settings dir ...")
         project_settings = self.project.pPrjSettings
         if project_settings is None:
             msg = "Could not access project settings."
@@ -714,14 +717,14 @@ class PowerFactoryInterface:
         return project_settings
 
     def _reset_project(self) -> None:
-        loguru.logger.debug("Resetting current project...")
+        loguru.logger.debug("Resetting current project ...")
         self._deactivate_project()
         self._activate_project(self.project_name)  # type: ignore[arg-type]
         loguru.logger.debug("Resetting current project ... Done.")
 
     def _activate_project(self, name: str) -> None:
         loguru.logger.debug("Activating project '{name}' ...", name=name)
-        if self.app.ActivateProject(name + ".IntPrj"):
+        if self.app.ActivateProject(name + "." + PFClassId.PROJECT.value):
             msg = "Could not activate project."
             raise RuntimeError(msg)
 
