@@ -115,21 +115,25 @@ class PowerFactoryInterface:
     def __post_init__(self) -> None:
         try:
             self._set_logging_handler(self.log_file_path)
-            loguru.logger.info("Starting PowerFactory Interface...")
+            loguru.logger.info("Starting PowerFactory Interface ...")
             pfm = self.load_powerfactory_module_from_path()
             self.app = self.connect_to_app(pfm)
-            loguru.logger.info("Starting PowerFactory Interface... Done.")
+            loguru.logger.info("Starting PowerFactory Interface ... Done.")
 
             if self.project_name:
                 try:
-                    self.join_project(self.project_name)  # also activates the project and get inital project data
-                except RuntimeError:
-                    err_msg = f"Could not load project '{self.project_name}'."
+                    self.join_project(self.project_name)  # also activates the project and get initial project data
+                except RuntimeError as exc:
+                    err_msg = f"Could not join project '{self.project_name}'."
                     loguru.logger.exception(err_msg)
+                    self.close()
+                    raise RuntimeError(err_msg) from exc
 
-        except RuntimeError:
-            loguru.logger.exception("Could not start PowerFactory Interface. Shutting down...")
+        except RuntimeError as exc:
+            err_msg = "Could not start PowerFactory Interface. Shutting down ..."
+            loguru.logger.exception(err_msg)
             self.close()
+            raise RuntimeError(err_msg) from exc
 
     def _set_logging_handler(self, log_file_path: pathlib.Path | None) -> None:
         with contextlib.suppress(ValueError):
@@ -244,6 +248,10 @@ class PowerFactoryInterface:
         Returns:
             PFTypes.Project -- the joined project handle
         """
+        if hasattr(self, "project"):
+            err_msg = f"The project '{self.project.loc_name}' is already joined. Release it first before joining the new project '{project_name}'."
+            loguru.logger.error(err_msg)
+            raise RuntimeError(err_msg)
         self.project_name = project_name
         self.project = self.connect_to_project(project_name)
         self.load_project_setting_folders_from_pf_db()
