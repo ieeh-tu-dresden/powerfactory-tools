@@ -335,7 +335,8 @@ class PowerFactoryInterface:
 
     def close(self) -> None:
         loguru.logger.info("Closing PowerFactory Interface...")
-        if hasattr(self, "project") and self.project:  # if project is still alive (not already released), release it first to perform a controlled closing
+        # if project is still alive (not already released), release it first to perform a controlled closing
+        if hasattr(self, "project") and self.project:
             self.release_project()
 
         with contextlib.suppress(AttributeError):
