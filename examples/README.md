@@ -79,6 +79,9 @@ Here, a grid variant is created first. Then, at all loads except the slack a new
     input("Press Enter to continue...")  # Wait for user input before proceeding
     pfi.app.Hide()
 
+### Control Example "Multiple Projects"
+The jupyter notebook [powerfactory_control__multiple_projects.ipynb](powerfactory_control__multiple_projects.ipynb) is provided to show how to activate multiple projects in sequence.
+Here, three different projects are activated one after another by using the `join_project()` method of the PowerFactoryInterface. After finishing the operations on each project, the `release_project()` method is used to properly release the project and revert the temporary unit conversion.
 
 ## Raw PSDM Import
 
