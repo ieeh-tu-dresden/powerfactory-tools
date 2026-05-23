@@ -23,4 +23,3 @@ class TestInterface:
             assert "Could not start PowerFactory Interface. Shutting down ..." in caplog.text
             assert "Closing PowerFactory Interface ..." in caplog.text
             assert "Closing PowerFactory Interface ... Done." in caplog.text
-
