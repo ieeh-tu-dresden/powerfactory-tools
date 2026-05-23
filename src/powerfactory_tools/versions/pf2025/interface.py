@@ -120,6 +120,8 @@ class PowerFactoryInterface:
             self.app = self.connect_to_app(pfm)
             loguru.logger.info("Starting PowerFactory Interface ... Done.")
 
+            self.project: PFTypes.Project | None = None
+
             if self.project_name:
                 try:
                     self.join_project(self.project_name)  # also activates the project and get initial project data
@@ -248,7 +250,7 @@ class PowerFactoryInterface:
         Returns:
             PFTypes.Project -- the joined project handle
         """
-        if hasattr(self, "project"):
+        if hasattr(self, "project") and self.project:
             err_msg = f"The project '{self.project.loc_name}' is already joined. Release it first before joining the new project '{project_name}'."
             loguru.logger.error(err_msg)
             raise RuntimeError(err_msg)
@@ -310,6 +312,12 @@ class PowerFactoryInterface:
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
         loguru.logger.debug("Loading settings from PowerFactory...")
+
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to load the project settings directory."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
+
         _settings_dirs = self.elements_of(
             self.project,
             pattern="*." + PFClassId.SETTINGS_FOLDER.value,
@@ -428,10 +436,15 @@ class PowerFactoryInterface:
         Returns:
             {PowerFactoryData} -- a dataclass containing typed lists with all relevant data from PowerFactory
         """
-        grid_name = grid.loc_name
-        loguru.logger.debug("Compiling data from PowerFactory for grid {grid_name}...", grid_name=grid_name)
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to compile data."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
 
         project_name = self.project.loc_name
+        grid_name = grid.loc_name
+        loguru.logger.debug("Compiling data from PowerFactory for grid '{grid_name}' ...", grid_name=grid_name)
+
         date = dt.datetime.now().astimezone().date()
 
         return PowerFactoryData(
@@ -716,6 +729,11 @@ class PowerFactoryInterface:
 
     def load_project_settings_dir_from_pf(self) -> PFTypes.ProjectSettings:
         loguru.logger.debug("Loading project settings dir ...")
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to load project settings."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
+
         project_settings = self.project.pPrjSettings
         if project_settings is None:
             msg = "Could not access project settings."
@@ -738,7 +756,10 @@ class PowerFactoryInterface:
 
     def _deactivate_project(self) -> None:
         loguru.logger.debug("Deactivating current project '{name}' ...", name=self.project_name)
-        if self.project.Deactivate():
+        if not self.project:
+            err_msg = "No active project available. Skipping deactivation process."
+            loguru.logger.error(err_msg)
+        elif self.project.Deactivate():
             msg = "Could not deactivate project."
             raise RuntimeError(msg)
 
