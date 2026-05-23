@@ -4,12 +4,23 @@ from powerfactory_tools.versions.pf2025 import PowerFactoryInterface
 
 
 class TestInterface:
-    def test_init(self, caplog):
+    def test_init_with_project_name(self, caplog):
         with caplog.at_level(logging.INFO):
             PowerFactoryInterface(
                 project_name="test",
             )
 
-            assert "Could not start PowerFactory Interface. Shutting down..." in caplog.text
-            assert "Closing PowerFactory Interface..." in caplog.text
-            assert "Closing PowerFactory Interface... Done." in caplog.text
+            assert "Could not start PowerFactory Interface. Shutting down ..." in caplog.text
+            assert "Closing PowerFactory Interface ..." in caplog.text
+            assert "Closing PowerFactory Interface ... Done." in caplog.text
+
+    def test_init_without_project_name(self, caplog):
+        with caplog.at_level(logging.INFO):
+            PowerFactoryInterface(
+                powerfactory_service_pack=99,
+            )
+
+            assert "Could not start PowerFactory Interface. Shutting down ..." in caplog.text
+            assert "Closing PowerFactory Interface ..." in caplog.text
+            assert "Closing PowerFactory Interface ... Done." in caplog.text
+
