@@ -920,7 +920,7 @@ class PowerFactoryTypes:
 
             Returns:
                 success (int): 0 if the operation was successful, otherwise 1.
-                newObject (DataObject, optional): see official documentation
+                _newObject (DataObject, optional): see official documentation
             """
             ...
 
@@ -1504,7 +1504,7 @@ class PowerFactoryTypes:
             """
             ...
 
-        def GetGlobaLibrary(  # noqa: N802
+        def GetGlobalLibrary(  # noqa: N802
             self,
             class_name: str = "",
             /,
@@ -1979,7 +1979,7 @@ class PowerFactoryTypes:
 
         # operational limits
         pQlimType: PowerFactoryTypes.DataObject | None  # REACTIVE_POWER_CAPABILITY_CURVE (IntQlim)  # noqa: N815
-        iqtpye: bool  # True: use limits defined in type
+        iqtype: bool  # True: use limits defined in type
         q_min: float  # negative limit (underexcited) in pu
         q_max: float  # in pu
         cQ_min: float  # negative limit (underexcited) in Mvar  # noqa: N815
@@ -2136,7 +2136,7 @@ class PowerFactoryTypes:
         isLimQmin: bool  # True if minimum reactive power limit is active  # noqa: N815
         isLimQmax: bool  # True if maximum reactive power limit is active  # noqa: N815
         cQ_min: float  # minimum reactive power limit (negative) in Mvar  # noqa: N815
-        cQ_max: float  # maximum reactive power limitin Mvar  # noqa: N815
+        cQ_max: float  # maximum reactive power limit in Mvar  # noqa: N815
 
     class SourceBase(DataObject, t.Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None

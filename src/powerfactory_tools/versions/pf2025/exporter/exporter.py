@@ -1234,7 +1234,7 @@ class PowerFactoryExporter:
         tap_max = t_type.ntpmx
         tap_neutral = t_type.nntap0
 
-        if bool(t_type.itapch2) is True:
+        if t_type.itapch2 is True:
             loguru.logger.warning(
                 "2-winding transformer {transformer_name} has second tap changer. Not supported so far. Skipping.",
                 transformer_name=name,
