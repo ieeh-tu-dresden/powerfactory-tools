@@ -760,6 +760,20 @@ class PowerFactoryInterface:
         )
         return [t.cast("PFTypes.CommandResultExport", element) for element in elements]
 
+    def grid_diagram_for_element(
+        self,
+        element: PFTypes.DataObject,
+    ) -> PFTypes.GridDiagram | None:
+        if hasattr(element, "pDiagram") and element.pDiagram:  # pyright: ignore[reportAttributeAccessIssue]
+            return element.pDiagram # pyright: ignore[reportAttributeAccessIssue]
+        loguru.logger.debug(f"Element '{element.loc_name}' has no attribute 'pDiagram'. Cannot determine grid diagram directly for element, doing inverse search in grid model dir instead.")
+
+        # Inverse Search: Find the grid diagram in the grid graph folder and check if the element is related to one of the diagrams
+        for grid_graphic in self.grid_diagrams():
+            if grid_graphic.pDataFolder is not None and grid_graphic.pDataFolder == element:
+                    return grid_graphic
+        return None
+
     def study_case(
         self,
         name: str = "*",
