@@ -48,7 +48,7 @@ class PFClassId(enum.Enum):
     OWNER = "ElmOwner"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
-    PVSYSTEM = "ElmPvsys"
+    PV_SYSTEM = "ElmPvsys"
     REACTIVE_POWER_CAPABILITY_CURVE = "IntQlim"
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
@@ -2034,7 +2034,7 @@ class PowerFactoryTypes:
         tqs: float  # quadrature axis transient time constant in seconds
         tqss: float  # quadrature axis subtransient time constant in seconds
 
-    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PVSYSTEM
+    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PV_SYSTEM
         uk: float
         Pcu: float
 

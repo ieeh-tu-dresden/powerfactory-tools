@@ -1416,7 +1416,7 @@ class PowerFactoryInterface:
         include_out_of_service: bool = True,
     ) -> Sequence[PFTypes.PVSystem]:
         elements = self.grid_elements(
-            class_name=PFClassId.PVSYSTEM.value,
+            class_name=PFClassId.PV_SYSTEM.value,
             name=name,
             grid_name=grid_name,
             calc_relevant=calc_relevant,
