@@ -842,18 +842,32 @@ class PowerFactoryInterface:
         )
         return [t.cast("PFTypes.CommandResultExport", element) for element in elements]
 
-    def grid_diagram_for_element(
+    def diagram_of_grid(
         self,
-        element: PFTypes.DataObject,
+        element: PFTypes.Grid,
     ) -> PFTypes.GridDiagram | None:
+        """Returns the grid diagram related to a given grid."""
         if hasattr(element, "pDiagram") and element.pDiagram:  # pyright: ignore[reportAttributeAccessIssue]
-            return element.pDiagram # pyright: ignore[reportAttributeAccessIssue]
-        loguru.logger.debug(f"Element '{element.loc_name}' has no attribute 'pDiagram'. Cannot determine grid diagram directly for element, doing inverse search in grid model dir instead.")
+            return element.pDiagram  # pyright: ignore[reportAttributeAccessIssue]
+        loguru.logger.debug(
+            f"Element '{element.loc_name}' has no attribute 'pDiagram'. Cannot determine grid diagram directly for element, doing inverse search in grid model dir instead."
+        )
 
         # Inverse Search: Find the grid diagram in the grid graph folder and check if the element is related to one of the diagrams
-        for grid_graphic in self.grid_diagrams():
-            if grid_graphic.pDataFolder is not None and grid_graphic.pDataFolder == element:
-                    return grid_graphic
+        for grid_diagram in self.grid_diagrams():
+            if grid_diagram.pDataFolder is not None and grid_diagram.pDataFolder == element:
+                return grid_diagram
+        return None
+
+    def graphic_of_element(
+        self,
+        element: PFTypes.DataObject,
+    ) -> PFTypes.Graphic | None:
+        """Returns the graphic related to a given element."""
+        # Inverse Search: Find the grid diagram in the grid graph folder and check if the element is related to one of the diagrams
+        for element_graphic in self.element_graphics():
+            if element_graphic.pDataObj is not None and element_graphic.pDataObj == element:
+                return element_graphic
         return None
 
     def study_case(
@@ -1117,6 +1131,21 @@ class PowerFactoryInterface:
     ) -> Sequence[PFTypes.GridDiagram]:
         elements = self.grid_model_elements(class_name=PFClassId.GRID_GRAPHIC.value, name=name)
         return [t.cast("PFTypes.GridDiagram", element) for element in elements]
+
+    def element_graphic(
+        self,
+        name: str = "*",
+        /,
+    ) -> PFTypes.Graphic | None:
+        return self.first_of(self.element_graphics(name))
+
+    def element_graphics(
+        self,
+        name: str = "*",
+        /,
+    ) -> Sequence[PFTypes.Graphic]:
+        elements = self.grid_model_elements(class_name=PFClassId.GRAPHIC.value, name=name)
+        return [t.cast("PFTypes.Graphic", element) for element in elements]
 
     def external_grid(
         self,
