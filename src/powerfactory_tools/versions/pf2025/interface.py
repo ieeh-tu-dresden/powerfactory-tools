@@ -561,7 +561,7 @@ class PowerFactoryInterface:
         include_first_stage: bool = True,
         stage_names: Sequence[str] | None = None,
     ) -> None:
-        """Activate a grid variant , optional ativate explicitely also the related variant stage.
+        """Activate a grid variant , optionally activate also the related variant stage explicitely.
 
         Arguments:
             grid_variant {PFTypes.GridVariant} -- The grid variant to activate
@@ -571,7 +571,7 @@ class PowerFactoryInterface:
             stage_name {str | None} -- The name of the stage to activate (default: {None}) --> this leads to neglecting of the 'include_first_stage' argument
 
         Raises:
-            RuntimeError: when griad variant could not be activated or when the stage could not be activated
+            RuntimeError: when grid variant could not be activated or when the stage could not be activated
         """
         loguru.logger.debug(
             "Activating grid variant {variant_name} ...",
