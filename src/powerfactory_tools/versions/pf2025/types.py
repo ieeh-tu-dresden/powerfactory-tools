@@ -872,11 +872,14 @@ class PowerFactoryTypes:
         def Deactivate(self) -> bool:  # noqa: N802
             ...
 
+        def IsActive(self) -> bool:  # noqa: N802
+            ...
+
         def NewStage(  # noqa: N802
             self,
             name: str,
             activation_time: int,  # Activation time of the new expansion stage in seconds since 01.01.1970 00:00:00
-            activate: int,  # 1 - Activate (should be dafault); 0 - do not activate
+            activate: int,  # 1 - Activate (should be default); 0 - do not activate
             /,
         ) -> bool: ...
 
@@ -884,8 +887,11 @@ class PowerFactoryTypes:
         tAcTime: str  # noqa: N815
         iExclude: int  # noqa: N815
 
-        def Activate(self) -> bool:  # noqa: N802
-            ...
+        def Activate(  # noqa: N802
+            self,
+            iQueryOption: int = 0,  # 0: user confirmation needed, 1: yes button applied, 2: no button applied  # noqa: N803
+            /,
+        ) -> bool: ...
 
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
@@ -1308,7 +1314,7 @@ class PowerFactoryTypes:
 
         def GetActiveStages(  # noqa: N802
             self,
-            varied_folder: PowerFactoryTypes.DataObject,
+            varied_folder: PowerFactoryTypes.DataObject | None = None,
             /,
         ) -> Sequence[PowerFactoryTypes.GridVariantStage]: ...
 
