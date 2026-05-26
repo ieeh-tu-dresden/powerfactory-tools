@@ -16,7 +16,7 @@ if t.TYPE_CHECKING:
 # High-Level Enums
 class PFClassId(enum.Enum):
     AREA = "ElmArea"
-    COMPOUND_GRID_ELEMENT = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
+    COMPOUND_GRID_GRAPHIC = "ElmFolder"  # e.g. a compound grid graphic consisting of multiple elements
     COMPOUND_MODEL = "ElmComp"  # e.g. a compound generator with multiple functional slots as part of a template model
     COUPLER = "ElmCoup"
     CUBICLE = "StaCubic"
@@ -31,6 +31,8 @@ class PFClassId(enum.Enum):
     GENERATOR = "ElmGenstat"
     GRID = "ElmNet"
     GRID_GRAPHIC = "IntGrfnet"
+    GRAPHIC = "IntGrf"
+    LIBRARY_FOLDER = "IntLibrary"
     LINE = "ElmLne"
     LINE_TYPE = "TypLne"
     LOAD = "ElmLod"
@@ -42,9 +44,12 @@ class PFClassId(enum.Enum):
     LOAD_TYPE_LV = "TypLodlv"
     LOAD_TYPE_MV = "TypDistrf"
     MEASUREMENT_FILE = "ElmFile"
+    OPERATOR = "ElmOperator"
+    OWNER = "ElmOwner"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
-    PVSYSTEM = "ElmPvsys"
+    PV_SYSTEM = "ElmPvsys"
+    REACTIVE_POWER_CAPABILITY_CURVE = "IntQlim"
     REFERENCE = "IntRef"
     RESULT = "ElmRes"
     SCENARIO = "IntScenario"
@@ -55,11 +60,14 @@ class PFClassId(enum.Enum):
     SETTINGS_FOLDER_UNITS = "IntUnit"
     SHUNT = "ElmShnt"
     SOURCE_TYPE_HARMONIC_CURRENT = "TypHmccur"
+    STATIC_VAR_SYSTEM = "ElmSvs"
     STATION_CONTROLLER = "ElmStactrl"
     STUDY_CASE = "IntCase"
     SUBSTATION = "ElmSubstat"
     SUBSTATION_FIELD = "ElmBay"
     SWITCH = "StaSwitch"
+    SYNCHRONOUS_MACHINE = "ElmSym"
+    SYNCHRONOUS_MACHINE_TYPE = "TypSym"
     TEMPLATE = "IntTemplate"
     TERMINAL = "ElmTerm"
     TRANSFORMER_2W = "ElmTr2"
@@ -246,6 +254,21 @@ class GeneratorSystemType(enum.Enum):
     OTHER = "othg"
 
 
+class SynchronousMachineConnectionType(enum.IntEnum):
+    D = 0
+    Y = 1
+    YN = 2
+
+
+class SynchronousMachineModelType(enum.Enum):
+    STANDARD = "det"
+    MODEL_3_3 = "m33"
+    GENQEC = "qec"
+    CLASSIC = "cls"
+    PERMANENT_MAGNET = "pmm"
+    ASYNCHRONOUS_START = "asy"
+
+
 class ISym(enum.IntEnum):
     SYM = 0
     ASYM = 1
@@ -268,6 +291,11 @@ class IOpt(enum.IntEnum):
     P_COSPHI = 1
     U_I_COSPHI = 2
     E_COSPHI = 3
+
+
+class LineTechnologyType(enum.IntEnum):
+    UNDERGROUND_CABLE = 0
+    OVERHEAD_LINE = 1
 
 
 class LoadFlowCtrlMode(enum.IntEnum):
@@ -308,6 +336,21 @@ class LocalQCtrlMode(enum.Enum):
     U_CONST = "constv"
     U_I_DROOP = "idroop"
     U_Q_DROOP = "vdroop"
+
+
+class LocalQCtrlModeSynchMach(enum.Enum):
+    COSPHI_CONST = "constc"
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    U_CONST = "constv"
+    U_I_DROOP = "idroop"
+    U_Q_DROOP = "vdroop"
+
+
+class LocalQCtrlModeLoad(enum.Enum):
+    Q_CONST = "constq"
+    Q_P = "qpchar"
+    Q_U = "qvchar"
 
 
 class MetricPrefix(enum.Enum):
@@ -377,8 +420,8 @@ class NodeType(enum.IntEnum):
 
 
 class PFRecap(enum.IntEnum):
-    OE = 0
-    UE = 1
+    IND = 0  # inductive power factor in PF: for consumer = under excited; for sources/generators = over excited
+    CAP = 1  # capacitive power factor in PF: for consumer = over excited; for sources/generators = under excited
 
 
 class Phase1PH(enum.Enum):
@@ -544,6 +587,12 @@ class ShuntType(enum.IntEnum):
     R_L_C1_C2_RP = 4  # in a row: ([R-L-C1] || Rp)-C2
 
 
+class StaticVarSystemCtrlMode(enum.IntEnum):
+    NONE = 0
+    VOLTAGE = 1
+    REACTIVE_POWER = 2
+
+
 class TemperatureDependencyType(enum.IntEnum):
     DEFAULT_20_DEGREE = 0
     MAX_OPERATION_TEMP = 1
@@ -662,6 +711,13 @@ class VoltageSourceType(enum.IntEnum):
 class VoltageSystemType(enum.IntEnum):
     AC = 0
     DC = 1
+
+
+class LoadModelDependencyType(enum.IntEnum):
+    LINEAR = 0
+    NONLINEAR_U_LINEAR_F = 1
+    NONLINEAR = 2
+    NONLINEAR_CONTROLLED = 3
 
 
 ## PowerFactory Element Classes
@@ -788,7 +844,7 @@ class PowerFactoryTypes:
 
         def GetContents(  # noqa: N802
             self,
-            name: str,
+            name: str = "*",
             recursive: bool = False,  # noqa: FBT001, FBT002
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
@@ -823,6 +879,60 @@ class PowerFactoryTypes:
             /,
         ) -> int: ...
 
+        def MarkInGraphics(  # noqa: N802
+            self,
+            search_all_diagrams_and_select: bool,  # noqa: FBT001
+            /,
+        ) -> int:
+            """Marks the object in the diagram in which the element is found by hatch crossing it.
+
+            By default all the currently opened diagrams are searched for the element to mark beginning with the diagram shown.
+            The first diagram in which the element is found will be opened and the element is marked.
+            Alternatively the search can be extended to all existing diagrams by passing 1 as parameter.
+            If the element exists in more than one diagram the user can select from a list of diagrams which diagram shall be opened.
+
+            Arguments:
+                search_all_diagrams_and_select -- Search can be extended to all diagrams, not only the ones which are currently shown on the desktop.
+            """
+            ...
+
+        def Move(  # noqa: N802
+            self,
+            object_to_move: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            /,
+        ) -> int:
+            """Moves the given object(s) to the object the function was called on (typically a folder)."""
+            ...
+
+        def PasteCopy(  # noqa: N802
+            self,
+            object_to_copy: PowerFactoryTypes.DataObject | Sequence[PowerFactoryTypes.DataObject],
+            reset_missing_references: int = 0,
+            /,
+        ) -> int:
+            """Pastes a copy of a single object or a set of objects to the object the function was called on (= target object).
+
+            It uses the merge tool when source object(s) and target object are inside different projects (equivalent to a manual copy&paste operation).
+
+            Arguments:
+                object_to_copy -- Object or set of objects to copy.
+                reset_missing_references -- 0: No action is taken, the operation is cancelled with an error (default). 1: Missing references are automatically reset.
+
+            Returns:
+                success (int): 0 if the operation was successful, otherwise 1.
+                _newObject (DataObject, optional): see official documentation
+            """
+            ...
+
+        def SetAttribute(  # noqa: N802
+            self,
+            name: str,
+            value: ValidPFPrimitive | list[ValidPFPrimitive],
+            /,
+        ) -> None:
+            """Sets the value of an attribute."""
+            ...
+
     class DataDir(DataObject, t.Protocol): ...
 
     class Project(DataObject, t.Protocol):
@@ -836,6 +946,22 @@ class PowerFactoryTypes:
             ...
 
         def Deactivate(self) -> bool:  # noqa: N802
+            ...
+
+        def DiscardChanges(  # noqa: N802
+            self,
+            reset_calculation: bool,  # noqa: FBT001
+            /,
+        ) -> bool:
+            """Discards all unsaved changes made to a scenario."""
+            ...
+
+        def GetObjects(self) -> Sequence[PowerFactoryTypes.DataObject]:  # noqa: N802
+            """Returns a set of all objects for which operational data are stored in scenario."""
+            ...
+
+        def Save(self) -> bool:  # noqa: N802
+            """Saves the current active value of all operational attributes for all active network elements to database."""
             ...
 
     class StudyCase(DataObject, t.Protocol):  # PFClassId.STUDY_CASE
@@ -926,6 +1052,14 @@ class PowerFactoryTypes:
 
     class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
         iFrzPerm: int  # noqa: N815
+
+        pDataFolder: PowerFactoryTypes.DataObject | None  # noqa: N815  # grid element the graphic is related to
+
+        def Close(self) -> None:  # noqa: N802
+            ...
+
+        def Show(self) -> None:  # noqa: N802
+            ...
 
     class Graph(DataObject, t.Protocol):
         sSymName: str  # noqa: N815
@@ -1306,6 +1440,13 @@ class PowerFactoryTypes:
             /,
         ) -> None: ...
 
+        def ClearOutputWindow(self) -> None:  # noqa: N802
+            ...
+
+        def FlushOutputWindow(self) -> None:  # noqa: N802
+            """Calling this function ensures that all previously printed and potentially buffered messages are visible in the output window."""
+            ...
+
         def GetActiveProject(self) -> PowerFactoryTypes.Project | None:  # noqa: N802
             ...
 
@@ -1346,14 +1487,15 @@ class PowerFactoryTypes:
             /,
         ) -> Sequence[PowerFactoryTypes.DataObject]: ...
 
+        def GetCurrentDiagram(self) -> PowerFactoryTypes.GridDiagram | None:  # noqa: N802
+            ...
+
         def GetCurrentScript(self) -> PowerFactoryTypes.Script | None:  # noqa: N802
             ...
 
-        def GetProjectFolder(  # noqa: N802
-            self,
-            name: str,
-            /,
-        ) -> PowerFactoryTypes.DataObject: ...
+        def GetDesktop(self) -> PowerFactoryTypes.Desktop:  # noqa: N802
+            """Returns the currently active Desktop."""
+            ...
 
         def GetFromStudyCase(  # noqa: N802
             self,
@@ -1368,8 +1510,69 @@ class PowerFactoryTypes:
             """
             ...
 
+        def GetGlobalLibrary(  # noqa: N802
+            self,
+            class_name: str = "",
+            /,
+        ) -> PowerFactoryTypes.DataObject:  # PFClassId.LIBRARY_FOLDER (IntLibrary)
+            """Returns the global library for object-types of class “class_name”.
+
+            class_name may be omitted, in which case the complete global library folder is returned.
+            """
+            ...
+
+        def GetLanguage(self) -> str:  # noqa: N802
+            """Returns a string for the current program language setting.
+
+            en, de, es, fr, ru, cn, tr
+            """
+            ...
+
+        def GetLocalLibrary(  # noqa: N802
+            self,
+            class_name: str = "",
+            /,
+        ) -> PowerFactoryTypes.DataObject:  # PFClassId.LIBRARY_FOLDER (LocLibrary)
+            """Returns the local library for object-types of class “class_name”.
+
+            class_name may be omitted, in which case the complete local library folder is returned.
+            """
+            ...
+
+        def GetProjectFolder(  # noqa: N802
+            self,
+            name: str,
+            /,
+        ) -> PowerFactoryTypes.DataObject: ...
+
+        def GetRecordingStage(self) -> PowerFactoryTypes.GridVariantStage | None:  # noqa: N802
+            ...
+
+        def GetSummaryGrid(self) -> PowerFactoryTypes.Grid | None:  # noqa: N802
+            """Returns the summary grid in the currently active Study Case.
+
+            The summary grid is the combination of all active grids in the study case.
+            """
+            ...
+
         def Hide(self) -> None:  # noqa: N802
             """Hides the PowerFactory application window."""
+            ...
+
+        def PrintInfo(self, message: str) -> None:  # noqa: N802
+            """Prints a message as info into the PowerFactory Output Window."""
+            ...
+
+        def PrintPlain(self, message: str) -> None:  # noqa: N802
+            """Prints a message as normal text into the PowerFactory Output Window."""
+            ...
+
+        def PrintWarn(self, message: str) -> None:  # noqa: N802
+            """Prints a message as warning into the PowerFactory Output Window."""
+            ...
+
+        def PrintError(self, message: str) -> None:  # noqa: N802
+            """Prints a message as error into the PowerFactory Output Window."""
             ...
 
         def PostCommand(  # noqa: N802
@@ -1407,6 +1610,26 @@ class PowerFactoryTypes:
 
     class Element(DataObject, t.Protocol):
         desc: Sequence[str]
+        pOperator: PowerFactoryTypes.Operator | None  # noqa: N815
+        pOwner: PowerFactoryTypes.Owner | None  # noqa: N815
+        cpZone: PowerFactoryTypes.Zone | None  # noqa: N815
+        cpArea: PowerFactoryTypes.Area | None  # noqa: N815
+
+    class Area(DataObject, t.Protocol):  # PFClassId.AREA
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Operator(DataObject, t.Protocol):  # PFClassId.OPERATOR
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Owner(DataObject, t.Protocol):  # PFClassId.OWNER
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
+
+    class Zone(DataObject, t.Protocol):  # PFClassId.ZONE
+        desc: Sequence[str]
+        iColor: int  # noqa: N815
 
     class DeviceBase(Element, t.Protocol):
         pf_recap: PFRecap
@@ -1423,7 +1646,7 @@ class PowerFactoryTypes:
         Inom: float
 
     class LoadType(DataObject, t.Protocol):  # PFClassId.LOAD_TYPE_GENERAL
-        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic)
+        loddy: float  # portion of dynamic part of ZIP load model in RMS simulation (100 = 100% dynamic, 0 = const. impedance)
         systp: VoltageSystemType
         phtech: LoadPhaseConnectionType
 
@@ -1446,6 +1669,17 @@ class PowerFactoryTypes:
         Prp: float  # for harmonic load model type IMPEDANCE_TYPE_2; static portion in percent
         pcf: float  # for harmonic load model type IMPEDANCE_TYPE_2; load factor correction in percent
 
+        # dynamic load model parameters
+        i_nln: LoadModelDependencyType
+        t1: float  # delay time in seconds
+        tpf: float  # time constant for frequency dependency of active power in seconds
+        tpu: float  # time constant for voltage dependency of active power in seconds
+        tqf: float  # time constant for frequency dependency of reactive power in seconds
+        tqu: float  # time constant for voltage dependency of reactive power in seconds
+
+        kpf: float  # frequency dependency of active power in %/%
+        kqf: float  # frequency dependency of reactive power in %/%
+
     class SourceTypeHarmonicCurrent(DataObject, t.Protocol):  # PFClassId.SOURCE_TYPE_HARMONIC_CURRENT
         i_usym: HarmonicSourceSystemType
 
@@ -1461,12 +1695,16 @@ class PowerFactoryTypes:
         gline0: float  # conductance (µS/km) zero sequence components
         bline: float  # susceptance (µS/km) positive sequence components
         bline0: float  # susceptance (µS/km) zero sequence components
+        cline: float  # capacitance (µF/km) positive sequence components
+        cline0: float  # capacitance (µF/km) zero sequence components
 
         nlnph: float  # no. of phase conducters
         nneutral: float  # no. of neutral conductors
 
         systp: VoltageSystemType
         frnom: float  # nominal frequency the values x and b apply
+
+        cohl: LineTechnologyType
 
     class LineNType(LineType, t.Protocol):
         rnline: float  # resistance (Ohm/km) natural neutral components
@@ -1507,14 +1745,19 @@ class PowerFactoryTypes:
         tr2cn_h: TrfWindingVector  # vector at HV side
         nt2ag: float
 
+        # Tap changer settings
         tap_side: TrfTapSide
-        ntpmn: int
-        ntpmx: int
-        nntap0: int
-        dutap: float
+        itapch: bool  # True if tap changer is active
+        itapch2: bool
+        nntap0: int  # neutral tap changer position
+        ntpmn: int  # minimum tap position
+        ntpmx: int  # maximum tap position
+        dutap: float  # voltage change per tap in percentage
         phitr: float
-        itapch: int
-        itapch2: int
+        ntrcn: bool  # automatic tap changer operation
+        usp_low: float  # lower voltage limit in pu of rated voltage
+        usp_up: float  # upper voltage limit in pu of rated voltage
+        usetp: float  # voltage setpoint in pu of rated voltage
 
         nt2ph: TrfPhaseTechnology
 
@@ -1601,6 +1844,14 @@ class PowerFactoryTypes:
         nphase: int
         cPhInfo: str  # noqa: N815
 
+    class StaticVarSystem(DeviceBase, t.Protocol):  # PFClassId.STATIC_VAR_SYSTEM
+        nxcap: int  # number of capacitor blocks
+        qmin: float  # minimum reactive power in Mvar
+        qmax: float  # maximum reactive power in Mvar
+        tcmax: float
+        qsetp: float  # reactive power setpoint in Mvar
+        i_ctrl: StaticVarSystemCtrlMode
+
     class Transformer2W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_2W
         buslv: PowerFactoryTypes.StationCubicle | None
         bushv: PowerFactoryTypes.StationCubicle | None
@@ -1617,6 +1868,11 @@ class PowerFactoryTypes:
         re0tr_l: float
         xe0tr_h: float
         xe0tr_l: float
+
+        # Tap changer settings
+        optaplimit: bool  # True if tap changer limits are enabled
+        optapmin: int  # minimum operational tap position
+        optapmax: int  # maximum operational tap position
 
     class Transformer3W(LineBase, t.Protocol):  # PFClassId.TRANSFORMER_3W
         buslv: PowerFactoryTypes.StationCubicle | None
@@ -1706,6 +1962,11 @@ class PowerFactoryTypes:
         usetp: float
         phtech: GeneratorPhaseConnectionType
 
+        Pmin_uc: float  # minimum active power limit in MW
+        Pmax_uc: float  # maximum active power limit in MW
+        cQ_min: float  # minimum reactive power limit (negative) in Mvar  # noqa: N815
+        cQ_max: float  # maximum reactive power limit in Mvar  # noqa: N815
+
     class QPCharacteristic(DataObject, t.Protocol):
         inputmod: bool
 
@@ -1713,7 +1974,73 @@ class PowerFactoryTypes:
         aCategory: GeneratorSystemType  # noqa: N815
         c_psecc: PowerFactoryTypes.SecondaryController | None
 
-    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PVSYSTEM
+    class SynchronousMachine(DeviceBase, t.Protocol):  # PFClassId.SYNCHRONOUS_MACHINE
+        bus1: PowerFactoryTypes.StationCubicle | None
+        typ_id: PowerFactoryTypes.SynchronousMachineType | None
+        cCategory: GeneratorSystemType  # noqa: N815
+        av_mode: LocalQCtrlModeSynchMach
+        ip_ctrl: bool  # reference machine
+        c_pstac: PowerFactoryTypes.StationController | None
+        c_psecc: PowerFactoryTypes.SecondaryController | None
+
+        # operational limits
+        pQlimType: PowerFactoryTypes.DataObject | None  # REACTIVE_POWER_CAPABILITY_CURVE (IntQlim)  # noqa: N815
+        iqtype: bool  # True: use limits defined in type
+        q_min: float  # negative limit (underexcited) in pu
+        q_max: float  # in pu
+        cQ_min: float  # negative limit (underexcited) in Mvar  # noqa: N815
+        cQ_max: float  # in Mvar  # noqa: N815
+        scaleQmin: float  # scaling factor for minimum reactive power limit; used if iqtype is False  # noqa: N815
+        scaleQmax: float  # scaling factor for maximum reactive power limit; used if iqtype is False  # noqa: N815
+        Pmin_uc: float  # minimum active power limit in MW
+        Pmax_uc: float  # maximum active power limit in MW
+
+        # load flow control
+        sgini: float
+        pgini: float
+        qgini: float
+        cosgini: float
+        usetp: float  # in pu
+        phiini: float  # in deg
+        Kpf: float  # in MW/Hz
+
+        ddroop: float  # droop in percent
+        usp_min: float  # lower voltage limit in pu
+        usp_max: float  # upper voltage limit in pu
+        pQPCurve: PowerFactoryTypes.QPCharacteristic | None  # noqa: N815 # Q(P)-characteristic curve
+
+    class SynchronousMachineType(DataObject, t.Protocol):  # PFClassId.SYNCHRONOUS_MACHINE_TYPE
+        ugn: float
+        sgn: float
+        cosn: float
+        nphase: int  # 1 or 3
+        nslty: SynchronousMachineConnectionType
+        model_inp: SynchronousMachineModelType
+
+        q_min: float  # negative limit (underexcited) in pu
+        q_max: float  # in pu
+        Q_min: float  # negative limit (underexcited) in Mvar
+        Q_max: float  # in Mvar
+
+        i_condenser: bool  # True if used as condenser machine; False if non-condenser machine
+
+        rstr: float  # stator resistance in pu
+        xl: float  # stator reactance in pu
+        tag: float  # start-up time constant (relative to Pgn) in seconds
+
+        xq: float  # quadrature axis reactance in pu
+        xqs: float  # quadrature axis transient reactance in pu
+        xqss: float  # quadrature axis subtransient reactance in pu
+        xd: float  # direct axis reactance in pu
+        xds: float  # direct axis transient reactance in pu
+        xdss: float  # direct axis subtransient reactance in pu
+
+        tds: float  # direct axis transient time constant in seconds
+        tdss: float  # direct axis subtransient time constant in seconds
+        tqs: float  # quadrature axis transient time constant in seconds
+        tqss: float  # quadrature axis subtransient time constant in seconds
+
+    class PVSystem(GeneratorBase, t.Protocol):  # PFClassId.PV_SYSTEM
         uk: float
         Pcu: float
 
@@ -1748,6 +2075,7 @@ class PowerFactoryTypes:
     class Load(LoadBase3Ph, t.Protocol):  # PFClassId.LOAD
         typ_id: PowerFactoryTypes.LoadType | None
         mode_inp: ModeInpLoad
+        av_mode: LocalQCtrlMode
         i_sym: ISym
         u0: float
         phtech: LoadPhaseConnectionType
@@ -1790,9 +2118,13 @@ class PowerFactoryTypes:
         bus2: None
 
     class ExternalGrid(DataObject, t.Protocol):  # PFClassId.EXTERNAL_GRID
+        desc: Sequence[str]
+        outserv: bool
+
         bustp: BusType
         bus1: PowerFactoryTypes.StationCubicle | None
-        desc: Sequence[str]
+        tag: float  # start-up time constant (relative to Sns) in seconds
+
         usetp: float  # in p.u.
         pgini: float  # in MW
         qgini: float  # in Mvar
@@ -1805,7 +2137,12 @@ class PowerFactoryTypes:
         ikssmin: float  # min Ik in kA
         rntxnmin: float  # X/R ratio in Ohm
 
-        outserv: bool
+        Pmin_uc: float  # minimum active power limit in MW, if bustp is PQ
+        MaxS: float  # maximum active power limit in MW, if bustp is PQ
+        isLimQmin: bool  # True if minimum reactive power limit is active  # noqa: N815
+        isLimQmax: bool  # True if maximum reactive power limit is active  # noqa: N815
+        cQ_min: float  # minimum reactive power limit (negative) in Mvar  # noqa: N815
+        cQ_max: float  # maximum reactive power limit in Mvar  # noqa: N815
 
     class SourceBase(DataObject, t.Protocol):
         bus1: PowerFactoryTypes.StationCubicle | None
