@@ -262,7 +262,7 @@ class SynchronousMachineConnectionType(enum.IntEnum):
 
 class SynchronousMachineModelType(enum.Enum):
     STANDARD = "det"
-    MODELL_3_3 = "m33"
+    MODEL_3_3 = "m33"
     GENQEC = "qec"
     CLASSIC = "cls"
     PERMANENT_MAGNET = "pmm"
@@ -818,7 +818,7 @@ class PowerFactoryTypes:
 
             In contrast to DataObject.GetContents() this function gives access to objects that are currently hidden due to scheme management.
 
-            Arguments:
+            Args:
                 hiddenMode (int): Determines how hidden objects are handled.
                     0: Hidden objects are ignored. Only nonhidden objects are returned.
                     1: Hidden objects and nonhidden objects are returned.
@@ -1984,8 +1984,8 @@ class PowerFactoryTypes:
         q_max: float  # in pu
         cQ_min: float  # negative limit (underexcited) in Mvar  # noqa: N815
         cQ_max: float  # in Mvar  # noqa: N815
-        scaleQmin: float  # scaling factor for minimum reactive power limit; used if iqtpye is False  # noqa: N815
-        scaleQmax: float  # scaling factor for maximum reactive power limit; used if iqtpye is False  # noqa: N815
+        scaleQmin: float  # scaling factor for minimum reactive power limit; used if iqtype is False  # noqa: N815
+        scaleQmax: float  # scaling factor for maximum reactive power limit; used if iqtype is False  # noqa: N815
         Pmin_uc: float  # minimum active power limit in MW
         Pmax_uc: float  # maximum active power limit in MW
 
