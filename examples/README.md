@@ -53,7 +53,7 @@ Such a request is performed in our export example [powerfactory_export.ipynb](po
 The jupyter notebook [powerfactory_control__basic.ipynb](powerfactory_control__basic.ipynb) is provided to get in touch with the usage of the basic powerfactory control possibilities.
 First the simple grid HV_3_Bus is manipulated, then a more sophisticated control is exceuted at HV_9_Bus grid.
 
-The example includes:
+The example includes (excerpt):
 
 - General request of elements
 - Selection of user defined elements (e.g. based on name or voltage level)

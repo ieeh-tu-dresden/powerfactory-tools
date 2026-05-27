@@ -1053,7 +1053,6 @@ class PowerFactoryTypes:
 
     class GridDiagram(DataObject, t.Protocol):  # PFClassId.GRID_GRAPHIC
         iFrzPerm: int  # noqa: N815
-
         pDataFolder: PowerFactoryTypes.DataObject | None  # noqa: N815  # grid element the graphic is related to
 
         def Close(self) -> None:  # noqa: N802
@@ -1062,7 +1061,7 @@ class PowerFactoryTypes:
         def Show(self) -> None:  # noqa: N802
             ...
 
-    class Graph(DataObject, t.Protocol):
+    class Graphic(DataObject, t.Protocol):  # PFClassId.GRAPHIC
         sSymName: str  # noqa: N815
         pDataObj: PowerFactoryTypes.DataObject | None  # noqa: N815
         rCenterX: float  # noqa: N815
