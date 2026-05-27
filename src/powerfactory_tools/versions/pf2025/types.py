@@ -46,6 +46,7 @@ class PFClassId(enum.Enum):
     MEASUREMENT_FILE = "ElmFile"
     OPERATOR = "ElmOperator"
     OWNER = "ElmOwner"
+    PROJECT = "IntPrj"
     PROJECT_FOLDER = "IntPrjfolder"
     PROJECT_SETTINGS = "SetPrj"
     PV_SYSTEM = "ElmPvsys"

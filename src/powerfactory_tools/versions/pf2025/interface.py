@@ -102,7 +102,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 
 @pydantic.dataclasses.dataclass
 class PowerFactoryInterface:
-    project_name: str
+    project_name: str | None = None
     powerfactory_ini_name: str | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
@@ -115,17 +115,24 @@ class PowerFactoryInterface:
     def __post_init__(self) -> None:
         try:
             self._set_logging_handler(self.log_file_path)
-            loguru.logger.info("Starting PowerFactory Interface...")
+            loguru.logger.info("Starting PowerFactory Interface ...")
             pfm = self.load_powerfactory_module_from_path()
             self.app = self.connect_to_app(pfm)
-            self.project = self.connect_to_project(self.project_name)
-            self.load_project_setting_folders_from_pf_db()
-            self.stash_unit_conversion_settings()
-            self.set_default_unit_conversion()
-            self.load_project_folders_from_pf_db()
-            loguru.logger.info("Starting PowerFactory Interface... Done.")
+            loguru.logger.info("Starting PowerFactory Interface ... Done.")
+
+            self.project: PFTypes.Project | None = None
+
+            if self.project_name:
+                try:
+                    self.join_project(self.project_name)  # also activates the project and get initial project data
+                except RuntimeError:
+                    err_msg = f"Could not join project '{self.project_name}'."
+                    loguru.logger.exception(err_msg)
+                    self.close()
+
         except RuntimeError:
-            loguru.logger.exception("Could not start PowerFactory Interface. Shutting down...")
+            err_msg = "Could not start PowerFactory Interface. Shutting down ..."
+            loguru.logger.exception(err_msg)
             self.close()
 
     def _set_logging_handler(self, log_file_path: pathlib.Path | None) -> None:
@@ -226,13 +233,80 @@ class PowerFactoryInterface:
             loguru.logger.exception(msg)
             raise RuntimeError(msg) from element
 
+    def join_project(self, project_name: str, /, *, set_default_units: bool = True) -> PFTypes.Project:
+        """Join a PF project including performing unit conversion and crawling of root project data.
+
+        Remark: This is more than a normal activation, which can be performed via internal _activate_project().
+        This is the recommended way to join a project when using the PowerFactory interface.
+
+        Arguments:
+            project_name {str} -- the name of the project to join
+
+        Keyword Arguments:
+            set_default_units {bool} -- whether to set default units for the project
+
+        Returns:
+            PFTypes.Project -- the joined project handle
+        """
+        loguru.logger.debug("Joining project '{project_name}' ...", project_name=project_name)
+        if self.project:
+            err_msg = f"The project '{self.project.loc_name}' is already joined. Release it first before joining the new project '{project_name}'."
+            loguru.logger.error(err_msg)
+            raise RuntimeError(err_msg)
+        self.project_name = project_name
+        self.project = self.connect_to_project(project_name)
+        self.load_project_setting_folders_from_pf_db()
+        if set_default_units:
+            loguru.logger.info("Applying temporary default units to project settings ...")
+            self.stash_unit_conversion_settings()
+            self.set_default_unit_conversion()
+        self.load_project_folders_from_pf_db()
+
+        loguru.logger.info("Joining project '{project_name}' ... Done.", project_name=project_name)
+        return self.project
+
+    def release_project(self) -> None:
+        """Release the currently joined project including popping the stashed unit conversion settings.
+
+        Remark: This is more than a normal deactivation, which can be performed via internal _deactivate_project().
+        This is the recommended way to release a project when using the PowerFactoryInterface.
+        """
+        _prj_name = self.project_name
+        loguru.logger.debug("Releasing project '{project_name}' ...", project_name=_prj_name)
+        with contextlib.suppress(AttributeError):
+            self.pop_unit_conversion_settings_stash()
+
+        self._deactivate_project()
+        with contextlib.suppress(AttributeError):
+            self._reset_project_attributes()
+        loguru.logger.info("Releasing project '{project_name}' ... Done.", project_name=_prj_name)
+
+    def _reset_project_attributes(self) -> None:
+        self.project = None
+        self.project_name = None
+
+        del self.project_settings
+        del self.settings_dir
+        del self.unit_settings_dir
+        del self.chars_dir
+        del self.grid_data_dir
+        del self.grid_graphs_dir
+        del self.grid_model_dir
+        del self.grid_variant_dir
+        del self.op_dir
+        del self.study_case_dir
+        del self.scenario_dir
+        del self.templates_dir
+        del self.types_dir
+        del self.ext_data_dir
+
     def load_project_setting_folders_from_pf_db(self) -> None:
         self.project_settings = self.load_project_settings_dir_from_pf()
         self.settings_dir = self.load_settings_dir_from_pf()
         self.unit_settings_dir = self.load_unit_settings_dir_from_pf()
 
     def load_project_folders_from_pf_db(self) -> None:
-        loguru.logger.debug("Loading all project folders...")
+        loguru.logger.debug("Loading all project folders ...")
         self.load_project_setting_folders_from_pf_db()
 
         self.chars_dir = t.cast("PFTypes.ProjectFolder", self.app.GetProjectFolder(FolderType.CHARACTERISTICS.value))
@@ -253,10 +327,16 @@ class PowerFactoryInterface:
         )
 
         self.ext_data_dir = self.project_settings.extDataDir
-        loguru.logger.debug("Loading all project folders... Done")
+        loguru.logger.debug("Loading all project folders ... Done")
 
     def load_settings_dir_from_pf(self) -> PFTypes.DataDir:
-        loguru.logger.debug("Loading settings from PowerFactory...")
+        loguru.logger.debug("Loading settings from PowerFactory ...")
+
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to load the project settings directory."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
+
         _settings_dirs = self.elements_of(
             self.project,
             pattern="*." + PFClassId.SETTINGS_FOLDER.value,
@@ -267,11 +347,11 @@ class PowerFactoryInterface:
             msg = "Could not access settings."
             raise RuntimeError(msg)
 
-        loguru.logger.debug("Loading settings from PowerFactory... Done.")
+        loguru.logger.debug("Loading settings from PowerFactory ... Done.")
         return settings_dir
 
     def load_unit_settings_dir_from_pf(self) -> PFTypes.DataDir:
-        loguru.logger.debug("Loading unit settings from PowerFactory...")
+        loguru.logger.debug("Loading unit settings from PowerFactory ...")
         _unit_settings_dirs = self.elements_of(
             self.settings_dir,
             pattern="*." + PFClassId.SETTINGS_FOLDER_UNITS.value,
@@ -288,18 +368,19 @@ class PowerFactoryInterface:
                 msg = "Could not create unit settings directory."
                 raise RuntimeError(msg)
 
-        loguru.logger.debug("Loading unit settings from PowerFactory... Done.")
+        loguru.logger.debug("Loading unit settings from PowerFactory ... Done.")
         return unit_settings_dir
 
     def close(self) -> None:
-        loguru.logger.info("Closing PowerFactory Interface...")
-        with contextlib.suppress(AttributeError):
-            self.pop_unit_conversion_settings_stash()
+        loguru.logger.info("Closing PowerFactory Interface ...")
+        # if project is still alive (not already released), release it first to perform a controlled closing
+        if self.project:
+            self.release_project()
 
         with contextlib.suppress(AttributeError):
             self.app.PostCommand("exit")
 
-        loguru.logger.info("Closing PowerFactory Interface... Done.")
+        loguru.logger.info("Closing PowerFactory Interface ... Done.")
 
     def connect_to_project(self, project_name: str) -> PFTypes.Project:
         """Connect to a PowerFactory project.
@@ -312,18 +393,19 @@ class PowerFactoryInterface:
         """
 
         loguru.logger.debug(
-            "Activating project {project_name} application...",
+            "Activating project '{project_name}' ...",
             project_name=project_name,
         )
-        self.activate_project(project_name)
+        self._activate_project(project_name)
 
         project = self.app.GetActiveProject()
         if project is None:
-            msg = "Could not access project."
-            raise RuntimeError(msg)
+            err_msg = f"Could not access project '{project_name}'."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
 
         loguru.logger.debug(
-            "Activating project {project_name} application... Done.",
+            "Activating project '{project_name}' ... Done.",
             project_name=project_name,
         )
         return project
@@ -374,10 +456,15 @@ class PowerFactoryInterface:
         Returns:
             {PowerFactoryData} -- a dataclass containing typed lists with all relevant data from PowerFactory
         """
-        grid_name = grid.loc_name
-        loguru.logger.debug("Compiling data from PowerFactory for grid {grid_name}...", grid_name=grid_name)
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to compile data."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
 
         project_name = self.project.loc_name
+        grid_name = grid.loc_name
+        loguru.logger.debug("Compiling data from PowerFactory for grid '{grid_name}' ...", grid_name=grid_name)
+
         date = dt.datetime.now().astimezone().date()
 
         return PowerFactoryData(
@@ -471,7 +558,7 @@ class PowerFactoryInterface:
         grid: PFTypes.Grid,
         /,
     ) -> None:
-        loguru.logger.debug("Deactivating grid {grid_name} application...", grid_name=grid.loc_name)
+        loguru.logger.debug("Deactivating grid {grid_name} ...", grid_name=grid.loc_name)
         if not grid.IsCalcRelevant():
             loguru.logger.info(
                 "ATTENTION: Grid {grid_name} is already inactive.",
@@ -677,7 +764,7 @@ class PowerFactoryInterface:
             self.deactivate_grid_variant(variant)
 
     def set_default_unit_conversion(self) -> None:
-        loguru.logger.debug("Applying exporter default unit conversion settings...")
+        loguru.logger.debug("Applying exporter default unit conversion settings ...")
         self.project_settings.ilenunit = DEFAULT_PROJECT_UNIT_SETTING.ilenunit
         self.project_settings.clenexp = DEFAULT_PROJECT_UNIT_SETTING.clenexp
         self.project_settings.cspqexp = DEFAULT_PROJECT_UNIT_SETTING.cspqexp
@@ -698,11 +785,11 @@ class PowerFactoryInterface:
                 )
                 self.create_unit_conversion_setting(name, uc)
 
-        self.reset_project()
-        loguru.logger.debug("Applying exporter default unit conversion settings... Done.")
+        self._reset_project()
+        loguru.logger.debug("Applying exporter default unit conversion settings ... Done.")
 
     def stash_unit_conversion_settings(self) -> None:
-        loguru.logger.debug("Stashing PowerFactory default unit conversion settings...")
+        loguru.logger.debug("Stashing PowerFactory default unit conversion settings ...")
         self.project_unit_setting = ProjectUnitSetting(
             ilenunit=UnitSystem(self.project_settings.ilenunit),
             clenexp=MetricPrefix(self.project_settings.clenexp),
@@ -726,49 +813,60 @@ class PowerFactoryInterface:
             self.unit_conv_settings[uc.loc_name] = ucs
 
         self.delete_unit_conversion_settings()
-        loguru.logger.debug("Stashing PowerFactory default unit conversion settings... Done.")
+        loguru.logger.debug("Stashing PowerFactory default unit conversion settings ... Done.")
 
     def pop_unit_conversion_settings_stash(self) -> None:
-        loguru.logger.debug("Applying PowerFactory default unit conversion settings...")
+        loguru.logger.debug("Applying PowerFactory default unit conversion settings ...")
         self.project_settings.ilenunit = self.project_unit_setting.ilenunit
         self.project_settings.clenexp = self.project_unit_setting.clenexp
         self.project_settings.cspqexp = self.project_unit_setting.cspqexp
         self.project_settings.cspqexpgen = self.project_unit_setting.cspqexpgen
         self.project_settings.currency = self.project_unit_setting.currency
+        del self.project_unit_setting
+
         self.delete_unit_conversion_settings()
         for name, uc in self.unit_conv_settings.items():
             self.create_unit_conversion_setting(name, uc)
+        del self.unit_conv_settings
 
-        self.reset_project()
-        loguru.logger.debug("Applying PowerFactory default unit conversion settings... Done.")
+        self._reset_project()
+        loguru.logger.debug("Applying PowerFactory default unit conversion settings ... Done.")
 
     def load_project_settings_dir_from_pf(self) -> PFTypes.ProjectSettings:
-        loguru.logger.debug("Loading project settings dir...")
+        loguru.logger.debug("Loading project settings dir ...")
+        if not self.project:
+            err_msg = "No active project available. Please join a project first to be able to load project settings."
+            loguru.logger.exception(err_msg)
+            raise RuntimeError(err_msg)
+
         project_settings = self.project.pPrjSettings
         if project_settings is None:
             msg = "Could not access project settings."
             raise RuntimeError(msg)
 
-        loguru.logger.debug("Loading project settings dir... Done.")
+        loguru.logger.debug("Loading project settings dir ... Done.")
         return project_settings
 
-    def reset_project(self) -> None:
-        loguru.logger.debug("Resetting current project...")
-        self.deactivate_project()
-        self.activate_project(self.project_name)
-        loguru.logger.debug("Resetting current project... Done.")
+    def _reset_project(self) -> None:
+        loguru.logger.debug("Resetting current project ...")
+        self._deactivate_project()
+        self._activate_project(self.project_name)  # type: ignore[arg-type]
+        loguru.logger.debug("Resetting current project ... Done.")
 
-    def activate_project(self, name: str) -> None:
-        loguru.logger.debug("Activating project {name}...", name=name)
-        if self.app.ActivateProject(name + ".IntPrj"):
+    def _activate_project(self, name: str) -> None:
+        loguru.logger.debug("Activating project '{name}' ...", name=name)
+        if self.app.ActivateProject(name + "." + PFClassId.PROJECT.value):
             msg = "Could not activate project."
-            raise RuntimeError(msg)
+            loguru.logger.error(msg)
 
-    def deactivate_project(self) -> None:
-        loguru.logger.debug("Deactivating current project {name}...")
-        if self.project.Deactivate():
+    def _deactivate_project(self) -> None:
+        loguru.logger.debug("Deactivating current project '{name}' ...", name=self.project_name)
+        if not self.project:
+            err_msg = "No active project available. Skipping deactivation process."
+            loguru.logger.error(err_msg)
+        elif self.project.Deactivate():
             msg = "Could not deactivate project."
-            raise RuntimeError(msg)
+            loguru.logger.exception(msg)
 
     def variable_monitor(
         self,
