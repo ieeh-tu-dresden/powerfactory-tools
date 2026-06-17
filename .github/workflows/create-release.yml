@@ -33,7 +33,7 @@ jobs:
           enforce_admins: false
 
       - name: Update license year
-        uses: FantasticFiasco/action-update-license-year@9135da8f9ccc675217e02357c744b6b541d45cb0  # v3.0.2
+        uses: FantasticFiasco/action-update-license-year@f180e962fa988db222d8f03ef4636750312d1b3d  # v3.0.4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
