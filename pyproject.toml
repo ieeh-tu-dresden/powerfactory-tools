@@ -42,7 +42,7 @@
     "pytest-xdist>=3.8.0",
     "pytest>=9.1.0",
     "ruff>=0.15.17",
-    "tornado>=6.5.5",  #  explicitly stated due security vulnerability in ipykernel 7.30.0
+    "tornado>=6.5.7",  #  explicitly stated due security vulnerability in ipykernel 7.30.0
   ]
 [tool.uv]
   default-groups = ["dev"]

@@ -495,7 +495,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "ruff", specifier = ">=0.15.17" },
-    { name = "tornado", specifier = ">=6.5.5" },
+    { name = "tornado", specifier = ">=6.5.7" },
 ]
 
 [[package]]
