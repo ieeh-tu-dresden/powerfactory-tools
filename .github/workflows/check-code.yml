@@ -31,9 +31,10 @@ jobs:
       
       - name: Install uv and set the python version
         id: setup-uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39  # v8.2.0
         with:
-          version: "0.9.4"  # install a specific version of uv
+          version: "0.11.21"  # install a specific version of uv
+          checksum: 5aa65dd7ad0067a6b702bf490c8c2ffe25c50f39
           enable-cache: true
           python-version: ${{ matrix.python-version }}
 
