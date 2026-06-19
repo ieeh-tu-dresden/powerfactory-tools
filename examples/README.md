@@ -10,7 +10,7 @@ Examples for application of powerfactory exporter and controller.
 - [Raw PSDM Import](#raw-psdm-import)
 - [PowerFactory Example Project](#powerfactory-example-project)
 
-The whole examples are based on the PowerFactory version `2025`, but should also work with `2022` and `2024`.
+The whole examples are based on the PowerFactory version `2026`, but should also work with `2025`, `2024` and `2022`.
 
 ## Export Functionalities
 
@@ -90,7 +90,7 @@ The jupyter notebook [powerfactory_import.ipynb](powerfactory_import.ipynb) is p
 Here, `PSDM class objects` are generated out of a given `json`-file.
 
 ## PowerFactory Example Project
-The related PowerFactory example project `PF2025_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
+The related PowerFactory example project `PF2026_PowerFactory-Tools.pfd` is provided in [grids][link_to_example_grids]. 
 The project contains:
 - 3-bus high voltage grid
 - a composition of a 9-bus high voltage grid and a 2-bus medium voltage industry grid
@@ -153,5 +153,5 @@ This grid is an extension to the 'HV_9_Bus' grid and contains:
 ![MV_2_Bus grid](./grids/MV_2_Bus.png)
 
 [link_to_example_grids]: ./grids
-[link_to_exporter]: ../src/powerfactory_tools/versions/pf2025/exporter/exporter.py
+[link_to_exporter]: ../src/powerfactory_tools/versions/pf2026/exporter/exporter.py
 [link_to_psdm]: https://github.com/ieeh-tu-dresden/power-system-data-model
