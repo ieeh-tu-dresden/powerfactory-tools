@@ -147,6 +147,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         project_name: str,
         export_path: pathlib.Path,
         powerfactory_ini_name: str | None = None,
+        powerfactory_ini_path: pathlib.Path | None = None,
         powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
         powerfactory_service_pack: int | None = None,
         powerfactory_user_profile: str = "",
@@ -165,6 +166,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         self.export_path = export_path
         self.project_name = project_name
         self.powerfactory_ini_name = powerfactory_ini_name
+        self.powerfactory_ini_path = powerfactory_ini_path
         self.powerfactory_path = powerfactory_path
         self.powerfactory_service_pack = powerfactory_service_pack
         self.powerfactory_user_profile = powerfactory_user_profile
@@ -183,6 +185,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
         pfe = PowerFactoryExporter(
             project_name=self.project_name,
             powerfactory_ini_name=self.powerfactory_ini_name,
+            powerfactory_ini_path=self.powerfactory_ini_path,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
             powerfactory_user_profile=self.powerfactory_user_profile,
@@ -206,6 +209,7 @@ class PowerFactoryExporterProcess(multiprocessing.Process):
 class PowerFactoryExporter:
     project_name: str
     powerfactory_ini_name: str | None = None
+    powerfactory_ini_path: pathlib.Path | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str = ""
@@ -219,6 +223,7 @@ class PowerFactoryExporter:
         self.pfi = PowerFactoryInterface(
             project_name=self.project_name,
             powerfactory_ini_name=self.powerfactory_ini_name,
+            powerfactory_ini_path=self.powerfactory_ini_path,
             powerfactory_path=self.powerfactory_path,
             powerfactory_service_pack=self.powerfactory_service_pack,
             powerfactory_user_profile=self.powerfactory_user_profile,
@@ -4221,6 +4226,7 @@ def export_powerfactory_data(  # noqa: PLR0913
     export_path: pathlib.Path,
     project_name: str,
     powerfactory_ini_name: str | None = None,
+    powerfactory_ini_path: pathlib.Path | None = None,
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH,
     powerfactory_service_pack: int | None = None,
     powerfactory_user_profile: str = "",
@@ -4246,6 +4252,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         export_path {pathlib.Path} -- the directory where the exported json files are saved
         project_name {str} -- project name in PowerFactory to which the grid belongs
         powerfactory_ini_name {str | None} -- the name of the PowerFactory ini file to be used (default: {None})
+        powerfactory_ini_path {pathlib.Path | None} -- the root path of the PowerFactory ini file to be used (default: {None})
         powerfactory_path {pathlib.Path} -- installation directory of PowerFactory (default: {POWERFACTORY_PATH})
         powerfactory_service_pack {int} -- the service pack version of PowerFactory (default: {None})
         powerfactory_user_profile {str} -- user profile for login in PowerFactory (default: {""})
@@ -4268,6 +4275,7 @@ def export_powerfactory_data(  # noqa: PLR0913
         project_name=project_name,
         export_path=export_path,
         powerfactory_ini_name=powerfactory_ini_name,
+        powerfactory_ini_path=powerfactory_ini_path,
         powerfactory_path=powerfactory_path,
         powerfactory_service_pack=powerfactory_service_pack,
         powerfactory_user_profile=powerfactory_user_profile,

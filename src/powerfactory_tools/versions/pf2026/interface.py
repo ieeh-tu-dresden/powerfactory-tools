@@ -66,7 +66,7 @@ class ValidPythonVersion(enum.Enum):
 
 POWERFACTORY_VERSION = "PowerFactory 2026"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_13
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_14
 
 config = pydantic.ConfigDict(use_enum_values=True)
 
@@ -105,6 +105,7 @@ DEFAULT_PROJECT_UNIT_SETTING = ProjectUnitSetting(
 class PowerFactoryInterface:
     project_name: str | None = None
     powerfactory_ini_name: str | None = None
+    powerfactory_ini_path: pathlib.Path | None = None
     powerfactory_path: pathlib.Path = DEFAULT_POWERFACTORY_PATH
     powerfactory_service_pack: int | None = None
     powerfactory_user_profile: str | None = None
@@ -203,6 +204,9 @@ class PowerFactoryInterface:
     def connect_to_app(self, pfm: PFTypes.PowerFactoryModule) -> PFTypes.Application:
         """Connect to PowerFactory Application.
 
+        Connect to the PowerFactory application using a specified configuration described in the ini file.
+        If an powerfactory_ini_path is specified, the ini file will be searched in this path. Otherwise, the ini file will be searched in the default PowerFactory path.
+
         Arguments:
             pfm {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
 
@@ -214,13 +218,16 @@ class PowerFactoryInterface:
         if self.powerfactory_ini_name is None:
             command_line_arg = None
         else:
-            ini_path = (
-                self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
-                if self.powerfactory_service_pack is None
-                else self.powerfactory_path
-                / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
-                / (self.powerfactory_ini_name + ".ini")
-            )
+            if self.powerfactory_ini_path is None:
+                ini_path = (
+                    self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
+                    if self.powerfactory_service_pack is None
+                    else self.powerfactory_path
+                    / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+                    / (self.powerfactory_ini_name + ".ini")
+                )
+            else:
+                ini_path = self.powerfactory_ini_path / (self.powerfactory_ini_name + ".ini")
             command_line_arg = '/ini "' + str(ini_path) + '"'
         try:
             return pfm.GetApplicationExt(
