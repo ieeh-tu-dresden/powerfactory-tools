@@ -1228,6 +1228,76 @@
       "gpn": null,
       "i_r": null,
       "length": null,
+      "name": "Node_9/Coupler/QA1",
+      "node_1": "Node_9/Coupler/T1",
+      "node_2": "Node_9/Coupler/T2",
+      "optional_data": null,
+      "phases_1": [
+        "A",
+        "B",
+        "C"
+      ],
+      "phases_2": [
+        "A",
+        "B",
+        "C"
+      ],
+      "r0": null,
+      "r1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "rn": null,
+      "rpn": null,
+      "type": "COUPLER",
+      "u_n": {
+        "optional_data": null,
+        "precision": 2,
+        "system_type": "NATURAL",
+        "unit": "VOLT",
+        "value": 110000.0
+      },
+      "voltage_system_type": "AC",
+      "x0": null,
+      "x1": {
+        "optional_data": null,
+        "precision": 7,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "OHM",
+        "value": 0.0
+      },
+      "xn": null,
+      "xpn": null
+    },
+    {
+      "b0": null,
+      "b1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "bn": null,
+      "bpn": null,
+      "description": "substation internal",
+      "energized": null,
+      "f_n": null,
+      "g0": null,
+      "g1": {
+        "optional_data": null,
+        "precision": 13,
+        "system_type": "POSITIVE_SEQUENCE",
+        "unit": "SIEMENS",
+        "value": 0.0
+      },
+      "gn": null,
+      "gpn": null,
+      "i_r": null,
+      "length": null,
       "name": "Node_9/Coupler/QB1",
       "node_1": "Node_9/BB1",
       "node_2": "Node_9/Coupler/T1",
@@ -1368,9 +1438,9 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/Coupler/QA1",
-      "node_1": "Node_9/Coupler/T1",
-      "node_2": "Node_9/Coupler/T2",
+      "name": "Node_9/Field_1/QA1",
+      "node_1": "Node_9/Field_1/T1",
+      "node_2": "Node_9/Field_1/T2",
       "optional_data": null,
       "phases_1": [
         "A",
@@ -1648,79 +1718,9 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/Field_1/QA1",
-      "node_1": "Node_9/Field_1/T1",
-      "node_2": "Node_9/Field_1/T2",
-      "optional_data": null,
-      "phases_1": [
-        "A",
-        "B",
-        "C"
-      ],
-      "phases_2": [
-        "A",
-        "B",
-        "C"
-      ],
-      "r0": null,
-      "r1": {
-        "optional_data": null,
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "rn": null,
-      "rpn": null,
-      "type": "COUPLER",
-      "u_n": {
-        "optional_data": null,
-        "precision": 2,
-        "system_type": "NATURAL",
-        "unit": "VOLT",
-        "value": 110000.0
-      },
-      "voltage_system_type": "AC",
-      "x0": null,
-      "x1": {
-        "optional_data": null,
-        "precision": 7,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "OHM",
-        "value": 0.0
-      },
-      "xn": null,
-      "xpn": null
-    },
-    {
-      "b0": null,
-      "b1": {
-        "optional_data": null,
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "bn": null,
-      "bpn": null,
-      "description": "substation internal",
-      "energized": null,
-      "f_n": null,
-      "g0": null,
-      "g1": {
-        "optional_data": null,
-        "precision": 13,
-        "system_type": "POSITIVE_SEQUENCE",
-        "unit": "SIEMENS",
-        "value": 0.0
-      },
-      "gn": null,
-      "gpn": null,
-      "i_r": null,
-      "length": null,
-      "name": "Node_9/Field_2/QB2",
-      "node_1": "Node_9/BB1",
-      "node_2": "Node_9/Field_2/T1",
+      "name": "Node_9/Field_2/QA1",
+      "node_1": "Node_9/Field_2/T1",
+      "node_2": "Node_9/Field_2/T2",
       "optional_data": null,
       "phases_1": [
         "A",
@@ -1858,9 +1858,9 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/Field_2/QA1",
-      "node_1": "Node_9/Field_2/T1",
-      "node_2": "Node_9/Field_2/T2",
+      "name": "Node_9/Field_2/QB2",
+      "node_1": "Node_9/BB1",
+      "node_2": "Node_9/Field_2/T1",
       "optional_data": null,
       "phases_1": [
         "A",
@@ -1998,9 +1998,9 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/Field_3/QB2",
-      "node_1": "Node_9/BB2",
-      "node_2": "Node_9/Field_3/T1",
+      "name": "Node_9/Field_3/QA1",
+      "node_1": "Node_9/Field_3/T1",
+      "node_2": "Node_9/Field_3/T2",
       "optional_data": null,
       "phases_1": [
         "A",
@@ -2138,9 +2138,9 @@
       "gpn": null,
       "i_r": null,
       "length": null,
-      "name": "Node_9/Field_3/QA1",
-      "node_1": "Node_9/Field_3/T1",
-      "node_2": "Node_9/Field_3/T2",
+      "name": "Node_9/Field_3/QB2",
+      "node_1": "Node_9/BB2",
+      "node_2": "Node_9/Field_3/T1",
       "optional_data": null,
       "phases_1": [
         "A",
@@ -2455,19 +2455,19 @@
           ]
         },
         "apparent_power": {
-          "average": 3365952.0,
+          "average": 3365952.1,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 10097856.0,
+          "total": 10097856.3,
           "unit": "VA",
           "value": [
-            3365952.0,
-            3365952.0,
-            3365952.0
+            3365952.1,
+            3365952.1,
+            3365952.1
           ]
         },
         "cos_phi": {
@@ -2490,19 +2490,19 @@
         "n_phases": 3,
         "optional_data": null,
         "reactive_power": {
-          "average": 3299270.9,
+          "average": 3299271.0,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 9897812.7,
+          "total": 9897813.0,
           "unit": "VAR",
           "value": [
-            3299270.9,
-            3299270.9,
-            3299270.9
+            3299271.0,
+            3299271.0,
+            3299271.0
           ]
         }
       },
@@ -2727,35 +2727,35 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 666666.6,
+          "average": 666666.5,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 1999999.8,
+          "total": 1999999.5,
           "unit": "WATT",
           "value": [
-            666666.6,
-            666666.6,
-            666666.6
+            666666.5,
+            666666.5,
+            666666.5
           ]
         },
         "apparent_power": {
-          "average": 3399346.4,
+          "average": 3399346.3,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 10198039.2,
+          "total": 10198038.9,
           "unit": "VA",
           "value": [
-            3399346.4,
-            3399346.4,
-            3399346.4
+            3399346.3,
+            3399346.3,
+            3399346.3
           ]
         },
         "cos_phi": {
@@ -2778,19 +2778,19 @@
         "n_phases": 3,
         "optional_data": null,
         "reactive_power": {
-          "average": 3333333.4,
+          "average": 3333333.3,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 10000000.2,
+          "total": 9999999.9,
           "unit": "VAR",
           "value": [
-            3333333.4,
-            3333333.4,
-            3333333.4
+            3333333.3,
+            3333333.3,
+            3333333.3
           ]
         }
       },
@@ -4991,15 +4991,15 @@
   ],
   "meta": {
     "case": "Outage",
-    "creator": "powerfactory-tools @ version 3.2.1",
-    "date": "2025-08-26",
+    "creator": "powerfactory-tools @ version 3.3.1",
+    "date": "2026-06-22",
     "grid": "HV_9_Bus",
-    "id": "841a4b22-8b0d-4e00-8a2a-ecaaf4dfa3e4",
+    "id": "2efc2037-a1c9-47d1-b734-afe38a1bfa46",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP6"
+        "value": "PowerFactory 2026 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",
@@ -5182,7 +5182,7 @@
     },
     {
       "description": "substation internal",
-      "name": "Node_9/Field_1/T3",
+      "name": "Node_9/Field_1/T1",
       "optional_data": null,
       "phases": [
         "A",
@@ -5216,7 +5216,7 @@
     },
     {
       "description": "substation internal",
-      "name": "Node_9/Field_1/T1",
+      "name": "Node_9/Field_1/T3",
       "optional_data": null,
       "phases": [
         "A",
@@ -5233,7 +5233,7 @@
     },
     {
       "description": "substation internal",
-      "name": "Node_9/Field_2/T3",
+      "name": "Node_9/Field_2/T1",
       "optional_data": null,
       "phases": [
         "A",
@@ -5267,7 +5267,7 @@
     },
     {
       "description": "substation internal",
-      "name": "Node_9/Field_2/T1",
+      "name": "Node_9/Field_2/T3",
       "optional_data": null,
       "phases": [
         "A",

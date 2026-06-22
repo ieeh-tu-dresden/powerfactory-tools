@@ -671,19 +671,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 3166666.6,
+              "average": 3166666.7,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 9499999.8,
+              "total": 9500000.1,
               "unit": "WATT",
               "value": [
-                3166666.6,
-                3166666.6,
-                3166666.6
+                3166666.7,
+                3166666.7,
+                3166666.7
               ]
             }
           },
@@ -1272,15 +1272,15 @@
   ],
   "meta": {
     "case": "Outage",
-    "creator": "powerfactory-tools @ version 3.2.1",
-    "date": "2025-08-26",
+    "creator": "powerfactory-tools @ version 3.3.1",
+    "date": "2026-06-22",
     "grid": "HV_9_Bus",
-    "id": "841a4b22-8b0d-4e00-8a2a-ecaaf4dfa3e4",
+    "id": "2efc2037-a1c9-47d1-b734-afe38a1bfa46",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP6"
+        "value": "PowerFactory 2026 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",

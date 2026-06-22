@@ -197,19 +197,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 16666665.8,
+              "average": 16666666.7,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 49999997.4,
+              "total": 50000000.1,
               "unit": "WATT",
               "value": [
-                16666665.8,
-                16666665.8,
-                16666665.8
+                16666666.7,
+                16666666.7,
+                16666666.7
               ]
             }
           },
@@ -226,7 +226,7 @@
           "control_type": {
             "control_strategy": "COSPHI_CONST",
             "cos_phi_set": {
-              "average": 0.9805806,
+              "average": 0.9805807,
               "direction": "OE",
               "is_symmetrical": true,
               "n_phases": 3,
@@ -235,9 +235,9 @@
               "system_type": "NATURAL",
               "unit": "UNITLESS",
               "value": [
-                0.9805806,
-                0.9805806,
-                0.9805806
+                0.9805807,
+                0.9805807,
+                0.9805807
               ]
             },
             "optional_data": null
@@ -671,19 +671,19 @@
             "control_strategy": "P_CONST",
             "optional_data": null,
             "p_set": {
-              "average": 3166666.6,
+              "average": 3166666.7,
               "is_symmetrical": true,
               "n_phases": 3,
               "optional_data": null,
               "power_type": "AC_ACTIVE",
               "precision": 1,
               "system_type": "NATURAL",
-              "total": 9499999.8,
+              "total": 9500000.1,
               "unit": "WATT",
               "value": [
-                3166666.6,
-                3166666.6,
-                3166666.6
+                3166666.7,
+                3166666.7,
+                3166666.7
               ]
             }
           },
@@ -1226,15 +1226,15 @@
   ],
   "meta": {
     "case": "Base",
-    "creator": "powerfactory-tools @ version 3.2.1",
-    "date": "2025-08-26",
+    "creator": "powerfactory-tools @ version 3.3.1",
+    "date": "2026-06-22",
     "grid": "HV_9_Bus",
-    "id": "55128236-627e-44e5-842b-a75713f113f5",
+    "id": "9586be7a-97a6-494f-9ca2-8197d1166dda",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP6"
+        "value": "PowerFactory 2026 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",
