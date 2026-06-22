@@ -24,7 +24,7 @@ from psdm.base import VoltageSystemType
 from psdm.meta import Meta
 from psdm.meta import SignConvention
 from psdm.quantities.multi_phase import Phase
-from psdm.quantities.multi_phase import PowerFactorDirection
+from psdm.quantities.multi_phase import PhaseConnections
 from psdm.quantities.single_phase import AdmittanceNat
 from psdm.quantities.single_phase import AdmittancePosSeq
 from psdm.quantities.single_phase import AdmittanceZerSeq
@@ -33,6 +33,7 @@ from psdm.quantities.single_phase import ImpedancePosSeq
 from psdm.quantities.single_phase import ImpedanceZerSeq
 from psdm.quantities.single_phase import Length
 from psdm.quantities.single_phase import PhaseAngleClock
+from psdm.quantities.single_phase import PowerFactorDirection
 from psdm.steadystate_case.active_power import ActivePower as ActivePowerSSC
 from psdm.steadystate_case.case import Case as SteadystateCase
 from psdm.steadystate_case.characteristic import Characteristic
@@ -51,7 +52,6 @@ from psdm.topology.external_grid import ExternalGrid
 from psdm.topology.external_grid import GridType
 from psdm.topology.load import Load
 from psdm.topology.load import LoadType
-from psdm.topology.load import PhaseConnections
 from psdm.topology.load import SystemType
 from psdm.topology.load_model import LoadModel
 from psdm.topology.node import Node
