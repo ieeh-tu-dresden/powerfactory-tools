@@ -1027,6 +1027,11 @@ class PowerFactoryTypes:
             /,
         ) -> bool: ...
 
+        """iQueryOption = 0 --> the user must confirm that the time of the calculation scenario is set to the time of the expansion stage. Not implemented yet in PF.
+        iQueryOption = 1 --> the configuration level is set to 'recording' and the time for the calculation scenario is automatically set to the time of the configuration level.
+        iQueryOption = 2 --> Although the configuration level is activated, it is NOT set to 'recording' because the time of the calculation scenario is not set to the time of the configuration level.
+        """
+
         def GetVariation(self) -> PowerFactoryTypes.GridVariant:  # noqa: N802
             ...
 
