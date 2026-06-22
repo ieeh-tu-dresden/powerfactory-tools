@@ -5,6 +5,9 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.09281/status.svg)](https://doi.org/10.21105/joss.09281)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-ieeh--tu--dresden%2Fpowerfactory--tools-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/ieeh-tu-dresden/powerfactory-tools)
+
+
 
 <div align="center">
   <img src="./docs/static/PFT_icon_extended_360px.png" width="200">
@@ -57,7 +60,7 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 
 
 
-### Provided functionalities
+### Provided Functionalities
 
 - **Interface**: collection of comfort functions for the work with the PowerFactory API
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
@@ -68,6 +71,9 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
  - Starting with version > `3.4.0`: new features are added only for PowerFactory `2026` and higher.
 
 
+### External Documentation
+[DeepWiki Manual](https://deepwiki.com/ieeh-tu-dresden/powerfactory-tools)
+
 ## PowerFactory Interface
 The toolbox builds up on the [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2026/interface.py), that provides comfort functions to:
 - connect to PowerFactory
@@ -75,6 +81,9 @@ The toolbox builds up on the [PowerFactoryInterface](./src/powerfactory_tools/ve
 - collect PowerFactory elements of specific types
 - execute PowerFactory commands
 - ...
+
+**Remark:** When connecting to the PowerFactory application, the user can specify an alternative root directory for the `ini_file` if necessary, e.g. if the default application directory is not the root path for the `ini_file` or if multiple PowerFactory databases are available on the same machine. 
+The `ini_file` is required to establish a connection to PowerFactory and contains important information about the database path of PowerFactory and the license server.
 
 ## General Remarks
 
