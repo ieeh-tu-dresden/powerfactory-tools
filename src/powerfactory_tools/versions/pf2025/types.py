@@ -437,6 +437,13 @@ class Phase2PH(enum.Enum):
 
 
 class Phase3PH(enum.Enum):
+    """Name of single phases.
+
+    Important language specific remark:
+    * These enum values are valid for the German version.
+    * In the English version the enum values are "a", "b", "c" instead of "L1", "L2", "L3".
+    """
+
     A = "L1"
     B = "L2"
     C = "L3"
