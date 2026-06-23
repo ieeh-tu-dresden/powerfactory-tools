@@ -350,11 +350,13 @@ class LoadPower:
         if phase_connection_type in (
             ConsolidatedLoadPhaseConnectionType.THREE_PH_D,
             ConsolidatedLoadPhaseConnectionType.THREE_PH_PH_E,
+            ConsolidatedLoadPhaseConnectionType.THREE_PH_Y,
             ConsolidatedLoadPhaseConnectionType.THREE_PH_YN,
         ):
             return (3, (1, 1, 1))
         if phase_connection_type in (
             ConsolidatedLoadPhaseConnectionType.TWO_PH_PH_E,
+            ConsolidatedLoadPhaseConnectionType.TWO_PH_Y,
             ConsolidatedLoadPhaseConnectionType.TWO_PH_YN,
         ):
             return (2, (1, 1))
