@@ -205,7 +205,7 @@ class PowerFactoryInterface:
         """Connect to PowerFactory Application.
 
         Connect to the PowerFactory application using a specified configuration described in the ini file.
-        If an powerfactory_ini_path is specified, the ini file will be searched in this path. Otherwise, the ini file will be searched in the default PowerFactory path.
+        If a powerfactory_ini_path is specified, the ini file will be searched in this path. Otherwise, the ini file will be searched in the default PowerFactory path.
 
         Arguments:
             pfm {PFTypes.PowerFactoryModule} -- the Python module contributed via the PowerFactory system installation
