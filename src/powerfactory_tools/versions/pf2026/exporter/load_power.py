@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2025.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2026.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -33,9 +33,9 @@ from psdm.steadystate_case.controller import ControlUConst
 from psdm.steadystate_case.controller import QControlStrategy
 from psdm.topology.load import RatedPower
 
-from powerfactory_tools.versions.pf2025.constants import DecimalDigits
-from powerfactory_tools.versions.pf2025.constants import Exponents
-from powerfactory_tools.versions.pf2025.quantities import QuantityConverter as Qc
+from powerfactory_tools.versions.pf2026.constants import DecimalDigits
+from powerfactory_tools.versions.pf2026.constants import Exponents
+from powerfactory_tools.versions.pf2026.quantities import QuantityConverter as Qc
 
 if t.TYPE_CHECKING:
     from typing import TypedDict

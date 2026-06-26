@@ -5,6 +5,9 @@
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Pydantic v2](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/pydantic/pydantic/main/docs/badge/v2.json)](https://docs.pydantic.dev/latest/contributing/#badges)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.09281/status.svg)](https://doi.org/10.21105/joss.09281)
+[![DeepWiki](https://img.shields.io/badge/DeepWiki-ieeh--tu--dresden%2Fpowerfactory--tools-blue.svg?logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACwAAAAyCAYAAAAnWDnqAAAAAXNSR0IArs4c6QAAA05JREFUaEPtmUtyEzEQhtWTQyQLHNak2AB7ZnyXZMEjXMGeK/AIi+QuHrMnbChYY7MIh8g01fJoopFb0uhhEqqcbWTp06/uv1saEDv4O3n3dV60RfP947Mm9/SQc0ICFQgzfc4CYZoTPAswgSJCCUJUnAAoRHOAUOcATwbmVLWdGoH//PB8mnKqScAhsD0kYP3j/Yt5LPQe2KvcXmGvRHcDnpxfL2zOYJ1mFwrryWTz0advv1Ut4CJgf5uhDuDj5eUcAUoahrdY/56ebRWeraTjMt/00Sh3UDtjgHtQNHwcRGOC98BJEAEymycmYcWwOprTgcB6VZ5JK5TAJ+fXGLBm3FDAmn6oPPjR4rKCAoJCal2eAiQp2x0vxTPB3ALO2CRkwmDy5WohzBDwSEFKRwPbknEggCPB/imwrycgxX2NzoMCHhPkDwqYMr9tRcP5qNrMZHkVnOjRMWwLCcr8ohBVb1OMjxLwGCvjTikrsBOiA6fNyCrm8V1rP93iVPpwaE+gO0SsWmPiXB+jikdf6SizrT5qKasx5j8ABbHpFTx+vFXp9EnYQmLx02h1QTTrl6eDqxLnGjporxl3NL3agEvXdT0WmEost648sQOYAeJS9Q7bfUVoMGnjo4AZdUMQku50McDcMWcBPvr0SzbTAFDfvJqwLzgxwATnCgnp4wDl6Aa+Ax283gghmj+vj7feE2KBBRMW3FzOpLOADl0Isb5587h/U4gGvkt5v60Z1VLG8BhYjbzRwyQZemwAd6cCR5/XFWLYZRIMpX39AR0tjaGGiGzLVyhse5C9RKC6ai42ppWPKiBagOvaYk8lO7DajerabOZP46Lby5wKjw1HCRx7p9sVMOWGzb/vA1hwiWc6jm3MvQDTogQkiqIhJV0nBQBTU+3okKCFDy9WwferkHjtxib7t3xIUQtHxnIwtx4mpg26/HfwVNVDb4oI9RHmx5WGelRVlrtiw43zboCLaxv46AZeB3IlTkwouebTr1y2NjSpHz68WNFjHvupy3q8TFn3Hos2IAk4Ju5dCo8B3wP7VPr/FGaKiG+T+v+TQqIrOqMTL1VdWV1DdmcbO8KXBz6esmYWYKPwDL5b5FA1a0hwapHiom0r/cKaoqr+27/XcrS5UwSMbQAAAABJRU5ErkJggg==)](https://deepwiki.com/ieeh-tu-dresden/powerfactory-tools)
+
+
 
 <div align="center">
   <img src="./docs/static/PFT_icon_extended_360px.png" width="200">
@@ -57,23 +60,30 @@ Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/automa
 
 
 
-### Provided functionalities
+### Provided Functionalities
 
 - **Interface**: collection of comfort functions for the work with the PowerFactory API
 - **Exporter**: export of calculation relevant grid data from a PowerFactory project to the [IEEH Power System Data Model (PSDM)](https://github.com/ieeh-tu-dresden/power-system-data-model)
 - **Importer**: import from external grid data into the PowerFactory environment [intended in future release]
 
-**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`, `2025`) of PowerFactory, all functionalities are set up individual for main versions.
- - Update version >= `3.3.0`: new features are added only for PowerFactory `2024` and higher.
+**Important**: As the set of different elements, data types and attributes can differ between the various main versions (e.g. `2022`, `2024`, `2025`, `2026`) of PowerFactory, all functionalities are set up individual for main versions.
+ - Starting with version >= `3.3.0`: new features are added only for PowerFactory `2024` and higher.
+ - Starting with version > `3.4.0`: new features are added only for PowerFactory `2026` and higher.
 
+
+### External Documentation
+[DeepWiki Manual](https://deepwiki.com/ieeh-tu-dresden/powerfactory-tools)
 
 ## PowerFactory Interface
-The toolbox builds up on the [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2025/interface.py), that provides comfort functions to:
+The toolbox builds up on the [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2026/interface.py), that provides comfort functions to:
 - connect to PowerFactory
 - create and alter PowerFactory elements ("physical" elements, "organizational" elements, commands, etc.)
 - collect PowerFactory elements of specific types
 - execute PowerFactory commands
 - ...
+
+**Remark:** When connecting to the PowerFactory application, the user can specify an alternative root directory for the `ini_file` if necessary, e.g. if the default application directory is not the root path for the `ini_file` or if multiple PowerFactory databases are available on the same machine. 
+The `ini_file` is required to establish a connection to PowerFactory and contains important information about the database path of PowerFactory and the license server.
 
 ## General Remarks
 
@@ -94,7 +104,7 @@ During an active connection, the following units apply:
 
 Read also this comprehensive [blog post](https://medium.com/@Sebastian-DD/export-a-network-from-powerfactory-to-the-power-system-data-model-db46103bdabe) about the exporter.
 
-The [PowerFactoryExporter](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2025/interface.py).
+The [PowerFactoryExporter](./src/powerfactory_tools/versions/pf2026/exporter/exporter.py) connects to PowerFactory via [PowerFactoryInterface](./src/powerfactory_tools/versions/pf2026/interface.py).
 
 - The grid export follows the rules of usage recommended by [PSDM][link_to_psdm]:
   - The passive sign convention is used for all types of loads (consumer as well as producer).
@@ -122,14 +132,14 @@ The [PowerFactoryExporter](./src/powerfactory_tools/versions/pf2025/exporter/exp
   - The default load model of medium-voltage loads (`ElmLodmv`) is of type `const. power`.
   - The default load model of low-voltage loads (`ElmLodlv`, `ElmLodlvp`) is of type `const. current`.
   - Be aware that the reference voltage of the load model must not match the nominal voltage of the terminal the load is connected to.
-  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./src/powerfactory_tools/versions/pf2025/exporter/load_power.py).
+  - By default, the power factor direction of the rated power is set to "not defined", see docs at [LoadPower:as_rated_power()](./src/powerfactory_tools/versions/pf2026/exporter/load_power.py).
   - Connected consumer loads with an active and reactive power of zero leads to a RatedPower of `NaN`. Consider to exclude them for export.
 
 - Remarks on export of `transformer`:
   - The impedances of all winding objects are referred to the high voltage side of the transformer.
   - The impedance of transformer earthing is an absolute natural value.
   - The zero sequence impedances are exported without considering the vector group, resulting zero sequence must be calculated separately by the user afterwards.
-  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter:create_transformer_2w()](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py).
+  - The zero sequence magnetising impedances are dependent on the wiring group, see docs at [PowerFactoryExporter:create_transformer_2w()](./src/powerfactory_tools/versions/pf2026/exporter/exporter.py).
 
 - Remarks on export of `fuses`:
   - Branch like fuses are exported as switching state.
@@ -138,7 +148,7 @@ The [PowerFactoryExporter](./src/powerfactory_tools/versions/pf2025/exporter/exp
 - Remarks on export of the `TopologyCase`:
   - In case that there is an element in the PowerFactory network that cannot be considered/exported by the PowerFactoryExporter according to the current version (e.g. `.ElmVsc`). If this element is connected to an open switch, the error "Topology case does not match specified topology" is thrown within the plausibility check of the export process and the run is terminated. To avoid this, the user has two options:
     - Manual change in PowerFactory: Close the relevant open switch and set the connected element out of service instead.
-    - Turn off plausibility check in PowerFactoryExporter: Set the `plausibility_check` parameter of the [PowerFactoryExporter:export()](./src/powerfactory_tools/versions/pf2025/exporter/exporter.py) to `False`.
+    - Turn off plausibility check in PowerFactoryExporter: Set the `plausibility_check` parameter of the [PowerFactoryExporter:export()](./src/powerfactory_tools/versions/pf2026/exporter/exporter.py) to `False`.
 
 - Remarks on export of the `SteadyStateCase`:
   - The operating points of the loads are specified by the controller and the associated load model in the topology for active or reactive power, see docs at [PSDM][link_to_psdm].
@@ -174,15 +184,16 @@ pip install ieeh-powerfactory-tools
 
 ## Compatibility
 
-| Tools Version | PSDM Version | PowerFactory Version | Recommended Python Version |
-|---------------|:------------:|:--------------------:|:----------------:|
-| <= 1.3.1      | 1.1.0        | 2022                 | 3.10             |
-| 1.4.x         | 1.1.0        | 2022                 | 3.10             |
-| 1.5.1         | 1.3.0        | 2022                 | 3.10             |
-| 2.1.0         | 2.2.0        | 2022                 | 3.10             |
-| 3.0.0         | 2.3.1        | 2022, 2024           | 3.10, 3.12       |
-| 3.2.0         | 2.3.3        | 2022, 2024           | 3.10, 3.12       |
-| 3.3.0         | 2.3.3        | 2022, 2024, 2025     | 3.10, 3.12, 3.13 |
+| Tools Version | PSDM Version | PowerFactory Version   | Recommended Python Version  |
+|---------------|:------------:|:----------------------:|:----------------:           |
+| <= 1.3.1      | 1.1.0        | 2022                   | 3.10                        |
+| 1.4.x         | 1.1.0        | 2022                   | 3.10                        |
+| 1.5.1         | 1.3.0        | 2022                   | 3.10                        |
+| 2.1.0         | 2.2.0        | 2022                   | 3.10                        |
+| 3.0.0         | 2.3.1        | 2022, 2024             | 3.10, 3.12                  |
+| 3.2.0         | 2.3.3        | 2022, 2024             | 3.10, 3.12                  |
+| 3.3.0         | 2.3.3        | 2022, 2024, 2025       | 3.10, 3.12, 3.13            |
+| 3.4.0         | 2.3.3        | 2022, 2024, 2025, 2026 | 3.10, 3.12, 3.13, 3.14      |
 
 **Remark**: As each PowerFactory version may extend features or change the way a model or command is used, powerfactory-tools comes with PowerFactory version-specific code, see [src/versions](./src/powerfactory_tools/versions/).
 
@@ -240,6 +251,7 @@ This code was tested with:
 - `DIgSILENT PowerFactory 2024 SP2` (version >= 3.0.0)
 - `DIgSILENT PowerFactory 2024 SP6` (version >= 3.2.0)
 - `DIgSILENT PowerFactory 2025 SP2` (version >= 3.3.0)
+- `DIgSILENT PowerFactory 2026 SP2` (version >= 3.4.0)
 
 ## Attribution
 

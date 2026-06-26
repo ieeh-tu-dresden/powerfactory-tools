@@ -465,35 +465,35 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 2850565.6,
+          "average": 2850565.7,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8551696.8,
+          "total": 8551697.1,
           "unit": "WATT",
           "value": [
-            2850565.6,
-            2850565.6,
-            2850565.6
+            2850565.7,
+            2850565.7,
+            2850565.7
           ]
         },
         "apparent_power": {
-          "average": 2850565.6,
+          "average": 2850565.7,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8551696.8,
+          "total": 8551697.1,
           "unit": "VA",
           "value": [
-            2850565.6,
-            2850565.6,
-            2850565.6
+            2850565.7,
+            2850565.7,
+            2850565.7
           ]
         },
         "cos_phi": {
@@ -609,35 +609,35 @@
       },
       "rated_power": {
         "active_power": {
-          "average": 11402261.2,
+          "average": 11402260.1,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_ACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 34206783.6,
+          "total": 34206780.3,
           "unit": "WATT",
           "value": [
-            11402261.2,
-            11402261.2,
-            11402261.2
+            11402260.1,
+            11402260.1,
+            11402260.1
           ]
         },
         "apparent_power": {
-          "average": 11753181.8,
+          "average": 11753180.7,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_APPARENT",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 35259545.4,
+          "total": 35259542.1,
           "unit": "VA",
           "value": [
-            11753181.8,
-            11753181.8,
-            11753181.8
+            11753180.7,
+            11753180.7,
+            11753180.7
           ]
         },
         "cos_phi": {
@@ -660,19 +660,19 @@
         "n_phases": 3,
         "optional_data": null,
         "reactive_power": {
-          "average": 2850565.3,
+          "average": 2850565.0,
           "is_symmetrical": true,
           "n_phases": 3,
           "optional_data": null,
           "power_type": "AC_REACTIVE",
           "precision": 1,
           "system_type": "NATURAL",
-          "total": 8551695.9,
+          "total": 8551695.0,
           "unit": "VAR",
           "value": [
-            2850565.3,
-            2850565.3,
-            2850565.3
+            2850565.0,
+            2850565.0,
+            2850565.0
           ]
         }
       },
@@ -1007,15 +1007,15 @@
   ],
   "meta": {
     "case": "3_Bus",
-    "creator": "powerfactory-tools @ version 3.2.1",
-    "date": "2025-08-26",
+    "creator": "powerfactory-tools @ version 3.3.1",
+    "date": "2026-06-22",
     "grid": "HV_3_Bus",
-    "id": "17af7ac8-6a98-4a59-890e-34be0b9b3ec9",
+    "id": "2a521507-5591-47da-838a-2c471a489835",
     "optional_data": [
       {
         "description": "The version of PowerFactory used for export.",
         "name": "PowerFactoryVersion",
-        "value": "PowerFactory 2024 || SP6"
+        "value": "PowerFactory 2026 || SP2"
       }
     ],
     "project": "PowerFactory-Tools",

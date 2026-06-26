@@ -1,6 +1,6 @@
 # :author: Sasan Jacob Rasti <sasan_jacob.rasti@tu-dresden.de>
 # :author: Sebastian Krahmer <sebastian.krahmer@tu-dresden.de>
-# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2025.
+# :copyright: Copyright (c) Institute of Electrical Power Systems and High Voltage Engineering - TU Dresden, 2022-2026.
 # :license: BSD 3-Clause
 
 from __future__ import annotations
@@ -26,25 +26,25 @@ from powerfactory_tools.powerfactory_error_codes import ErrorCode
 from powerfactory_tools.str_constants import PATH_SEPARATOR
 from powerfactory_tools.utils.io import BaseIoHandler
 from powerfactory_tools.utils.io import FileType
-from powerfactory_tools.versions.pf2025.constants import BaseUnits
-from powerfactory_tools.versions.pf2025.data import PowerFactoryData
-from powerfactory_tools.versions.pf2025.types import BusType
-from powerfactory_tools.versions.pf2025.types import CalculationCommand
-from powerfactory_tools.versions.pf2025.types import Currency
-from powerfactory_tools.versions.pf2025.types import FolderType
-from powerfactory_tools.versions.pf2025.types import MetricPrefix
-from powerfactory_tools.versions.pf2025.types import NetworkExtendedCalcType
-from powerfactory_tools.versions.pf2025.types import PFClassId
-from powerfactory_tools.versions.pf2025.types import PowerFactoryTypes as PFTypes
-from powerfactory_tools.versions.pf2025.types import ResultExportMode
-from powerfactory_tools.versions.pf2025.types import ShortCircuitCalcType
-from powerfactory_tools.versions.pf2025.types import ShortCircuitCurrentType
-from powerfactory_tools.versions.pf2025.types import ShortCircuitFaultType
-from powerfactory_tools.versions.pf2025.types import ShortCircuitPosition
-from powerfactory_tools.versions.pf2025.types import TimeSimulationNetworkCalcType
-from powerfactory_tools.versions.pf2025.types import TimeSimulationType
-from powerfactory_tools.versions.pf2025.types import UnitSystem
-from powerfactory_tools.versions.pf2025.types import ValidPFValue
+from powerfactory_tools.versions.pf2026.constants import BaseUnits
+from powerfactory_tools.versions.pf2026.data import PowerFactoryData
+from powerfactory_tools.versions.pf2026.types import BusType
+from powerfactory_tools.versions.pf2026.types import CalculationCommand
+from powerfactory_tools.versions.pf2026.types import Currency
+from powerfactory_tools.versions.pf2026.types import FolderType
+from powerfactory_tools.versions.pf2026.types import MetricPrefix
+from powerfactory_tools.versions.pf2026.types import NetworkExtendedCalcType
+from powerfactory_tools.versions.pf2026.types import PFClassId
+from powerfactory_tools.versions.pf2026.types import PowerFactoryTypes as PFTypes
+from powerfactory_tools.versions.pf2026.types import ResultExportMode
+from powerfactory_tools.versions.pf2026.types import ShortCircuitCalcType
+from powerfactory_tools.versions.pf2026.types import ShortCircuitCurrentType
+from powerfactory_tools.versions.pf2026.types import ShortCircuitFaultType
+from powerfactory_tools.versions.pf2026.types import ShortCircuitPosition
+from powerfactory_tools.versions.pf2026.types import TimeSimulationNetworkCalcType
+from powerfactory_tools.versions.pf2026.types import TimeSimulationType
+from powerfactory_tools.versions.pf2026.types import UnitSystem
+from powerfactory_tools.versions.pf2026.types import ValidPFValue
 
 if t.TYPE_CHECKING:
     from collections.abc import Iterable
@@ -61,11 +61,12 @@ class ValidPythonVersion(enum.Enum):
     VERSION_3_11 = "3.11"
     VERSION_3_12 = "3.12"
     VERSION_3_13 = "3.13"
+    VERSION_3_14 = "3.14"
 
 
-POWERFACTORY_VERSION = "PowerFactory 2025"
+POWERFACTORY_VERSION = "PowerFactory 2026"
 DEFAULT_POWERFACTORY_PATH = pathlib.Path("C:/Program Files/DIgSILENT")
-DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_13
+DEFAULT_PYTHON_VERSION = ValidPythonVersion.VERSION_3_14
 
 config = pydantic.ConfigDict(use_enum_values=True)
 

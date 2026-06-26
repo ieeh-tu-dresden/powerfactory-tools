@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [test-code]
     env:
-      PYTHON_VERSION: "3.12"
+      PYTHON_VERSION: "3.13"
 
     steps:
       - name: Check out repository
