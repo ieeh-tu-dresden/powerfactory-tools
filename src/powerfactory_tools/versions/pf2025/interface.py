@@ -217,7 +217,13 @@ class PowerFactoryInterface:
         if self.powerfactory_ini_name is None:
             command_line_arg = None
         else:
-            if self.powerfactory_ini_path is None:
+        ini_path = (
+                    self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
+                    if self.powerfactory_service_pack is None
+                    else self.powerfactory_path
+                    / (POWERFACTORY_VERSION + f" SP{self.powerfactory_service_pack}")
+                    / (self.powerfactory_ini_name + ".ini")
+                ) if self.powerfactory_ini_path is None else self.powerfactory_ini_path / (self.powerfactory_ini_name + ".ini")
                 ini_path = (
                     self.powerfactory_path / POWERFACTORY_VERSION / (self.powerfactory_ini_name + ".ini")
                     if self.powerfactory_service_pack is None
