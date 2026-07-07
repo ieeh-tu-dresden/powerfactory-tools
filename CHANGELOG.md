@@ -3,10 +3,11 @@
 ### Feat
 
 - support for PF 2026 (#354)
+- **types**: add more application methods (#349)
+- **interface**:  add function to get graphic of grid element (#347)
 - **interface**: establish interface without mandatory project activation (#346)
-- add more application methods (#349)
 - **interface**: incorporating variant stage when activating grid variant (#341)
-- add comfort function related to cubicle (#334)
+- **interface**: add comfort function related to cubicle (#334)
 
 ## 3.3.1 (2025-12-03)
 
