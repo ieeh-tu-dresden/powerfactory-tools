@@ -1,3 +1,9 @@
+## 3.4.1 (2026-07-07)
+
+### Fix
+
+- **ci**: in actions update checkout, adjust license year update and fix pypi upload (#360)
+
 ## 3.4.0 (2026-07-07)
 
 ### Feat

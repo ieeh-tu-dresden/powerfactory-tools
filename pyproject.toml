@@ -16,7 +16,7 @@
   name = "ieeh-powerfactory-tools"
   readme = "README.md"
   requires-python = ">=3.10,<3.15"
-  version = "3.4.0"
+  version = "3.4.1"
 
   [project.optional-dependencies]
     io-pandas   = ["pandas", "pyarrow"]
@@ -116,7 +116,7 @@
 [tool.commitizen]
   name = "cz_conventional_commits"
   tag_format = "$version"
-  version = "3.4.0"
+  version = "3.4.1"
   version_files = [
     ".zenodo.json:version",
     "CITATION.cff:cff-version",
